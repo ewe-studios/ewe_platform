@@ -7,6 +7,8 @@
 
 #![cfg(feature = "planetscale")]
 
+pub mod types;
+
 use crate::providers::planetscale::clients::types::*;
 use crate::providers::planetscale::resources::*;
 use foundation_core::valtron::{
@@ -29,8 +31,8 @@ use serde::Serialize;
 
 pub fn list_organizations_builder<R>(
     client: &SimpleHttpClient<R>,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -165,9 +167,9 @@ pub fn list_organizations_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListOrganizationsArgs {
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations
@@ -515,9 +517,9 @@ pub fn update_organization(
 pub fn list_audit_logs_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
-    starting_after: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    starting_after: &Option<String>,
+    ending_before: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -660,11 +662,11 @@ pub struct ListAuditLogsArgs {
     /// Path parameter: organization
     pub organization: String,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /organizations/{organization}/audit-log
@@ -704,9 +706,9 @@ pub fn list_audit_logs(
 pub fn list_cluster_size_skus_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
-    engine: &Option<Option<String>>,
-    rates: &Option<Option<String>>,
-    region: &Option<Option<String>>,
+    engine: &Option<String>,
+    rates: &Option<String>,
+    region: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -849,11 +851,11 @@ pub struct ListClusterSizeSkusArgs {
     /// Path parameter: organization
     pub organization: String,
     /// Query parameter: engine
-    pub engine: Option<Option<String>>,
+    pub engine: Option<String>,
     /// Query parameter: rates
-    pub rates: Option<Option<String>>,
+    pub rates: Option<String>,
     /// Query parameter: region
-    pub region: Option<Option<String>>,
+    pub region: Option<String>,
 }
 
 /// GET /organizations/{organization}/cluster-size-skus
@@ -893,9 +895,9 @@ pub fn list_cluster_size_skus(
 pub fn list_databases_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
-    q: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    q: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1038,11 +1040,11 @@ pub struct ListDatabasesArgs {
     /// Path parameter: organization
     pub organization: String,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases
@@ -1720,8 +1722,8 @@ pub fn list_backup_policies_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     database: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1863,9 +1865,9 @@ pub struct ListBackupPoliciesArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/backup-policies
@@ -2557,12 +2559,12 @@ pub fn list_branches_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     database: &String,
-    q: &Option<Option<String>>,
-    production: &Option<Option<String>>,
-    safe_migrations: &Option<Option<String>>,
-    order: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    q: &Option<String>,
+    production: &Option<String>,
+    safe_migrations: &Option<String>,
+    order: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2716,17 +2718,17 @@ pub struct ListBranchesArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
     /// Query parameter: production
-    pub production: Option<Option<String>>,
+    pub production: Option<String>,
     /// Query parameter: safe_migrations
-    pub safe_migrations: Option<Option<String>>,
+    pub safe_migrations: Option<String>,
     /// Query parameter: order
-    pub order: Option<Option<String>>,
+    pub order: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/branches
@@ -3258,7 +3260,7 @@ pub fn delete_branch_builder<R>(
     organization: &String,
     database: &String,
     branch: &String,
-    delete_descendants: &Option<Option<String>>,
+    delete_descendants: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3399,7 +3401,7 @@ pub struct DeleteBranchArgs {
     /// Path parameter: branch
     pub branch: String,
     /// Query parameter: delete_descendants
-    pub delete_descendants: Option<Option<String>>,
+    pub delete_descendants: Option<String>,
 }
 
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}
@@ -3441,15 +3443,15 @@ pub fn list_backups_builder<R>(
     organization: &String,
     database: &String,
     branch: &String,
-    all: &Option<Option<String>>,
-    state: &Option<Option<String>>,
-    policy: &Option<Option<String>>,
-    from: &Option<Option<String>>,
-    to: &Option<Option<String>>,
-    running_at: &Option<Option<String>>,
-    production: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    all: &Option<String>,
+    state: &Option<String>,
+    policy: &Option<String>,
+    from: &Option<String>,
+    to: &Option<String>,
+    running_at: &Option<String>,
+    production: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3614,23 +3616,23 @@ pub struct ListBackupsArgs {
     /// Path parameter: branch
     pub branch: String,
     /// Query parameter: all
-    pub all: Option<Option<String>>,
+    pub all: Option<String>,
     /// Query parameter: state
-    pub state: Option<Option<String>>,
+    pub state: Option<String>,
     /// Query parameter: policy
-    pub policy: Option<Option<String>>,
+    pub policy: Option<String>,
     /// Query parameter: from
-    pub from: Option<Option<String>>,
+    pub from: Option<String>,
     /// Query parameter: to
-    pub to: Option<Option<String>>,
+    pub to: Option<String>,
     /// Query parameter: running_at
-    pub running_at: Option<Option<String>>,
+    pub running_at: Option<String>,
     /// Query parameter: production
-    pub production: Option<Option<String>>,
+    pub production: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/backups
@@ -4359,8 +4361,8 @@ pub fn list_branch_bouncer_resize_requests_builder<R>(
     organization: &String,
     database: &String,
     branch: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4504,9 +4506,9 @@ pub struct ListBranchBouncerResizeRequestsArgs {
     /// Path parameter: branch
     pub branch: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/bouncer-resizes
@@ -4549,8 +4551,8 @@ pub fn list_bouncers_builder<R>(
     organization: &String,
     database: &String,
     branch: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4694,9 +4696,9 @@ pub struct ListBouncersArgs {
     /// Path parameter: branch
     pub branch: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/bouncers
@@ -5247,8 +5249,8 @@ pub fn list_bouncer_resize_requests_builder<R>(
     database: &String,
     branch: &String,
     bouncer: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5397,9 +5399,9 @@ pub struct ListBouncerResizeRequestsArgs {
     /// Path parameter: bouncer
     pub bouncer: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/bouncers/{bouncer}/resizes
@@ -5793,8 +5795,8 @@ pub fn list_branch_change_requests_builder<R>(
     organization: &String,
     database: &String,
     branch: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5938,9 +5940,9 @@ pub struct ListBranchChangeRequestsArgs {
     /// Path parameter: branch
     pub branch: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/changes
@@ -6818,8 +6820,8 @@ pub fn list_keyspaces_builder<R>(
     organization: &String,
     database: &String,
     branch: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6963,9 +6965,9 @@ pub struct ListKeyspacesArgs {
     /// Path parameter: branch
     pub branch: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces
@@ -8377,9 +8379,9 @@ pub fn list_passwords_builder<R>(
     organization: &String,
     database: &String,
     branch: &String,
-    read_only_region_id: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    read_only_region_id: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8526,11 +8528,11 @@ pub struct ListPasswordsArgs {
     /// Path parameter: branch
     pub branch: String,
     /// Query parameter: read_only_region_id
-    pub read_only_region_id: Option<Option<String>>,
+    pub read_only_region_id: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/passwords
@@ -9592,9 +9594,9 @@ pub fn list_generated_query_patterns_reports_builder<R>(
     organization: &String,
     database: &String,
     branch: &String,
-    starting_after: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    starting_after: &Option<String>,
+    ending_before: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9741,11 +9743,11 @@ pub struct ListGeneratedQueryPatternsReportsArgs {
     /// Path parameter: branch
     pub branch: String,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/query-patterns
@@ -10650,8 +10652,8 @@ pub fn list_roles_builder<R>(
     organization: &String,
     database: &String,
     branch: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10795,9 +10797,9 @@ pub struct ListRolesArgs {
     /// Path parameter: branch
     pub branch: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/roles
@@ -11678,7 +11680,7 @@ pub fn delete_role_builder<R>(
     database: &String,
     branch: &String,
     id: &String,
-    successor: &Option<Option<String>>,
+    successor: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11821,7 +11823,7 @@ pub struct DeleteRoleArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: successor
-    pub successor: Option<Option<String>>,
+    pub successor: Option<String>,
 }
 
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/roles/{id}
@@ -12711,8 +12713,8 @@ pub fn get_branch_schema_builder<R>(
     organization: &String,
     database: &String,
     branch: &String,
-    keyspace: &Option<Option<String>>,
-    namespace: &Option<Option<String>>,
+    keyspace: &Option<String>,
+    namespace: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12856,9 +12858,9 @@ pub struct GetBranchSchemaArgs {
     /// Path parameter: branch
     pub branch: String,
     /// Query parameter: keyspace
-    pub keyspace: Option<Option<String>>,
+    pub keyspace: Option<String>,
     /// Query parameter: namespace
-    pub namespace: Option<Option<String>>,
+    pub namespace: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/schema
@@ -12901,8 +12903,8 @@ pub fn lint_branch_schema_builder<R>(
     organization: &String,
     database: &String,
     branch: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13046,9 +13048,9 @@ pub struct LintBranchSchemaArgs {
     /// Path parameter: branch
     pub branch: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/schema/lint
@@ -13091,11 +13093,11 @@ pub fn list_traffic_budgets_builder<R>(
     organization: &String,
     database: &String,
     branch: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
-    period: &Option<Option<String>>,
-    created_at: &Option<Option<String>>,
-    fingerprint: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
+    period: &Option<String>,
+    created_at: &Option<String>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13248,15 +13250,15 @@ pub struct ListTrafficBudgetsArgs {
     /// Path parameter: branch
     pub branch: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
     /// Query parameter: period
-    pub period: Option<Option<String>>,
+    pub period: Option<String>,
     /// Query parameter: created_at
-    pub created_at: Option<Option<String>>,
+    pub created_at: Option<String>,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets
@@ -14345,8 +14347,8 @@ pub fn list_database_postgres_cidrs_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     database: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14488,9 +14490,9 @@ pub struct ListDatabasePostgresCidrsArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/cidrs
@@ -15192,8 +15194,8 @@ pub fn get_deploy_queue_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     database: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15335,9 +15337,9 @@ pub struct GetDeployQueueArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/deploy-queue
@@ -15378,13 +15380,13 @@ pub fn list_deploy_requests_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     database: &String,
-    state: &Option<Option<String>>,
-    branch: &Option<Option<String>>,
-    into_branch: &Option<Option<String>>,
-    deployed_at: &Option<Option<String>>,
-    running_at: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    state: &Option<String>,
+    branch: &Option<String>,
+    into_branch: &Option<String>,
+    deployed_at: &Option<String>,
+    running_at: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15541,19 +15543,19 @@ pub struct ListDeployRequestsArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: state
-    pub state: Option<Option<String>>,
+    pub state: Option<String>,
     /// Query parameter: branch
-    pub branch: Option<Option<String>>,
+    pub branch: Option<String>,
     /// Query parameter: into_branch
-    pub into_branch: Option<Option<String>>,
+    pub into_branch: Option<String>,
     /// Query parameter: deployed_at
-    pub deployed_at: Option<Option<String>>,
+    pub deployed_at: Option<String>,
     /// Query parameter: running_at
-    pub running_at: Option<Option<String>>,
+    pub running_at: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/deploy-requests
@@ -17253,8 +17255,8 @@ pub fn list_deploy_operations_builder<R>(
     number: &String,
     organization: &String,
     database: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17400,9 +17402,9 @@ pub struct ListDeployOperationsArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}/operations
@@ -17609,8 +17611,8 @@ pub fn list_deploy_request_reviews_builder<R>(
     organization: &String,
     database: &String,
     number: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17754,9 +17756,9 @@ pub struct ListDeployRequestReviewsArgs {
     /// Path parameter: number
     pub number: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}/reviews
@@ -18634,8 +18636,8 @@ pub fn list_maintenance_schedules_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     database: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18777,9 +18779,9 @@ pub struct ListMaintenanceSchedulesArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/maintenance-schedules
@@ -18985,8 +18987,8 @@ pub fn list_maintenance_windows_builder<R>(
     id: &String,
     organization: &String,
     database: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19132,9 +19134,9 @@ pub struct ListMaintenanceWindowsArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/maintenance-schedules/{id}/windows
@@ -19176,8 +19178,8 @@ pub fn list_read_only_regions_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     database: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19319,9 +19321,9 @@ pub struct ListReadOnlyRegionsArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/read-only-regions
@@ -19362,8 +19364,8 @@ pub fn list_database_regions_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     database: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19505,9 +19507,9 @@ pub struct ListDatabaseRegionsArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/regions
@@ -19548,9 +19550,9 @@ pub fn list_schema_recommendations_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     database: &String,
-    state: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    state: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19695,11 +19697,11 @@ pub struct ListSchemaRecommendationsArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: state
-    pub state: Option<Option<String>>,
+    pub state: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/schema-recommendations
@@ -20399,8 +20401,8 @@ pub fn list_webhooks_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     database: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20542,9 +20544,9 @@ pub struct ListWebhooksArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/webhooks
@@ -21397,9 +21399,9 @@ pub fn list_workflows_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     database: &String,
-    between: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    between: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21544,11 +21546,11 @@ pub struct ListWorkflowsArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: between
-    pub between: Option<Option<String>>,
+    pub between: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/databases/{database}/workflows
@@ -23393,8 +23395,8 @@ pub fn verify_workflow(
 pub fn list_invoices_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23534,9 +23536,9 @@ pub struct ListInvoicesArgs {
     /// Path parameter: organization
     pub organization: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/invoices
@@ -23731,8 +23733,8 @@ pub fn get_invoice_line_items_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     id: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23874,9 +23876,9 @@ pub struct GetInvoiceLineItemsArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/invoices/{id}/line-items
@@ -23916,9 +23918,9 @@ pub fn get_invoice_line_items(
 pub fn list_organization_members_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
-    q: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    q: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24061,11 +24063,11 @@ pub struct ListOrganizationMembersArgs {
     /// Path parameter: organization
     pub organization: String,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/members
@@ -24426,8 +24428,8 @@ pub fn remove_organization_member_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     id: &String,
-    delete_passwords: &Option<Option<String>>,
-    delete_service_tokens: &Option<Option<String>>,
+    delete_passwords: &Option<String>,
+    delete_service_tokens: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24569,9 +24571,9 @@ pub struct RemoveOrganizationMemberArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: delete_passwords
-    pub delete_passwords: Option<Option<String>>,
+    pub delete_passwords: Option<String>,
     /// Query parameter: delete_service_tokens
-    pub delete_service_tokens: Option<Option<String>>,
+    pub delete_service_tokens: Option<String>,
 }
 
 /// DELETE /organizations/{organization}/members/{id}
@@ -24611,8 +24613,8 @@ pub fn remove_organization_member(
 pub fn list_oauth_applications_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24752,9 +24754,9 @@ pub struct ListOauthApplicationsArgs {
     /// Path parameter: organization
     pub organization: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/oauth-applications
@@ -24950,8 +24952,8 @@ pub fn list_oauth_tokens_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     application_id: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25093,9 +25095,9 @@ pub struct ListOauthTokensArgs {
     /// Path parameter: application_id
     pub application_id: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/oauth-applications/{application_id}/tokens
@@ -25631,8 +25633,8 @@ pub fn create_oauth_token(
 pub fn list_regions_for_organization_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25772,9 +25774,9 @@ pub struct ListRegionsForOrganizationArgs {
     /// Path parameter: organization
     pub organization: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/regions
@@ -25813,8 +25815,8 @@ pub fn list_regions_for_organization(
 pub fn list_service_tokens_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25954,9 +25956,9 @@ pub struct ListServiceTokensArgs {
     /// Path parameter: organization
     pub organization: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/service-tokens
@@ -26468,9 +26470,9 @@ pub fn delete_service_token(
 pub fn list_organization_teams_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
-    q: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    q: &Option<String>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26613,11 +26615,11 @@ pub struct ListOrganizationTeamsArgs {
     /// Path parameter: organization
     pub organization: String,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/teams
@@ -27295,8 +27297,8 @@ pub fn list_organization_team_members_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
     team: &String,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27438,9 +27440,9 @@ pub struct ListOrganizationTeamMembersArgs {
     /// Path parameter: team
     pub team: String,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /organizations/{organization}/teams/{team}/members
@@ -27806,7 +27808,7 @@ pub fn remove_organization_team_member_builder<R>(
     organization: &String,
     team: &String,
     id: &String,
-    delete_passwords: &Option<Option<String>>,
+    delete_passwords: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27947,7 +27949,7 @@ pub struct RemoveOrganizationTeamMemberArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: delete_passwords
-    pub delete_passwords: Option<Option<String>>,
+    pub delete_passwords: Option<String>,
 }
 
 /// DELETE /organizations/{organization}/teams/{team}/members/{id}
@@ -27986,8 +27988,8 @@ pub fn remove_organization_team_member(
 
 pub fn list_public_regions_builder<R>(
     client: &SimpleHttpClient<R>,
-    page: &Option<Option<String>>,
-    per_page: &Option<Option<String>>,
+    page: &Option<String>,
+    per_page: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28122,9 +28124,9 @@ pub fn list_public_regions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListPublicRegionsArgs {
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: per_page
-    pub per_page: Option<Option<String>>,
+    pub per_page: Option<String>,
 }
 
 /// GET /regions

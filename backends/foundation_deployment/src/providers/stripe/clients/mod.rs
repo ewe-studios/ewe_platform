@@ -7,6 +7,8 @@
 
 #![cfg(feature = "stripe")]
 
+pub mod types;
+
 use crate::providers::stripe::clients::types::*;
 use crate::providers::stripe::resources::*;
 use foundation_core::valtron::{
@@ -29,7 +31,7 @@ use serde::Serialize;
 
 pub fn get_account_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -164,7 +166,7 @@ pub fn get_account_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAccountArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/account
@@ -497,11 +499,11 @@ pub fn post_account_sessions(
 
 pub fn get_accounts_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -645,15 +647,15 @@ pub fn get_accounts_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAccountsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/accounts
@@ -838,7 +840,7 @@ pub fn post_accounts(
 pub fn get_accounts_account_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -975,7 +977,7 @@ pub struct GetAccountsAccountArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/accounts/{account}
@@ -1492,7 +1494,7 @@ pub fn get_accounts_account_bank_accounts_id_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1636,7 +1638,7 @@ pub struct GetAccountsAccountBankAccountsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/accounts/{account}/bank_accounts/{id}
@@ -2008,7 +2010,7 @@ pub fn delete_accounts_account_bank_accounts_id(
 pub fn get_accounts_account_capabilities_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2145,7 +2147,7 @@ pub struct GetAccountsAccountCapabilitiesArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/accounts/{account}/capabilities
@@ -2180,7 +2182,7 @@ pub fn get_accounts_account_capabilities_capability_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
     capability: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2322,7 +2324,7 @@ pub struct GetAccountsAccountCapabilitiesCapabilityArgs {
     /// Path parameter: capability
     pub capability: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/accounts/{account}/capabilities/{capability}
@@ -2528,11 +2530,11 @@ pub fn post_accounts_account_capabilities_capability(
 pub fn get_accounts_account_external_accounts_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    object: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    object: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2681,15 +2683,15 @@ pub struct GetAccountsAccountExternalAccountsArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: object
-    pub object: Option<Option<String>>,
+    pub object: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/accounts/{account}/external_accounts
@@ -2896,7 +2898,7 @@ pub fn get_accounts_account_external_accounts_id_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3040,7 +3042,7 @@ pub struct GetAccountsAccountExternalAccountsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/accounts/{account}/external_accounts/{id}
@@ -3573,11 +3575,11 @@ pub fn post_accounts_account_login_links(
 pub fn get_accounts_account_people_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    relationship: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    relationship: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3723,15 +3725,15 @@ pub struct GetAccountsAccountPeopleArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: relationship
-    pub relationship: Option<Option<String>>,
+    pub relationship: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/accounts/{account}/people
@@ -3931,7 +3933,7 @@ pub fn get_accounts_account_people_person_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
     person: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4073,7 +4075,7 @@ pub struct GetAccountsAccountPeoplePersonArgs {
     /// Path parameter: person
     pub person: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/accounts/{account}/people/{person}
@@ -4443,11 +4445,11 @@ pub fn delete_accounts_account_people_person(
 pub fn get_accounts_account_persons_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    relationship: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    relationship: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4593,15 +4595,15 @@ pub struct GetAccountsAccountPersonsArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: relationship
-    pub relationship: Option<Option<String>>,
+    pub relationship: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/accounts/{account}/persons
@@ -4801,7 +4803,7 @@ pub fn get_accounts_account_persons_person_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
     person: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4943,7 +4945,7 @@ pub struct GetAccountsAccountPersonsPersonArgs {
     /// Path parameter: person
     pub person: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/accounts/{account}/persons/{person}
@@ -5469,11 +5471,11 @@ pub fn post_accounts_account_reject(
 
 pub fn get_apple_pay_domains_builder<R>(
     client: &SimpleHttpClient<R>,
-    domain_name: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    domain_name: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5615,15 +5617,15 @@ pub fn get_apple_pay_domains_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetApplePayDomainsArgs {
     /// Query parameter: domain_name
-    pub domain_name: Option<Option<String>>,
+    pub domain_name: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/apple_pay/domains
@@ -5810,7 +5812,7 @@ pub fn post_apple_pay_domains(
 pub fn get_apple_pay_domains_domain_builder<R>(
     client: &SimpleHttpClient<R>,
     domain: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5947,7 +5949,7 @@ pub struct GetApplePayDomainsDomainArgs {
     /// Path parameter: domain
     pub domain: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/apple_pay/domains/{domain}
@@ -6138,12 +6140,12 @@ pub fn delete_apple_pay_domains_domain(
 
 pub fn get_application_fees_builder<R>(
     client: &SimpleHttpClient<R>,
-    charge: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    charge: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6290,17 +6292,17 @@ pub fn get_application_fees_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetApplicationFeesArgs {
     /// Query parameter: charge
-    pub charge: Option<Option<String>>,
+    pub charge: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/application_fees
@@ -6343,7 +6345,7 @@ pub fn get_application_fees_fee_refunds_id_builder<R>(
     client: &SimpleHttpClient<R>,
     fee: &String,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6485,7 +6487,7 @@ pub struct GetApplicationFeesFeeRefundsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/application_fees/{fee}/refunds/{id}
@@ -6683,7 +6685,7 @@ pub fn post_application_fees_fee_refunds_id(
 pub fn get_application_fees_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6822,7 +6824,7 @@ pub struct GetApplicationFeesIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/application_fees/{id}
@@ -7015,10 +7017,10 @@ pub fn post_application_fees_id_refund(
 pub fn get_application_fees_id_refunds_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7161,13 +7163,13 @@ pub struct GetApplicationFeesIdRefundsArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/application_fees/{id}/refunds
@@ -7364,11 +7366,11 @@ pub fn post_application_fees_id_refunds(
 
 pub fn get_apps_secrets_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    scope: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    scope: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7512,15 +7514,15 @@ pub fn get_apps_secrets_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAppsSecretsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: scope
-    pub scope: Option<Option<String>>,
+    pub scope: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/apps/secrets
@@ -7856,9 +7858,9 @@ pub fn post_apps_secrets_delete(
 
 pub fn get_apps_secrets_find_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    scope: &Option<Option<String>>,
+    expand: &Option<String>,
+    name: &Option<String>,
+    scope: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7999,11 +8001,11 @@ pub fn get_apps_secrets_find_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAppsSecretsFindArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: scope
-    pub scope: Option<Option<String>>,
+    pub scope: Option<String>,
 }
 
 /// GET /v1/apps/secrets/find
@@ -8036,7 +8038,7 @@ pub fn get_apps_secrets_find(
 
 pub fn get_balance_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8171,7 +8173,7 @@ pub fn get_balance_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetBalanceArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/balance
@@ -8204,15 +8206,15 @@ pub fn get_balance(
 
 pub fn get_balance_history_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    currency: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    payout: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    created: &Option<String>,
+    currency: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    payout: &Option<String>,
+    source: &Option<String>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8368,23 +8370,23 @@ pub fn get_balance_history_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetBalanceHistoryArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: currency
-    pub currency: Option<Option<String>>,
+    pub currency: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: payout
-    pub payout: Option<Option<String>>,
+    pub payout: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET /v1/balance/history
@@ -8429,7 +8431,7 @@ pub fn get_balance_history(
 pub fn get_balance_history_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8568,7 +8570,7 @@ pub struct GetBalanceHistoryIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/balance/history/{id}
@@ -8603,7 +8605,7 @@ pub fn get_balance_history_id(
 
 pub fn get_balance_settings_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8740,7 +8742,7 @@ pub fn get_balance_settings_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetBalanceSettingsArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/balance_settings
@@ -8927,15 +8929,15 @@ pub fn post_balance_settings(
 
 pub fn get_balance_transactions_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    currency: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    payout: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    created: &Option<String>,
+    currency: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    payout: &Option<String>,
+    source: &Option<String>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9091,23 +9093,23 @@ pub fn get_balance_transactions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetBalanceTransactionsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: currency
-    pub currency: Option<Option<String>>,
+    pub currency: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: payout
-    pub payout: Option<Option<String>>,
+    pub payout: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET /v1/balance_transactions
@@ -9152,7 +9154,7 @@ pub fn get_balance_transactions(
 pub fn get_balance_transactions_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9291,7 +9293,7 @@ pub struct GetBalanceTransactionsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/balance_transactions/{id}
@@ -9326,12 +9328,12 @@ pub fn get_balance_transactions_id(
 
 pub fn get_billing_alerts_builder<R>(
     client: &SimpleHttpClient<R>,
-    alert_type: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    meter: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    alert_type: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    meter: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9478,17 +9480,17 @@ pub fn get_billing_alerts_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetBillingAlertsArgs {
     /// Query parameter: alert_type
-    pub alert_type: Option<Option<String>>,
+    pub alert_type: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: meter
-    pub meter: Option<Option<String>>,
+    pub meter: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/billing/alerts
@@ -9682,7 +9684,7 @@ pub fn post_billing_alerts(
 pub fn get_billing_alerts_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9821,7 +9823,7 @@ pub struct GetBillingAlertsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/billing/alerts/{id}
@@ -10342,10 +10344,10 @@ pub fn post_billing_alerts_id_deactivate(
 
 pub fn get_billing_credit_balance_summary_builder<R>(
     client: &SimpleHttpClient<R>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    expand: &Option<String>,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10493,13 +10495,13 @@ pub fn get_billing_credit_balance_summary_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetBillingCreditBalanceSummaryArgs {
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
 }
 
 /// GET /v1/billing/credit_balance_summary
@@ -10542,13 +10544,13 @@ pub fn get_billing_credit_balance_summary(
 
 pub fn get_billing_credit_balance_transactions_builder<R>(
     client: &SimpleHttpClient<R>,
-    credit_grant: &Option<Option<String>>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    credit_grant: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10698,19 +10700,19 @@ pub fn get_billing_credit_balance_transactions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetBillingCreditBalanceTransactionsArgs {
     /// Query parameter: credit_grant
-    pub credit_grant: Option<Option<String>>,
+    pub credit_grant: Option<String>,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/billing/credit_balance_transactions
@@ -10753,7 +10755,7 @@ pub fn get_billing_credit_balance_transactions(
 pub fn get_billing_credit_balance_transactions_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10897,7 +10899,7 @@ pub struct GetBillingCreditBalanceTransactionsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/billing/credit_balance_transactions/{id}
@@ -10935,12 +10937,12 @@ pub fn get_billing_credit_balance_transactions_id(
 
 pub fn get_billing_credit_grants_builder<R>(
     client: &SimpleHttpClient<R>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11087,17 +11089,17 @@ pub fn get_billing_credit_grants_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetBillingCreditGrantsArgs {
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/billing/credit_grants
@@ -11291,7 +11293,7 @@ pub fn post_billing_credit_grants(
 pub fn get_billing_credit_grants_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11430,7 +11432,7 @@ pub struct GetBillingCreditGrantsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/billing/credit_grants/{id}
@@ -12262,11 +12264,11 @@ pub fn post_billing_meter_events(
 
 pub fn get_billing_meters_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12410,15 +12412,15 @@ pub fn get_billing_meters_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetBillingMetersArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/billing/meters
@@ -12611,7 +12613,7 @@ pub fn post_billing_meters(
 pub fn get_billing_meters_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12750,7 +12752,7 @@ pub struct GetBillingMetersIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/billing/meters/{id}
@@ -13111,14 +13113,14 @@ pub fn post_billing_meters_id_deactivate(
 pub fn get_billing_meters_id_event_summaries_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    customer: &Option<Option<String>>,
-    end_time: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    start_time: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    value_grouping_window: &Option<Option<String>>,
+    customer: &Option<String>,
+    end_time: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    start_time: &Option<String>,
+    starting_after: &Option<String>,
+    value_grouping_window: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13276,21 +13278,21 @@ pub struct GetBillingMetersIdEventSummariesArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: end_time
-    pub end_time: Option<Option<String>>,
+    pub end_time: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: start_time
-    pub start_time: Option<Option<String>>,
+    pub start_time: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: value_grouping_window
-    pub value_grouping_window: Option<Option<String>>,
+    pub value_grouping_window: Option<String>,
 }
 
 /// GET /v1/billing/meters/{id}/event_summaries
@@ -13498,12 +13500,12 @@ pub fn post_billing_meters_id_reactivate(
 
 pub fn get_billing_portal_configurations_builder<R>(
     client: &SimpleHttpClient<R>,
-    active: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    is_default: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    active: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    is_default: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13650,17 +13652,17 @@ pub fn get_billing_portal_configurations_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetBillingPortalConfigurationsArgs {
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: is_default
-    pub is_default: Option<Option<String>>,
+    pub is_default: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/billing_portal/configurations
@@ -13858,7 +13860,7 @@ pub fn post_billing_portal_configurations(
 pub fn get_billing_portal_configurations_configuration_builder<R>(
     client: &SimpleHttpClient<R>,
     configuration: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14002,7 +14004,7 @@ pub struct GetBillingPortalConfigurationsConfigurationArgs {
     /// Path parameter: configuration
     pub configuration: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/billing_portal/configurations/{configuration}
@@ -14364,14 +14366,14 @@ pub fn post_billing_portal_sessions(
 
 pub fn get_charges_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    customer: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    payment_intent: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    transfer_group: &Option<Option<String>>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    payment_intent: &Option<String>,
+    starting_after: &Option<String>,
+    transfer_group: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14524,21 +14526,21 @@ pub fn get_charges_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetChargesArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: payment_intent
-    pub payment_intent: Option<Option<String>>,
+    pub payment_intent: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: transfer_group
-    pub transfer_group: Option<Option<String>>,
+    pub transfer_group: Option<String>,
 }
 
 /// GET /v1/charges
@@ -14725,10 +14727,10 @@ pub fn post_charges(
 
 pub fn get_charges_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14869,13 +14871,13 @@ pub fn get_charges_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetChargesSearchArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET /v1/charges/search
@@ -14910,7 +14912,7 @@ pub fn get_charges_search(
 pub fn get_charges_charge_builder<R>(
     client: &SimpleHttpClient<R>,
     charge: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15047,7 +15049,7 @@ pub struct GetChargesChargeArgs {
     /// Path parameter: charge
     pub charge: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/charges/{charge}
@@ -15394,7 +15396,7 @@ pub fn post_charges_charge_capture(
 pub fn get_charges_charge_dispute_builder<R>(
     client: &SimpleHttpClient<R>,
     charge: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15529,7 +15531,7 @@ pub struct GetChargesChargeDisputeArgs {
     /// Path parameter: charge
     pub charge: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/charges/{charge}/dispute
@@ -16028,10 +16030,10 @@ pub fn post_charges_charge_refund(
 pub fn get_charges_charge_refunds_builder<R>(
     client: &SimpleHttpClient<R>,
     charge: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16174,13 +16176,13 @@ pub struct GetChargesChargeRefundsArgs {
     /// Path parameter: charge
     pub charge: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/charges/{charge}/refunds
@@ -16378,7 +16380,7 @@ pub fn get_charges_charge_refunds_refund_builder<R>(
     client: &SimpleHttpClient<R>,
     charge: &String,
     refund: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16518,7 +16520,7 @@ pub struct GetChargesChargeRefundsRefundArgs {
     /// Path parameter: refund
     pub refund: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/charges/{charge}/refunds/{refund}
@@ -16714,18 +16716,18 @@ pub fn post_charges_charge_refunds_refund(
 
 pub fn get_checkout_sessions_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    customer_details: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    payment_intent: &Option<Option<String>>,
-    payment_link: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    subscription: &Option<Option<String>>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    customer_details: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    payment_intent: &Option<String>,
+    payment_link: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    subscription: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16890,29 +16892,29 @@ pub fn get_checkout_sessions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCheckoutSessionsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: customer_details
-    pub customer_details: Option<Option<String>>,
+    pub customer_details: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: payment_intent
-    pub payment_intent: Option<Option<String>>,
+    pub payment_intent: Option<String>,
     /// Query parameter: payment_link
-    pub payment_link: Option<Option<String>>,
+    pub payment_link: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: subscription
-    pub subscription: Option<Option<String>>,
+    pub subscription: Option<String>,
 }
 
 /// GET /v1/checkout/sessions
@@ -17112,7 +17114,7 @@ pub fn post_checkout_sessions(
 pub fn get_checkout_sessions_session_builder<R>(
     client: &SimpleHttpClient<R>,
     session: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17251,7 +17253,7 @@ pub struct GetCheckoutSessionsSessionArgs {
     /// Path parameter: session
     pub session: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/checkout/sessions/{session}
@@ -17612,10 +17614,10 @@ pub fn post_checkout_sessions_session_expire(
 pub fn get_checkout_sessions_session_line_items_builder<R>(
     client: &SimpleHttpClient<R>,
     session: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17761,13 +17763,13 @@ pub struct GetCheckoutSessionsSessionLineItemsArgs {
     /// Path parameter: session
     pub session: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/checkout/sessions/{session}/line_items
@@ -17807,10 +17809,10 @@ pub fn get_checkout_sessions_session_line_items(
 
 pub fn get_climate_orders_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17951,13 +17953,13 @@ pub fn get_climate_orders_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetClimateOrdersArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/climate/orders
@@ -18149,7 +18151,7 @@ pub fn post_climate_orders(
 pub fn get_climate_orders_order_builder<R>(
     client: &SimpleHttpClient<R>,
     order: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18288,7 +18290,7 @@ pub struct GetClimateOrdersOrderArgs {
     /// Path parameter: order
     pub order: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/climate/orders/{order}
@@ -18645,10 +18647,10 @@ pub fn post_climate_orders_order_cancel(
 
 pub fn get_climate_products_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18789,13 +18791,13 @@ pub fn get_climate_products_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetClimateProductsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/climate/products
@@ -18835,7 +18837,7 @@ pub fn get_climate_products(
 pub fn get_climate_products_product_builder<R>(
     client: &SimpleHttpClient<R>,
     product: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18974,7 +18976,7 @@ pub struct GetClimateProductsProductArgs {
     /// Path parameter: product
     pub product: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/climate/products/{product}
@@ -19009,10 +19011,10 @@ pub fn get_climate_products_product(
 
 pub fn get_climate_suppliers_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19153,13 +19155,13 @@ pub fn get_climate_suppliers_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetClimateSuppliersArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/climate/suppliers
@@ -19199,7 +19201,7 @@ pub fn get_climate_suppliers(
 pub fn get_climate_suppliers_supplier_builder<R>(
     client: &SimpleHttpClient<R>,
     supplier: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19338,7 +19340,7 @@ pub struct GetClimateSuppliersSupplierArgs {
     /// Path parameter: supplier
     pub supplier: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/climate/suppliers/{supplier}
@@ -19374,7 +19376,7 @@ pub fn get_climate_suppliers_supplier(
 pub fn get_confirmation_tokens_confirmation_token_builder<R>(
     client: &SimpleHttpClient<R>,
     confirmation_token: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19516,7 +19518,7 @@ pub struct GetConfirmationTokensConfirmationTokenArgs {
     /// Path parameter: confirmation_token
     pub confirmation_token: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/confirmation_tokens/{confirmation_token}
@@ -19555,10 +19557,10 @@ pub fn get_confirmation_tokens_confirmation_token(
 
 pub fn get_country_specs_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19699,13 +19701,13 @@ pub fn get_country_specs_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCountrySpecsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/country_specs
@@ -19745,7 +19747,7 @@ pub fn get_country_specs(
 pub fn get_country_specs_country_builder<R>(
     client: &SimpleHttpClient<R>,
     country: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19882,7 +19884,7 @@ pub struct GetCountrySpecsCountryArgs {
     /// Path parameter: country
     pub country: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/country_specs/{country}
@@ -19915,11 +19917,11 @@ pub fn get_country_specs_country(
 
 pub fn get_coupons_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20063,15 +20065,15 @@ pub fn get_coupons_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCouponsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/coupons
@@ -20260,7 +20262,7 @@ pub fn post_coupons(
 pub fn get_coupons_coupon_builder<R>(
     client: &SimpleHttpClient<R>,
     coupon: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20397,7 +20399,7 @@ pub struct GetCouponsCouponArgs {
     /// Path parameter: coupon
     pub coupon: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/coupons/{coupon}
@@ -20748,14 +20750,14 @@ pub fn delete_coupons_coupon(
 
 pub fn get_credit_notes_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    invoice: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    invoice: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20908,21 +20910,21 @@ pub fn get_credit_notes_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCreditNotesArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: invoice
-    pub invoice: Option<Option<String>>,
+    pub invoice: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/credit_notes
@@ -21113,20 +21115,20 @@ pub fn post_credit_notes(
 
 pub fn get_credit_notes_preview_builder<R>(
     client: &SimpleHttpClient<R>,
-    amount: &Option<Option<String>>,
-    credit_amount: &Option<Option<String>>,
-    effective_at: &Option<Option<String>>,
-    email_type: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    invoice: &Option<Option<String>>,
-    lines: &Option<Option<String>>,
-    memo: &Option<Option<String>>,
-    metadata: &Option<Option<String>>,
-    out_of_band_amount: &Option<Option<String>>,
-    reason: &Option<Option<String>>,
-    refund_amount: &Option<Option<String>>,
-    refunds: &Option<Option<String>>,
-    shipping_cost: &Option<Option<String>>,
+    amount: &Option<String>,
+    credit_amount: &Option<String>,
+    effective_at: &Option<String>,
+    email_type: &Option<String>,
+    expand: &Option<String>,
+    invoice: &Option<String>,
+    lines: &Option<String>,
+    memo: &Option<String>,
+    metadata: &Option<String>,
+    out_of_band_amount: &Option<String>,
+    reason: &Option<String>,
+    refund_amount: &Option<String>,
+    refunds: &Option<String>,
+    shipping_cost: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21300,33 +21302,33 @@ pub fn get_credit_notes_preview_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCreditNotesPreviewArgs {
     /// Query parameter: amount
-    pub amount: Option<Option<String>>,
+    pub amount: Option<String>,
     /// Query parameter: credit_amount
-    pub credit_amount: Option<Option<String>>,
+    pub credit_amount: Option<String>,
     /// Query parameter: effective_at
-    pub effective_at: Option<Option<String>>,
+    pub effective_at: Option<String>,
     /// Query parameter: email_type
-    pub email_type: Option<Option<String>>,
+    pub email_type: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: invoice
-    pub invoice: Option<Option<String>>,
+    pub invoice: Option<String>,
     /// Query parameter: lines
-    pub lines: Option<Option<String>>,
+    pub lines: Option<String>,
     /// Query parameter: memo
-    pub memo: Option<Option<String>>,
+    pub memo: Option<String>,
     /// Query parameter: metadata
-    pub metadata: Option<Option<String>>,
+    pub metadata: Option<String>,
     /// Query parameter: out_of_band_amount
-    pub out_of_band_amount: Option<Option<String>>,
+    pub out_of_band_amount: Option<String>,
     /// Query parameter: reason
-    pub reason: Option<Option<String>>,
+    pub reason: Option<String>,
     /// Query parameter: refund_amount
-    pub refund_amount: Option<Option<String>>,
+    pub refund_amount: Option<String>,
     /// Query parameter: refunds
-    pub refunds: Option<Option<String>>,
+    pub refunds: Option<String>,
     /// Query parameter: shipping_cost
-    pub shipping_cost: Option<Option<String>>,
+    pub shipping_cost: Option<String>,
 }
 
 /// GET /v1/credit_notes/preview
@@ -21375,23 +21377,23 @@ pub fn get_credit_notes_preview(
 
 pub fn get_credit_notes_preview_lines_builder<R>(
     client: &SimpleHttpClient<R>,
-    amount: &Option<Option<String>>,
-    credit_amount: &Option<Option<String>>,
-    effective_at: &Option<Option<String>>,
-    email_type: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    invoice: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    lines: &Option<Option<String>>,
-    memo: &Option<Option<String>>,
-    metadata: &Option<Option<String>>,
-    out_of_band_amount: &Option<Option<String>>,
-    reason: &Option<Option<String>>,
-    refund_amount: &Option<Option<String>>,
-    refunds: &Option<Option<String>>,
-    shipping_cost: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    amount: &Option<String>,
+    credit_amount: &Option<String>,
+    effective_at: &Option<String>,
+    email_type: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    invoice: &Option<String>,
+    limit: &Option<String>,
+    lines: &Option<String>,
+    memo: &Option<String>,
+    metadata: &Option<String>,
+    out_of_band_amount: &Option<String>,
+    reason: &Option<String>,
+    refund_amount: &Option<String>,
+    refunds: &Option<String>,
+    shipping_cost: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21571,39 +21573,39 @@ pub fn get_credit_notes_preview_lines_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCreditNotesPreviewLinesArgs {
     /// Query parameter: amount
-    pub amount: Option<Option<String>>,
+    pub amount: Option<String>,
     /// Query parameter: credit_amount
-    pub credit_amount: Option<Option<String>>,
+    pub credit_amount: Option<String>,
     /// Query parameter: effective_at
-    pub effective_at: Option<Option<String>>,
+    pub effective_at: Option<String>,
     /// Query parameter: email_type
-    pub email_type: Option<Option<String>>,
+    pub email_type: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: invoice
-    pub invoice: Option<Option<String>>,
+    pub invoice: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: lines
-    pub lines: Option<Option<String>>,
+    pub lines: Option<String>,
     /// Query parameter: memo
-    pub memo: Option<Option<String>>,
+    pub memo: Option<String>,
     /// Query parameter: metadata
-    pub metadata: Option<Option<String>>,
+    pub metadata: Option<String>,
     /// Query parameter: out_of_band_amount
-    pub out_of_band_amount: Option<Option<String>>,
+    pub out_of_band_amount: Option<String>,
     /// Query parameter: reason
-    pub reason: Option<Option<String>>,
+    pub reason: Option<String>,
     /// Query parameter: refund_amount
-    pub refund_amount: Option<Option<String>>,
+    pub refund_amount: Option<String>,
     /// Query parameter: refunds
-    pub refunds: Option<Option<String>>,
+    pub refunds: Option<String>,
     /// Query parameter: shipping_cost
-    pub shipping_cost: Option<Option<String>>,
+    pub shipping_cost: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/credit_notes/preview/lines
@@ -21656,10 +21658,10 @@ pub fn get_credit_notes_preview_lines(
 pub fn get_credit_notes_credit_note_lines_builder<R>(
     client: &SimpleHttpClient<R>,
     credit_note: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21805,13 +21807,13 @@ pub struct GetCreditNotesCreditNoteLinesArgs {
     /// Path parameter: credit_note
     pub credit_note: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/credit_notes/{credit_note}/lines
@@ -21852,7 +21854,7 @@ pub fn get_credit_notes_credit_note_lines(
 pub fn get_credit_notes_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21989,7 +21991,7 @@ pub struct GetCreditNotesIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/credit_notes/{id}
@@ -22488,13 +22490,13 @@ pub fn post_customer_sessions(
 
 pub fn get_customers_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    email: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    test_clock: &Option<Option<String>>,
+    created: &Option<String>,
+    email: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    test_clock: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22644,19 +22646,19 @@ pub fn get_customers_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCustomersArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: email
-    pub email: Option<Option<String>>,
+    pub email: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: test_clock
-    pub test_clock: Option<Option<String>>,
+    pub test_clock: Option<String>,
 }
 
 /// GET /v1/customers
@@ -22846,10 +22848,10 @@ pub fn post_customers(
 
 pub fn get_customers_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22990,13 +22992,13 @@ pub fn get_customers_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCustomersSearchArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET /v1/customers/search
@@ -23031,7 +23033,7 @@ pub fn get_customers_search(
 pub fn get_customers_customer_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23170,7 +23172,7 @@ pub struct GetCustomersCustomerArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/customers/{customer}
@@ -23524,12 +23526,12 @@ pub fn delete_customers_customer(
 pub fn get_customers_customer_balance_transactions_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    invoice: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    invoice: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23681,17 +23683,17 @@ pub struct GetCustomersCustomerBalanceTransactionsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: invoice
-    pub invoice: Option<Option<String>>,
+    pub invoice: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/balance_transactions
@@ -23903,7 +23905,7 @@ pub fn get_customers_customer_balance_transactions_transaction_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
     transaction: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24049,7 +24051,7 @@ pub struct GetCustomersCustomerBalanceTransactionsTransactionArgs {
     /// Path parameter: transaction
     pub transaction: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/balance_transactions/{transaction}
@@ -24267,10 +24269,10 @@ pub fn post_customers_customer_balance_transactions_transaction(
 pub fn get_customers_customer_bank_accounts_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24416,13 +24418,13 @@ pub struct GetCustomersCustomerBankAccountsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/bank_accounts
@@ -24628,7 +24630,7 @@ pub fn get_customers_customer_bank_accounts_id_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24770,7 +24772,7 @@ pub struct GetCustomersCustomerBankAccountsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/bank_accounts/{id}
@@ -25305,10 +25307,10 @@ pub fn post_customers_customer_bank_accounts_id_verify(
 pub fn get_customers_customer_cards_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25451,13 +25453,13 @@ pub struct GetCustomersCustomerCardsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/cards
@@ -25660,7 +25662,7 @@ pub fn get_customers_customer_cards_id_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25802,7 +25804,7 @@ pub struct GetCustomersCustomerCardsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/cards/{id}
@@ -26167,7 +26169,7 @@ pub fn delete_customers_customer_cards_id(
 pub fn get_customers_customer_cash_balance_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26307,7 +26309,7 @@ pub struct GetCustomersCustomerCashBalanceArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/cash_balance
@@ -26502,10 +26504,10 @@ pub fn post_customers_customer_cash_balance(
 pub fn get_customers_customer_cash_balance_transactions_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26651,13 +26653,13 @@ pub struct GetCustomersCustomerCashBalanceTransactionsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/cash_balance_transactions
@@ -26699,7 +26701,7 @@ pub fn get_customers_customer_cash_balance_transactions_transaction_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
     transaction: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26845,7 +26847,7 @@ pub struct GetCustomersCustomerCashBalanceTransactionsTransactionArgs {
     /// Path parameter: transaction
     pub transaction: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/cash_balance_transactions/{transaction}
@@ -26887,7 +26889,7 @@ pub fn get_customers_customer_cash_balance_transactions_transaction(
 pub fn get_customers_customer_discount_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27022,7 +27024,7 @@ pub struct GetCustomersCustomerDiscountArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/discount
@@ -27380,12 +27382,12 @@ pub fn post_customers_customer_funding_instructions(
 pub fn get_customers_customer_payment_methods_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    allow_redisplay: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    allow_redisplay: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27537,17 +27539,17 @@ pub struct GetCustomersCustomerPaymentMethodsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: allow_redisplay
-    pub allow_redisplay: Option<Option<String>>,
+    pub allow_redisplay: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/payment_methods
@@ -27591,7 +27593,7 @@ pub fn get_customers_customer_payment_methods_payment_method_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
     payment_method: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27735,7 +27737,7 @@ pub struct GetCustomersCustomerPaymentMethodsPaymentMethodArgs {
     /// Path parameter: payment_method
     pub payment_method: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/payment_methods/{payment_method}
@@ -27775,11 +27777,11 @@ pub fn get_customers_customer_payment_methods_payment_method(
 pub fn get_customers_customer_sources_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    object: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    object: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27923,15 +27925,15 @@ pub struct GetCustomersCustomerSourcesArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: object
-    pub object: Option<Option<String>>,
+    pub object: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/sources
@@ -28133,7 +28135,7 @@ pub fn get_customers_customer_sources_id_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28275,7 +28277,7 @@ pub struct GetCustomersCustomerSourcesIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/sources/{id}
@@ -28805,10 +28807,10 @@ pub fn post_customers_customer_sources_id_verify(
 pub fn get_customers_customer_subscriptions_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28954,13 +28956,13 @@ pub struct GetCustomersCustomerSubscriptionsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/subscriptions
@@ -29166,7 +29168,7 @@ pub fn get_customers_customer_subscriptions_subscription_exposed_id_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
     subscription_exposed_id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29310,7 +29312,7 @@ pub struct GetCustomersCustomerSubscriptionsSubscriptionExposedIdArgs {
     /// Path parameter: subscription_exposed_id
     pub subscription_exposed_id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/subscriptions/{subscription_exposed_id}
@@ -29693,7 +29695,7 @@ pub fn get_customers_customer_subscriptions_subscription_exposed_id_discount_bui
     client: &SimpleHttpClient<R>,
     customer: &String,
     subscription_exposed_id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29833,7 +29835,7 @@ pub struct GetCustomersCustomerSubscriptionsSubscriptionExposedIdDiscountArgs {
     /// Path parameter: subscription_exposed_id
     pub subscription_exposed_id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/subscriptions/{subscription_exposed_id}/discount
@@ -30043,10 +30045,10 @@ pub fn delete_customers_customer_subscriptions_subscription_exposed_id_discount(
 pub fn get_customers_customer_tax_ids_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30189,13 +30191,13 @@ pub struct GetCustomersCustomerTaxIdsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/tax_ids
@@ -30394,7 +30396,7 @@ pub fn get_customers_customer_tax_ids_id_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30536,7 +30538,7 @@ pub struct GetCustomersCustomerTaxIdsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/customers/{customer}/tax_ids/{id}
@@ -30737,13 +30739,13 @@ pub fn delete_customers_customer_tax_ids_id(
 
 pub fn get_disputes_builder<R>(
     client: &SimpleHttpClient<R>,
-    charge: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    payment_intent: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    charge: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    payment_intent: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30893,19 +30895,19 @@ pub fn get_disputes_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetDisputesArgs {
     /// Query parameter: charge
-    pub charge: Option<Option<String>>,
+    pub charge: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: payment_intent
-    pub payment_intent: Option<Option<String>>,
+    pub payment_intent: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/disputes
@@ -30948,7 +30950,7 @@ pub fn get_disputes(
 pub fn get_disputes_dispute_builder<R>(
     client: &SimpleHttpClient<R>,
     dispute: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31085,7 +31087,7 @@ pub struct GetDisputesDisputeArgs {
     /// Path parameter: dispute
     pub dispute: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/disputes/{dispute}
@@ -31432,11 +31434,11 @@ pub fn post_disputes_dispute_close(
 
 pub fn get_entitlements_active_entitlements_builder<R>(
     client: &SimpleHttpClient<R>,
-    customer: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    customer: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31580,15 +31582,15 @@ pub fn get_entitlements_active_entitlements_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEntitlementsActiveEntitlementsArgs {
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/entitlements/active_entitlements
@@ -31629,7 +31631,7 @@ pub fn get_entitlements_active_entitlements(
 pub fn get_entitlements_active_entitlements_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31773,7 +31775,7 @@ pub struct GetEntitlementsActiveEntitlementsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/entitlements/active_entitlements/{id}
@@ -31810,12 +31812,12 @@ pub fn get_entitlements_active_entitlements_id(
 
 pub fn get_entitlements_features_builder<R>(
     client: &SimpleHttpClient<R>,
-    archived: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    lookup_key: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    archived: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    lookup_key: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31962,17 +31964,17 @@ pub fn get_entitlements_features_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEntitlementsFeaturesArgs {
     /// Query parameter: archived
-    pub archived: Option<Option<String>>,
+    pub archived: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: lookup_key
-    pub lookup_key: Option<Option<String>>,
+    pub lookup_key: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/entitlements/features
@@ -32166,7 +32168,7 @@ pub fn post_entitlements_features(
 pub fn get_entitlements_features_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32305,7 +32307,7 @@ pub struct GetEntitlementsFeaturesIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/entitlements/features/{id}
@@ -32814,14 +32816,14 @@ pub fn delete_ephemeral_keys_key(
 
 pub fn get_events_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    delivery_success: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
-    types: &Option<Option<String>>,
+    created: &Option<String>,
+    delivery_success: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
+    types: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32974,21 +32976,21 @@ pub fn get_events_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEventsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: delivery_success
-    pub delivery_success: Option<Option<String>>,
+    pub delivery_success: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
     /// Query parameter: types
-    pub types: Option<Option<String>>,
+    pub types: Option<String>,
 }
 
 /// GET /v1/events
@@ -33032,7 +33034,7 @@ pub fn get_events(
 pub fn get_events_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33169,7 +33171,7 @@ pub struct GetEventsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/events/{id}
@@ -33202,10 +33204,10 @@ pub fn get_events_id(
 
 pub fn get_exchange_rates_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33346,13 +33348,13 @@ pub fn get_exchange_rates_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetExchangeRatesArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/exchange_rates
@@ -33392,7 +33394,7 @@ pub fn get_exchange_rates(
 pub fn get_exchange_rates_rate_id_builder<R>(
     client: &SimpleHttpClient<R>,
     rate_id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33531,7 +33533,7 @@ pub struct GetExchangeRatesRateIdArgs {
     /// Path parameter: rate_id
     pub rate_id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/exchange_rates/{rate_id}
@@ -33723,13 +33725,13 @@ pub fn post_external_accounts_id(
 
 pub fn get_file_links_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    expired: &Option<Option<String>>,
-    file: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    expired: &Option<String>,
+    file: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33879,19 +33881,19 @@ pub fn get_file_links_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetFileLinksArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: expired
-    pub expired: Option<Option<String>>,
+    pub expired: Option<String>,
     /// Query parameter: file
-    pub file: Option<Option<String>>,
+    pub file: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/file_links
@@ -34082,7 +34084,7 @@ pub fn post_file_links(
 pub fn get_file_links_link_builder<R>(
     client: &SimpleHttpClient<R>,
     link: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34219,7 +34221,7 @@ pub struct GetFileLinksLinkArgs {
     /// Path parameter: link
     pub link: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/file_links/{link}
@@ -34409,12 +34411,12 @@ pub fn post_file_links_link(
 
 pub fn get_files_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    purpose: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    purpose: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34561,17 +34563,17 @@ pub fn get_files_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetFilesArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: purpose
-    pub purpose: Option<Option<String>>,
+    pub purpose: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/files
@@ -34761,7 +34763,7 @@ pub fn post_files(
 pub fn get_files_file_builder<R>(
     client: &SimpleHttpClient<R>,
     file: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34898,7 +34900,7 @@ pub struct GetFilesFileArgs {
     /// Path parameter: file
     pub file: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/files/{file}
@@ -34931,12 +34933,12 @@ pub fn get_files_file(
 
 pub fn get_financial_connections_accounts_builder<R>(
     client: &SimpleHttpClient<R>,
-    account_holder: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    session: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    account_holder: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    session: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35083,17 +35085,17 @@ pub fn get_financial_connections_accounts_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetFinancialConnectionsAccountsArgs {
     /// Query parameter: account_holder
-    pub account_holder: Option<Option<String>>,
+    pub account_holder: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: session
-    pub session: Option<Option<String>>,
+    pub session: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/financial_connections/accounts
@@ -35135,7 +35137,7 @@ pub fn get_financial_connections_accounts(
 pub fn get_financial_connections_accounts_account_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35279,7 +35281,7 @@ pub struct GetFinancialConnectionsAccountsAccountArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/financial_connections/accounts/{account}
@@ -35487,11 +35489,11 @@ pub fn post_financial_connections_accounts_account_disconnect(
 pub fn get_financial_connections_accounts_account_owners_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    ownership: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    ownership: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35640,15 +35642,15 @@ pub struct GetFinancialConnectionsAccountsAccountOwnersArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: ownership
-    pub ownership: Option<Option<String>>,
+    pub ownership: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/financial_connections/accounts/{account}/owners
@@ -36353,7 +36355,7 @@ pub fn post_financial_connections_sessions(
 pub fn get_financial_connections_sessions_session_builder<R>(
     client: &SimpleHttpClient<R>,
     session: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36497,7 +36499,7 @@ pub struct GetFinancialConnectionsSessionsSessionArgs {
     /// Path parameter: session
     pub session: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/financial_connections/sessions/{session}
@@ -36535,13 +36537,13 @@ pub fn get_financial_connections_sessions_session(
 
 pub fn get_financial_connections_transactions_builder<R>(
     client: &SimpleHttpClient<R>,
-    account: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    transacted_at: &Option<Option<String>>,
-    transaction_refresh: &Option<Option<String>>,
+    account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    transacted_at: &Option<String>,
+    transaction_refresh: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36691,19 +36693,19 @@ pub fn get_financial_connections_transactions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetFinancialConnectionsTransactionsArgs {
     /// Query parameter: account
-    pub account: Option<Option<String>>,
+    pub account: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: transacted_at
-    pub transacted_at: Option<Option<String>>,
+    pub transacted_at: Option<String>,
     /// Query parameter: transaction_refresh
-    pub transaction_refresh: Option<Option<String>>,
+    pub transaction_refresh: Option<String>,
 }
 
 /// GET /v1/financial_connections/transactions
@@ -36746,7 +36748,7 @@ pub fn get_financial_connections_transactions(
 pub fn get_financial_connections_transactions_transaction_builder<R>(
     client: &SimpleHttpClient<R>,
     transaction: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36890,7 +36892,7 @@ pub struct GetFinancialConnectionsTransactionsTransactionArgs {
     /// Path parameter: transaction
     pub transaction: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/financial_connections/transactions/{transaction}
@@ -36931,11 +36933,11 @@ pub fn get_financial_connections_transactions_transaction(
 
 pub fn get_forwarding_requests_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37079,15 +37081,15 @@ pub fn get_forwarding_requests_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetForwardingRequestsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/forwarding/requests
@@ -37280,7 +37282,7 @@ pub fn post_forwarding_requests(
 pub fn get_forwarding_requests_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37419,7 +37421,7 @@ pub struct GetForwardingRequestsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/forwarding/requests/{id}
@@ -37454,14 +37456,14 @@ pub fn get_forwarding_requests_id(
 
 pub fn get_identity_verification_reports_builder<R>(
     client: &SimpleHttpClient<R>,
-    client_reference_id: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
-    verification_session: &Option<Option<String>>,
+    client_reference_id: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
+    verification_session: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37614,21 +37616,21 @@ pub fn get_identity_verification_reports_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIdentityVerificationReportsArgs {
     /// Query parameter: client_reference_id
-    pub client_reference_id: Option<Option<String>>,
+    pub client_reference_id: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
     /// Query parameter: verification_session
-    pub verification_session: Option<Option<String>>,
+    pub verification_session: Option<String>,
 }
 
 /// GET /v1/identity/verification_reports
@@ -37672,7 +37674,7 @@ pub fn get_identity_verification_reports(
 pub fn get_identity_verification_reports_report_builder<R>(
     client: &SimpleHttpClient<R>,
     report: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37816,7 +37818,7 @@ pub struct GetIdentityVerificationReportsReportArgs {
     /// Path parameter: report
     pub report: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/identity/verification_reports/{report}
@@ -37854,15 +37856,15 @@ pub fn get_identity_verification_reports_report(
 
 pub fn get_identity_verification_sessions_builder<R>(
     client: &SimpleHttpClient<R>,
-    client_reference_id: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    related_customer: &Option<Option<String>>,
-    related_customer_account: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    client_reference_id: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    related_customer: &Option<String>,
+    related_customer_account: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -38018,23 +38020,23 @@ pub fn get_identity_verification_sessions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIdentityVerificationSessionsArgs {
     /// Query parameter: client_reference_id
-    pub client_reference_id: Option<Option<String>>,
+    pub client_reference_id: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: related_customer
-    pub related_customer: Option<Option<String>>,
+    pub related_customer: Option<String>,
     /// Query parameter: related_customer_account
-    pub related_customer_account: Option<Option<String>>,
+    pub related_customer_account: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/identity/verification_sessions
@@ -38235,7 +38237,7 @@ pub fn post_identity_verification_sessions(
 pub fn get_identity_verification_sessions_session_builder<R>(
     client: &SimpleHttpClient<R>,
     session: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -38379,7 +38381,7 @@ pub struct GetIdentityVerificationSessionsSessionArgs {
     /// Path parameter: session
     pub session: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/identity/verification_sessions/{session}
@@ -38923,14 +38925,14 @@ pub fn post_identity_verification_sessions_session_redact(
 
 pub fn get_invoice_payments_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    invoice: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    payment: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    invoice: &Option<String>,
+    limit: &Option<String>,
+    payment: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39083,21 +39085,21 @@ pub fn get_invoice_payments_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetInvoicePaymentsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: invoice
-    pub invoice: Option<Option<String>>,
+    pub invoice: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: payment
-    pub payment: Option<Option<String>>,
+    pub payment: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/invoice_payments
@@ -39141,7 +39143,7 @@ pub fn get_invoice_payments(
 pub fn get_invoice_payments_invoice_payment_builder<R>(
     client: &SimpleHttpClient<R>,
     invoice_payment: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39283,7 +39285,7 @@ pub struct GetInvoicePaymentsInvoicePaymentArgs {
     /// Path parameter: invoice_payment
     pub invoice_payment: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/invoice_payments/{invoice_payment}
@@ -39319,11 +39321,11 @@ pub fn get_invoice_payments_invoice_payment(
 
 pub fn get_invoice_rendering_templates_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39467,15 +39469,15 @@ pub fn get_invoice_rendering_templates_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetInvoiceRenderingTemplatesArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/invoice_rendering_templates
@@ -39516,8 +39518,8 @@ pub fn get_invoice_rendering_templates(
 pub fn get_invoice_rendering_templates_template_builder<R>(
     client: &SimpleHttpClient<R>,
     template: &String,
-    expand: &Option<Option<String>>,
-    version: &Option<Option<String>>,
+    expand: &Option<String>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39662,9 +39664,9 @@ pub struct GetInvoiceRenderingTemplatesTemplateArgs {
     /// Path parameter: template
     pub template: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: version
-    pub version: Option<Option<String>>,
+    pub version: Option<String>,
 }
 
 /// GET /v1/invoice_rendering_templates/{template}
@@ -40034,15 +40036,15 @@ pub fn post_invoice_rendering_templates_template_unarchive(
 
 pub fn get_invoiceitems_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    invoice: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    pending: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    invoice: &Option<String>,
+    limit: &Option<String>,
+    pending: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40198,23 +40200,23 @@ pub fn get_invoiceitems_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetInvoiceitemsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: invoice
-    pub invoice: Option<Option<String>>,
+    pub invoice: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: pending
-    pub pending: Option<Option<String>>,
+    pub pending: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/invoiceitems
@@ -40407,7 +40409,7 @@ pub fn post_invoiceitems(
 pub fn get_invoiceitems_invoiceitem_builder<R>(
     client: &SimpleHttpClient<R>,
     invoiceitem: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40544,7 +40546,7 @@ pub struct GetInvoiceitemsInvoiceitemArgs {
     /// Path parameter: invoiceitem
     pub invoiceitem: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/invoiceitems/{invoiceitem}
@@ -40895,17 +40897,17 @@ pub fn delete_invoiceitems_invoiceitem(
 
 pub fn get_invoices_builder<R>(
     client: &SimpleHttpClient<R>,
-    collection_method: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    due_date: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    subscription: &Option<Option<String>>,
+    collection_method: &Option<String>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    due_date: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    subscription: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41067,27 +41069,27 @@ pub fn get_invoices_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetInvoicesArgs {
     /// Query parameter: collection_method
-    pub collection_method: Option<Option<String>>,
+    pub collection_method: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: due_date
-    pub due_date: Option<Option<String>>,
+    pub due_date: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: subscription
-    pub subscription: Option<Option<String>>,
+    pub subscription: Option<String>,
 }
 
 /// GET /v1/invoices
@@ -41429,10 +41431,10 @@ pub fn post_invoices_create_preview(
 
 pub fn get_invoices_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41573,13 +41575,13 @@ pub fn get_invoices_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetInvoicesSearchArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET /v1/invoices/search
@@ -41614,7 +41616,7 @@ pub fn get_invoices_search(
 pub fn get_invoices_invoice_builder<R>(
     client: &SimpleHttpClient<R>,
     invoice: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41751,7 +41753,7 @@ pub struct GetInvoicesInvoiceArgs {
     /// Path parameter: invoice
     pub invoice: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/invoices/{invoice}
@@ -42577,10 +42579,10 @@ pub fn post_invoices_invoice_finalize(
 pub fn get_invoices_invoice_lines_builder<R>(
     client: &SimpleHttpClient<R>,
     invoice: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42723,13 +42725,13 @@ pub struct GetInvoicesInvoiceLinesArgs {
     /// Path parameter: invoice
     pub invoice: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/invoices/{invoice}/lines
@@ -43887,14 +43889,14 @@ pub fn post_invoices_invoice_void(
 
 pub fn get_issuing_authorizations_builder<R>(
     client: &SimpleHttpClient<R>,
-    card: &Option<Option<String>>,
-    cardholder: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    card: &Option<String>,
+    cardholder: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -44047,21 +44049,21 @@ pub fn get_issuing_authorizations_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIssuingAuthorizationsArgs {
     /// Query parameter: card
-    pub card: Option<Option<String>>,
+    pub card: Option<String>,
     /// Query parameter: cardholder
-    pub cardholder: Option<Option<String>>,
+    pub cardholder: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/issuing/authorizations
@@ -44105,7 +44107,7 @@ pub fn get_issuing_authorizations(
 pub fn get_issuing_authorizations_authorization_builder<R>(
     client: &SimpleHttpClient<R>,
     authorization: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -44247,7 +44249,7 @@ pub struct GetIssuingAuthorizationsAuthorizationArgs {
     /// Path parameter: authorization
     pub authorization: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/issuing/authorizations/{authorization}
@@ -44780,15 +44782,15 @@ pub fn post_issuing_authorizations_authorization_decline(
 
 pub fn get_issuing_cardholders_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    email: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    phone_number: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    created: &Option<String>,
+    email: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    phone_number: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -44944,23 +44946,23 @@ pub fn get_issuing_cardholders_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIssuingCardholdersArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: email
-    pub email: Option<Option<String>>,
+    pub email: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: phone_number
-    pub phone_number: Option<Option<String>>,
+    pub phone_number: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET /v1/issuing/cardholders
@@ -45157,7 +45159,7 @@ pub fn post_issuing_cardholders(
 pub fn get_issuing_cardholders_cardholder_builder<R>(
     client: &SimpleHttpClient<R>,
     cardholder: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -45299,7 +45301,7 @@ pub struct GetIssuingCardholdersCardholderArgs {
     /// Path parameter: cardholder
     pub cardholder: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/issuing/cardholders/{cardholder}
@@ -45499,18 +45501,18 @@ pub fn post_issuing_cardholders_cardholder(
 
 pub fn get_issuing_cards_builder<R>(
     client: &SimpleHttpClient<R>,
-    cardholder: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    exp_month: &Option<Option<String>>,
-    exp_year: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    last4: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    personalization_design: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    cardholder: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    exp_month: &Option<String>,
+    exp_year: &Option<String>,
+    expand: &Option<String>,
+    last4: &Option<String>,
+    limit: &Option<String>,
+    personalization_design: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -45675,29 +45677,29 @@ pub fn get_issuing_cards_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIssuingCardsArgs {
     /// Query parameter: cardholder
-    pub cardholder: Option<Option<String>>,
+    pub cardholder: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: exp_month
-    pub exp_month: Option<Option<String>>,
+    pub exp_month: Option<String>,
     /// Query parameter: exp_year
-    pub exp_year: Option<Option<String>>,
+    pub exp_year: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: last4
-    pub last4: Option<Option<String>>,
+    pub last4: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: personalization_design
-    pub personalization_design: Option<Option<String>>,
+    pub personalization_design: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET /v1/issuing/cards
@@ -45893,7 +45895,7 @@ pub fn post_issuing_cards(
 pub fn get_issuing_cards_card_builder<R>(
     client: &SimpleHttpClient<R>,
     card: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46030,7 +46032,7 @@ pub struct GetIssuingCardsCardArgs {
     /// Path parameter: card
     pub card: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/issuing/cards/{card}
@@ -46220,13 +46222,13 @@ pub fn post_issuing_cards_card(
 
 pub fn get_issuing_disputes_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    transaction: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    transaction: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46376,19 +46378,19 @@ pub fn get_issuing_disputes_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIssuingDisputesArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: transaction
-    pub transaction: Option<Option<String>>,
+    pub transaction: Option<String>,
 }
 
 /// GET /v1/issuing/disputes
@@ -46583,7 +46585,7 @@ pub fn post_issuing_disputes(
 pub fn get_issuing_disputes_dispute_builder<R>(
     client: &SimpleHttpClient<R>,
     dispute: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46722,7 +46724,7 @@ pub struct GetIssuingDisputesDisputeArgs {
     /// Path parameter: dispute
     pub dispute: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/issuing/disputes/{dispute}
@@ -47082,13 +47084,13 @@ pub fn post_issuing_disputes_dispute_submit(
 
 pub fn get_issuing_personalization_designs_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    lookup_keys: &Option<Option<String>>,
-    preferences: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    lookup_keys: &Option<String>,
+    preferences: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -47238,19 +47240,19 @@ pub fn get_issuing_personalization_designs_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIssuingPersonalizationDesignsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: lookup_keys
-    pub lookup_keys: Option<Option<String>>,
+    pub lookup_keys: Option<String>,
     /// Query parameter: preferences
-    pub preferences: Option<Option<String>>,
+    pub preferences: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/issuing/personalization_designs
@@ -47449,7 +47451,7 @@ pub fn post_issuing_personalization_designs(
 pub fn get_issuing_personalization_designs_personalization_design_builder<R>(
     client: &SimpleHttpClient<R>,
     personalization_design: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -47593,7 +47595,7 @@ pub struct GetIssuingPersonalizationDesignsPersonalizationDesignArgs {
     /// Path parameter: personalization_design
     pub personalization_design: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/issuing/personalization_designs/{personalization_design}
@@ -47805,12 +47807,12 @@ pub fn post_issuing_personalization_designs_personalization_design(
 
 pub fn get_issuing_physical_bundles_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -47957,17 +47959,17 @@ pub fn get_issuing_physical_bundles_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIssuingPhysicalBundlesArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET /v1/issuing/physical_bundles
@@ -48009,7 +48011,7 @@ pub fn get_issuing_physical_bundles(
 pub fn get_issuing_physical_bundles_physical_bundle_builder<R>(
     client: &SimpleHttpClient<R>,
     physical_bundle: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48151,7 +48153,7 @@ pub struct GetIssuingPhysicalBundlesPhysicalBundleArgs {
     /// Path parameter: physical_bundle
     pub physical_bundle: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/issuing/physical_bundles/{physical_bundle}
@@ -48191,7 +48193,7 @@ pub fn get_issuing_physical_bundles_physical_bundle(
 pub fn get_issuing_settlements_settlement_builder<R>(
     client: &SimpleHttpClient<R>,
     settlement: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48333,7 +48335,7 @@ pub struct GetIssuingSettlementsSettlementArgs {
     /// Path parameter: settlement
     pub settlement: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/issuing/settlements/{settlement}
@@ -48533,13 +48535,13 @@ pub fn post_issuing_settlements_settlement(
 
 pub fn get_issuing_tokens_builder<R>(
     client: &SimpleHttpClient<R>,
-    card: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    card: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48689,19 +48691,19 @@ pub fn get_issuing_tokens_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIssuingTokensArgs {
     /// Query parameter: card
-    pub card: Option<Option<String>>,
+    pub card: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/issuing/tokens
@@ -48744,7 +48746,7 @@ pub fn get_issuing_tokens(
 pub fn get_issuing_tokens_token_builder<R>(
     client: &SimpleHttpClient<R>,
     token: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48883,7 +48885,7 @@ pub struct GetIssuingTokensTokenArgs {
     /// Path parameter: token
     pub token: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/issuing/tokens/{token}
@@ -49079,14 +49081,14 @@ pub fn post_issuing_tokens_token(
 
 pub fn get_issuing_transactions_builder<R>(
     client: &SimpleHttpClient<R>,
-    card: &Option<Option<String>>,
-    cardholder: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    card: &Option<String>,
+    cardholder: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -49239,21 +49241,21 @@ pub fn get_issuing_transactions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIssuingTransactionsArgs {
     /// Query parameter: card
-    pub card: Option<Option<String>>,
+    pub card: Option<String>,
     /// Query parameter: cardholder
-    pub cardholder: Option<Option<String>>,
+    pub cardholder: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET /v1/issuing/transactions
@@ -49297,7 +49299,7 @@ pub fn get_issuing_transactions(
 pub fn get_issuing_transactions_transaction_builder<R>(
     client: &SimpleHttpClient<R>,
     transaction: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -49439,7 +49441,7 @@ pub struct GetIssuingTransactionsTransactionArgs {
     /// Path parameter: transaction
     pub transaction: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/issuing/transactions/{transaction}
@@ -49796,7 +49798,7 @@ pub fn post_link_account_sessions(
 pub fn get_link_account_sessions_session_builder<R>(
     client: &SimpleHttpClient<R>,
     session: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -49940,7 +49942,7 @@ pub struct GetLinkAccountSessionsSessionArgs {
     /// Path parameter: session
     pub session: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/link_account_sessions/{session}
@@ -49977,12 +49979,12 @@ pub fn get_link_account_sessions_session(
 
 pub fn get_linked_accounts_builder<R>(
     client: &SimpleHttpClient<R>,
-    account_holder: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    session: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    account_holder: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    session: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -50129,17 +50131,17 @@ pub fn get_linked_accounts_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetLinkedAccountsArgs {
     /// Query parameter: account_holder
-    pub account_holder: Option<Option<String>>,
+    pub account_holder: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: session
-    pub session: Option<Option<String>>,
+    pub session: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/linked_accounts
@@ -50181,7 +50183,7 @@ pub fn get_linked_accounts(
 pub fn get_linked_accounts_account_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -50322,7 +50324,7 @@ pub struct GetLinkedAccountsAccountArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/linked_accounts/{account}
@@ -50528,11 +50530,11 @@ pub fn post_linked_accounts_account_disconnect(
 pub fn get_linked_accounts_account_owners_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    ownership: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    ownership: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -50681,15 +50683,15 @@ pub struct GetLinkedAccountsAccountOwnersArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: ownership
-    pub ownership: Option<Option<String>>,
+    pub ownership: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/linked_accounts/{account}/owners
@@ -50899,7 +50901,7 @@ pub fn post_linked_accounts_account_refresh(
 pub fn get_mandates_mandate_builder<R>(
     client: &SimpleHttpClient<R>,
     mandate: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51036,7 +51038,7 @@ pub struct GetMandatesMandateArgs {
     /// Path parameter: mandate
     pub mandate: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/mandates/{mandate}
@@ -51069,10 +51071,10 @@ pub fn get_mandates_mandate(
 
 pub fn get_payment_attempt_records_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    payment_record: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    payment_record: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51213,13 +51215,13 @@ pub fn get_payment_attempt_records_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPaymentAttemptRecordsArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: payment_record
-    pub payment_record: Option<Option<String>>,
+    pub payment_record: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/payment_attempt_records
@@ -51259,7 +51261,7 @@ pub fn get_payment_attempt_records(
 pub fn get_payment_attempt_records_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51398,7 +51400,7 @@ pub struct GetPaymentAttemptRecordsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/payment_attempt_records/{id}
@@ -51433,13 +51435,13 @@ pub fn get_payment_attempt_records_id(
 
 pub fn get_payment_intents_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51589,19 +51591,19 @@ pub fn get_payment_intents_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPaymentIntentsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/payment_intents
@@ -51795,10 +51797,10 @@ pub fn post_payment_intents(
 
 pub fn get_payment_intents_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51939,13 +51941,13 @@ pub fn get_payment_intents_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPaymentIntentsSearchArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET /v1/payment_intents/search
@@ -51985,8 +51987,8 @@ pub fn get_payment_intents_search(
 pub fn get_payment_intents_intent_builder<R>(
     client: &SimpleHttpClient<R>,
     intent: &String,
-    client_secret: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
+    client_secret: &Option<String>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -52128,9 +52130,9 @@ pub struct GetPaymentIntentsIntentArgs {
     /// Path parameter: intent
     pub intent: String,
     /// Query parameter: client_secret
-    pub client_secret: Option<Option<String>>,
+    pub client_secret: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/payment_intents/{intent}
@@ -52332,10 +52334,10 @@ pub fn post_payment_intents_intent(
 pub fn get_payment_intents_intent_amount_details_line_items_builder<R>(
     client: &SimpleHttpClient<R>,
     intent: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -52481,13 +52483,13 @@ pub struct GetPaymentIntentsIntentAmountDetailsLineItemsArgs {
     /// Path parameter: intent
     pub intent: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/payment_intents/{intent}/amount_details_line_items
@@ -53512,11 +53514,11 @@ pub fn post_payment_intents_intent_verify_microdeposits(
 
 pub fn get_payment_links_builder<R>(
     client: &SimpleHttpClient<R>,
-    active: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    active: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -53660,15 +53662,15 @@ pub fn get_payment_links_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPaymentLinksArgs {
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/payment_links
@@ -53857,7 +53859,7 @@ pub fn post_payment_links(
 pub fn get_payment_links_payment_link_builder<R>(
     client: &SimpleHttpClient<R>,
     payment_link: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -53994,7 +53996,7 @@ pub struct GetPaymentLinksPaymentLinkArgs {
     /// Path parameter: payment_link
     pub payment_link: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/payment_links/{payment_link}
@@ -54185,10 +54187,10 @@ pub fn post_payment_links_payment_link(
 pub fn get_payment_links_payment_link_line_items_builder<R>(
     client: &SimpleHttpClient<R>,
     payment_link: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -54334,13 +54336,13 @@ pub struct GetPaymentLinksPaymentLinkLineItemsArgs {
     /// Path parameter: payment_link
     pub payment_link: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/payment_links/{payment_link}/line_items
@@ -54380,11 +54382,11 @@ pub fn get_payment_links_payment_link_line_items(
 
 pub fn get_payment_method_configurations_builder<R>(
     client: &SimpleHttpClient<R>,
-    application: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    application: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -54528,15 +54530,15 @@ pub fn get_payment_method_configurations_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPaymentMethodConfigurationsArgs {
     /// Query parameter: application
-    pub application: Option<Option<String>>,
+    pub application: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/payment_method_configurations
@@ -54733,7 +54735,7 @@ pub fn post_payment_method_configurations(
 pub fn get_payment_method_configurations_configuration_builder<R>(
     client: &SimpleHttpClient<R>,
     configuration: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -54877,7 +54879,7 @@ pub struct GetPaymentMethodConfigurationsConfigurationArgs {
     /// Path parameter: configuration
     pub configuration: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/payment_method_configurations/{configuration}
@@ -55087,12 +55089,12 @@ pub fn post_payment_method_configurations_configuration(
 
 pub fn get_payment_method_domains_builder<R>(
     client: &SimpleHttpClient<R>,
-    domain_name: &Option<Option<String>>,
-    enabled: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    domain_name: &Option<String>,
+    enabled: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -55239,17 +55241,17 @@ pub fn get_payment_method_domains_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPaymentMethodDomainsArgs {
     /// Query parameter: domain_name
-    pub domain_name: Option<Option<String>>,
+    pub domain_name: Option<String>,
     /// Query parameter: enabled
-    pub enabled: Option<Option<String>>,
+    pub enabled: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/payment_method_domains
@@ -55443,7 +55445,7 @@ pub fn post_payment_method_domains(
 pub fn get_payment_method_domains_payment_method_domain_builder<R>(
     client: &SimpleHttpClient<R>,
     payment_method_domain: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -55585,7 +55587,7 @@ pub struct GetPaymentMethodDomainsPaymentMethodDomainArgs {
     /// Path parameter: payment_method_domain
     pub payment_method_domain: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/payment_method_domains/{payment_method_domain}
@@ -55958,14 +55960,14 @@ pub fn post_payment_method_domains_payment_method_domain_validate(
 
 pub fn get_payment_methods_builder<R>(
     client: &SimpleHttpClient<R>,
-    allow_redisplay: &Option<Option<String>>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    allow_redisplay: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -56118,21 +56120,21 @@ pub fn get_payment_methods_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPaymentMethodsArgs {
     /// Query parameter: allow_redisplay
-    pub allow_redisplay: Option<Option<String>>,
+    pub allow_redisplay: Option<String>,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET /v1/payment_methods
@@ -56328,7 +56330,7 @@ pub fn post_payment_methods(
 pub fn get_payment_methods_payment_method_builder<R>(
     client: &SimpleHttpClient<R>,
     payment_method: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -56470,7 +56472,7 @@ pub struct GetPaymentMethodsPaymentMethodArgs {
     /// Path parameter: payment_method
     pub payment_method: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/payment_methods/{payment_method}
@@ -57151,7 +57153,7 @@ pub fn post_payment_records_report_payment(
 pub fn get_payment_records_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -57290,7 +57292,7 @@ pub struct GetPaymentRecordsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/payment_records/{id}
@@ -58312,14 +58314,14 @@ pub fn post_payment_records_id_report_refund(
 
 pub fn get_payouts_builder<R>(
     client: &SimpleHttpClient<R>,
-    arrival_date: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    destination: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    arrival_date: &Option<String>,
+    created: &Option<String>,
+    destination: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -58472,21 +58474,21 @@ pub fn get_payouts_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPayoutsArgs {
     /// Query parameter: arrival_date
-    pub arrival_date: Option<Option<String>>,
+    pub arrival_date: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: destination
-    pub destination: Option<Option<String>>,
+    pub destination: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/payouts
@@ -58678,7 +58680,7 @@ pub fn post_payouts(
 pub fn get_payouts_payout_builder<R>(
     client: &SimpleHttpClient<R>,
     payout: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -58815,7 +58817,7 @@ pub struct GetPayoutsPayoutArgs {
     /// Path parameter: payout
     pub payout: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/payouts/{payout}
@@ -59319,13 +59321,13 @@ pub fn post_payouts_payout_reverse(
 
 pub fn get_plans_builder<R>(
     client: &SimpleHttpClient<R>,
-    active: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    product: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    active: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    product: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -59475,19 +59477,19 @@ pub fn get_plans_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPlansArgs {
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: product
-    pub product: Option<Option<String>>,
+    pub product: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/plans
@@ -59678,7 +59680,7 @@ pub fn post_plans(
 pub fn get_plans_plan_builder<R>(
     client: &SimpleHttpClient<R>,
     plan: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -59815,7 +59817,7 @@ pub struct GetPlansPlanArgs {
     /// Path parameter: plan
     pub plan: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/plans/{plan}
@@ -60162,17 +60164,17 @@ pub fn delete_plans_plan(
 
 pub fn get_prices_builder<R>(
     client: &SimpleHttpClient<R>,
-    active: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    currency: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    lookup_keys: &Option<Option<String>>,
-    product: &Option<Option<String>>,
-    recurring: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    active: &Option<String>,
+    created: &Option<String>,
+    currency: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    lookup_keys: &Option<String>,
+    product: &Option<String>,
+    recurring: &Option<String>,
+    starting_after: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60334,27 +60336,27 @@ pub fn get_prices_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPricesArgs {
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: currency
-    pub currency: Option<Option<String>>,
+    pub currency: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: lookup_keys
-    pub lookup_keys: Option<Option<String>>,
+    pub lookup_keys: Option<String>,
     /// Query parameter: product
-    pub product: Option<Option<String>>,
+    pub product: Option<String>,
     /// Query parameter: recurring
-    pub recurring: Option<Option<String>>,
+    pub recurring: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET /v1/prices
@@ -60548,10 +60550,10 @@ pub fn post_prices(
 
 pub fn get_prices_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60692,13 +60694,13 @@ pub fn get_prices_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPricesSearchArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET /v1/prices/search
@@ -60733,7 +60735,7 @@ pub fn get_prices_search(
 pub fn get_prices_price_builder<R>(
     client: &SimpleHttpClient<R>,
     price: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60870,7 +60872,7 @@ pub struct GetPricesPriceArgs {
     /// Path parameter: price
     pub price: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/prices/{price}
@@ -61060,15 +61062,15 @@ pub fn post_prices_price(
 
 pub fn get_products_builder<R>(
     client: &SimpleHttpClient<R>,
-    active: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    shippable: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    url: &Option<Option<String>>,
+    active: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    ids: &Option<String>,
+    limit: &Option<String>,
+    shippable: &Option<String>,
+    starting_after: &Option<String>,
+    url: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -61224,23 +61226,23 @@ pub fn get_products_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetProductsArgs {
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: shippable
-    pub shippable: Option<Option<String>>,
+    pub shippable: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: url
-    pub url: Option<Option<String>>,
+    pub url: Option<String>,
 }
 
 /// GET /v1/products
@@ -61432,10 +61434,10 @@ pub fn post_products(
 
 pub fn get_products_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -61576,13 +61578,13 @@ pub fn get_products_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetProductsSearchArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET /v1/products/search
@@ -61617,7 +61619,7 @@ pub fn get_products_search(
 pub fn get_products_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -61754,7 +61756,7 @@ pub struct GetProductsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/products/{id}
@@ -62106,10 +62108,10 @@ pub fn delete_products_id(
 pub fn get_products_product_features_builder<R>(
     client: &SimpleHttpClient<R>,
     product: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -62252,13 +62254,13 @@ pub struct GetProductsProductFeaturesArgs {
     /// Path parameter: product
     pub product: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/products/{product}/features
@@ -62461,7 +62463,7 @@ pub fn get_products_product_features_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
     product: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -62605,7 +62607,7 @@ pub struct GetProductsProductFeaturesIdArgs {
     /// Path parameter: product
     pub product: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/products/{product}/features/{id}
@@ -62808,16 +62810,16 @@ pub fn delete_products_product_features_id(
 
 pub fn get_promotion_codes_builder<R>(
     client: &SimpleHttpClient<R>,
-    active: &Option<Option<String>>,
-    code: &Option<Option<String>>,
-    coupon: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    active: &Option<String>,
+    code: &Option<String>,
+    coupon: &Option<String>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -62976,25 +62978,25 @@ pub fn get_promotion_codes_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPromotionCodesArgs {
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: code
-    pub code: Option<Option<String>>,
+    pub code: Option<String>,
     /// Query parameter: coupon
-    pub coupon: Option<Option<String>>,
+    pub coupon: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/promotion_codes
@@ -63192,7 +63194,7 @@ pub fn post_promotion_codes(
 pub fn get_promotion_codes_promotion_code_builder<R>(
     client: &SimpleHttpClient<R>,
     promotion_code: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -63334,7 +63336,7 @@ pub struct GetPromotionCodesPromotionCodeArgs {
     /// Path parameter: promotion_code
     pub promotion_code: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/promotion_codes/{promotion_code}
@@ -63534,14 +63536,14 @@ pub fn post_promotion_codes_promotion_code(
 
 pub fn get_quotes_builder<R>(
     client: &SimpleHttpClient<R>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    test_clock: &Option<Option<String>>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    test_clock: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -63694,21 +63696,21 @@ pub fn get_quotes_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetQuotesArgs {
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: test_clock
-    pub test_clock: Option<Option<String>>,
+    pub test_clock: Option<String>,
 }
 
 /// GET /v1/quotes
@@ -63900,7 +63902,7 @@ pub fn post_quotes(
 pub fn get_quotes_quote_builder<R>(
     client: &SimpleHttpClient<R>,
     quote: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -64037,7 +64039,7 @@ pub struct GetQuotesQuoteArgs {
     /// Path parameter: quote
     pub quote: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/quotes/{quote}
@@ -64542,10 +64544,10 @@ pub fn post_quotes_quote_cancel(
 pub fn get_quotes_quote_computed_upfront_line_items_builder<R>(
     client: &SimpleHttpClient<R>,
     quote: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -64691,13 +64693,13 @@ pub struct GetQuotesQuoteComputedUpfrontLineItemsArgs {
     /// Path parameter: quote
     pub quote: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/quotes/{quote}/computed_upfront_line_items
@@ -64895,10 +64897,10 @@ pub fn post_quotes_quote_finalize(
 pub fn get_quotes_quote_line_items_builder<R>(
     client: &SimpleHttpClient<R>,
     quote: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65041,13 +65043,13 @@ pub struct GetQuotesQuoteLineItemsArgs {
     /// Path parameter: quote
     pub quote: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/quotes/{quote}/line_items
@@ -65088,7 +65090,7 @@ pub fn get_quotes_quote_line_items(
 pub fn get_quotes_quote_pdf_builder<R>(
     client: &SimpleHttpClient<R>,
     quote: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65222,7 +65224,7 @@ pub struct GetQuotesQuotePdfArgs {
     /// Path parameter: quote
     pub quote: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/quotes/{quote}/pdf
@@ -65255,13 +65257,13 @@ pub fn get_quotes_quote_pdf(
 
 pub fn get_radar_early_fraud_warnings_builder<R>(
     client: &SimpleHttpClient<R>,
-    charge: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    payment_intent: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    charge: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    payment_intent: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65411,19 +65413,19 @@ pub fn get_radar_early_fraud_warnings_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetRadarEarlyFraudWarningsArgs {
     /// Query parameter: charge
-    pub charge: Option<Option<String>>,
+    pub charge: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: payment_intent
-    pub payment_intent: Option<Option<String>>,
+    pub payment_intent: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/radar/early_fraud_warnings
@@ -65466,7 +65468,7 @@ pub fn get_radar_early_fraud_warnings(
 pub fn get_radar_early_fraud_warnings_early_fraud_warning_builder<R>(
     client: &SimpleHttpClient<R>,
     early_fraud_warning: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65608,7 +65610,7 @@ pub struct GetRadarEarlyFraudWarningsEarlyFraudWarningArgs {
     /// Path parameter: early_fraud_warning
     pub early_fraud_warning: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/radar/early_fraud_warnings/{early_fraud_warning}
@@ -65799,13 +65801,13 @@ pub fn post_radar_payment_evaluations(
 
 pub fn get_radar_value_list_items_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    value: &Option<Option<String>>,
-    value_list: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    value: &Option<String>,
+    value_list: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65955,19 +65957,19 @@ pub fn get_radar_value_list_items_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetRadarValueListItemsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: value
-    pub value: Option<Option<String>>,
+    pub value: Option<String>,
     /// Query parameter: value_list
-    pub value_list: Option<Option<String>>,
+    pub value_list: Option<String>,
 }
 
 /// GET /v1/radar/value_list_items
@@ -66162,7 +66164,7 @@ pub fn post_radar_value_list_items(
 pub fn get_radar_value_list_items_item_builder<R>(
     client: &SimpleHttpClient<R>,
     item: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -66301,7 +66303,7 @@ pub struct GetRadarValueListItemsItemArgs {
     /// Path parameter: item
     pub item: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/radar/value_list_items/{item}
@@ -66497,13 +66499,13 @@ pub fn delete_radar_value_list_items_item(
 
 pub fn get_radar_value_lists_builder<R>(
     client: &SimpleHttpClient<R>,
-    alias: &Option<Option<String>>,
-    contains: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    alias: &Option<String>,
+    contains: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -66653,19 +66655,19 @@ pub fn get_radar_value_lists_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetRadarValueListsArgs {
     /// Query parameter: alias
-    pub alias: Option<Option<String>>,
+    pub alias: Option<String>,
     /// Query parameter: contains
-    pub contains: Option<Option<String>>,
+    pub contains: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/radar/value_lists
@@ -66860,7 +66862,7 @@ pub fn post_radar_value_lists(
 pub fn get_radar_value_lists_value_list_builder<R>(
     client: &SimpleHttpClient<R>,
     value_list: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -67002,7 +67004,7 @@ pub struct GetRadarValueListsValueListArgs {
     /// Path parameter: value_list
     pub value_list: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/radar/value_lists/{value_list}
@@ -67365,13 +67367,13 @@ pub fn delete_radar_value_lists_value_list(
 
 pub fn get_refunds_builder<R>(
     client: &SimpleHttpClient<R>,
-    charge: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    payment_intent: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    charge: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    payment_intent: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -67521,19 +67523,19 @@ pub fn get_refunds_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetRefundsArgs {
     /// Query parameter: charge
-    pub charge: Option<Option<String>>,
+    pub charge: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: payment_intent
-    pub payment_intent: Option<Option<String>>,
+    pub payment_intent: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/refunds
@@ -67724,7 +67726,7 @@ pub fn post_refunds(
 pub fn get_refunds_refund_builder<R>(
     client: &SimpleHttpClient<R>,
     refund: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -67861,7 +67863,7 @@ pub struct GetRefundsRefundArgs {
     /// Path parameter: refund
     pub refund: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/refunds/{refund}
@@ -68208,11 +68210,11 @@ pub fn post_refunds_refund_cancel(
 
 pub fn get_reporting_report_runs_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -68356,15 +68358,15 @@ pub fn get_reporting_report_runs_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetReportingReportRunsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/reporting/report_runs
@@ -68557,7 +68559,7 @@ pub fn post_reporting_report_runs(
 pub fn get_reporting_report_runs_report_run_builder<R>(
     client: &SimpleHttpClient<R>,
     report_run: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -68699,7 +68701,7 @@ pub struct GetReportingReportRunsReportRunArgs {
     /// Path parameter: report_run
     pub report_run: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/reporting/report_runs/{report_run}
@@ -68735,7 +68737,7 @@ pub fn get_reporting_report_runs_report_run(
 
 pub fn get_reporting_report_types_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -68867,7 +68869,7 @@ pub fn get_reporting_report_types_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetReportingReportTypesArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/reporting/report_types
@@ -68901,7 +68903,7 @@ pub fn get_reporting_report_types(
 pub fn get_reporting_report_types_report_type_builder<R>(
     client: &SimpleHttpClient<R>,
     report_type: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -69043,7 +69045,7 @@ pub struct GetReportingReportTypesReportTypeArgs {
     /// Path parameter: report_type
     pub report_type: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/reporting/report_types/{report_type}
@@ -69079,11 +69081,11 @@ pub fn get_reporting_report_types_report_type(
 
 pub fn get_reviews_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -69227,15 +69229,15 @@ pub fn get_reviews_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetReviewsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/reviews
@@ -69276,7 +69278,7 @@ pub fn get_reviews(
 pub fn get_reviews_review_builder<R>(
     client: &SimpleHttpClient<R>,
     review: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -69413,7 +69415,7 @@ pub struct GetReviewsReviewArgs {
     /// Path parameter: review
     pub review: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/reviews/{review}
@@ -69603,12 +69605,12 @@ pub fn post_reviews_review_approve(
 
 pub fn get_setup_attempts_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    setup_intent: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    setup_intent: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -69755,17 +69757,17 @@ pub fn get_setup_attempts_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSetupAttemptsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: setup_intent
-    pub setup_intent: Option<Option<String>>,
+    pub setup_intent: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/setup_attempts
@@ -69806,15 +69808,15 @@ pub fn get_setup_attempts(
 
 pub fn get_setup_intents_builder<R>(
     client: &SimpleHttpClient<R>,
-    attach_to_self: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    payment_method: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    attach_to_self: &Option<String>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    payment_method: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -69970,23 +69972,23 @@ pub fn get_setup_intents_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSetupIntentsArgs {
     /// Query parameter: attach_to_self
-    pub attach_to_self: Option<Option<String>>,
+    pub attach_to_self: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: payment_method
-    pub payment_method: Option<Option<String>>,
+    pub payment_method: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/setup_intents
@@ -70179,8 +70181,8 @@ pub fn post_setup_intents(
 pub fn get_setup_intents_intent_builder<R>(
     client: &SimpleHttpClient<R>,
     intent: &String,
-    client_secret: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
+    client_secret: &Option<String>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -70320,9 +70322,9 @@ pub struct GetSetupIntentsIntentArgs {
     /// Path parameter: intent
     pub intent: String,
     /// Query parameter: client_secret
-    pub client_secret: Option<Option<String>>,
+    pub client_secret: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/setup_intents/{intent}
@@ -70990,13 +70992,13 @@ pub fn post_setup_intents_intent_verify_microdeposits(
 
 pub fn get_shipping_rates_builder<R>(
     client: &SimpleHttpClient<R>,
-    active: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    currency: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    active: &Option<String>,
+    created: &Option<String>,
+    currency: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -71146,19 +71148,19 @@ pub fn get_shipping_rates_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetShippingRatesArgs {
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: currency
-    pub currency: Option<Option<String>>,
+    pub currency: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/shipping_rates
@@ -71353,7 +71355,7 @@ pub fn post_shipping_rates(
 pub fn get_shipping_rates_shipping_rate_token_builder<R>(
     client: &SimpleHttpClient<R>,
     shipping_rate_token: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -71495,7 +71497,7 @@ pub struct GetShippingRatesShippingRateTokenArgs {
     /// Path parameter: shipping_rate_token
     pub shipping_rate_token: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/shipping_rates/{shipping_rate_token}
@@ -71860,10 +71862,10 @@ pub fn post_sigma_saved_queries_id(
 
 pub fn get_sigma_scheduled_query_runs_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -72004,13 +72006,13 @@ pub fn get_sigma_scheduled_query_runs_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSigmaScheduledQueryRunsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/sigma/scheduled_query_runs
@@ -72050,7 +72052,7 @@ pub fn get_sigma_scheduled_query_runs(
 pub fn get_sigma_scheduled_query_runs_scheduled_query_run_builder<R>(
     client: &SimpleHttpClient<R>,
     scheduled_query_run: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -72192,7 +72194,7 @@ pub struct GetSigmaScheduledQueryRunsScheduledQueryRunArgs {
     /// Path parameter: scheduled_query_run
     pub scheduled_query_run: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/sigma/scheduled_query_runs/{scheduled_query_run}
@@ -72380,8 +72382,8 @@ pub fn post_sources(
 pub fn get_sources_source_builder<R>(
     client: &SimpleHttpClient<R>,
     source: &String,
-    client_secret: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
+    client_secret: &Option<String>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -72521,9 +72523,9 @@ pub struct GetSourcesSourceArgs {
     /// Path parameter: source
     pub source: String,
     /// Query parameter: client_secret
-    pub client_secret: Option<Option<String>>,
+    pub client_secret: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/sources/{source}
@@ -72716,7 +72718,7 @@ pub fn get_sources_source_mandate_notifications_mandate_notification_builder<R>(
     client: &SimpleHttpClient<R>,
     mandate_notification: &String,
     source: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -72860,7 +72862,7 @@ pub struct GetSourcesSourceMandateNotificationsMandateNotificationArgs {
     /// Path parameter: source
     pub source: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/sources/{source}/mandate_notifications/{mandate_notification}
@@ -72900,10 +72902,10 @@ pub fn get_sources_source_mandate_notifications_mandate_notification(
 pub fn get_sources_source_source_transactions_builder<R>(
     client: &SimpleHttpClient<R>,
     source: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -73047,13 +73049,13 @@ pub struct GetSourcesSourceSourceTransactionsArgs {
     /// Path parameter: source
     pub source: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/sources/{source}/source_transactions
@@ -73094,7 +73096,7 @@ pub fn get_sources_source_source_transactions_source_transaction_builder<R>(
     client: &SimpleHttpClient<R>,
     source: &String,
     source_transaction: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -73238,7 +73240,7 @@ pub struct GetSourcesSourceSourceTransactionsSourceTransactionArgs {
     /// Path parameter: source_transaction
     pub source_transaction: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/sources/{source}/source_transactions/{source_transaction}
@@ -73431,11 +73433,11 @@ pub fn post_sources_source_verify(
 
 pub fn get_subscription_items_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    subscription: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    subscription: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -73579,15 +73581,15 @@ pub fn get_subscription_items_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSubscriptionItemsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: subscription
-    pub subscription: Option<Option<String>>,
+    pub subscription: Option<String>,
 }
 
 /// GET /v1/subscription_items
@@ -73780,7 +73782,7 @@ pub fn post_subscription_items(
 pub fn get_subscription_items_item_builder<R>(
     client: &SimpleHttpClient<R>,
     item: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -73919,7 +73921,7 @@ pub struct GetSubscriptionItemsItemArgs {
     /// Path parameter: item
     pub item: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/subscription_items/{item}
@@ -74276,17 +74278,17 @@ pub fn delete_subscription_items_item(
 
 pub fn get_subscription_schedules_builder<R>(
     client: &SimpleHttpClient<R>,
-    canceled_at: &Option<Option<String>>,
-    completed_at: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    released_at: &Option<Option<String>>,
-    scheduled: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    canceled_at: &Option<String>,
+    completed_at: &Option<String>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    released_at: &Option<String>,
+    scheduled: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -74448,27 +74450,27 @@ pub fn get_subscription_schedules_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSubscriptionSchedulesArgs {
     /// Query parameter: canceled_at
-    pub canceled_at: Option<Option<String>>,
+    pub canceled_at: Option<String>,
     /// Query parameter: completed_at
-    pub completed_at: Option<Option<String>>,
+    pub completed_at: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: released_at
-    pub released_at: Option<Option<String>>,
+    pub released_at: Option<String>,
     /// Query parameter: scheduled
-    pub scheduled: Option<Option<String>>,
+    pub scheduled: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/subscription_schedules
@@ -74667,7 +74669,7 @@ pub fn post_subscription_schedules(
 pub fn get_subscription_schedules_schedule_builder<R>(
     client: &SimpleHttpClient<R>,
     schedule: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -74809,7 +74811,7 @@ pub struct GetSubscriptionSchedulesScheduleArgs {
     /// Path parameter: schedule
     pub schedule: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/subscription_schedules/{schedule}
@@ -75337,20 +75339,20 @@ pub fn post_subscription_schedules_schedule_release(
 
 pub fn get_subscriptions_builder<R>(
     client: &SimpleHttpClient<R>,
-    automatic_tax: &Option<Option<String>>,
-    collection_method: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    current_period_end: &Option<Option<String>>,
-    current_period_start: &Option<Option<String>>,
-    customer: &Option<Option<String>>,
-    customer_account: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    price: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    test_clock: &Option<Option<String>>,
+    automatic_tax: &Option<String>,
+    collection_method: &Option<String>,
+    created: &Option<String>,
+    current_period_end: &Option<String>,
+    current_period_start: &Option<String>,
+    customer: &Option<String>,
+    customer_account: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    price: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    test_clock: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -75521,33 +75523,33 @@ pub fn get_subscriptions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSubscriptionsArgs {
     /// Query parameter: automatic_tax
-    pub automatic_tax: Option<Option<String>>,
+    pub automatic_tax: Option<String>,
     /// Query parameter: collection_method
-    pub collection_method: Option<Option<String>>,
+    pub collection_method: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: current_period_end
-    pub current_period_end: Option<Option<String>>,
+    pub current_period_end: Option<String>,
     /// Query parameter: current_period_start
-    pub current_period_start: Option<Option<String>>,
+    pub current_period_start: Option<String>,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: customer_account
-    pub customer_account: Option<Option<String>>,
+    pub customer_account: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: price
-    pub price: Option<Option<String>>,
+    pub price: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: test_clock
-    pub test_clock: Option<Option<String>>,
+    pub test_clock: Option<String>,
 }
 
 /// GET /v1/subscriptions
@@ -75748,10 +75750,10 @@ pub fn post_subscriptions(
 
 pub fn get_subscriptions_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    page: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    page: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -75892,13 +75894,13 @@ pub fn get_subscriptions_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSubscriptionsSearchArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: page
-    pub page: Option<Option<String>>,
+    pub page: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET /v1/subscriptions/search
@@ -75938,7 +75940,7 @@ pub fn get_subscriptions_search(
 pub fn get_subscriptions_subscription_exposed_id_builder<R>(
     client: &SimpleHttpClient<R>,
     subscription_exposed_id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -76080,7 +76082,7 @@ pub struct GetSubscriptionsSubscriptionExposedIdArgs {
     /// Path parameter: subscription_exposed_id
     pub subscription_exposed_id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/subscriptions/{subscription_exposed_id}
@@ -76946,8 +76948,8 @@ pub fn post_subscriptions_subscription_resume(
 
 pub fn get_tax_associations_find_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
-    payment_intent: &Option<Option<String>>,
+    expand: &Option<String>,
+    payment_intent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -77087,9 +77089,9 @@ pub fn get_tax_associations_find_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTaxAssociationsFindArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: payment_intent
-    pub payment_intent: Option<Option<String>>,
+    pub payment_intent: Option<String>,
 }
 
 /// GET /v1/tax/associations/find
@@ -77277,7 +77279,7 @@ pub fn post_tax_calculations(
 pub fn get_tax_calculations_calculation_builder<R>(
     client: &SimpleHttpClient<R>,
     calculation: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -77419,7 +77421,7 @@ pub struct GetTaxCalculationsCalculationArgs {
     /// Path parameter: calculation
     pub calculation: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/tax/calculations/{calculation}
@@ -77456,10 +77458,10 @@ pub fn get_tax_calculations_calculation(
 pub fn get_tax_calculations_calculation_line_items_builder<R>(
     client: &SimpleHttpClient<R>,
     calculation: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -77605,13 +77607,13 @@ pub struct GetTaxCalculationsCalculationLineItemsArgs {
     /// Path parameter: calculation
     pub calculation: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/tax/calculations/{calculation}/line_items
@@ -77651,11 +77653,11 @@ pub fn get_tax_calculations_calculation_line_items(
 
 pub fn get_tax_registrations_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -77799,15 +77801,15 @@ pub fn get_tax_registrations_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTaxRegistrationsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/tax/registrations
@@ -78000,7 +78002,7 @@ pub fn post_tax_registrations(
 pub fn get_tax_registrations_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -78139,7 +78141,7 @@ pub struct GetTaxRegistrationsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/tax/registrations/{id}
@@ -78335,7 +78337,7 @@ pub fn post_tax_registrations_id(
 
 pub fn get_tax_settings_builder<R>(
     client: &SimpleHttpClient<R>,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -78470,7 +78472,7 @@ pub fn get_tax_settings_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTaxSettingsArgs {
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/tax/settings
@@ -78957,7 +78959,7 @@ pub fn post_tax_transactions_create_reversal(
 pub fn get_tax_transactions_transaction_builder<R>(
     client: &SimpleHttpClient<R>,
     transaction: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -79099,7 +79101,7 @@ pub struct GetTaxTransactionsTransactionArgs {
     /// Path parameter: transaction
     pub transaction: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/tax/transactions/{transaction}
@@ -79136,10 +79138,10 @@ pub fn get_tax_transactions_transaction(
 pub fn get_tax_transactions_transaction_line_items_builder<R>(
     client: &SimpleHttpClient<R>,
     transaction: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -79285,13 +79287,13 @@ pub struct GetTaxTransactionsTransactionLineItemsArgs {
     /// Path parameter: transaction
     pub transaction: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/tax/transactions/{transaction}/line_items
@@ -79331,10 +79333,10 @@ pub fn get_tax_transactions_transaction_line_items(
 
 pub fn get_tax_codes_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -79475,13 +79477,13 @@ pub fn get_tax_codes_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTaxCodesArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/tax_codes
@@ -79521,7 +79523,7 @@ pub fn get_tax_codes(
 pub fn get_tax_codes_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -79658,7 +79660,7 @@ pub struct GetTaxCodesIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/tax_codes/{id}
@@ -79691,11 +79693,11 @@ pub fn get_tax_codes_id(
 
 pub fn get_tax_ids_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    owner: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    owner: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -79839,15 +79841,15 @@ pub fn get_tax_ids_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTaxIdsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: owner
-    pub owner: Option<Option<String>>,
+    pub owner: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/tax_ids
@@ -80036,7 +80038,7 @@ pub fn post_tax_ids(
 pub fn get_tax_ids_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -80173,7 +80175,7 @@ pub struct GetTaxIdsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/tax_ids/{id}
@@ -80367,13 +80369,13 @@ pub fn delete_tax_ids_id(
 
 pub fn get_tax_rates_builder<R>(
     client: &SimpleHttpClient<R>,
-    active: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    inclusive: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    active: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    inclusive: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -80523,19 +80525,19 @@ pub fn get_tax_rates_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTaxRatesArgs {
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: inclusive
-    pub inclusive: Option<Option<String>>,
+    pub inclusive: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/tax_rates
@@ -80726,7 +80728,7 @@ pub fn post_tax_rates(
 pub fn get_tax_rates_tax_rate_builder<R>(
     client: &SimpleHttpClient<R>,
     tax_rate: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -80863,7 +80865,7 @@ pub struct GetTaxRatesTaxRateArgs {
     /// Path parameter: tax_rate
     pub tax_rate: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/tax_rates/{tax_rate}
@@ -81053,11 +81055,11 @@ pub fn post_tax_rates_tax_rate(
 
 pub fn get_terminal_configurations_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    is_account_default: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    is_account_default: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -81201,15 +81203,15 @@ pub fn get_terminal_configurations_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTerminalConfigurationsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: is_account_default
-    pub is_account_default: Option<Option<String>>,
+    pub is_account_default: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/terminal/configurations
@@ -81402,7 +81404,7 @@ pub fn post_terminal_configurations(
 pub fn get_terminal_configurations_configuration_builder<R>(
     client: &SimpleHttpClient<R>,
     configuration: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -81544,7 +81546,7 @@ pub struct GetTerminalConfigurationsConfigurationArgs {
     /// Path parameter: configuration
     pub configuration: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/terminal/configurations/{configuration}
@@ -82068,10 +82070,10 @@ pub fn post_terminal_connection_tokens(
 
 pub fn get_terminal_locations_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -82212,13 +82214,13 @@ pub fn get_terminal_locations_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTerminalLocationsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/terminal/locations
@@ -82410,7 +82412,7 @@ pub fn post_terminal_locations(
 pub fn get_terminal_locations_location_builder<R>(
     client: &SimpleHttpClient<R>,
     location: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -82549,7 +82551,7 @@ pub struct GetTerminalLocationsLocationArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/terminal/locations/{location}
@@ -83058,14 +83060,14 @@ pub fn post_terminal_onboarding_links(
 
 pub fn get_terminal_readers_builder<R>(
     client: &SimpleHttpClient<R>,
-    device_type: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    location: &Option<Option<String>>,
-    serial_number: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    device_type: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    location: &Option<String>,
+    serial_number: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -83218,21 +83220,21 @@ pub fn get_terminal_readers_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTerminalReadersArgs {
     /// Query parameter: device_type
-    pub device_type: Option<Option<String>>,
+    pub device_type: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: serial_number
-    pub serial_number: Option<Option<String>>,
+    pub serial_number: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/terminal/readers
@@ -83428,7 +83430,7 @@ pub fn post_terminal_readers(
 pub fn get_terminal_readers_reader_builder<R>(
     client: &SimpleHttpClient<R>,
     reader: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -83567,7 +83569,7 @@ pub struct GetTerminalReadersReaderArgs {
     /// Path parameter: reader
     pub reader: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/terminal/readers/{reader}
@@ -89656,10 +89658,10 @@ pub fn post_test_helpers_terminal_readers_reader_timeout_input_collection(
 
 pub fn get_test_helpers_test_clocks_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -89800,13 +89802,13 @@ pub fn get_test_helpers_test_clocks_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTestHelpersTestClocksArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/test_helpers/test_clocks
@@ -89998,7 +90000,7 @@ pub fn post_test_helpers_test_clocks(
 pub fn get_test_helpers_test_clocks_test_clock_builder<R>(
     client: &SimpleHttpClient<R>,
     test_clock: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -90140,7 +90142,7 @@ pub struct GetTestHelpersTestClocksTestClockArgs {
     /// Path parameter: test_clock
     pub test_clock: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/test_helpers/test_clocks/{test_clock}
@@ -92781,7 +92783,7 @@ pub fn post_tokens(
 pub fn get_tokens_token_builder<R>(
     client: &SimpleHttpClient<R>,
     token: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -92918,7 +92920,7 @@ pub struct GetTokensTokenArgs {
     /// Path parameter: token
     pub token: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/tokens/{token}
@@ -92951,13 +92953,13 @@ pub fn get_tokens_token(
 
 pub fn get_topups_builder<R>(
     client: &SimpleHttpClient<R>,
-    amount: &Option<Option<String>>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    amount: &Option<String>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -93107,19 +93109,19 @@ pub fn get_topups_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTopupsArgs {
     /// Query parameter: amount
-    pub amount: Option<Option<String>>,
+    pub amount: Option<String>,
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/topups
@@ -93310,7 +93312,7 @@ pub fn post_topups(
 pub fn get_topups_topup_builder<R>(
     client: &SimpleHttpClient<R>,
     topup: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -93447,7 +93449,7 @@ pub struct GetTopupsTopupArgs {
     /// Path parameter: topup
     pub topup: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/topups/{topup}
@@ -93794,13 +93796,13 @@ pub fn post_topups_topup_cancel(
 
 pub fn get_transfers_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    destination: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    transfer_group: &Option<Option<String>>,
+    created: &Option<String>,
+    destination: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    transfer_group: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -93950,19 +93952,19 @@ pub fn get_transfers_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTransfersArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: destination
-    pub destination: Option<Option<String>>,
+    pub destination: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: transfer_group
-    pub transfer_group: Option<Option<String>>,
+    pub transfer_group: Option<String>,
 }
 
 /// GET /v1/transfers
@@ -94153,10 +94155,10 @@ pub fn post_transfers(
 pub fn get_transfers_id_reversals_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -94299,13 +94301,13 @@ pub struct GetTransfersIdReversalsArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/transfers/{id}/reversals
@@ -94507,7 +94509,7 @@ pub fn post_transfers_id_reversals(
 pub fn get_transfers_transfer_builder<R>(
     client: &SimpleHttpClient<R>,
     transfer: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -94644,7 +94646,7 @@ pub struct GetTransfersTransferArgs {
     /// Path parameter: transfer
     pub transfer: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/transfers/{transfer}
@@ -94836,7 +94838,7 @@ pub fn get_transfers_transfer_reversals_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
     transfer: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -94980,7 +94982,7 @@ pub struct GetTransfersTransferReversalsIdArgs {
     /// Path parameter: transfer
     pub transfer: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/transfers/{transfer}/reversals/{id}
@@ -95187,13 +95189,13 @@ pub fn post_transfers_transfer_reversals_id(
 
 pub fn get_treasury_credit_reversals_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    financial_account: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    received_credit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    financial_account: &Option<String>,
+    limit: &Option<String>,
+    received_credit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -95343,19 +95345,19 @@ pub fn get_treasury_credit_reversals_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTreasuryCreditReversalsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: financial_account
-    pub financial_account: Option<Option<String>>,
+    pub financial_account: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: received_credit
-    pub received_credit: Option<Option<String>>,
+    pub received_credit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/treasury/credit_reversals
@@ -95550,7 +95552,7 @@ pub fn post_treasury_credit_reversals(
 pub fn get_treasury_credit_reversals_credit_reversal_builder<R>(
     client: &SimpleHttpClient<R>,
     credit_reversal: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -95692,7 +95694,7 @@ pub struct GetTreasuryCreditReversalsCreditReversalArgs {
     /// Path parameter: credit_reversal
     pub credit_reversal: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/treasury/credit_reversals/{credit_reversal}
@@ -95731,14 +95733,14 @@ pub fn get_treasury_credit_reversals_credit_reversal(
 
 pub fn get_treasury_debit_reversals_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    financial_account: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    received_debit: &Option<Option<String>>,
-    resolution: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    financial_account: &Option<String>,
+    limit: &Option<String>,
+    received_debit: &Option<String>,
+    resolution: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -95891,21 +95893,21 @@ pub fn get_treasury_debit_reversals_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTreasuryDebitReversalsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: financial_account
-    pub financial_account: Option<Option<String>>,
+    pub financial_account: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: received_debit
-    pub received_debit: Option<Option<String>>,
+    pub received_debit: Option<String>,
     /// Query parameter: resolution
-    pub resolution: Option<Option<String>>,
+    pub resolution: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/treasury/debit_reversals
@@ -96101,7 +96103,7 @@ pub fn post_treasury_debit_reversals(
 pub fn get_treasury_debit_reversals_debit_reversal_builder<R>(
     client: &SimpleHttpClient<R>,
     debit_reversal: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -96243,7 +96245,7 @@ pub struct GetTreasuryDebitReversalsDebitReversalArgs {
     /// Path parameter: debit_reversal
     pub debit_reversal: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/treasury/debit_reversals/{debit_reversal}
@@ -96282,12 +96284,12 @@ pub fn get_treasury_debit_reversals_debit_reversal(
 
 pub fn get_treasury_financial_accounts_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -96434,17 +96436,17 @@ pub fn get_treasury_financial_accounts_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTreasuryFinancialAccountsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/treasury/financial_accounts
@@ -96638,7 +96640,7 @@ pub fn post_treasury_financial_accounts(
 pub fn get_treasury_financial_accounts_financial_account_builder<R>(
     client: &SimpleHttpClient<R>,
     financial_account: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -96780,7 +96782,7 @@ pub struct GetTreasuryFinancialAccountsFinancialAccountArgs {
     /// Path parameter: financial_account
     pub financial_account: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/treasury/financial_accounts/{financial_account}
@@ -97154,7 +97156,7 @@ pub fn post_treasury_financial_accounts_financial_account_close(
 pub fn get_treasury_financial_accounts_financial_account_features_builder<R>(
     client: &SimpleHttpClient<R>,
     financial_account: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -97298,7 +97300,7 @@ pub struct GetTreasuryFinancialAccountsFinancialAccountFeaturesArgs {
     /// Path parameter: financial_account
     pub financial_account: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/treasury/financial_accounts/{financial_account}/features
@@ -97510,12 +97512,12 @@ pub fn post_treasury_financial_accounts_financial_account_features(
 
 pub fn get_treasury_inbound_transfers_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    financial_account: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    financial_account: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -97662,17 +97664,17 @@ pub fn get_treasury_inbound_transfers_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTreasuryInboundTransfersArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: financial_account
-    pub financial_account: Option<Option<String>>,
+    pub financial_account: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/treasury/inbound_transfers
@@ -97866,7 +97868,7 @@ pub fn post_treasury_inbound_transfers(
 pub fn get_treasury_inbound_transfers_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -98008,7 +98010,7 @@ pub struct GetTreasuryInboundTransfersIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/treasury/inbound_transfers/{id}
@@ -98210,14 +98212,14 @@ pub fn post_treasury_inbound_transfers_inbound_transfer_cancel(
 
 pub fn get_treasury_outbound_payments_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    customer: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    financial_account: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    created: &Option<String>,
+    customer: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    financial_account: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -98370,21 +98372,21 @@ pub fn get_treasury_outbound_payments_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTreasuryOutboundPaymentsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: financial_account
-    pub financial_account: Option<Option<String>>,
+    pub financial_account: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/treasury/outbound_payments
@@ -98580,7 +98582,7 @@ pub fn post_treasury_outbound_payments(
 pub fn get_treasury_outbound_payments_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -98722,7 +98724,7 @@ pub struct GetTreasuryOutboundPaymentsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/treasury/outbound_payments/{id}
@@ -98921,12 +98923,12 @@ pub fn post_treasury_outbound_payments_id_cancel(
 
 pub fn get_treasury_outbound_transfers_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    financial_account: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    financial_account: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -99073,17 +99075,17 @@ pub fn get_treasury_outbound_transfers_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTreasuryOutboundTransfersArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: financial_account
-    pub financial_account: Option<Option<String>>,
+    pub financial_account: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/treasury/outbound_transfers
@@ -99277,7 +99279,7 @@ pub fn post_treasury_outbound_transfers(
 pub fn get_treasury_outbound_transfers_outbound_transfer_builder<R>(
     client: &SimpleHttpClient<R>,
     outbound_transfer: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -99419,7 +99421,7 @@ pub struct GetTreasuryOutboundTransfersOutboundTransferArgs {
     /// Path parameter: outbound_transfer
     pub outbound_transfer: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/treasury/outbound_transfers/{outbound_transfer}
@@ -99625,13 +99627,13 @@ pub fn post_treasury_outbound_transfers_outbound_transfer_cancel(
 
 pub fn get_treasury_received_credits_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    financial_account: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    linked_flows: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    financial_account: &Option<String>,
+    limit: &Option<String>,
+    linked_flows: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -99781,19 +99783,19 @@ pub fn get_treasury_received_credits_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTreasuryReceivedCreditsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: financial_account
-    pub financial_account: Option<Option<String>>,
+    pub financial_account: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: linked_flows
-    pub linked_flows: Option<Option<String>>,
+    pub linked_flows: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/treasury/received_credits
@@ -99836,7 +99838,7 @@ pub fn get_treasury_received_credits(
 pub fn get_treasury_received_credits_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -99978,7 +99980,7 @@ pub struct GetTreasuryReceivedCreditsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/treasury/received_credits/{id}
@@ -100013,12 +100015,12 @@ pub fn get_treasury_received_credits_id(
 
 pub fn get_treasury_received_debits_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    financial_account: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    financial_account: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -100165,17 +100167,17 @@ pub fn get_treasury_received_debits_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTreasuryReceivedDebitsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: financial_account
-    pub financial_account: Option<Option<String>>,
+    pub financial_account: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET /v1/treasury/received_debits
@@ -100217,7 +100219,7 @@ pub fn get_treasury_received_debits(
 pub fn get_treasury_received_debits_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -100356,7 +100358,7 @@ pub struct GetTreasuryReceivedDebitsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/treasury/received_debits/{id}
@@ -100391,15 +100393,15 @@ pub fn get_treasury_received_debits_id(
 
 pub fn get_treasury_transaction_entries_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    effective_at: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    financial_account: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    order_by: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    transaction: &Option<Option<String>>,
+    created: &Option<String>,
+    effective_at: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    financial_account: &Option<String>,
+    limit: &Option<String>,
+    order_by: &Option<String>,
+    starting_after: &Option<String>,
+    transaction: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -100555,23 +100557,23 @@ pub fn get_treasury_transaction_entries_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTreasuryTransactionEntriesArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: effective_at
-    pub effective_at: Option<Option<String>>,
+    pub effective_at: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: financial_account
-    pub financial_account: Option<Option<String>>,
+    pub financial_account: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: order_by
-    pub order_by: Option<Option<String>>,
+    pub order_by: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: transaction
-    pub transaction: Option<Option<String>>,
+    pub transaction: Option<String>,
 }
 
 /// GET /v1/treasury/transaction_entries
@@ -100616,7 +100618,7 @@ pub fn get_treasury_transaction_entries(
 pub fn get_treasury_transaction_entries_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -100758,7 +100760,7 @@ pub struct GetTreasuryTransactionEntriesIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/treasury/transaction_entries/{id}
@@ -100793,15 +100795,15 @@ pub fn get_treasury_transaction_entries_id(
 
 pub fn get_treasury_transactions_builder<R>(
     client: &SimpleHttpClient<R>,
-    created: &Option<Option<String>>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    financial_account: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    order_by: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    status_transitions: &Option<Option<String>>,
+    created: &Option<String>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    financial_account: &Option<String>,
+    limit: &Option<String>,
+    order_by: &Option<String>,
+    starting_after: &Option<String>,
+    status: &Option<String>,
+    status_transitions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -100957,23 +100959,23 @@ pub fn get_treasury_transactions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTreasuryTransactionsArgs {
     /// Query parameter: created
-    pub created: Option<Option<String>>,
+    pub created: Option<String>,
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: financial_account
-    pub financial_account: Option<Option<String>>,
+    pub financial_account: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: order_by
-    pub order_by: Option<Option<String>>,
+    pub order_by: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: status_transitions
-    pub status_transitions: Option<Option<String>>,
+    pub status_transitions: Option<String>,
 }
 
 /// GET /v1/treasury/transactions
@@ -101018,7 +101020,7 @@ pub fn get_treasury_transactions(
 pub fn get_treasury_transactions_id_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -101157,7 +101159,7 @@ pub struct GetTreasuryTransactionsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/treasury/transactions/{id}
@@ -101192,10 +101194,10 @@ pub fn get_treasury_transactions_id(
 
 pub fn get_webhook_endpoints_builder<R>(
     client: &SimpleHttpClient<R>,
-    ending_before: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    starting_after: &Option<Option<String>>,
+    ending_before: &Option<String>,
+    expand: &Option<String>,
+    limit: &Option<String>,
+    starting_after: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -101336,13 +101338,13 @@ pub fn get_webhook_endpoints_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetWebhookEndpointsArgs {
     /// Query parameter: ending_before
-    pub ending_before: Option<Option<String>>,
+    pub ending_before: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: starting_after
-    pub starting_after: Option<Option<String>>,
+    pub starting_after: Option<String>,
 }
 
 /// GET /v1/webhook_endpoints
@@ -101534,7 +101536,7 @@ pub fn post_webhook_endpoints(
 pub fn get_webhook_endpoints_webhook_endpoint_builder<R>(
     client: &SimpleHttpClient<R>,
     webhook_endpoint: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -101676,7 +101678,7 @@ pub struct GetWebhookEndpointsWebhookEndpointArgs {
     /// Path parameter: webhook_endpoint
     pub webhook_endpoint: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET /v1/webhook_endpoints/{webhook_endpoint}
@@ -102047,75 +102049,6 @@ pub fn delete_webhook_endpoints_webhook_endpoint(
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<GetAccountArgs> for Account {
     fn generate_resource_id(&self, input: &GetAccountArgs) -> String {
-        "stripe::Account".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Account"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for AccountLink
-// =============================================================================
-
-/// ResourceIdentifier implementation for AccountLink with PostAccountLinksArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostAccountLinksArgs> for AccountLink {
-    fn generate_resource_id(&self, input: &PostAccountLinksArgs) -> String {
-        "stripe::AccountLink".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::AccountLink"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for AccountSession
-// =============================================================================
-
-/// ResourceIdentifier implementation for AccountSession with PostAccountSessionsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostAccountSessionsArgs> for AccountSession {
-    fn generate_resource_id(&self, input: &PostAccountSessionsArgs) -> String {
-        "stripe::AccountSession".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::AccountSession"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Account
-// =============================================================================
-
-/// ResourceIdentifier implementation for Account with PostAccountsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostAccountsArgs> for Account {
-    fn generate_resource_id(&self, input: &PostAccountsArgs) -> String {
         "stripe::Account".to_string()
     }
 
@@ -102670,29 +102603,6 @@ impl ResourceIdentifier<PostAccountsAccountRejectArgs> for Account {
 // ResourceIdentifier implementation for ApplePayDomain
 // =============================================================================
 
-/// ResourceIdentifier implementation for ApplePayDomain with PostApplePayDomainsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostApplePayDomainsArgs> for ApplePayDomain {
-    fn generate_resource_id(&self, input: &PostApplePayDomainsArgs) -> String {
-        "stripe::ApplePayDomain".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::ApplePayDomain"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ApplePayDomain
-// =============================================================================
-
 /// ResourceIdentifier implementation for ApplePayDomain with GetApplePayDomainsDomainArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -102854,52 +102764,6 @@ impl ResourceIdentifier<PostApplicationFeesIdRefundsArgs> for FeeRefund {
 // ResourceIdentifier implementation for AppsSecret
 // =============================================================================
 
-/// ResourceIdentifier implementation for AppsSecret with PostAppsSecretsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostAppsSecretsArgs> for AppsSecret {
-    fn generate_resource_id(&self, input: &PostAppsSecretsArgs) -> String {
-        "stripe::AppsSecret".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::AppsSecret"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for AppsSecret
-// =============================================================================
-
-/// ResourceIdentifier implementation for AppsSecret with PostAppsSecretsDeleteArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostAppsSecretsDeleteArgs> for AppsSecret {
-    fn generate_resource_id(&self, input: &PostAppsSecretsDeleteArgs) -> String {
-        "stripe::AppsSecret".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::AppsSecret"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for AppsSecret
-// =============================================================================
-
 /// ResourceIdentifier implementation for AppsSecret with GetAppsSecretsFindArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -102989,29 +102853,6 @@ impl ResourceIdentifier<GetBalanceSettingsArgs> for BalanceSettings {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for BalanceSettings
-// =============================================================================
-
-/// ResourceIdentifier implementation for BalanceSettings with PostBalanceSettingsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostBalanceSettingsArgs> for BalanceSettings {
-    fn generate_resource_id(&self, input: &PostBalanceSettingsArgs) -> String {
-        "stripe::BalanceSettings".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::BalanceSettings"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for BalanceTransaction
 // =============================================================================
 
@@ -103027,29 +102868,6 @@ impl ResourceIdentifier<GetBalanceTransactionsIdArgs> for BalanceTransaction {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::BalanceTransaction"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BillingAlert
-// =============================================================================
-
-/// ResourceIdentifier implementation for BillingAlert with PostBillingAlertsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostBillingAlertsArgs> for BillingAlert {
-    fn generate_resource_id(&self, input: &PostBillingAlertsArgs) -> String {
-        "stripe::BillingAlert".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::BillingAlert"
     }
 
     fn provider(&self) -> &'static str {
@@ -103201,29 +103019,6 @@ impl ResourceIdentifier<GetBillingCreditBalanceTransactionsIdArgs>
 // ResourceIdentifier implementation for BillingCreditGrant
 // =============================================================================
 
-/// ResourceIdentifier implementation for BillingCreditGrant with PostBillingCreditGrantsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostBillingCreditGrantsArgs> for BillingCreditGrant {
-    fn generate_resource_id(&self, input: &PostBillingCreditGrantsArgs) -> String {
-        "stripe::BillingCreditGrant".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::BillingCreditGrant"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BillingCreditGrant
-// =============================================================================
-
 /// ResourceIdentifier implementation for BillingCreditGrant with GetBillingCreditGrantsIdArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -103305,75 +103100,6 @@ impl ResourceIdentifier<PostBillingCreditGrantsIdVoidArgs> for BillingCreditGran
 
     fn resource_kind(&self) -> &'static str {
         "stripe::BillingCreditGrant"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BillingMeterEventAdjustment
-// =============================================================================
-
-/// ResourceIdentifier implementation for BillingMeterEventAdjustment with PostBillingMeterEventAdjustmentsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostBillingMeterEventAdjustmentsArgs> for BillingMeterEventAdjustment {
-    fn generate_resource_id(&self, input: &PostBillingMeterEventAdjustmentsArgs) -> String {
-        "stripe::BillingMeterEventAdjustment".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::BillingMeterEventAdjustment"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BillingMeterEvent
-// =============================================================================
-
-/// ResourceIdentifier implementation for BillingMeterEvent with PostBillingMeterEventsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostBillingMeterEventsArgs> for BillingMeterEvent {
-    fn generate_resource_id(&self, input: &PostBillingMeterEventsArgs) -> String {
-        "stripe::BillingMeterEvent".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::BillingMeterEvent"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BillingMeter
-// =============================================================================
-
-/// ResourceIdentifier implementation for BillingMeter with PostBillingMetersArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostBillingMetersArgs> for BillingMeter {
-    fn generate_resource_id(&self, input: &PostBillingMetersArgs) -> String {
-        "stripe::BillingMeter".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::BillingMeter"
     }
 
     fn provider(&self) -> &'static str {
@@ -103477,29 +103203,6 @@ impl ResourceIdentifier<PostBillingMetersIdReactivateArgs> for BillingMeter {
 // ResourceIdentifier implementation for BillingPortalConfiguration
 // =============================================================================
 
-/// ResourceIdentifier implementation for BillingPortalConfiguration with PostBillingPortalConfigurationsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostBillingPortalConfigurationsArgs> for BillingPortalConfiguration {
-    fn generate_resource_id(&self, input: &PostBillingPortalConfigurationsArgs) -> String {
-        "stripe::BillingPortalConfiguration".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::BillingPortalConfiguration"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BillingPortalConfiguration
-// =============================================================================
-
 /// ResourceIdentifier implementation for BillingPortalConfiguration with GetBillingPortalConfigurationsConfigurationArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -103545,52 +103248,6 @@ impl ResourceIdentifier<PostBillingPortalConfigurationsConfigurationArgs>
 
     fn resource_kind(&self) -> &'static str {
         "stripe::BillingPortalConfiguration"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BillingPortalSession
-// =============================================================================
-
-/// ResourceIdentifier implementation for BillingPortalSession with PostBillingPortalSessionsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostBillingPortalSessionsArgs> for BillingPortalSession {
-    fn generate_resource_id(&self, input: &PostBillingPortalSessionsArgs) -> String {
-        "stripe::BillingPortalSession".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::BillingPortalSession"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Charge
-// =============================================================================
-
-/// ResourceIdentifier implementation for Charge with PostChargesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostChargesArgs> for Charge {
-    fn generate_resource_id(&self, input: &PostChargesArgs) -> String {
-        "stripe::Charge".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Charge"
     }
 
     fn provider(&self) -> &'static str {
@@ -103832,29 +103489,6 @@ impl ResourceIdentifier<PostChargesChargeRefundsRefundArgs> for Refund {
 // ResourceIdentifier implementation for CheckoutSession
 // =============================================================================
 
-/// ResourceIdentifier implementation for CheckoutSession with PostCheckoutSessionsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostCheckoutSessionsArgs> for CheckoutSession {
-    fn generate_resource_id(&self, input: &PostCheckoutSessionsArgs) -> String {
-        "stripe::CheckoutSession".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::CheckoutSession"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for CheckoutSession
-// =============================================================================
-
 /// ResourceIdentifier implementation for CheckoutSession with GetCheckoutSessionsSessionArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -103913,29 +103547,6 @@ impl ResourceIdentifier<PostCheckoutSessionsSessionExpireArgs> for CheckoutSessi
 
     fn resource_kind(&self) -> &'static str {
         "stripe::CheckoutSession"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ClimateOrder
-// =============================================================================
-
-/// ResourceIdentifier implementation for ClimateOrder with PostClimateOrdersArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostClimateOrdersArgs> for ClimateOrder {
-    fn generate_resource_id(&self, input: &PostClimateOrdersArgs) -> String {
-        "stripe::ClimateOrder".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::ClimateOrder"
     }
 
     fn provider(&self) -> &'static str {
@@ -104108,29 +103719,6 @@ impl ResourceIdentifier<GetCountrySpecsCountryArgs> for CountrySpec {
 // ResourceIdentifier implementation for Coupon
 // =============================================================================
 
-/// ResourceIdentifier implementation for Coupon with PostCouponsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostCouponsArgs> for Coupon {
-    fn generate_resource_id(&self, input: &PostCouponsArgs) -> String {
-        "stripe::Coupon".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Coupon"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Coupon
-// =============================================================================
-
 /// ResourceIdentifier implementation for Coupon with GetCouponsCouponArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -104189,29 +103777,6 @@ impl ResourceIdentifier<DeleteCouponsCouponArgs> for DeletedCoupon {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::DeletedCoupon"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for CreditNote
-// =============================================================================
-
-/// ResourceIdentifier implementation for CreditNote with PostCreditNotesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostCreditNotesArgs> for CreditNote {
-    fn generate_resource_id(&self, input: &PostCreditNotesArgs) -> String {
-        "stripe::CreditNote".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::CreditNote"
     }
 
     fn provider(&self) -> &'static str {
@@ -104304,52 +103869,6 @@ impl ResourceIdentifier<PostCreditNotesIdVoidArgs> for CreditNote {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::CreditNote"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for CustomerSession
-// =============================================================================
-
-/// ResourceIdentifier implementation for CustomerSession with PostCustomerSessionsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostCustomerSessionsArgs> for CustomerSession {
-    fn generate_resource_id(&self, input: &PostCustomerSessionsArgs) -> String {
-        "stripe::CustomerSession".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::CustomerSession"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Customer
-// =============================================================================
-
-/// ResourceIdentifier implementation for Customer with PostCustomersArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostCustomersArgs> for Customer {
-    fn generate_resource_id(&self, input: &PostCustomersArgs) -> String {
-        "stripe::Customer".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Customer"
     }
 
     fn provider(&self) -> &'static str {
@@ -105356,29 +104875,6 @@ impl ResourceIdentifier<GetEntitlementsActiveEntitlementsIdArgs> for Entitlement
 // ResourceIdentifier implementation for EntitlementsFeature
 // =============================================================================
 
-/// ResourceIdentifier implementation for EntitlementsFeature with PostEntitlementsFeaturesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostEntitlementsFeaturesArgs> for EntitlementsFeature {
-    fn generate_resource_id(&self, input: &PostEntitlementsFeaturesArgs) -> String {
-        "stripe::EntitlementsFeature".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::EntitlementsFeature"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for EntitlementsFeature
-// =============================================================================
-
 /// ResourceIdentifier implementation for EntitlementsFeature with GetEntitlementsFeaturesIdArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -105414,29 +104910,6 @@ impl ResourceIdentifier<PostEntitlementsFeaturesIdArgs> for EntitlementsFeature 
 
     fn resource_kind(&self) -> &'static str {
         "stripe::EntitlementsFeature"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for EphemeralKey
-// =============================================================================
-
-/// ResourceIdentifier implementation for EphemeralKey with PostEphemeralKeysArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostEphemeralKeysArgs> for EphemeralKey {
-    fn generate_resource_id(&self, input: &PostEphemeralKeysArgs) -> String {
-        "stripe::EphemeralKey".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::EphemeralKey"
     }
 
     fn provider(&self) -> &'static str {
@@ -105540,29 +105013,6 @@ impl ResourceIdentifier<PostExternalAccountsIdArgs> for ExternalAccount {
 // ResourceIdentifier implementation for FileLink
 // =============================================================================
 
-/// ResourceIdentifier implementation for FileLink with PostFileLinksArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostFileLinksArgs> for FileLink {
-    fn generate_resource_id(&self, input: &PostFileLinksArgs) -> String {
-        "stripe::FileLink".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::FileLink"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for FileLink
-// =============================================================================
-
 /// ResourceIdentifier implementation for FileLink with GetFileLinksLinkArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -105598,29 +105048,6 @@ impl ResourceIdentifier<PostFileLinksLinkArgs> for FileLink {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::FileLink"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for File
-// =============================================================================
-
-/// ResourceIdentifier implementation for File with PostFilesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostFilesArgs> for File {
-    fn generate_resource_id(&self, input: &PostFilesArgs) -> String {
-        "stripe::File".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::File"
     }
 
     fn provider(&self) -> &'static str {
@@ -105792,29 +105219,6 @@ impl ResourceIdentifier<PostFinancialConnectionsAccountsAccountUnsubscribeArgs>
 // ResourceIdentifier implementation for FinancialConnectionsSession
 // =============================================================================
 
-/// ResourceIdentifier implementation for FinancialConnectionsSession with PostFinancialConnectionsSessionsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostFinancialConnectionsSessionsArgs> for FinancialConnectionsSession {
-    fn generate_resource_id(&self, input: &PostFinancialConnectionsSessionsArgs) -> String {
-        "stripe::FinancialConnectionsSession".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::FinancialConnectionsSession"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for FinancialConnectionsSession
-// =============================================================================
-
 /// ResourceIdentifier implementation for FinancialConnectionsSession with GetFinancialConnectionsSessionsSessionArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -105871,29 +105275,6 @@ impl ResourceIdentifier<GetFinancialConnectionsTransactionsTransactionArgs>
 // ResourceIdentifier implementation for ForwardingRequest
 // =============================================================================
 
-/// ResourceIdentifier implementation for ForwardingRequest with PostForwardingRequestsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostForwardingRequestsArgs> for ForwardingRequest {
-    fn generate_resource_id(&self, input: &PostForwardingRequestsArgs) -> String {
-        "stripe::ForwardingRequest".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::ForwardingRequest"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ForwardingRequest
-// =============================================================================
-
 /// ResourceIdentifier implementation for ForwardingRequest with GetForwardingRequestsIdArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -105929,29 +105310,6 @@ impl ResourceIdentifier<GetIdentityVerificationReportsReportArgs> for IdentityVe
 
     fn resource_kind(&self) -> &'static str {
         "stripe::IdentityVerificationReport"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for IdentityVerificationSession
-// =============================================================================
-
-/// ResourceIdentifier implementation for IdentityVerificationSession with PostIdentityVerificationSessionsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostIdentityVerificationSessionsArgs> for IdentityVerificationSession {
-    fn generate_resource_id(&self, input: &PostIdentityVerificationSessionsArgs) -> String {
-        "stripe::IdentityVerificationSession".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::IdentityVerificationSession"
     }
 
     fn provider(&self) -> &'static str {
@@ -106171,29 +105529,6 @@ impl ResourceIdentifier<PostInvoiceRenderingTemplatesTemplateUnarchiveArgs>
 // ResourceIdentifier implementation for Invoiceitem
 // =============================================================================
 
-/// ResourceIdentifier implementation for Invoiceitem with PostInvoiceitemsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostInvoiceitemsArgs> for Invoiceitem {
-    fn generate_resource_id(&self, input: &PostInvoiceitemsArgs) -> String {
-        "stripe::Invoiceitem".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Invoiceitem"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Invoiceitem
-// =============================================================================
-
 /// ResourceIdentifier implementation for Invoiceitem with GetInvoiceitemsInvoiceitemArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -106252,52 +105587,6 @@ impl ResourceIdentifier<DeleteInvoiceitemsInvoiceitemArgs> for DeletedInvoiceite
 
     fn resource_kind(&self) -> &'static str {
         "stripe::DeletedInvoiceitem"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Invoice
-// =============================================================================
-
-/// ResourceIdentifier implementation for Invoice with PostInvoicesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostInvoicesArgs> for Invoice {
-    fn generate_resource_id(&self, input: &PostInvoicesArgs) -> String {
-        "stripe::Invoice".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Invoice"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Invoice
-// =============================================================================
-
-/// ResourceIdentifier implementation for Invoice with PostInvoicesCreatePreviewArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostInvoicesCreatePreviewArgs> for Invoice {
-    fn generate_resource_id(&self, input: &PostInvoicesCreatePreviewArgs) -> String {
-        "stripe::Invoice".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Invoice"
     }
 
     fn provider(&self) -> &'static str {
@@ -106710,29 +105999,6 @@ impl ResourceIdentifier<PostIssuingAuthorizationsAuthorizationDeclineArgs>
 // ResourceIdentifier implementation for IssuingCardholder
 // =============================================================================
 
-/// ResourceIdentifier implementation for IssuingCardholder with PostIssuingCardholdersArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostIssuingCardholdersArgs> for IssuingCardholder {
-    fn generate_resource_id(&self, input: &PostIssuingCardholdersArgs) -> String {
-        "stripe::IssuingCardholder".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::IssuingCardholder"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for IssuingCardholder
-// =============================================================================
-
 /// ResourceIdentifier implementation for IssuingCardholder with GetIssuingCardholdersCardholderArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -106779,29 +106045,6 @@ impl ResourceIdentifier<PostIssuingCardholdersCardholderArgs> for IssuingCardhol
 // ResourceIdentifier implementation for IssuingCard
 // =============================================================================
 
-/// ResourceIdentifier implementation for IssuingCard with PostIssuingCardsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostIssuingCardsArgs> for IssuingCard {
-    fn generate_resource_id(&self, input: &PostIssuingCardsArgs) -> String {
-        "stripe::IssuingCard".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::IssuingCard"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for IssuingCard
-// =============================================================================
-
 /// ResourceIdentifier implementation for IssuingCard with GetIssuingCardsCardArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -106837,29 +106080,6 @@ impl ResourceIdentifier<PostIssuingCardsCardArgs> for IssuingCard {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::IssuingCard"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for IssuingDispute
-// =============================================================================
-
-/// ResourceIdentifier implementation for IssuingDispute with PostIssuingDisputesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostIssuingDisputesArgs> for IssuingDispute {
-    fn generate_resource_id(&self, input: &PostIssuingDisputesArgs) -> String {
-        "stripe::IssuingDispute".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::IssuingDispute"
     }
 
     fn provider(&self) -> &'static str {
@@ -106929,29 +106149,6 @@ impl ResourceIdentifier<PostIssuingDisputesDisputeSubmitArgs> for IssuingDispute
 
     fn resource_kind(&self) -> &'static str {
         "stripe::IssuingDispute"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for IssuingPersonalizationDesign
-// =============================================================================
-
-/// ResourceIdentifier implementation for IssuingPersonalizationDesign with PostIssuingPersonalizationDesignsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostIssuingPersonalizationDesignsArgs> for IssuingPersonalizationDesign {
-    fn generate_resource_id(&self, input: &PostIssuingPersonalizationDesignsArgs) -> String {
-        "stripe::IssuingPersonalizationDesign".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::IssuingPersonalizationDesign"
     }
 
     fn provider(&self) -> &'static str {
@@ -107186,29 +106383,6 @@ impl ResourceIdentifier<PostIssuingTransactionsTransactionArgs> for IssuingTrans
 // ResourceIdentifier implementation for FinancialConnectionsSession
 // =============================================================================
 
-/// ResourceIdentifier implementation for FinancialConnectionsSession with PostLinkAccountSessionsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostLinkAccountSessionsArgs> for FinancialConnectionsSession {
-    fn generate_resource_id(&self, input: &PostLinkAccountSessionsArgs) -> String {
-        "stripe::FinancialConnectionsSession".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::FinancialConnectionsSession"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for FinancialConnectionsSession
-// =============================================================================
-
 /// ResourceIdentifier implementation for FinancialConnectionsSession with GetLinkAccountSessionsSessionArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -107336,29 +106510,6 @@ impl ResourceIdentifier<GetPaymentAttemptRecordsIdArgs> for PaymentAttemptRecord
 
     fn resource_kind(&self) -> &'static str {
         "stripe::PaymentAttemptRecord"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for PaymentIntent
-// =============================================================================
-
-/// ResourceIdentifier implementation for PaymentIntent with PostPaymentIntentsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostPaymentIntentsArgs> for PaymentIntent {
-    fn generate_resource_id(&self, input: &PostPaymentIntentsArgs) -> String {
-        "stripe::PaymentIntent".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::PaymentIntent"
     }
 
     fn provider(&self) -> &'static str {
@@ -107563,29 +106714,6 @@ impl ResourceIdentifier<PostPaymentIntentsIntentVerifyMicrodepositsArgs> for Pay
 // ResourceIdentifier implementation for PaymentLink
 // =============================================================================
 
-/// ResourceIdentifier implementation for PaymentLink with PostPaymentLinksArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostPaymentLinksArgs> for PaymentLink {
-    fn generate_resource_id(&self, input: &PostPaymentLinksArgs) -> String {
-        "stripe::PaymentLink".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::PaymentLink"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for PaymentLink
-// =============================================================================
-
 /// ResourceIdentifier implementation for PaymentLink with GetPaymentLinksPaymentLinkArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -107621,29 +106749,6 @@ impl ResourceIdentifier<PostPaymentLinksPaymentLinkArgs> for PaymentLink {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::PaymentLink"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for PaymentMethodConfiguration
-// =============================================================================
-
-/// ResourceIdentifier implementation for PaymentMethodConfiguration with PostPaymentMethodConfigurationsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostPaymentMethodConfigurationsArgs> for PaymentMethodConfiguration {
-    fn generate_resource_id(&self, input: &PostPaymentMethodConfigurationsArgs) -> String {
-        "stripe::PaymentMethodConfiguration".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::PaymentMethodConfiguration"
     }
 
     fn provider(&self) -> &'static str {
@@ -107700,29 +106805,6 @@ impl ResourceIdentifier<PostPaymentMethodConfigurationsConfigurationArgs>
 
     fn resource_kind(&self) -> &'static str {
         "stripe::PaymentMethodConfiguration"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for PaymentMethodDomain
-// =============================================================================
-
-/// ResourceIdentifier implementation for PaymentMethodDomain with PostPaymentMethodDomainsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostPaymentMethodDomainsArgs> for PaymentMethodDomain {
-    fn generate_resource_id(&self, input: &PostPaymentMethodDomainsArgs) -> String {
-        "stripe::PaymentMethodDomain".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::PaymentMethodDomain"
     }
 
     fn provider(&self) -> &'static str {
@@ -107823,29 +106905,6 @@ impl ResourceIdentifier<PostPaymentMethodDomainsPaymentMethodDomainValidateArgs>
 // ResourceIdentifier implementation for PaymentMethod
 // =============================================================================
 
-/// ResourceIdentifier implementation for PaymentMethod with PostPaymentMethodsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostPaymentMethodsArgs> for PaymentMethod {
-    fn generate_resource_id(&self, input: &PostPaymentMethodsArgs) -> String {
-        "stripe::PaymentMethod".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::PaymentMethod"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for PaymentMethod
-// =============================================================================
-
 /// ResourceIdentifier implementation for PaymentMethod with GetPaymentMethodsPaymentMethodArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -107927,29 +106986,6 @@ impl ResourceIdentifier<PostPaymentMethodsPaymentMethodDetachArgs> for PaymentMe
 
     fn resource_kind(&self) -> &'static str {
         "stripe::PaymentMethod"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for PaymentRecord
-// =============================================================================
-
-/// ResourceIdentifier implementation for PaymentRecord with PostPaymentRecordsReportPaymentArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostPaymentRecordsReportPaymentArgs> for PaymentRecord {
-    fn generate_resource_id(&self, input: &PostPaymentRecordsReportPaymentArgs) -> String {
-        "stripe::PaymentRecord".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::PaymentRecord"
     }
 
     fn provider(&self) -> &'static str {
@@ -108136,29 +107172,6 @@ impl ResourceIdentifier<PostPaymentRecordsIdReportRefundArgs> for PaymentRecord 
 // ResourceIdentifier implementation for Payout
 // =============================================================================
 
-/// ResourceIdentifier implementation for Payout with PostPayoutsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostPayoutsArgs> for Payout {
-    fn generate_resource_id(&self, input: &PostPayoutsArgs) -> String {
-        "stripe::Payout".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Payout"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Payout
-// =============================================================================
-
 /// ResourceIdentifier implementation for Payout with GetPayoutsPayoutArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -108251,29 +107264,6 @@ impl ResourceIdentifier<PostPayoutsPayoutReverseArgs> for Payout {
 // ResourceIdentifier implementation for Plan
 // =============================================================================
 
-/// ResourceIdentifier implementation for Plan with PostPlansArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostPlansArgs> for Plan {
-    fn generate_resource_id(&self, input: &PostPlansArgs) -> String {
-        "stripe::Plan".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Plan"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Plan
-// =============================================================================
-
 /// ResourceIdentifier implementation for Plan with GetPlansPlanArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -108343,29 +107333,6 @@ impl ResourceIdentifier<DeletePlansPlanArgs> for DeletedPlan {
 // ResourceIdentifier implementation for Price
 // =============================================================================
 
-/// ResourceIdentifier implementation for Price with PostPricesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostPricesArgs> for Price {
-    fn generate_resource_id(&self, input: &PostPricesArgs) -> String {
-        "stripe::Price".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Price"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Price
-// =============================================================================
-
 /// ResourceIdentifier implementation for Price with GetPricesPriceArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -108401,29 +107368,6 @@ impl ResourceIdentifier<PostPricesPriceArgs> for Price {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::Price"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Product
-// =============================================================================
-
-/// ResourceIdentifier implementation for Product with PostProductsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostProductsArgs> for Product {
-    fn generate_resource_id(&self, input: &PostProductsArgs) -> String {
-        "stripe::Product".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Product"
     }
 
     fn provider(&self) -> &'static str {
@@ -108576,29 +107520,6 @@ impl ResourceIdentifier<DeleteProductsProductFeaturesIdArgs> for DeletedProductF
 // ResourceIdentifier implementation for PromotionCode
 // =============================================================================
 
-/// ResourceIdentifier implementation for PromotionCode with PostPromotionCodesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostPromotionCodesArgs> for PromotionCode {
-    fn generate_resource_id(&self, input: &PostPromotionCodesArgs) -> String {
-        "stripe::PromotionCode".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::PromotionCode"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for PromotionCode
-// =============================================================================
-
 /// ResourceIdentifier implementation for PromotionCode with GetPromotionCodesPromotionCodeArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -108634,29 +107555,6 @@ impl ResourceIdentifier<PostPromotionCodesPromotionCodeArgs> for PromotionCode {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::PromotionCode"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Quote
-// =============================================================================
-
-/// ResourceIdentifier implementation for Quote with PostQuotesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostQuotesArgs> for Quote {
-    fn generate_resource_id(&self, input: &PostQuotesArgs) -> String {
-        "stripe::Quote".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Quote"
     }
 
     fn provider(&self) -> &'static str {
@@ -108811,52 +107709,6 @@ impl ResourceIdentifier<GetRadarEarlyFraudWarningsEarlyFraudWarningArgs>
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for RadarPaymentEvaluation
-// =============================================================================
-
-/// ResourceIdentifier implementation for RadarPaymentEvaluation with PostRadarPaymentEvaluationsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostRadarPaymentEvaluationsArgs> for RadarPaymentEvaluation {
-    fn generate_resource_id(&self, input: &PostRadarPaymentEvaluationsArgs) -> String {
-        "stripe::RadarPaymentEvaluation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::RadarPaymentEvaluation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for RadarValueListItem
-// =============================================================================
-
-/// ResourceIdentifier implementation for RadarValueListItem with PostRadarValueListItemsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostRadarValueListItemsArgs> for RadarValueListItem {
-    fn generate_resource_id(&self, input: &PostRadarValueListItemsArgs) -> String {
-        "stripe::RadarValueListItem".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::RadarValueListItem"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for RadarValueListItem
 // =============================================================================
 
@@ -108895,29 +107747,6 @@ impl ResourceIdentifier<DeleteRadarValueListItemsItemArgs> for DeletedRadarValue
 
     fn resource_kind(&self) -> &'static str {
         "stripe::DeletedRadarValueListItem"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for RadarValueList
-// =============================================================================
-
-/// ResourceIdentifier implementation for RadarValueList with PostRadarValueListsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostRadarValueListsArgs> for RadarValueList {
-    fn generate_resource_id(&self, input: &PostRadarValueListsArgs) -> String {
-        "stripe::RadarValueList".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::RadarValueList"
     }
 
     fn provider(&self) -> &'static str {
@@ -108998,29 +107827,6 @@ impl ResourceIdentifier<DeleteRadarValueListsValueListArgs> for DeletedRadarValu
 // ResourceIdentifier implementation for Refund
 // =============================================================================
 
-/// ResourceIdentifier implementation for Refund with PostRefundsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostRefundsArgs> for Refund {
-    fn generate_resource_id(&self, input: &PostRefundsArgs) -> String {
-        "stripe::Refund".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Refund"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Refund
-// =============================================================================
-
 /// ResourceIdentifier implementation for Refund with GetRefundsRefundArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -109079,29 +107885,6 @@ impl ResourceIdentifier<PostRefundsRefundCancelArgs> for Refund {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::Refund"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ReportingReportRun
-// =============================================================================
-
-/// ResourceIdentifier implementation for ReportingReportRun with PostReportingReportRunsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostReportingReportRunsArgs> for ReportingReportRun {
-    fn generate_resource_id(&self, input: &PostReportingReportRunsArgs) -> String {
-        "stripe::ReportingReportRun".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::ReportingReportRun"
     }
 
     fn provider(&self) -> &'static str {
@@ -109194,29 +107977,6 @@ impl ResourceIdentifier<PostReviewsReviewApproveArgs> for Review {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::Review"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SetupIntent
-// =============================================================================
-
-/// ResourceIdentifier implementation for SetupIntent with PostSetupIntentsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostSetupIntentsArgs> for SetupIntent {
-    fn generate_resource_id(&self, input: &PostSetupIntentsArgs) -> String {
-        "stripe::SetupIntent".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::SetupIntent"
     }
 
     fn provider(&self) -> &'static str {
@@ -109346,29 +108106,6 @@ impl ResourceIdentifier<PostSetupIntentsIntentVerifyMicrodepositsArgs> for Setup
 // ResourceIdentifier implementation for ShippingRate
 // =============================================================================
 
-/// ResourceIdentifier implementation for ShippingRate with PostShippingRatesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostShippingRatesArgs> for ShippingRate {
-    fn generate_resource_id(&self, input: &PostShippingRatesArgs) -> String {
-        "stripe::ShippingRate".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::ShippingRate"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ShippingRate
-// =============================================================================
-
 /// ResourceIdentifier implementation for ShippingRate with GetShippingRatesShippingRateTokenArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -109453,29 +108190,6 @@ impl ResourceIdentifier<GetSigmaScheduledQueryRunsScheduledQueryRunArgs> for Sch
 
     fn resource_kind(&self) -> &'static str {
         "stripe::ScheduledQueryRun"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Source
-// =============================================================================
-
-/// ResourceIdentifier implementation for Source with PostSourcesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostSourcesArgs> for Source {
-    fn generate_resource_id(&self, input: &PostSourcesArgs) -> String {
-        "stripe::Source".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Source"
     }
 
     fn provider(&self) -> &'static str {
@@ -109618,29 +108332,6 @@ impl ResourceIdentifier<PostSourcesSourceVerifyArgs> for Source {
 // ResourceIdentifier implementation for SubscriptionItem
 // =============================================================================
 
-/// ResourceIdentifier implementation for SubscriptionItem with PostSubscriptionItemsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostSubscriptionItemsArgs> for SubscriptionItem {
-    fn generate_resource_id(&self, input: &PostSubscriptionItemsArgs) -> String {
-        "stripe::SubscriptionItem".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::SubscriptionItem"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SubscriptionItem
-// =============================================================================
-
 /// ResourceIdentifier implementation for SubscriptionItem with GetSubscriptionItemsItemArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -109699,29 +108390,6 @@ impl ResourceIdentifier<DeleteSubscriptionItemsItemArgs> for DeletedSubscription
 
     fn resource_kind(&self) -> &'static str {
         "stripe::DeletedSubscriptionItem"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SubscriptionSchedule
-// =============================================================================
-
-/// ResourceIdentifier implementation for SubscriptionSchedule with PostSubscriptionSchedulesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostSubscriptionSchedulesArgs> for SubscriptionSchedule {
-    fn generate_resource_id(&self, input: &PostSubscriptionSchedulesArgs) -> String {
-        "stripe::SubscriptionSchedule".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::SubscriptionSchedule"
     }
 
     fn provider(&self) -> &'static str {
@@ -109814,29 +108482,6 @@ impl ResourceIdentifier<PostSubscriptionSchedulesScheduleReleaseArgs> for Subscr
 
     fn resource_kind(&self) -> &'static str {
         "stripe::SubscriptionSchedule"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Subscription
-// =============================================================================
-
-/// ResourceIdentifier implementation for Subscription with PostSubscriptionsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostSubscriptionsArgs> for Subscription {
-    fn generate_resource_id(&self, input: &PostSubscriptionsArgs) -> String {
-        "stripe::Subscription".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Subscription"
     }
 
     fn provider(&self) -> &'static str {
@@ -110012,29 +108657,6 @@ impl ResourceIdentifier<GetTaxAssociationsFindArgs> for TaxAssociation {
 // ResourceIdentifier implementation for TaxCalculation
 // =============================================================================
 
-/// ResourceIdentifier implementation for TaxCalculation with PostTaxCalculationsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTaxCalculationsArgs> for TaxCalculation {
-    fn generate_resource_id(&self, input: &PostTaxCalculationsArgs) -> String {
-        "stripe::TaxCalculation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TaxCalculation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TaxCalculation
-// =============================================================================
-
 /// ResourceIdentifier implementation for TaxCalculation with GetTaxCalculationsCalculationArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -110047,29 +108669,6 @@ impl ResourceIdentifier<GetTaxCalculationsCalculationArgs> for TaxCalculation {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::TaxCalculation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TaxRegistration
-// =============================================================================
-
-/// ResourceIdentifier implementation for TaxRegistration with PostTaxRegistrationsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTaxRegistrationsArgs> for TaxRegistration {
-    fn generate_resource_id(&self, input: &PostTaxRegistrationsArgs) -> String {
-        "stripe::TaxRegistration".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TaxRegistration"
     }
 
     fn provider(&self) -> &'static str {
@@ -110147,75 +108746,6 @@ impl ResourceIdentifier<GetTaxSettingsArgs> for TaxSettings {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for TaxSettings
-// =============================================================================
-
-/// ResourceIdentifier implementation for TaxSettings with PostTaxSettingsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTaxSettingsArgs> for TaxSettings {
-    fn generate_resource_id(&self, input: &PostTaxSettingsArgs) -> String {
-        "stripe::TaxSettings".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TaxSettings"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TaxTransaction
-// =============================================================================
-
-/// ResourceIdentifier implementation for TaxTransaction with PostTaxTransactionsCreateFromCalculationArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTaxTransactionsCreateFromCalculationArgs> for TaxTransaction {
-    fn generate_resource_id(&self, input: &PostTaxTransactionsCreateFromCalculationArgs) -> String {
-        "stripe::TaxTransaction".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TaxTransaction"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TaxTransaction
-// =============================================================================
-
-/// ResourceIdentifier implementation for TaxTransaction with PostTaxTransactionsCreateReversalArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTaxTransactionsCreateReversalArgs> for TaxTransaction {
-    fn generate_resource_id(&self, input: &PostTaxTransactionsCreateReversalArgs) -> String {
-        "stripe::TaxTransaction".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TaxTransaction"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for TaxTransaction
 // =============================================================================
 
@@ -110254,29 +108784,6 @@ impl ResourceIdentifier<GetTaxCodesIdArgs> for TaxCode {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::TaxCode"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TaxId
-// =============================================================================
-
-/// ResourceIdentifier implementation for TaxId with PostTaxIdsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTaxIdsArgs> for TaxId {
-    fn generate_resource_id(&self, input: &PostTaxIdsArgs) -> String {
-        "stripe::TaxId".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TaxId"
     }
 
     fn provider(&self) -> &'static str {
@@ -110334,29 +108841,6 @@ impl ResourceIdentifier<DeleteTaxIdsIdArgs> for DeletedTaxId {
 // ResourceIdentifier implementation for TaxRate
 // =============================================================================
 
-/// ResourceIdentifier implementation for TaxRate with PostTaxRatesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTaxRatesArgs> for TaxRate {
-    fn generate_resource_id(&self, input: &PostTaxRatesArgs) -> String {
-        "stripe::TaxRate".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TaxRate"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TaxRate
-// =============================================================================
-
 /// ResourceIdentifier implementation for TaxRate with GetTaxRatesTaxRateArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -110392,29 +108876,6 @@ impl ResourceIdentifier<PostTaxRatesTaxRateArgs> for TaxRate {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::TaxRate"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TerminalConfiguration
-// =============================================================================
-
-/// ResourceIdentifier implementation for TerminalConfiguration with PostTerminalConfigurationsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTerminalConfigurationsArgs> for TerminalConfiguration {
-    fn generate_resource_id(&self, input: &PostTerminalConfigurationsArgs) -> String {
-        "stripe::TerminalConfiguration".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TerminalConfiguration"
     }
 
     fn provider(&self) -> &'static str {
@@ -110500,52 +108961,6 @@ impl ResourceIdentifier<DeleteTerminalConfigurationsConfigurationArgs>
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for TerminalConnectionToken
-// =============================================================================
-
-/// ResourceIdentifier implementation for TerminalConnectionToken with PostTerminalConnectionTokensArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTerminalConnectionTokensArgs> for TerminalConnectionToken {
-    fn generate_resource_id(&self, input: &PostTerminalConnectionTokensArgs) -> String {
-        "stripe::TerminalConnectionToken".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TerminalConnectionToken"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TerminalLocation
-// =============================================================================
-
-/// ResourceIdentifier implementation for TerminalLocation with PostTerminalLocationsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTerminalLocationsArgs> for TerminalLocation {
-    fn generate_resource_id(&self, input: &PostTerminalLocationsArgs) -> String {
-        "stripe::TerminalLocation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TerminalLocation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for serde_json::Value
 // =============================================================================
 
@@ -110607,52 +109022,6 @@ impl ResourceIdentifier<DeleteTerminalLocationsLocationArgs> for DeletedTerminal
 
     fn resource_kind(&self) -> &'static str {
         "stripe::DeletedTerminalLocation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TerminalOnboardingLink
-// =============================================================================
-
-/// ResourceIdentifier implementation for TerminalOnboardingLink with PostTerminalOnboardingLinksArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTerminalOnboardingLinksArgs> for TerminalOnboardingLink {
-    fn generate_resource_id(&self, input: &PostTerminalOnboardingLinksArgs) -> String {
-        "stripe::TerminalOnboardingLink".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TerminalOnboardingLink"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TerminalReader
-// =============================================================================
-
-/// ResourceIdentifier implementation for TerminalReader with PostTerminalReadersArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTerminalReadersArgs> for TerminalReader {
-    fn generate_resource_id(&self, input: &PostTerminalReadersArgs) -> String {
-        "stripe::TerminalReader".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TerminalReader"
     }
 
     fn provider(&self) -> &'static str {
@@ -110929,52 +109298,6 @@ impl ResourceIdentifier<PostTerminalReadersReaderSetReaderDisplayArgs> for Termi
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for TerminalRefund
-// =============================================================================
-
-/// ResourceIdentifier implementation for TerminalRefund with PostTerminalRefundsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTerminalRefundsArgs> for TerminalRefund {
-    fn generate_resource_id(&self, input: &PostTerminalRefundsArgs) -> String {
-        "stripe::TerminalRefund".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TerminalRefund"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ConfirmationToken
-// =============================================================================
-
-/// ResourceIdentifier implementation for ConfirmationToken with PostTestHelpersConfirmationTokensArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTestHelpersConfirmationTokensArgs> for ConfirmationToken {
-    fn generate_resource_id(&self, input: &PostTestHelpersConfirmationTokensArgs) -> String {
-        "stripe::ConfirmationToken".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::ConfirmationToken"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for CustomerCashBalanceTransaction
 // =============================================================================
 
@@ -110995,29 +109318,6 @@ impl ResourceIdentifier<PostTestHelpersCustomersCustomerFundCashBalanceArgs>
 
     fn resource_kind(&self) -> &'static str {
         "stripe::CustomerCashBalanceTransaction"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for IssuingAuthorization
-// =============================================================================
-
-/// ResourceIdentifier implementation for IssuingAuthorization with PostTestHelpersIssuingAuthorizationsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTestHelpersIssuingAuthorizationsArgs> for IssuingAuthorization {
-    fn generate_resource_id(&self, input: &PostTestHelpersIssuingAuthorizationsArgs) -> String {
-        "stripe::IssuingAuthorization".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::IssuingAuthorization"
     }
 
     fn provider(&self) -> &'static str {
@@ -111424,29 +109724,6 @@ impl ResourceIdentifier<PostTestHelpersIssuingPersonalizationDesignsPersonalizat
 // ResourceIdentifier implementation for IssuingSettlement
 // =============================================================================
 
-/// ResourceIdentifier implementation for IssuingSettlement with PostTestHelpersIssuingSettlementsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTestHelpersIssuingSettlementsArgs> for IssuingSettlement {
-    fn generate_resource_id(&self, input: &PostTestHelpersIssuingSettlementsArgs) -> String {
-        "stripe::IssuingSettlement".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::IssuingSettlement"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for IssuingSettlement
-// =============================================================================
-
 /// ResourceIdentifier implementation for IssuingSettlement with PostTestHelpersIssuingSettlementsSettlementCompleteArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -111464,62 +109741,6 @@ impl ResourceIdentifier<PostTestHelpersIssuingSettlementsSettlementCompleteArgs>
 
     fn resource_kind(&self) -> &'static str {
         "stripe::IssuingSettlement"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for IssuingTransaction
-// =============================================================================
-
-/// ResourceIdentifier implementation for IssuingTransaction with PostTestHelpersIssuingTransactionsCreateForceCaptureArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTestHelpersIssuingTransactionsCreateForceCaptureArgs>
-    for IssuingTransaction
-{
-    fn generate_resource_id(
-        &self,
-        input: &PostTestHelpersIssuingTransactionsCreateForceCaptureArgs,
-    ) -> String {
-        "stripe::IssuingTransaction".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::IssuingTransaction"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for IssuingTransaction
-// =============================================================================
-
-/// ResourceIdentifier implementation for IssuingTransaction with PostTestHelpersIssuingTransactionsCreateUnlinkedRefundArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTestHelpersIssuingTransactionsCreateUnlinkedRefundArgs>
-    for IssuingTransaction
-{
-    fn generate_resource_id(
-        &self,
-        input: &PostTestHelpersIssuingTransactionsCreateUnlinkedRefundArgs,
-    ) -> String {
-        "stripe::IssuingTransaction".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::IssuingTransaction"
     }
 
     fn provider(&self) -> &'static str {
@@ -111655,29 +109876,6 @@ impl ResourceIdentifier<PostTestHelpersTerminalReadersReaderTimeoutInputCollecti
 
     fn resource_kind(&self) -> &'static str {
         "stripe::TerminalReader"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TestHelpersTestClock
-// =============================================================================
-
-/// ResourceIdentifier implementation for TestHelpersTestClock with PostTestHelpersTestClocksArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTestHelpersTestClocksArgs> for TestHelpersTestClock {
-    fn generate_resource_id(&self, input: &PostTestHelpersTestClocksArgs) -> String {
-        "stripe::TestHelpersTestClock".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TestHelpersTestClock"
     }
 
     fn provider(&self) -> &'static str {
@@ -112076,75 +110274,6 @@ impl ResourceIdentifier<PostTestHelpersTreasuryOutboundTransfersOutboundTransfer
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for TreasuryReceivedCredit
-// =============================================================================
-
-/// ResourceIdentifier implementation for TreasuryReceivedCredit with PostTestHelpersTreasuryReceivedCreditsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTestHelpersTreasuryReceivedCreditsArgs> for TreasuryReceivedCredit {
-    fn generate_resource_id(&self, input: &PostTestHelpersTreasuryReceivedCreditsArgs) -> String {
-        "stripe::TreasuryReceivedCredit".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TreasuryReceivedCredit"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TreasuryReceivedDebit
-// =============================================================================
-
-/// ResourceIdentifier implementation for TreasuryReceivedDebit with PostTestHelpersTreasuryReceivedDebitsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTestHelpersTreasuryReceivedDebitsArgs> for TreasuryReceivedDebit {
-    fn generate_resource_id(&self, input: &PostTestHelpersTreasuryReceivedDebitsArgs) -> String {
-        "stripe::TreasuryReceivedDebit".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TreasuryReceivedDebit"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Token
-// =============================================================================
-
-/// ResourceIdentifier implementation for Token with PostTokensArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTokensArgs> for Token {
-    fn generate_resource_id(&self, input: &PostTokensArgs) -> String {
-        "stripe::Token".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Token"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for Token
 // =============================================================================
 
@@ -112160,29 +110289,6 @@ impl ResourceIdentifier<GetTokensTokenArgs> for Token {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::Token"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Topup
-// =============================================================================
-
-/// ResourceIdentifier implementation for Topup with PostTopupsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTopupsArgs> for Topup {
-    fn generate_resource_id(&self, input: &PostTopupsArgs) -> String {
-        "stripe::Topup".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Topup"
     }
 
     fn provider(&self) -> &'static str {
@@ -112252,29 +110358,6 @@ impl ResourceIdentifier<PostTopupsTopupCancelArgs> for Topup {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::Topup"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Transfer
-// =============================================================================
-
-/// ResourceIdentifier implementation for Transfer with PostTransfersArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTransfersArgs> for Transfer {
-    fn generate_resource_id(&self, input: &PostTransfersArgs) -> String {
-        "stripe::Transfer".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::Transfer"
     }
 
     fn provider(&self) -> &'static str {
@@ -112401,29 +110484,6 @@ impl ResourceIdentifier<PostTransfersTransferReversalsIdArgs> for TransferRevers
 // ResourceIdentifier implementation for TreasuryCreditReversal
 // =============================================================================
 
-/// ResourceIdentifier implementation for TreasuryCreditReversal with PostTreasuryCreditReversalsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTreasuryCreditReversalsArgs> for TreasuryCreditReversal {
-    fn generate_resource_id(&self, input: &PostTreasuryCreditReversalsArgs) -> String {
-        "stripe::TreasuryCreditReversal".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TreasuryCreditReversal"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TreasuryCreditReversal
-// =============================================================================
-
 /// ResourceIdentifier implementation for TreasuryCreditReversal with GetTreasuryCreditReversalsCreditReversalArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -112447,29 +110507,6 @@ impl ResourceIdentifier<GetTreasuryCreditReversalsCreditReversalArgs> for Treasu
 // ResourceIdentifier implementation for TreasuryDebitReversal
 // =============================================================================
 
-/// ResourceIdentifier implementation for TreasuryDebitReversal with PostTreasuryDebitReversalsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTreasuryDebitReversalsArgs> for TreasuryDebitReversal {
-    fn generate_resource_id(&self, input: &PostTreasuryDebitReversalsArgs) -> String {
-        "stripe::TreasuryDebitReversal".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TreasuryDebitReversal"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TreasuryDebitReversal
-// =============================================================================
-
 /// ResourceIdentifier implementation for TreasuryDebitReversal with GetTreasuryDebitReversalsDebitReversalArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -112482,29 +110519,6 @@ impl ResourceIdentifier<GetTreasuryDebitReversalsDebitReversalArgs> for Treasury
 
     fn resource_kind(&self) -> &'static str {
         "stripe::TreasuryDebitReversal"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TreasuryFinancialAccount
-// =============================================================================
-
-/// ResourceIdentifier implementation for TreasuryFinancialAccount with PostTreasuryFinancialAccountsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTreasuryFinancialAccountsArgs> for TreasuryFinancialAccount {
-    fn generate_resource_id(&self, input: &PostTreasuryFinancialAccountsArgs) -> String {
-        "stripe::TreasuryFinancialAccount".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TreasuryFinancialAccount"
     }
 
     fn provider(&self) -> &'static str {
@@ -112671,29 +110685,6 @@ impl ResourceIdentifier<PostTreasuryFinancialAccountsFinancialAccountFeaturesArg
 // ResourceIdentifier implementation for TreasuryInboundTransfer
 // =============================================================================
 
-/// ResourceIdentifier implementation for TreasuryInboundTransfer with PostTreasuryInboundTransfersArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTreasuryInboundTransfersArgs> for TreasuryInboundTransfer {
-    fn generate_resource_id(&self, input: &PostTreasuryInboundTransfersArgs) -> String {
-        "stripe::TreasuryInboundTransfer".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TreasuryInboundTransfer"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TreasuryInboundTransfer
-// =============================================================================
-
 /// ResourceIdentifier implementation for TreasuryInboundTransfer with GetTreasuryInboundTransfersIdArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -112745,29 +110736,6 @@ impl ResourceIdentifier<PostTreasuryInboundTransfersInboundTransferCancelArgs>
 // ResourceIdentifier implementation for TreasuryOutboundPayment
 // =============================================================================
 
-/// ResourceIdentifier implementation for TreasuryOutboundPayment with PostTreasuryOutboundPaymentsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTreasuryOutboundPaymentsArgs> for TreasuryOutboundPayment {
-    fn generate_resource_id(&self, input: &PostTreasuryOutboundPaymentsArgs) -> String {
-        "stripe::TreasuryOutboundPayment".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TreasuryOutboundPayment"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TreasuryOutboundPayment
-// =============================================================================
-
 /// ResourceIdentifier implementation for TreasuryOutboundPayment with GetTreasuryOutboundPaymentsIdArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -112803,29 +110771,6 @@ impl ResourceIdentifier<PostTreasuryOutboundPaymentsIdCancelArgs> for TreasuryOu
 
     fn resource_kind(&self) -> &'static str {
         "stripe::TreasuryOutboundPayment"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TreasuryOutboundTransfer
-// =============================================================================
-
-/// ResourceIdentifier implementation for TreasuryOutboundTransfer with PostTreasuryOutboundTransfersArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostTreasuryOutboundTransfersArgs> for TreasuryOutboundTransfer {
-    fn generate_resource_id(&self, input: &PostTreasuryOutboundTransfersArgs) -> String {
-        "stripe::TreasuryOutboundTransfer".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::TreasuryOutboundTransfer"
     }
 
     fn provider(&self) -> &'static str {
@@ -112980,29 +110925,6 @@ impl ResourceIdentifier<GetTreasuryTransactionsIdArgs> for TreasuryTransaction {
 
     fn resource_kind(&self) -> &'static str {
         "stripe::TreasuryTransaction"
-    }
-
-    fn provider(&self) -> &'static str {
-        "stripe"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for WebhookEndpoint
-// =============================================================================
-
-/// ResourceIdentifier implementation for WebhookEndpoint with PostWebhookEndpointsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PostWebhookEndpointsArgs> for WebhookEndpoint {
-    fn generate_resource_id(&self, input: &PostWebhookEndpointsArgs) -> String {
-        "stripe::WebhookEndpoint".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "stripe::WebhookEndpoint"
     }
 
     fn provider(&self) -> &'static str {

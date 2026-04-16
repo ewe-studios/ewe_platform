@@ -63,7 +63,7 @@ impl TypeResolver {
     /// Resolve a `$ref` to a type name.
     ///
     /// Handles both `OpenAPI` (`#/components/schemas/`) and GCP (`#/schemas/`) formats.
-    #[must_use] 
+    #[must_use]
     pub fn resolve_ref(&self, ref_path: &str) -> Option<String> {
         let ref_name = ref_path
             .trim_start_matches("#/components/schemas/")
@@ -74,6 +74,78 @@ impl TypeResolver {
             Some(Self::rename_if_keyword(ty))
         } else {
             None
+        }
+    }
+
+    /// Resolve a request body type, handling arrays by wrapping in Vec<>.
+    ///
+    /// For array types, returns `Vec<ItemType>` where ItemType is resolved from the items schema.
+    /// For object types, returns the type name directly.
+    /// For non-generatable types, returns None.
+    #[must_use]
+    pub fn resolve_request_body_type(&self, schema: &Schema) -> Option<String> {
+        // If schema has a $ref, first try to resolve it directly
+        if let Some(ref_path) = &schema.ref_path {
+            let ref_name = ref_path
+                .trim_start_matches("#/components/schemas/")
+                .trim_start_matches("#/schemas/");
+
+            // Check if this is an array type
+            if let Some(ref_schema) = self.schemas.get(ref_name) {
+                if ref_schema.schema_type.as_deref() == Some("array") {
+                    // Handle array type - wrap item type in Vec<>
+                    return self.resolve_array_items_type(&ref_schema.items);
+                }
+                // Not an array, use normal resolution
+                return self.resolve_ref(ref_path);
+            }
+        }
+
+        // No $ref or ref didn't resolve - check schema type directly
+        if schema.schema_type.as_deref() == Some("array") {
+            return self.resolve_array_items_type(&schema.items);
+        }
+
+        // Object type - resolve normally
+        if schema.ref_path.is_some() {
+            return self.resolve_ref(schema.ref_path.as_ref().unwrap());
+        }
+
+        // Inline schema with properties
+        if schema.properties.as_ref().is_some_and(|p| !p.is_empty()) {
+            // Inline schemas don't have a name, so we can't generate a type
+            None
+        } else {
+            None
+        }
+    }
+
+    /// Resolve the item type for an array schema, wrapping in Vec<>.
+    fn resolve_array_items_type(&self, items: &Option<Box<Schema>>) -> Option<String> {
+        let items_schema = items.as_ref()?;
+
+        // Items is a $ref to a named type
+        if let Some(ref_path) = &items_schema.ref_path {
+            let item_type = self.resolve_ref(ref_path)?;
+            Some(format!("Vec<{item_type}>"))
+        }
+        // Items is an inline object with properties - generate Vec<serde_json::Value>
+        else if items_schema.properties.as_ref().is_some_and(|p| !p.is_empty()) {
+            Some("Vec<serde_json::Value>".to_string())
+        }
+        // Items is a primitive type (e.g., string)
+        else if let Some(type_name) = &items_schema.schema_type {
+            let rust_type = match type_name.as_str() {
+                "string" => "String",
+                "integer" => "i64",
+                "number" => "f64",
+                "boolean" => "bool",
+                _ => "serde_json::Value",
+            };
+            Some(format!("Vec<{rust_type}>"))
+        }
+        else {
+            Some("Vec<serde_json::Value>".to_string())
         }
     }
 

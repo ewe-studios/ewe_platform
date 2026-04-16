@@ -7,15 +7,21 @@
 
 #![cfg(feature = "supabase")]
 
-use foundation_core::valtron::{execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt};
-use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient, SystemDnsResolver,
-};
-use foundation_macros::JsonHash;
-use serde::Serialize;
+pub mod types;
+
 use crate::providers::supabase::clients::types::*;
 use crate::providers::supabase::resources::*;
+use foundation_core::valtron::{
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
+};
+use foundation_core::wire::simple_http::client::{
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
+    SystemDnsResolver,
+};
 use foundation_db::state::resource_identifier::ResourceIdentifier;
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET /v1/branches/{branch_id_or_ref}
 /// Get database branch config
@@ -30,15 +36,12 @@ pub fn v1_get_a_branch_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/branches/{}",
-        branch_id_or_ref,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/branches/{}", branch_id_or_ref,);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -69,18 +72,23 @@ pub fn v1_get_a_branch_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<BranchDetailResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<BranchDetailResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -136,13 +144,11 @@ pub fn v1_get_a_branch_config_task(
 pub fn v1_get_a_branch_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchDetailResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchDetailResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_a_branch_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -169,13 +175,11 @@ pub fn v1_get_a_branch_config(
     client: &SimpleHttpClient,
     args: &V1GetABranchConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchDetailResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchDetailResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_a_branch_config_builder(client, &args.branch_id_or_ref)?;
     v1_get_a_branch_config_execute(builder)
 }
@@ -189,23 +193,21 @@ pub fn v1_get_a_branch_config(
 pub fn v1_update_a_branch_config_builder<R>(
     client: &SimpleHttpClient<R>,
     branch_id_or_ref: &String,
-    body: &UpdateBranchBody
+    body: &UpdateBranchBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/branches/{}",
-        branch_id_or_ref,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/branches/{}", branch_id_or_ref,);
 
     // Build request
-    let builder = client.patch(&endpoint_url)
+    let builder = client
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -234,18 +236,23 @@ pub fn v1_update_a_branch_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<BranchResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<BranchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -301,13 +308,11 @@ pub fn v1_update_a_branch_config_task(
 pub fn v1_update_a_branch_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_a_branch_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -336,13 +341,11 @@ pub fn v1_update_a_branch_config(
     client: &SimpleHttpClient,
     args: &V1UpdateABranchConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_a_branch_config_builder(client, &args.branch_id_or_ref, &args.body)?;
     v1_update_a_branch_config_execute(builder)
 }
@@ -356,17 +359,13 @@ pub fn v1_update_a_branch_config(
 pub fn v1_delete_a_branch_builder<R>(
     client: &SimpleHttpClient<R>,
     branch_id_or_ref: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/branches/{}",
-        branch_id_or_ref,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/branches/{}", branch_id_or_ref,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -380,7 +379,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.delete(&url_with_query)
+    let builder = client
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -411,18 +411,23 @@ pub fn v1_delete_a_branch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<BranchDeleteResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<BranchDeleteResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -478,13 +483,11 @@ pub fn v1_delete_a_branch_task(
 pub fn v1_delete_a_branch_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchDeleteResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchDeleteResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_delete_a_branch_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -495,7 +498,7 @@ pub struct V1DeleteABranchArgs {
     /// Path parameter: branch_id_or_ref
     pub branch_id_or_ref: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE /v1/branches/{branch_id_or_ref}
@@ -513,13 +516,11 @@ pub fn v1_delete_a_branch(
     client: &SimpleHttpClient,
     args: &V1DeleteABranchArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchDeleteResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchDeleteResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_delete_a_branch_builder(client, &args.branch_id_or_ref, &args.force)?;
     v1_delete_a_branch_execute(builder)
 }
@@ -533,13 +534,12 @@ pub fn v1_delete_a_branch(
 pub fn v1_diff_a_branch_builder<R>(
     client: &SimpleHttpClient<R>,
     branch_id_or_ref: &String,
-    included_schemas: &Option<Option<String>>,
-    pgdelta: &Option<Option<String>>,
+    included_schemas: &Option<String>,
+    pgdelta: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{}/diff",
@@ -561,7 +561,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -592,18 +593,23 @@ pub fn v1_diff_a_branch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -656,13 +662,9 @@ pub fn v1_diff_a_branch_task(
 pub fn v1_diff_a_branch_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_diff_a_branch_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -673,9 +675,9 @@ pub struct V1DiffABranchArgs {
     /// Path parameter: branch_id_or_ref
     pub branch_id_or_ref: String,
     /// Query parameter: included_schemas
-    pub included_schemas: Option<Option<String>>,
+    pub included_schemas: Option<String>,
     /// Query parameter: pgdelta
-    pub pgdelta: Option<Option<String>>,
+    pub pgdelta: Option<String>,
 }
 
 /// GET /v1/branches/{branch_id_or_ref}/diff
@@ -693,14 +695,15 @@ pub fn v1_diff_a_branch(
     client: &SimpleHttpClient,
     args: &V1DiffABranchArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
-    let builder = v1_diff_a_branch_builder(client, &args.branch_id_or_ref, &args.included_schemas, &args.pgdelta)?;
+    let builder = v1_diff_a_branch_builder(
+        client,
+        &args.branch_id_or_ref,
+        &args.included_schemas,
+        &args.pgdelta,
+    )?;
     v1_diff_a_branch_execute(builder)
 }
 
@@ -713,12 +716,11 @@ pub fn v1_diff_a_branch(
 pub fn v1_merge_a_branch_builder<R>(
     client: &SimpleHttpClient<R>,
     branch_id_or_ref: &String,
-    body: &BranchActionBody
+    body: &BranchActionBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{}/merge",
@@ -726,10 +728,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -758,18 +762,23 @@ pub fn v1_merge_a_branch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<BranchUpdateResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<BranchUpdateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -825,13 +834,11 @@ pub fn v1_merge_a_branch_task(
 pub fn v1_merge_a_branch_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchUpdateResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchUpdateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_merge_a_branch_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -860,13 +867,11 @@ pub fn v1_merge_a_branch(
     client: &SimpleHttpClient,
     args: &V1MergeABranchArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchUpdateResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchUpdateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_merge_a_branch_builder(client, &args.branch_id_or_ref, &args.body)?;
     v1_merge_a_branch_execute(builder)
 }
@@ -880,12 +885,11 @@ pub fn v1_merge_a_branch(
 pub fn v1_push_a_branch_builder<R>(
     client: &SimpleHttpClient<R>,
     branch_id_or_ref: &String,
-    body: &BranchActionBody
+    body: &BranchActionBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{}/push",
@@ -893,10 +897,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -925,18 +931,23 @@ pub fn v1_push_a_branch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<BranchUpdateResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<BranchUpdateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -992,13 +1003,11 @@ pub fn v1_push_a_branch_task(
 pub fn v1_push_a_branch_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchUpdateResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchUpdateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_push_a_branch_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -1027,13 +1036,11 @@ pub fn v1_push_a_branch(
     client: &SimpleHttpClient,
     args: &V1PushABranchArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchUpdateResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchUpdateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_push_a_branch_builder(client, &args.branch_id_or_ref, &args.body)?;
     v1_push_a_branch_execute(builder)
 }
@@ -1047,12 +1054,11 @@ pub fn v1_push_a_branch(
 pub fn v1_reset_a_branch_builder<R>(
     client: &SimpleHttpClient<R>,
     branch_id_or_ref: &String,
-    body: &BranchActionBody
+    body: &BranchActionBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{}/reset",
@@ -1060,10 +1066,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1092,18 +1100,23 @@ pub fn v1_reset_a_branch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<BranchUpdateResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<BranchUpdateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -1159,13 +1172,11 @@ pub fn v1_reset_a_branch_task(
 pub fn v1_reset_a_branch_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchUpdateResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchUpdateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_reset_a_branch_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -1194,13 +1205,11 @@ pub fn v1_reset_a_branch(
     client: &SimpleHttpClient,
     args: &V1ResetABranchArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchUpdateResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchUpdateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_reset_a_branch_builder(client, &args.branch_id_or_ref, &args.body)?;
     v1_reset_a_branch_execute(builder)
 }
@@ -1218,7 +1227,6 @@ pub fn v1_restore_a_branch_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/branches/{}/restore",
@@ -1226,7 +1234,8 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1257,18 +1266,23 @@ pub fn v1_restore_a_branch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<BranchRestoreResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<BranchRestoreResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -1324,13 +1338,11 @@ pub fn v1_restore_a_branch_task(
 pub fn v1_restore_a_branch_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchRestoreResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchRestoreResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_restore_a_branch_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -1357,13 +1369,11 @@ pub fn v1_restore_a_branch(
     client: &SimpleHttpClient,
     args: &V1RestoreABranchArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchRestoreResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchRestoreResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_restore_a_branch_builder(client, &args.branch_id_or_ref)?;
     v1_restore_a_branch_execute(builder)
 }
@@ -1376,25 +1386,22 @@ pub fn v1_restore_a_branch(
 
 pub fn v1_authorize_user_builder<R>(
     client: &SimpleHttpClient<R>,
-    client_id: &Option<Option<String>>,
-    response_type: &Option<Option<String>>,
-    redirect_uri: &Option<Option<String>>,
-    scope: &Option<Option<String>>,
-    state: &Option<Option<String>>,
-    response_mode: &Option<Option<String>>,
-    code_challenge: &Option<Option<String>>,
-    code_challenge_method: &Option<Option<String>>,
-    organization_slug: &Option<Option<String>>,
-    resource: &Option<Option<String>>,
+    client_id: &Option<String>,
+    response_type: &Option<String>,
+    redirect_uri: &Option<String>,
+    scope: &Option<String>,
+    state: &Option<String>,
+    response_mode: &Option<String>,
+    code_challenge: &Option<String>,
+    code_challenge_method: &Option<String>,
+    organization_slug: &Option<String>,
+    resource: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/oauth/authorize",
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/oauth/authorize",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1435,7 +1442,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1466,18 +1474,23 @@ pub fn v1_authorize_user_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -1530,13 +1543,9 @@ pub fn v1_authorize_user_task(
 pub fn v1_authorize_user_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_authorize_user_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -1545,25 +1554,25 @@ pub fn v1_authorize_user_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct V1AuthorizeUserArgs {
     /// Query parameter: client_id
-    pub client_id: Option<Option<String>>,
+    pub client_id: Option<String>,
     /// Query parameter: response_type
-    pub response_type: Option<Option<String>>,
+    pub response_type: Option<String>,
     /// Query parameter: redirect_uri
-    pub redirect_uri: Option<Option<String>>,
+    pub redirect_uri: Option<String>,
     /// Query parameter: scope
-    pub scope: Option<Option<String>>,
+    pub scope: Option<String>,
     /// Query parameter: state
-    pub state: Option<Option<String>>,
+    pub state: Option<String>,
     /// Query parameter: response_mode
-    pub response_mode: Option<Option<String>>,
+    pub response_mode: Option<String>,
     /// Query parameter: code_challenge
-    pub code_challenge: Option<Option<String>>,
+    pub code_challenge: Option<String>,
     /// Query parameter: code_challenge_method
-    pub code_challenge_method: Option<Option<String>>,
+    pub code_challenge_method: Option<String>,
     /// Query parameter: organization_slug
-    pub organization_slug: Option<Option<String>>,
+    pub organization_slug: Option<String>,
     /// Query parameter: resource
-    pub resource: Option<Option<String>>,
+    pub resource: Option<String>,
 }
 
 /// GET /v1/oauth/authorize
@@ -1581,14 +1590,22 @@ pub fn v1_authorize_user(
     client: &SimpleHttpClient,
     args: &V1AuthorizeUserArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
-    let builder = v1_authorize_user_builder(client, &args.client_id, &args.response_type, &args.redirect_uri, &args.scope, &args.state, &args.response_mode, &args.code_challenge, &args.code_challenge_method, &args.organization_slug, &args.resource)?;
+    let builder = v1_authorize_user_builder(
+        client,
+        &args.client_id,
+        &args.response_type,
+        &args.redirect_uri,
+        &args.scope,
+        &args.state,
+        &args.response_mode,
+        &args.code_challenge,
+        &args.code_challenge_method,
+        &args.organization_slug,
+        &args.resource,
+    )?;
     v1_authorize_user_execute(builder)
 }
 
@@ -1600,23 +1617,20 @@ pub fn v1_authorize_user(
 
 pub fn v1_oauth_authorize_project_claim_builder<R>(
     client: &SimpleHttpClient<R>,
-    project_ref: &Option<Option<String>>,
-    client_id: &Option<Option<String>>,
-    response_type: &Option<Option<String>>,
-    redirect_uri: &Option<Option<String>>,
-    state: &Option<Option<String>>,
-    response_mode: &Option<Option<String>>,
-    code_challenge: &Option<Option<String>>,
-    code_challenge_method: &Option<Option<String>>,
+    project_ref: &Option<String>,
+    client_id: &Option<String>,
+    response_type: &Option<String>,
+    redirect_uri: &Option<String>,
+    state: &Option<String>,
+    response_mode: &Option<String>,
+    code_challenge: &Option<String>,
+    code_challenge_method: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/oauth/authorize/project-claim",
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/oauth/authorize/project-claim",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1651,7 +1665,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1682,18 +1697,23 @@ pub fn v1_oauth_authorize_project_claim_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -1746,13 +1766,9 @@ pub fn v1_oauth_authorize_project_claim_task(
 pub fn v1_oauth_authorize_project_claim_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_oauth_authorize_project_claim_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -1761,21 +1777,21 @@ pub fn v1_oauth_authorize_project_claim_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct V1OauthAuthorizeProjectClaimArgs {
     /// Query parameter: project_ref
-    pub project_ref: Option<Option<String>>,
+    pub project_ref: Option<String>,
     /// Query parameter: client_id
-    pub client_id: Option<Option<String>>,
+    pub client_id: Option<String>,
     /// Query parameter: response_type
-    pub response_type: Option<Option<String>>,
+    pub response_type: Option<String>,
     /// Query parameter: redirect_uri
-    pub redirect_uri: Option<Option<String>>,
+    pub redirect_uri: Option<String>,
     /// Query parameter: state
-    pub state: Option<Option<String>>,
+    pub state: Option<String>,
     /// Query parameter: response_mode
-    pub response_mode: Option<Option<String>>,
+    pub response_mode: Option<String>,
     /// Query parameter: code_challenge
-    pub code_challenge: Option<Option<String>>,
+    pub code_challenge: Option<String>,
     /// Query parameter: code_challenge_method
-    pub code_challenge_method: Option<Option<String>>,
+    pub code_challenge_method: Option<String>,
 }
 
 /// GET /v1/oauth/authorize/project-claim
@@ -1793,14 +1809,20 @@ pub fn v1_oauth_authorize_project_claim(
     client: &SimpleHttpClient,
     args: &V1OauthAuthorizeProjectClaimArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
-    let builder = v1_oauth_authorize_project_claim_builder(client, &args.project_ref, &args.client_id, &args.response_type, &args.redirect_uri, &args.state, &args.response_mode, &args.code_challenge, &args.code_challenge_method)?;
+    let builder = v1_oauth_authorize_project_claim_builder(
+        client,
+        &args.project_ref,
+        &args.client_id,
+        &args.response_type,
+        &args.redirect_uri,
+        &args.state,
+        &args.response_mode,
+        &args.code_challenge,
+        &args.code_challenge_method,
+    )?;
     v1_oauth_authorize_project_claim_execute(builder)
 }
 
@@ -1812,22 +1834,21 @@ pub fn v1_oauth_authorize_project_claim(
 
 pub fn v1_revoke_token_builder<R>(
     client: &SimpleHttpClient<R>,
-    body: &OAuthRevokeTokenBody
+    body: &OAuthRevokeTokenBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/oauth/revoke",
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/oauth/revoke",);
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1856,18 +1877,23 @@ pub fn v1_revoke_token_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -1920,13 +1946,9 @@ pub fn v1_revoke_token_task(
 pub fn v1_revoke_token_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_revoke_token_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -1953,13 +1975,9 @@ pub fn v1_revoke_token(
     client: &SimpleHttpClient,
     args: &V1RevokeTokenArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_revoke_token_builder(client, &args.body)?;
     v1_revoke_token_execute(builder)
 }
@@ -1976,14 +1994,12 @@ pub fn v1_exchange_oauth_token_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/oauth/token",
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/oauth/token",);
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2014,18 +2030,23 @@ pub fn v1_exchange_oauth_token_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<OAuthTokenResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<OAuthTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -2081,13 +2102,11 @@ pub fn v1_exchange_oauth_token_task(
 pub fn v1_exchange_oauth_token_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<OAuthTokenResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<OAuthTokenResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_exchange_oauth_token_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -2106,13 +2125,11 @@ pub fn v1_exchange_oauth_token_execute(
 pub fn v1_exchange_oauth_token(
     client: &SimpleHttpClient,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<OAuthTokenResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<OAuthTokenResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_exchange_oauth_token_builder(client)?;
     v1_exchange_oauth_token_execute(builder)
 }
@@ -2129,14 +2146,12 @@ pub fn v1_list_all_organizations_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/organizations",
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/organizations",);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2167,18 +2182,23 @@ pub fn v1_list_all_organizations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -2234,13 +2254,11 @@ pub fn v1_list_all_organizations_task(
 pub fn v1_list_all_organizations_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_all_organizations_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -2259,13 +2277,11 @@ pub fn v1_list_all_organizations_execute(
 pub fn v1_list_all_organizations(
     client: &SimpleHttpClient,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_all_organizations_builder(client)?;
     v1_list_all_organizations_execute(builder)
 }
@@ -2278,22 +2294,21 @@ pub fn v1_list_all_organizations(
 
 pub fn v1_create_an_organization_builder<R>(
     client: &SimpleHttpClient<R>,
-    body: &CreateOrganizationV1
+    body: &CreateOrganizationV1,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/organizations",
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/organizations",);
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2322,18 +2337,23 @@ pub fn v1_create_an_organization_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<OrganizationResponseV1>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<OrganizationResponseV1>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -2389,13 +2409,11 @@ pub fn v1_create_an_organization_task(
 pub fn v1_create_an_organization_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<OrganizationResponseV1>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<OrganizationResponseV1>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_create_an_organization_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -2422,13 +2440,11 @@ pub fn v1_create_an_organization(
     client: &SimpleHttpClient,
     args: &V1CreateAnOrganizationArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<OrganizationResponseV1>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<OrganizationResponseV1>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_create_an_organization_builder(client, &args.body)?;
     v1_create_an_organization_execute(builder)
 }
@@ -2446,15 +2462,12 @@ pub fn v1_get_an_organization_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/organizations/{}",
-        slug,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/organizations/{}", slug,);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2485,18 +2498,23 @@ pub fn v1_get_an_organization_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1OrganizationSlugResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1OrganizationSlugResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -2553,12 +2571,12 @@ pub fn v1_get_an_organization_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<V1OrganizationSlugResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<V1OrganizationSlugResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_an_organization_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -2586,12 +2604,12 @@ pub fn v1_get_an_organization(
     args: &V1GetAnOrganizationArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<V1OrganizationSlugResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<V1OrganizationSlugResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_an_organization_builder(client, &args.slug)?;
     v1_get_an_organization_execute(builder)
 }
@@ -2609,7 +2627,6 @@ pub fn v1_get_organization_entitlements_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/organizations/{}/entitlements",
@@ -2617,7 +2634,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2648,18 +2666,23 @@ pub fn v1_get_organization_entitlements_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1ListEntitlementsResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1ListEntitlementsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -2716,12 +2739,12 @@ pub fn v1_get_organization_entitlements_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<V1ListEntitlementsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<V1ListEntitlementsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_organization_entitlements_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -2749,12 +2772,12 @@ pub fn v1_get_organization_entitlements(
     args: &V1GetOrganizationEntitlementsArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<V1ListEntitlementsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<V1ListEntitlementsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_organization_entitlements_builder(client, &args.slug)?;
     v1_get_organization_entitlements_execute(builder)
 }
@@ -2772,15 +2795,12 @@ pub fn v1_list_organization_members_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/organizations/{}/members",
-        slug,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/organizations/{}/members", slug,);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2811,18 +2831,23 @@ pub fn v1_list_organization_members_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -2878,13 +2903,11 @@ pub fn v1_list_organization_members_task(
 pub fn v1_list_organization_members_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_organization_members_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -2911,13 +2934,11 @@ pub fn v1_list_organization_members(
     client: &SimpleHttpClient,
     args: &V1ListOrganizationMembersArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_organization_members_builder(client, &args.slug)?;
     v1_list_organization_members_execute(builder)
 }
@@ -2936,16 +2957,15 @@ pub fn v1_get_organization_project_claim_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/organizations/{}/project-claim/{}",
-        slug,
-        token,
+        slug, token,
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2976,18 +2996,23 @@ pub fn v1_get_organization_project_claim_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<OrganizationProjectClaimResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<OrganizationProjectClaimResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -3044,12 +3069,12 @@ pub fn v1_get_organization_project_claim_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<OrganizationProjectClaimResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<OrganizationProjectClaimResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_organization_project_claim_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -3079,12 +3104,12 @@ pub fn v1_get_organization_project_claim(
     args: &V1GetOrganizationProjectClaimArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<OrganizationProjectClaimResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<OrganizationProjectClaimResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_organization_project_claim_builder(client, &args.slug, &args.token)?;
     v1_get_organization_project_claim_execute(builder)
 }
@@ -3103,16 +3128,15 @@ pub fn v1_claim_project_for_organization_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/organizations/{}/project-claim/{}",
-        slug,
-        token,
+        slug, token,
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3143,18 +3167,23 @@ pub fn v1_claim_project_for_organization_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -3207,13 +3236,9 @@ pub fn v1_claim_project_for_organization_task(
 pub fn v1_claim_project_for_organization_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_claim_project_for_organization_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -3242,13 +3267,9 @@ pub fn v1_claim_project_for_organization(
     client: &SimpleHttpClient,
     args: &V1ClaimProjectForOrganizationArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_claim_project_for_organization_builder(client, &args.slug, &args.token)?;
     v1_claim_project_for_organization_execute(builder)
 }
@@ -3262,16 +3283,15 @@ pub fn v1_claim_project_for_organization(
 pub fn v1_get_all_projects_for_organization_builder<R>(
     client: &SimpleHttpClient<R>,
     slug: &String,
-    offset: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    search: &Option<Option<String>>,
-    sort: &Option<Option<String>>,
-    statuses: &Option<Option<String>>,
+    offset: &Option<String>,
+    limit: &Option<String>,
+    search: &Option<String>,
+    sort: &Option<String>,
+    statuses: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/organizations/{}/projects",
@@ -3302,7 +3322,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3333,18 +3354,23 @@ pub fn v1_get_all_projects_for_organization_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<OrganizationProjectsResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<OrganizationProjectsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -3401,12 +3427,12 @@ pub fn v1_get_all_projects_for_organization_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<OrganizationProjectsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<OrganizationProjectsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_all_projects_for_organization_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -3417,15 +3443,15 @@ pub struct V1GetAllProjectsForOrganizationArgs {
     /// Path parameter: slug
     pub slug: String,
     /// Query parameter: offset
-    pub offset: Option<Option<String>>,
+    pub offset: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: search
-    pub search: Option<Option<String>>,
+    pub search: Option<String>,
     /// Query parameter: sort
-    pub sort: Option<Option<String>>,
+    pub sort: Option<String>,
     /// Query parameter: statuses
-    pub statuses: Option<Option<String>>,
+    pub statuses: Option<String>,
 }
 
 /// GET /v1/organizations/{slug}/projects
@@ -3444,13 +3470,21 @@ pub fn v1_get_all_projects_for_organization(
     args: &V1GetAllProjectsForOrganizationArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<OrganizationProjectsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<OrganizationProjectsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
-    let builder = v1_get_all_projects_for_organization_builder(client, &args.slug, &args.offset, &args.limit, &args.search, &args.sort, &args.statuses)?;
+    let builder = v1_get_all_projects_for_organization_builder(
+        client,
+        &args.slug,
+        &args.offset,
+        &args.limit,
+        &args.search,
+        &args.sort,
+        &args.statuses,
+    )?;
     v1_get_all_projects_for_organization_execute(builder)
 }
 
@@ -3466,14 +3500,12 @@ pub fn v1_get_profile_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/profile",
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/profile",);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3504,18 +3536,23 @@ pub fn v1_get_profile_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1ProfileResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1ProfileResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -3571,13 +3608,11 @@ pub fn v1_get_profile_task(
 pub fn v1_get_profile_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ProfileResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ProfileResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_profile_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -3596,13 +3631,11 @@ pub fn v1_get_profile_execute(
 pub fn v1_get_profile(
     client: &SimpleHttpClient,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ProfileResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ProfileResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_profile_builder(client)?;
     v1_get_profile_execute(builder)
 }
@@ -3619,14 +3652,12 @@ pub fn v1_list_all_projects_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects",
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects",);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3657,18 +3688,23 @@ pub fn v1_list_all_projects_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -3724,13 +3760,11 @@ pub fn v1_list_all_projects_task(
 pub fn v1_list_all_projects_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_all_projects_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -3749,13 +3783,11 @@ pub fn v1_list_all_projects_execute(
 pub fn v1_list_all_projects(
     client: &SimpleHttpClient,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_all_projects_builder(client)?;
     v1_list_all_projects_execute(builder)
 }
@@ -3768,22 +3800,21 @@ pub fn v1_list_all_projects(
 
 pub fn v1_create_a_project_builder<R>(
     client: &SimpleHttpClient<R>,
-    body: &V1CreateProjectBody
+    body: &V1CreateProjectBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects",
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects",);
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3812,18 +3843,23 @@ pub fn v1_create_a_project_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1ProjectResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1ProjectResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -3879,13 +3915,11 @@ pub fn v1_create_a_project_task(
 pub fn v1_create_a_project_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ProjectResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ProjectResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_create_a_project_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -3912,13 +3946,11 @@ pub fn v1_create_a_project(
     client: &SimpleHttpClient,
     args: &V1CreateAProjectArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ProjectResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ProjectResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_create_a_project_builder(client, &args.body)?;
     v1_create_a_project_execute(builder)
 }
@@ -3931,18 +3963,15 @@ pub fn v1_create_a_project(
 
 pub fn v1_get_available_regions_builder<R>(
     client: &SimpleHttpClient<R>,
-    organization_slug: &Option<Option<String>>,
-    continent: &Option<Option<String>>,
-    desired_instance_size: &Option<Option<String>>,
+    organization_slug: &Option<String>,
+    continent: &Option<String>,
+    desired_instance_size: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/available-regions",
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/available-regions",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3962,7 +3991,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3993,18 +4023,23 @@ pub fn v1_get_available_regions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<RegionsInfo>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<RegionsInfo>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -4060,13 +4095,9 @@ pub fn v1_get_available_regions_task(
 pub fn v1_get_available_regions_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<RegionsInfo>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<RegionsInfo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_get_available_regions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -4075,11 +4106,11 @@ pub fn v1_get_available_regions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct V1GetAvailableRegionsArgs {
     /// Query parameter: organization_slug
-    pub organization_slug: Option<Option<String>>,
+    pub organization_slug: Option<String>,
     /// Query parameter: continent
-    pub continent: Option<Option<String>>,
+    pub continent: Option<String>,
     /// Query parameter: desired_instance_size
-    pub desired_instance_size: Option<Option<String>>,
+    pub desired_instance_size: Option<String>,
 }
 
 /// GET /v1/projects/available-regions
@@ -4097,14 +4128,15 @@ pub fn v1_get_available_regions(
     client: &SimpleHttpClient,
     args: &V1GetAvailableRegionsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<RegionsInfo>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<RegionsInfo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
-    let builder = v1_get_available_regions_builder(client, &args.organization_slug, &args.continent, &args.desired_instance_size)?;
+    let builder = v1_get_available_regions_builder(
+        client,
+        &args.organization_slug,
+        &args.continent,
+        &args.desired_instance_size,
+    )?;
     v1_get_available_regions_execute(builder)
 }
 
@@ -4121,15 +4153,12 @@ pub fn v1_get_project_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}", ref_rs,);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4160,18 +4189,23 @@ pub fn v1_get_project_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1ProjectWithDatabaseResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1ProjectWithDatabaseResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -4228,12 +4262,12 @@ pub fn v1_get_project_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<V1ProjectWithDatabaseResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<V1ProjectWithDatabaseResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -4261,12 +4295,12 @@ pub fn v1_get_project(
     args: &V1GetProjectArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<V1ProjectWithDatabaseResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<V1ProjectWithDatabaseResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_project_builder(client, &args.ref_rs)?;
     v1_get_project_execute(builder)
 }
@@ -4280,23 +4314,21 @@ pub fn v1_get_project(
 pub fn v1_update_a_project_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &V1UpdateProjectBody
+    body: &V1UpdateProjectBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}", ref_rs,);
 
     // Build request
-    let builder = client.patch(&endpoint_url)
+    let builder = client
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4325,18 +4357,23 @@ pub fn v1_update_a_project_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1ProjectRefResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1ProjectRefResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -4392,13 +4429,11 @@ pub fn v1_update_a_project_task(
 pub fn v1_update_a_project_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ProjectRefResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ProjectRefResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_a_project_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -4427,13 +4462,11 @@ pub fn v1_update_a_project(
     client: &SimpleHttpClient,
     args: &V1UpdateAProjectArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ProjectRefResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ProjectRefResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_a_project_builder(client, &args.ref_rs, &args.body)?;
     v1_update_a_project_execute(builder)
 }
@@ -4451,15 +4484,12 @@ pub fn v1_delete_a_project_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}", ref_rs,);
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4490,18 +4520,23 @@ pub fn v1_delete_a_project_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1ProjectRefResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1ProjectRefResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -4557,13 +4592,11 @@ pub fn v1_delete_a_project_task(
 pub fn v1_delete_a_project_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ProjectRefResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ProjectRefResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_delete_a_project_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -4590,13 +4623,11 @@ pub fn v1_delete_a_project(
     client: &SimpleHttpClient,
     args: &V1DeleteAProjectArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ProjectRefResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ProjectRefResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_delete_a_project_builder(client, &args.ref_rs)?;
     v1_delete_a_project_execute(builder)
 }
@@ -4610,18 +4641,14 @@ pub fn v1_delete_a_project(
 pub fn v1_list_action_runs_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    offset: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    offset: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/actions",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/actions", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4638,7 +4665,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4669,18 +4697,23 @@ pub fn v1_list_action_runs_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ListActionRunResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ListActionRunResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -4736,13 +4769,11 @@ pub fn v1_list_action_runs_task(
 pub fn v1_list_action_runs_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ListActionRunResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ListActionRunResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_action_runs_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -4753,9 +4784,9 @@ pub struct V1ListActionRunsArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: offset
-    pub offset: Option<Option<String>>,
+    pub offset: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /v1/projects/{ref}/actions
@@ -4773,13 +4804,11 @@ pub fn v1_list_action_runs(
     client: &SimpleHttpClient,
     args: &V1ListActionRunsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ListActionRunResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ListActionRunResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_action_runs_builder(client, &args.ref_rs, &args.offset, &args.limit)?;
     v1_list_action_runs_execute(builder)
 }
@@ -4798,16 +4827,15 @@ pub fn v1_get_action_run_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/actions/{}",
-        ref_rs,
-        run_id,
+        ref_rs, run_id,
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4838,18 +4866,23 @@ pub fn v1_get_action_run_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ActionRunResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ActionRunResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -4905,13 +4938,11 @@ pub fn v1_get_action_run_task(
 pub fn v1_get_action_run_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ActionRunResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ActionRunResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_action_run_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -4940,13 +4971,11 @@ pub fn v1_get_action_run(
     client: &SimpleHttpClient,
     args: &V1GetActionRunArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ActionRunResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ActionRunResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_action_run_builder(client, &args.ref_rs, &args.run_id)?;
     v1_get_action_run_execute(builder)
 }
@@ -4965,16 +4994,15 @@ pub fn v1_get_action_run_logs_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/actions/{}/logs",
-        ref_rs,
-        run_id,
+        ref_rs, run_id,
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5005,18 +5033,23 @@ pub fn v1_get_action_run_logs_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -5069,13 +5102,9 @@ pub fn v1_get_action_run_logs_task(
 pub fn v1_get_action_run_logs_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_get_action_run_logs_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -5104,13 +5133,9 @@ pub fn v1_get_action_run_logs(
     client: &SimpleHttpClient,
     args: &V1GetActionRunLogsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_get_action_run_logs_builder(client, &args.ref_rs, &args.run_id)?;
     v1_get_action_run_logs_execute(builder)
 }
@@ -5125,24 +5150,24 @@ pub fn v1_update_action_run_status_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
     run_id: &String,
-    body: &UpdateRunStatusBody
+    body: &UpdateRunStatusBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/actions/{}/status",
-        ref_rs,
-        run_id,
+        ref_rs, run_id,
     );
 
     // Build request
-    let builder = client.patch(&endpoint_url)
+    let builder = client
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5171,18 +5196,23 @@ pub fn v1_update_action_run_status_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<UpdateRunStatusResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<UpdateRunStatusResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -5238,13 +5268,11 @@ pub fn v1_update_action_run_status_task(
 pub fn v1_update_action_run_status_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<UpdateRunStatusResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<UpdateRunStatusResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_action_run_status_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -5275,14 +5303,13 @@ pub fn v1_update_action_run_status(
     client: &SimpleHttpClient,
     args: &V1UpdateActionRunStatusArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<UpdateRunStatusResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<UpdateRunStatusResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
-    let builder = v1_update_action_run_status_builder(client, &args.ref_rs, &args.run_id, &args.body)?;
+    let builder =
+        v1_update_action_run_status_builder(client, &args.ref_rs, &args.run_id, &args.body)?;
     v1_update_action_run_status_execute(builder)
 }
 
@@ -5299,7 +5326,6 @@ pub fn v1_get_performance_advisors_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/advisors/performance",
@@ -5307,7 +5333,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5338,18 +5365,23 @@ pub fn v1_get_performance_advisors_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -5405,13 +5437,11 @@ pub fn v1_get_performance_advisors_task(
 pub fn v1_get_performance_advisors_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_performance_advisors_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -5438,13 +5468,11 @@ pub fn v1_get_performance_advisors(
     client: &SimpleHttpClient,
     args: &V1GetPerformanceAdvisorsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_performance_advisors_builder(client, &args.ref_rs)?;
     v1_get_performance_advisors_execute(builder)
 }
@@ -5458,12 +5486,11 @@ pub fn v1_get_performance_advisors(
 pub fn v1_get_security_advisors_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    lint_type: &Option<Option<String>>,
+    lint_type: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/advisors/security",
@@ -5482,7 +5509,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5513,18 +5541,23 @@ pub fn v1_get_security_advisors_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -5580,13 +5613,11 @@ pub fn v1_get_security_advisors_task(
 pub fn v1_get_security_advisors_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_security_advisors_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -5597,7 +5628,7 @@ pub struct V1GetSecurityAdvisorsArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: lint_type
-    pub lint_type: Option<Option<String>>,
+    pub lint_type: Option<String>,
 }
 
 /// GET /v1/projects/{ref}/advisors/security
@@ -5615,13 +5646,11 @@ pub fn v1_get_security_advisors(
     client: &SimpleHttpClient,
     args: &V1GetSecurityAdvisorsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_security_advisors_builder(client, &args.ref_rs, &args.lint_type)?;
     v1_get_security_advisors_execute(builder)
 }
@@ -5635,13 +5664,12 @@ pub fn v1_get_security_advisors(
 pub fn v1_get_project_function_combined_stats_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    interval: &Option<Option<String>>,
-    function_id: &Option<Option<String>>,
+    interval: &Option<String>,
+    function_id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/analytics/endpoints/functions.combined-stats",
@@ -5663,7 +5691,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5694,18 +5723,23 @@ pub fn v1_get_project_function_combined_stats_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<AnalyticsResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<AnalyticsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -5761,13 +5795,11 @@ pub fn v1_get_project_function_combined_stats_task(
 pub fn v1_get_project_function_combined_stats_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<AnalyticsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<AnalyticsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_function_combined_stats_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -5778,9 +5810,9 @@ pub struct V1GetProjectFunctionCombinedStatsArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: interval
-    pub interval: Option<Option<String>>,
+    pub interval: Option<String>,
     /// Query parameter: function_id
-    pub function_id: Option<Option<String>>,
+    pub function_id: Option<String>,
 }
 
 /// GET /v1/projects/{ref}/analytics/endpoints/functions.combined-stats
@@ -5798,14 +5830,17 @@ pub fn v1_get_project_function_combined_stats(
     client: &SimpleHttpClient,
     args: &V1GetProjectFunctionCombinedStatsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<AnalyticsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<AnalyticsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
-    let builder = v1_get_project_function_combined_stats_builder(client, &args.ref_rs, &args.interval, &args.function_id)?;
+    let builder = v1_get_project_function_combined_stats_builder(
+        client,
+        &args.ref_rs,
+        &args.interval,
+        &args.function_id,
+    )?;
     v1_get_project_function_combined_stats_execute(builder)
 }
 
@@ -5818,14 +5853,13 @@ pub fn v1_get_project_function_combined_stats(
 pub fn v1_get_project_logs_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    sql: &Option<Option<String>>,
-    iso_timestamp_start: &Option<Option<String>>,
-    iso_timestamp_end: &Option<Option<String>>,
+    sql: &Option<String>,
+    iso_timestamp_start: &Option<String>,
+    iso_timestamp_end: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/analytics/endpoints/logs.all",
@@ -5850,7 +5884,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5881,18 +5916,23 @@ pub fn v1_get_project_logs_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<AnalyticsResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<AnalyticsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -5948,13 +5988,11 @@ pub fn v1_get_project_logs_task(
 pub fn v1_get_project_logs_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<AnalyticsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<AnalyticsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_logs_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -5965,11 +6003,11 @@ pub struct V1GetProjectLogsArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: sql
-    pub sql: Option<Option<String>>,
+    pub sql: Option<String>,
     /// Query parameter: iso_timestamp_start
-    pub iso_timestamp_start: Option<Option<String>>,
+    pub iso_timestamp_start: Option<String>,
     /// Query parameter: iso_timestamp_end
-    pub iso_timestamp_end: Option<Option<String>>,
+    pub iso_timestamp_end: Option<String>,
 }
 
 /// GET /v1/projects/{ref}/analytics/endpoints/logs.all
@@ -5987,14 +6025,18 @@ pub fn v1_get_project_logs(
     client: &SimpleHttpClient,
     args: &V1GetProjectLogsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<AnalyticsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<AnalyticsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
-    let builder = v1_get_project_logs_builder(client, &args.ref_rs, &args.sql, &args.iso_timestamp_start, &args.iso_timestamp_end)?;
+    let builder = v1_get_project_logs_builder(
+        client,
+        &args.ref_rs,
+        &args.sql,
+        &args.iso_timestamp_start,
+        &args.iso_timestamp_end,
+    )?;
     v1_get_project_logs_execute(builder)
 }
 
@@ -6007,12 +6049,11 @@ pub fn v1_get_project_logs(
 pub fn v1_get_project_usage_api_count_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    interval: &Option<Option<String>>,
+    interval: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/analytics/endpoints/usage.api-counts",
@@ -6031,7 +6072,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6062,18 +6104,23 @@ pub fn v1_get_project_usage_api_count_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1GetUsageApiCountResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1GetUsageApiCountResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -6130,12 +6177,12 @@ pub fn v1_get_project_usage_api_count_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<V1GetUsageApiCountResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<V1GetUsageApiCountResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_usage_api_count_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -6146,7 +6193,7 @@ pub struct V1GetProjectUsageApiCountArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: interval
-    pub interval: Option<Option<String>>,
+    pub interval: Option<String>,
 }
 
 /// GET /v1/projects/{ref}/analytics/endpoints/usage.api-counts
@@ -6165,12 +6212,12 @@ pub fn v1_get_project_usage_api_count(
     args: &V1GetProjectUsageApiCountArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<V1GetUsageApiCountResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<V1GetUsageApiCountResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_project_usage_api_count_builder(client, &args.ref_rs, &args.interval)?;
     v1_get_project_usage_api_count_execute(builder)
 }
@@ -6188,7 +6235,6 @@ pub fn v1_get_project_usage_request_count_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/analytics/endpoints/usage.api-requests-count",
@@ -6196,7 +6242,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6227,18 +6274,23 @@ pub fn v1_get_project_usage_request_count_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1GetUsageApiRequestsCountResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1GetUsageApiRequestsCountResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -6295,12 +6347,12 @@ pub fn v1_get_project_usage_request_count_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<V1GetUsageApiRequestsCountResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<V1GetUsageApiRequestsCountResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_usage_request_count_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -6328,12 +6380,12 @@ pub fn v1_get_project_usage_request_count(
     args: &V1GetProjectUsageRequestCountArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<V1GetUsageApiRequestsCountResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<V1GetUsageApiRequestsCountResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_project_usage_request_count_builder(client, &args.ref_rs)?;
     v1_get_project_usage_request_count_execute(builder)
 }
@@ -6347,17 +6399,13 @@ pub fn v1_get_project_usage_request_count(
 pub fn v1_get_project_api_keys_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    reveal: &Option<Option<String>>,
+    reveal: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/api-keys",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/api-keys", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -6371,7 +6419,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6402,18 +6451,23 @@ pub fn v1_get_project_api_keys_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -6469,13 +6523,11 @@ pub fn v1_get_project_api_keys_task(
 pub fn v1_get_project_api_keys_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_api_keys_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -6486,7 +6538,7 @@ pub struct V1GetProjectApiKeysArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: reveal
-    pub reveal: Option<Option<String>>,
+    pub reveal: Option<String>,
 }
 
 /// GET /v1/projects/{ref}/api-keys
@@ -6504,13 +6556,11 @@ pub fn v1_get_project_api_keys(
     client: &SimpleHttpClient,
     args: &V1GetProjectApiKeysArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_project_api_keys_builder(client, &args.ref_rs, &args.reveal)?;
     v1_get_project_api_keys_execute(builder)
 }
@@ -6524,18 +6574,14 @@ pub fn v1_get_project_api_keys(
 pub fn v1_create_project_api_key_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    reveal: &Option<Option<String>>,
-    body: &CreateApiKeyBody
+    reveal: &Option<String>,
+    body: &CreateApiKeyBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/api-keys",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/api-keys", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -6549,10 +6595,12 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.post(&url_with_query)
+    let builder = client
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6581,18 +6629,23 @@ pub fn v1_create_project_api_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ApiKeyResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ApiKeyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -6648,13 +6701,11 @@ pub fn v1_create_project_api_key_task(
 pub fn v1_create_project_api_key_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ApiKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ApiKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_create_project_api_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -6665,7 +6716,7 @@ pub struct V1CreateProjectApiKeyArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: reveal
-    pub reveal: Option<Option<String>>,
+    pub reveal: Option<String>,
     /// Request body.
     pub body: CreateApiKeyBody,
 }
@@ -6685,14 +6736,13 @@ pub fn v1_create_project_api_key(
     client: &SimpleHttpClient,
     args: &V1CreateProjectApiKeyArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ApiKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ApiKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
-    let builder = v1_create_project_api_key_builder(client, &args.ref_rs, &args.reveal, &args.body)?;
+    let builder =
+        v1_create_project_api_key_builder(client, &args.ref_rs, &args.reveal, &args.body)?;
     v1_create_project_api_key_execute(builder)
 }
 
@@ -6709,7 +6759,6 @@ pub fn v1_get_project_legacy_api_keys_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/api-keys/legacy",
@@ -6717,7 +6766,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6748,18 +6798,23 @@ pub fn v1_get_project_legacy_api_keys_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -6815,13 +6870,11 @@ pub fn v1_get_project_legacy_api_keys_task(
 pub fn v1_get_project_legacy_api_keys_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_legacy_api_keys_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -6848,13 +6901,11 @@ pub fn v1_get_project_legacy_api_keys(
     client: &SimpleHttpClient,
     args: &V1GetProjectLegacyApiKeysArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_project_legacy_api_keys_builder(client, &args.ref_rs)?;
     v1_get_project_legacy_api_keys_execute(builder)
 }
@@ -6868,12 +6919,11 @@ pub fn v1_get_project_legacy_api_keys(
 pub fn v1_update_project_legacy_api_keys_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    enabled: &Option<Option<String>>,
+    enabled: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/api-keys/legacy",
@@ -6892,7 +6942,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.put(&url_with_query)
+    let builder = client
+        .put(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6923,18 +6974,23 @@ pub fn v1_update_project_legacy_api_keys_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -6990,13 +7046,11 @@ pub fn v1_update_project_legacy_api_keys_task(
 pub fn v1_update_project_legacy_api_keys_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_project_legacy_api_keys_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -7007,7 +7061,7 @@ pub struct V1UpdateProjectLegacyApiKeysArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: enabled
-    pub enabled: Option<Option<String>>,
+    pub enabled: Option<String>,
 }
 
 /// PUT /v1/projects/{ref}/api-keys/legacy
@@ -7025,13 +7079,11 @@ pub fn v1_update_project_legacy_api_keys(
     client: &SimpleHttpClient,
     args: &V1UpdateProjectLegacyApiKeysArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_project_legacy_api_keys_builder(client, &args.ref_rs, &args.enabled)?;
     v1_update_project_legacy_api_keys_execute(builder)
 }
@@ -7046,17 +7098,15 @@ pub fn v1_get_project_api_key_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
     id: &String,
-    reveal: &Option<Option<String>>,
+    reveal: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/api-keys/{}",
-        ref_rs,
-        id,
+        ref_rs, id,
     );
 
     // Build request
@@ -7071,7 +7121,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7102,18 +7153,23 @@ pub fn v1_get_project_api_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ApiKeyResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ApiKeyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -7169,13 +7225,11 @@ pub fn v1_get_project_api_key_task(
 pub fn v1_get_project_api_key_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ApiKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ApiKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_api_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -7188,7 +7242,7 @@ pub struct V1GetProjectApiKeyArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: reveal
-    pub reveal: Option<Option<String>>,
+    pub reveal: Option<String>,
 }
 
 /// GET /v1/projects/{ref}/api-keys/{id}
@@ -7206,13 +7260,11 @@ pub fn v1_get_project_api_key(
     client: &SimpleHttpClient,
     args: &V1GetProjectApiKeyArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ApiKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ApiKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_project_api_key_builder(client, &args.ref_rs, &args.id, &args.reveal)?;
     v1_get_project_api_key_execute(builder)
 }
@@ -7227,18 +7279,16 @@ pub fn v1_update_project_api_key_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
     id: &String,
-    reveal: &Option<Option<String>>,
-    body: &UpdateApiKeyBody
+    reveal: &Option<String>,
+    body: &UpdateApiKeyBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/api-keys/{}",
-        ref_rs,
-        id,
+        ref_rs, id,
     );
 
     // Build request
@@ -7253,10 +7303,12 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.patch(&url_with_query)
+    let builder = client
+        .patch(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7285,18 +7337,23 @@ pub fn v1_update_project_api_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ApiKeyResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ApiKeyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -7352,13 +7409,11 @@ pub fn v1_update_project_api_key_task(
 pub fn v1_update_project_api_key_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ApiKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ApiKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_project_api_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -7371,7 +7426,7 @@ pub struct V1UpdateProjectApiKeyArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: reveal
-    pub reveal: Option<Option<String>>,
+    pub reveal: Option<String>,
     /// Request body.
     pub body: UpdateApiKeyBody,
 }
@@ -7391,14 +7446,18 @@ pub fn v1_update_project_api_key(
     client: &SimpleHttpClient,
     args: &V1UpdateProjectApiKeyArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ApiKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ApiKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
-    let builder = v1_update_project_api_key_builder(client, &args.ref_rs, &args.id, &args.reveal, &args.body)?;
+    let builder = v1_update_project_api_key_builder(
+        client,
+        &args.ref_rs,
+        &args.id,
+        &args.reveal,
+        &args.body,
+    )?;
     v1_update_project_api_key_execute(builder)
 }
 
@@ -7412,19 +7471,17 @@ pub fn v1_delete_project_api_key_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
     id: &String,
-    reveal: &Option<Option<String>>,
-    was_compromised: &Option<Option<String>>,
-    reason: &Option<Option<String>>,
+    reveal: &Option<String>,
+    was_compromised: &Option<String>,
+    reason: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/api-keys/{}",
-        ref_rs,
-        id,
+        ref_rs, id,
     );
 
     // Build request
@@ -7445,7 +7502,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.delete(&url_with_query)
+    let builder = client
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7476,18 +7534,23 @@ pub fn v1_delete_project_api_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ApiKeyResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ApiKeyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -7543,13 +7606,11 @@ pub fn v1_delete_project_api_key_task(
 pub fn v1_delete_project_api_key_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ApiKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ApiKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_delete_project_api_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -7562,11 +7623,11 @@ pub struct V1DeleteProjectApiKeyArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: reveal
-    pub reveal: Option<Option<String>>,
+    pub reveal: Option<String>,
     /// Query parameter: was_compromised
-    pub was_compromised: Option<Option<String>>,
+    pub was_compromised: Option<String>,
     /// Query parameter: reason
-    pub reason: Option<Option<String>>,
+    pub reason: Option<String>,
 }
 
 /// DELETE /v1/projects/{ref}/api-keys/{id}
@@ -7584,14 +7645,19 @@ pub fn v1_delete_project_api_key(
     client: &SimpleHttpClient,
     args: &V1DeleteProjectApiKeyArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ApiKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ApiKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
-    let builder = v1_delete_project_api_key_builder(client, &args.ref_rs, &args.id, &args.reveal, &args.was_compromised, &args.reason)?;
+    let builder = v1_delete_project_api_key_builder(
+        client,
+        &args.ref_rs,
+        &args.id,
+        &args.reveal,
+        &args.was_compromised,
+        &args.reason,
+    )?;
     v1_delete_project_api_key_execute(builder)
 }
 
@@ -7608,7 +7674,6 @@ pub fn v1_list_project_addons_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/billing/addons",
@@ -7616,7 +7681,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7647,18 +7713,23 @@ pub fn v1_list_project_addons_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ListProjectAddonsResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ListProjectAddonsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -7714,13 +7785,11 @@ pub fn v1_list_project_addons_task(
 pub fn v1_list_project_addons_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ListProjectAddonsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ListProjectAddonsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_project_addons_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -7747,13 +7816,11 @@ pub fn v1_list_project_addons(
     client: &SimpleHttpClient,
     args: &V1ListProjectAddonsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ListProjectAddonsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ListProjectAddonsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_project_addons_builder(client, &args.ref_rs)?;
     v1_list_project_addons_execute(builder)
 }
@@ -7767,12 +7834,11 @@ pub fn v1_list_project_addons(
 pub fn v1_apply_project_addon_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &ApplyProjectAddonBody
+    body: &ApplyProjectAddonBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/billing/addons",
@@ -7780,10 +7846,12 @@ where
     );
 
     // Build request
-    let builder = client.patch(&endpoint_url)
+    let builder = client
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7812,18 +7880,23 @@ pub fn v1_apply_project_addon_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -7876,13 +7949,9 @@ pub fn v1_apply_project_addon_task(
 pub fn v1_apply_project_addon_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_apply_project_addon_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -7911,13 +7980,9 @@ pub fn v1_apply_project_addon(
     client: &SimpleHttpClient,
     args: &V1ApplyProjectAddonArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_apply_project_addon_builder(client, &args.ref_rs, &args.body)?;
     v1_apply_project_addon_execute(builder)
 }
@@ -7936,16 +8001,15 @@ pub fn v1_remove_project_addon_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/billing/addons/{}",
-        ref_rs,
-        addon_variant,
+        ref_rs, addon_variant,
     );
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7976,18 +8040,23 @@ pub fn v1_remove_project_addon_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -8040,13 +8109,9 @@ pub fn v1_remove_project_addon_task(
 pub fn v1_remove_project_addon_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_remove_project_addon_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -8075,13 +8140,9 @@ pub fn v1_remove_project_addon(
     client: &SimpleHttpClient,
     args: &V1RemoveProjectAddonArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_remove_project_addon_builder(client, &args.ref_rs, &args.addon_variant)?;
     v1_remove_project_addon_execute(builder)
 }
@@ -8099,15 +8160,12 @@ pub fn v1_list_all_branches_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/branches",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/branches", ref_rs,);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8138,18 +8196,23 @@ pub fn v1_list_all_branches_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -8205,13 +8268,11 @@ pub fn v1_list_all_branches_task(
 pub fn v1_list_all_branches_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_all_branches_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -8238,13 +8299,11 @@ pub fn v1_list_all_branches(
     client: &SimpleHttpClient,
     args: &V1ListAllBranchesArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_all_branches_builder(client, &args.ref_rs)?;
     v1_list_all_branches_execute(builder)
 }
@@ -8258,23 +8317,21 @@ pub fn v1_list_all_branches(
 pub fn v1_create_a_branch_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &CreateBranchBody
+    body: &CreateBranchBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/branches",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/branches", ref_rs,);
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8303,18 +8360,23 @@ pub fn v1_create_a_branch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<BranchResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<BranchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -8370,13 +8432,11 @@ pub fn v1_create_a_branch_task(
 pub fn v1_create_a_branch_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_create_a_branch_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -8405,13 +8465,11 @@ pub fn v1_create_a_branch(
     client: &SimpleHttpClient,
     args: &V1CreateABranchArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_create_a_branch_builder(client, &args.ref_rs, &args.body)?;
     v1_create_a_branch_execute(builder)
 }
@@ -8429,15 +8487,12 @@ pub fn v1_disable_preview_branching_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/branches",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/branches", ref_rs,);
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8468,18 +8523,23 @@ pub fn v1_disable_preview_branching_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -8532,13 +8592,9 @@ pub fn v1_disable_preview_branching_task(
 pub fn v1_disable_preview_branching_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_disable_preview_branching_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -8565,13 +8621,9 @@ pub fn v1_disable_preview_branching(
     client: &SimpleHttpClient,
     args: &V1DisablePreviewBranchingArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_disable_preview_branching_builder(client, &args.ref_rs)?;
     v1_disable_preview_branching_execute(builder)
 }
@@ -8590,16 +8642,15 @@ pub fn v1_get_a_branch_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/branches/{}",
-        ref_rs,
-        name,
+        ref_rs, name,
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8630,18 +8681,23 @@ pub fn v1_get_a_branch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<BranchResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<BranchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -8697,13 +8753,11 @@ pub fn v1_get_a_branch_task(
 pub fn v1_get_a_branch_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_a_branch_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -8732,13 +8786,11 @@ pub fn v1_get_a_branch(
     client: &SimpleHttpClient,
     args: &V1GetABranchArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<BranchResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<BranchResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_a_branch_builder(client, &args.ref_rs, &args.name)?;
     v1_get_a_branch_execute(builder)
 }
@@ -8756,7 +8808,6 @@ pub fn v1_get_project_claim_token_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/claim-token",
@@ -8764,7 +8815,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8795,18 +8847,23 @@ pub fn v1_get_project_claim_token_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ProjectClaimTokenResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ProjectClaimTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -8862,13 +8919,11 @@ pub fn v1_get_project_claim_token_task(
 pub fn v1_get_project_claim_token_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ProjectClaimTokenResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ProjectClaimTokenResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_claim_token_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -8895,13 +8950,11 @@ pub fn v1_get_project_claim_token(
     client: &SimpleHttpClient,
     args: &V1GetProjectClaimTokenArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ProjectClaimTokenResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ProjectClaimTokenResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_project_claim_token_builder(client, &args.ref_rs)?;
     v1_get_project_claim_token_execute(builder)
 }
@@ -8919,7 +8972,6 @@ pub fn v1_create_project_claim_token_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/claim-token",
@@ -8927,7 +8979,8 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8958,18 +9011,23 @@ pub fn v1_create_project_claim_token_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<CreateProjectClaimTokenResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<CreateProjectClaimTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -9026,12 +9084,12 @@ pub fn v1_create_project_claim_token_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<CreateProjectClaimTokenResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<CreateProjectClaimTokenResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_create_project_claim_token_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -9059,12 +9117,12 @@ pub fn v1_create_project_claim_token(
     args: &V1CreateProjectClaimTokenArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<CreateProjectClaimTokenResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<CreateProjectClaimTokenResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_create_project_claim_token_builder(client, &args.ref_rs)?;
     v1_create_project_claim_token_execute(builder)
 }
@@ -9082,7 +9140,6 @@ pub fn v1_delete_project_claim_token_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/claim-token",
@@ -9090,7 +9147,8 @@ where
     );
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -9121,18 +9179,23 @@ pub fn v1_delete_project_claim_token_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -9185,13 +9248,9 @@ pub fn v1_delete_project_claim_token_task(
 pub fn v1_delete_project_claim_token_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_delete_project_claim_token_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -9218,13 +9277,9 @@ pub fn v1_delete_project_claim_token(
     client: &SimpleHttpClient,
     args: &V1DeleteProjectClaimTokenArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_delete_project_claim_token_builder(client, &args.ref_rs)?;
     v1_delete_project_claim_token_execute(builder)
 }
@@ -9238,12 +9293,11 @@ pub fn v1_delete_project_claim_token(
 pub fn v1_create_login_role_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &CreateRoleBody
+    body: &CreateRoleBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/cli/login-role",
@@ -9251,10 +9305,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9283,18 +9339,23 @@ pub fn v1_create_login_role_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<CreateRoleResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<CreateRoleResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -9350,13 +9411,11 @@ pub fn v1_create_login_role_task(
 pub fn v1_create_login_role_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<CreateRoleResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<CreateRoleResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_create_login_role_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -9385,13 +9444,11 @@ pub fn v1_create_login_role(
     client: &SimpleHttpClient,
     args: &V1CreateLoginRoleArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<CreateRoleResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<CreateRoleResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_create_login_role_builder(client, &args.ref_rs, &args.body)?;
     v1_create_login_role_execute(builder)
 }
@@ -9409,7 +9466,6 @@ pub fn v1_delete_login_roles_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/cli/login-role",
@@ -9417,7 +9473,8 @@ where
     );
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -9448,18 +9505,23 @@ pub fn v1_delete_login_roles_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<DeleteRolesResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<DeleteRolesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -9515,13 +9577,11 @@ pub fn v1_delete_login_roles_task(
 pub fn v1_delete_login_roles_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<DeleteRolesResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<DeleteRolesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_delete_login_roles_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -9548,13 +9608,11 @@ pub fn v1_delete_login_roles(
     client: &SimpleHttpClient,
     args: &V1DeleteLoginRolesArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<DeleteRolesResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<DeleteRolesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_delete_login_roles_builder(client, &args.ref_rs)?;
     v1_delete_login_roles_execute(builder)
 }
@@ -9572,7 +9630,6 @@ pub fn v1_get_auth_service_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth",
@@ -9580,7 +9637,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -9611,18 +9669,23 @@ pub fn v1_get_auth_service_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<AuthConfigResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<AuthConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -9678,13 +9741,11 @@ pub fn v1_get_auth_service_config_task(
 pub fn v1_get_auth_service_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<AuthConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<AuthConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_auth_service_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -9711,13 +9772,11 @@ pub fn v1_get_auth_service_config(
     client: &SimpleHttpClient,
     args: &V1GetAuthServiceConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<AuthConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<AuthConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_auth_service_config_builder(client, &args.ref_rs)?;
     v1_get_auth_service_config_execute(builder)
 }
@@ -9731,12 +9790,11 @@ pub fn v1_get_auth_service_config(
 pub fn v1_update_auth_service_config_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &UpdateAuthConfigBody
+    body: &UpdateAuthConfigBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth",
@@ -9744,10 +9802,12 @@ where
     );
 
     // Build request
-    let builder = client.patch(&endpoint_url)
+    let builder = client
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9776,18 +9836,23 @@ pub fn v1_update_auth_service_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<AuthConfigResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<AuthConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -9843,13 +9908,11 @@ pub fn v1_update_auth_service_config_task(
 pub fn v1_update_auth_service_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<AuthConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<AuthConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_auth_service_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -9878,13 +9941,11 @@ pub fn v1_update_auth_service_config(
     client: &SimpleHttpClient,
     args: &V1UpdateAuthServiceConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<AuthConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<AuthConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_auth_service_config_builder(client, &args.ref_rs, &args.body)?;
     v1_update_auth_service_config_execute(builder)
 }
@@ -9902,7 +9963,6 @@ pub fn v1_get_project_signing_keys_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys",
@@ -9910,7 +9970,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -9941,18 +10002,23 @@ pub fn v1_get_project_signing_keys_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<SigningKeysResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<SigningKeysResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -10008,13 +10074,11 @@ pub fn v1_get_project_signing_keys_task(
 pub fn v1_get_project_signing_keys_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeysResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeysResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_signing_keys_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -10041,13 +10105,11 @@ pub fn v1_get_project_signing_keys(
     client: &SimpleHttpClient,
     args: &V1GetProjectSigningKeysArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeysResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeysResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_project_signing_keys_builder(client, &args.ref_rs)?;
     v1_get_project_signing_keys_execute(builder)
 }
@@ -10061,12 +10123,11 @@ pub fn v1_get_project_signing_keys(
 pub fn v1_create_project_signing_key_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &CreateSigningKeyBody
+    body: &CreateSigningKeyBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys",
@@ -10074,10 +10135,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -10106,18 +10169,23 @@ pub fn v1_create_project_signing_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<SigningKeyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -10173,13 +10241,11 @@ pub fn v1_create_project_signing_key_task(
 pub fn v1_create_project_signing_key_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_create_project_signing_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -10208,13 +10274,11 @@ pub fn v1_create_project_signing_key(
     client: &SimpleHttpClient,
     args: &V1CreateProjectSigningKeyArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_create_project_signing_key_builder(client, &args.ref_rs, &args.body)?;
     v1_create_project_signing_key_execute(builder)
 }
@@ -10232,7 +10296,6 @@ pub fn v1_get_legacy_signing_key_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/legacy",
@@ -10240,7 +10303,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -10271,18 +10335,23 @@ pub fn v1_get_legacy_signing_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<SigningKeyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -10338,13 +10407,11 @@ pub fn v1_get_legacy_signing_key_task(
 pub fn v1_get_legacy_signing_key_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_legacy_signing_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -10371,13 +10438,11 @@ pub fn v1_get_legacy_signing_key(
     client: &SimpleHttpClient,
     args: &V1GetLegacySigningKeyArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_legacy_signing_key_builder(client, &args.ref_rs)?;
     v1_get_legacy_signing_key_execute(builder)
 }
@@ -10395,7 +10460,6 @@ pub fn v1_create_legacy_signing_key_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/legacy",
@@ -10403,7 +10467,8 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -10434,18 +10499,23 @@ pub fn v1_create_legacy_signing_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<SigningKeyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -10501,13 +10571,11 @@ pub fn v1_create_legacy_signing_key_task(
 pub fn v1_create_legacy_signing_key_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_create_legacy_signing_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -10534,13 +10602,11 @@ pub fn v1_create_legacy_signing_key(
     client: &SimpleHttpClient,
     args: &V1CreateLegacySigningKeyArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_create_legacy_signing_key_builder(client, &args.ref_rs)?;
     v1_create_legacy_signing_key_execute(builder)
 }
@@ -10559,16 +10625,15 @@ pub fn v1_get_project_signing_key_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/{}",
-        ref_rs,
-        id,
+        ref_rs, id,
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -10599,18 +10664,23 @@ pub fn v1_get_project_signing_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<SigningKeyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -10666,13 +10736,11 @@ pub fn v1_get_project_signing_key_task(
 pub fn v1_get_project_signing_key_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_signing_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -10701,13 +10769,11 @@ pub fn v1_get_project_signing_key(
     client: &SimpleHttpClient,
     args: &V1GetProjectSigningKeyArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_project_signing_key_builder(client, &args.id, &args.ref_rs)?;
     v1_get_project_signing_key_execute(builder)
 }
@@ -10722,24 +10788,24 @@ pub fn v1_update_project_signing_key_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
     ref_rs: &String,
-    body: &UpdateSigningKeyBody
+    body: &UpdateSigningKeyBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/{}",
-        ref_rs,
-        id,
+        ref_rs, id,
     );
 
     // Build request
-    let builder = client.patch(&endpoint_url)
+    let builder = client
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -10768,18 +10834,23 @@ pub fn v1_update_project_signing_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<SigningKeyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -10835,13 +10906,11 @@ pub fn v1_update_project_signing_key_task(
 pub fn v1_update_project_signing_key_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_project_signing_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -10872,14 +10941,13 @@ pub fn v1_update_project_signing_key(
     client: &SimpleHttpClient,
     args: &V1UpdateProjectSigningKeyArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
-    let builder = v1_update_project_signing_key_builder(client, &args.id, &args.ref_rs, &args.body)?;
+    let builder =
+        v1_update_project_signing_key_builder(client, &args.id, &args.ref_rs, &args.body)?;
     v1_update_project_signing_key_execute(builder)
 }
 
@@ -10897,16 +10965,15 @@ pub fn v1_remove_project_signing_key_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/{}",
-        ref_rs,
-        id,
+        ref_rs, id,
     );
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -10937,18 +11004,23 @@ pub fn v1_remove_project_signing_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<SigningKeyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -11004,13 +11076,11 @@ pub fn v1_remove_project_signing_key_task(
 pub fn v1_remove_project_signing_key_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_remove_project_signing_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -11039,13 +11109,11 @@ pub fn v1_remove_project_signing_key(
     client: &SimpleHttpClient,
     args: &V1RemoveProjectSigningKeyArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SigningKeyResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_remove_project_signing_key_builder(client, &args.id, &args.ref_rs)?;
     v1_remove_project_signing_key_execute(builder)
 }
@@ -11063,7 +11131,6 @@ pub fn v1_list_all_sso_provider_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers",
@@ -11071,7 +11138,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -11102,18 +11170,23 @@ pub fn v1_list_all_sso_provider_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ListProvidersResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ListProvidersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -11169,13 +11242,11 @@ pub fn v1_list_all_sso_provider_task(
 pub fn v1_list_all_sso_provider_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ListProvidersResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ListProvidersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_all_sso_provider_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -11202,13 +11273,11 @@ pub fn v1_list_all_sso_provider(
     client: &SimpleHttpClient,
     args: &V1ListAllSsoProviderArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ListProvidersResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ListProvidersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_all_sso_provider_builder(client, &args.ref_rs)?;
     v1_list_all_sso_provider_execute(builder)
 }
@@ -11222,12 +11291,11 @@ pub fn v1_list_all_sso_provider(
 pub fn v1_create_a_sso_provider_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &CreateProviderBody
+    body: &CreateProviderBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers",
@@ -11235,10 +11303,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -11267,18 +11337,23 @@ pub fn v1_create_a_sso_provider_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<CreateProviderResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<CreateProviderResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -11334,13 +11409,11 @@ pub fn v1_create_a_sso_provider_task(
 pub fn v1_create_a_sso_provider_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<CreateProviderResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<CreateProviderResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_create_a_sso_provider_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -11369,13 +11442,11 @@ pub fn v1_create_a_sso_provider(
     client: &SimpleHttpClient,
     args: &V1CreateASsoProviderArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<CreateProviderResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<CreateProviderResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_create_a_sso_provider_builder(client, &args.ref_rs, &args.body)?;
     v1_create_a_sso_provider_execute(builder)
 }
@@ -11394,16 +11465,15 @@ pub fn v1_get_a_sso_provider_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers/{}",
-        ref_rs,
-        provider_id,
+        ref_rs, provider_id,
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -11434,18 +11504,23 @@ pub fn v1_get_a_sso_provider_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<GetProviderResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<GetProviderResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -11501,13 +11576,11 @@ pub fn v1_get_a_sso_provider_task(
 pub fn v1_get_a_sso_provider_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<GetProviderResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<GetProviderResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_a_sso_provider_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -11536,13 +11609,11 @@ pub fn v1_get_a_sso_provider(
     client: &SimpleHttpClient,
     args: &V1GetASsoProviderArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<GetProviderResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<GetProviderResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_a_sso_provider_builder(client, &args.ref_rs, &args.provider_id)?;
     v1_get_a_sso_provider_execute(builder)
 }
@@ -11557,24 +11628,24 @@ pub fn v1_update_a_sso_provider_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
     provider_id: &String,
-    body: &UpdateProviderBody
+    body: &UpdateProviderBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers/{}",
-        ref_rs,
-        provider_id,
+        ref_rs, provider_id,
     );
 
     // Build request
-    let builder = client.put(&endpoint_url)
+    let builder = client
+        .put(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -11603,18 +11674,23 @@ pub fn v1_update_a_sso_provider_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<UpdateProviderResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<UpdateProviderResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -11670,13 +11746,11 @@ pub fn v1_update_a_sso_provider_task(
 pub fn v1_update_a_sso_provider_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<UpdateProviderResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<UpdateProviderResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_a_sso_provider_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -11707,14 +11781,13 @@ pub fn v1_update_a_sso_provider(
     client: &SimpleHttpClient,
     args: &V1UpdateASsoProviderArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<UpdateProviderResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<UpdateProviderResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
-    let builder = v1_update_a_sso_provider_builder(client, &args.ref_rs, &args.provider_id, &args.body)?;
+    let builder =
+        v1_update_a_sso_provider_builder(client, &args.ref_rs, &args.provider_id, &args.body)?;
     v1_update_a_sso_provider_execute(builder)
 }
 
@@ -11732,16 +11805,15 @@ pub fn v1_delete_a_sso_provider_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers/{}",
-        ref_rs,
-        provider_id,
+        ref_rs, provider_id,
     );
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -11772,18 +11844,23 @@ pub fn v1_delete_a_sso_provider_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<DeleteProviderResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<DeleteProviderResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -11839,13 +11916,11 @@ pub fn v1_delete_a_sso_provider_task(
 pub fn v1_delete_a_sso_provider_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<DeleteProviderResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<DeleteProviderResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_delete_a_sso_provider_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -11874,13 +11949,11 @@ pub fn v1_delete_a_sso_provider(
     client: &SimpleHttpClient,
     args: &V1DeleteASsoProviderArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<DeleteProviderResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<DeleteProviderResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_delete_a_sso_provider_builder(client, &args.ref_rs, &args.provider_id)?;
     v1_delete_a_sso_provider_execute(builder)
 }
@@ -11898,7 +11971,6 @@ pub fn v1_list_project_tpa_integrations_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/third-party-auth",
@@ -11906,7 +11978,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -11937,18 +12010,23 @@ pub fn v1_list_project_tpa_integrations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -12004,13 +12082,11 @@ pub fn v1_list_project_tpa_integrations_task(
 pub fn v1_list_project_tpa_integrations_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_project_tpa_integrations_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -12037,13 +12113,11 @@ pub fn v1_list_project_tpa_integrations(
     client: &SimpleHttpClient,
     args: &V1ListProjectTpaIntegrationsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_project_tpa_integrations_builder(client, &args.ref_rs)?;
     v1_list_project_tpa_integrations_execute(builder)
 }
@@ -12057,12 +12131,11 @@ pub fn v1_list_project_tpa_integrations(
 pub fn v1_create_project_tpa_integration_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &CreateThirdPartyAuthBody
+    body: &CreateThirdPartyAuthBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/third-party-auth",
@@ -12070,10 +12143,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -12102,18 +12177,23 @@ pub fn v1_create_project_tpa_integration_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ThirdPartyAuth>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ThirdPartyAuth>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -12169,13 +12249,11 @@ pub fn v1_create_project_tpa_integration_task(
 pub fn v1_create_project_tpa_integration_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ThirdPartyAuth>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ThirdPartyAuth>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_create_project_tpa_integration_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -12204,13 +12282,11 @@ pub fn v1_create_project_tpa_integration(
     client: &SimpleHttpClient,
     args: &V1CreateProjectTpaIntegrationArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ThirdPartyAuth>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ThirdPartyAuth>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_create_project_tpa_integration_builder(client, &args.ref_rs, &args.body)?;
     v1_create_project_tpa_integration_execute(builder)
 }
@@ -12229,16 +12305,15 @@ pub fn v1_get_project_tpa_integration_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/third-party-auth/{}",
-        ref_rs,
-        tpa_id,
+        ref_rs, tpa_id,
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -12269,18 +12344,23 @@ pub fn v1_get_project_tpa_integration_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ThirdPartyAuth>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ThirdPartyAuth>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -12336,13 +12416,11 @@ pub fn v1_get_project_tpa_integration_task(
 pub fn v1_get_project_tpa_integration_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ThirdPartyAuth>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ThirdPartyAuth>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_tpa_integration_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -12371,13 +12449,11 @@ pub fn v1_get_project_tpa_integration(
     client: &SimpleHttpClient,
     args: &V1GetProjectTpaIntegrationArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ThirdPartyAuth>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ThirdPartyAuth>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_project_tpa_integration_builder(client, &args.ref_rs, &args.tpa_id)?;
     v1_get_project_tpa_integration_execute(builder)
 }
@@ -12396,16 +12472,15 @@ pub fn v1_delete_project_tpa_integration_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/auth/third-party-auth/{}",
-        ref_rs,
-        tpa_id,
+        ref_rs, tpa_id,
     );
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -12436,18 +12511,23 @@ pub fn v1_delete_project_tpa_integration_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ThirdPartyAuth>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ThirdPartyAuth>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -12503,13 +12583,11 @@ pub fn v1_delete_project_tpa_integration_task(
 pub fn v1_delete_project_tpa_integration_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ThirdPartyAuth>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ThirdPartyAuth>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_delete_project_tpa_integration_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -12538,13 +12616,11 @@ pub fn v1_delete_project_tpa_integration(
     client: &SimpleHttpClient,
     args: &V1DeleteProjectTpaIntegrationArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ThirdPartyAuth>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ThirdPartyAuth>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_delete_project_tpa_integration_builder(client, &args.ref_rs, &args.tpa_id)?;
     v1_delete_project_tpa_integration_execute(builder)
 }
@@ -12562,7 +12638,6 @@ pub fn v1_get_project_pgbouncer_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/database/pgbouncer",
@@ -12570,7 +12645,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -12601,18 +12677,23 @@ pub fn v1_get_project_pgbouncer_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1PgbouncerConfigResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1PgbouncerConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -12668,13 +12749,11 @@ pub fn v1_get_project_pgbouncer_config_task(
 pub fn v1_get_project_pgbouncer_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1PgbouncerConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1PgbouncerConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_pgbouncer_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -12701,13 +12780,11 @@ pub fn v1_get_project_pgbouncer_config(
     client: &SimpleHttpClient,
     args: &V1GetProjectPgbouncerConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1PgbouncerConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1PgbouncerConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_project_pgbouncer_config_builder(client, &args.ref_rs)?;
     v1_get_project_pgbouncer_config_execute(builder)
 }
@@ -12725,7 +12802,6 @@ pub fn v1_get_pooler_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/database/pooler",
@@ -12733,7 +12809,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -12764,18 +12841,23 @@ pub fn v1_get_pooler_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -12831,13 +12913,11 @@ pub fn v1_get_pooler_config_task(
 pub fn v1_get_pooler_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_pooler_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -12864,13 +12944,11 @@ pub fn v1_get_pooler_config(
     client: &SimpleHttpClient,
     args: &V1GetPoolerConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_pooler_config_builder(client, &args.ref_rs)?;
     v1_get_pooler_config_execute(builder)
 }
@@ -12884,12 +12962,11 @@ pub fn v1_get_pooler_config(
 pub fn v1_update_pooler_config_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &UpdateSupavisorConfigBody
+    body: &UpdateSupavisorConfigBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/database/pooler",
@@ -12897,10 +12974,12 @@ where
     );
 
     // Build request
-    let builder = client.patch(&endpoint_url)
+    let builder = client
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -12929,18 +13008,23 @@ pub fn v1_update_pooler_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<UpdateSupavisorConfigResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<UpdateSupavisorConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -12997,12 +13081,12 @@ pub fn v1_update_pooler_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<UpdateSupavisorConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<UpdateSupavisorConfigResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_pooler_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -13032,12 +13116,12 @@ pub fn v1_update_pooler_config(
     args: &V1UpdatePoolerConfigArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<UpdateSupavisorConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<UpdateSupavisorConfigResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_pooler_config_builder(client, &args.ref_rs, &args.body)?;
     v1_update_pooler_config_execute(builder)
 }
@@ -13055,7 +13139,6 @@ pub fn v1_get_postgres_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/database/postgres",
@@ -13063,7 +13146,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -13094,18 +13178,23 @@ pub fn v1_get_postgres_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<PostgresConfigResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<PostgresConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -13161,13 +13250,11 @@ pub fn v1_get_postgres_config_task(
 pub fn v1_get_postgres_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<PostgresConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<PostgresConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_postgres_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -13194,13 +13281,11 @@ pub fn v1_get_postgres_config(
     client: &SimpleHttpClient,
     args: &V1GetPostgresConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<PostgresConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<PostgresConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_postgres_config_builder(client, &args.ref_rs)?;
     v1_get_postgres_config_execute(builder)
 }
@@ -13214,12 +13299,11 @@ pub fn v1_get_postgres_config(
 pub fn v1_update_postgres_config_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &UpdatePostgresConfigBody
+    body: &UpdatePostgresConfigBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/database/postgres",
@@ -13227,10 +13311,12 @@ where
     );
 
     // Build request
-    let builder = client.put(&endpoint_url)
+    let builder = client
+        .put(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -13259,18 +13345,23 @@ pub fn v1_update_postgres_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<PostgresConfigResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<PostgresConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -13326,13 +13417,11 @@ pub fn v1_update_postgres_config_task(
 pub fn v1_update_postgres_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<PostgresConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<PostgresConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_postgres_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -13361,13 +13450,11 @@ pub fn v1_update_postgres_config(
     client: &SimpleHttpClient,
     args: &V1UpdatePostgresConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<PostgresConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<PostgresConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_postgres_config_builder(client, &args.ref_rs, &args.body)?;
     v1_update_postgres_config_execute(builder)
 }
@@ -13385,7 +13472,6 @@ pub fn v1_get_database_disk_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/disk",
@@ -13393,7 +13479,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -13424,18 +13511,23 @@ pub fn v1_get_database_disk_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<DiskResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<DiskResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -13491,13 +13583,11 @@ pub fn v1_get_database_disk_task(
 pub fn v1_get_database_disk_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<DiskResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<DiskResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_database_disk_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -13524,13 +13614,11 @@ pub fn v1_get_database_disk(
     client: &SimpleHttpClient,
     args: &V1GetDatabaseDiskArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<DiskResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<DiskResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_database_disk_builder(client, &args.ref_rs)?;
     v1_get_database_disk_execute(builder)
 }
@@ -13544,12 +13632,11 @@ pub fn v1_get_database_disk(
 pub fn v1_modify_database_disk_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &DiskRequestBody
+    body: &DiskRequestBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/disk",
@@ -13557,10 +13644,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -13589,18 +13678,23 @@ pub fn v1_modify_database_disk_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -13653,13 +13747,9 @@ pub fn v1_modify_database_disk_task(
 pub fn v1_modify_database_disk_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_modify_database_disk_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -13688,13 +13778,9 @@ pub fn v1_modify_database_disk(
     client: &SimpleHttpClient,
     args: &V1ModifyDatabaseDiskArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_modify_database_disk_builder(client, &args.ref_rs, &args.body)?;
     v1_modify_database_disk_execute(builder)
 }
@@ -13712,7 +13798,6 @@ pub fn v1_get_project_disk_autoscale_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/disk/autoscale",
@@ -13720,7 +13805,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -13751,18 +13837,23 @@ pub fn v1_get_project_disk_autoscale_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<DiskAutoscaleConfig>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<DiskAutoscaleConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -13818,13 +13909,11 @@ pub fn v1_get_project_disk_autoscale_config_task(
 pub fn v1_get_project_disk_autoscale_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<DiskAutoscaleConfig>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<DiskAutoscaleConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_project_disk_autoscale_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -13851,13 +13940,11 @@ pub fn v1_get_project_disk_autoscale_config(
     client: &SimpleHttpClient,
     args: &V1GetProjectDiskAutoscaleConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<DiskAutoscaleConfig>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<DiskAutoscaleConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_project_disk_autoscale_config_builder(client, &args.ref_rs)?;
     v1_get_project_disk_autoscale_config_execute(builder)
 }
@@ -13875,7 +13962,6 @@ pub fn v1_get_disk_utilization_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/disk/util",
@@ -13883,7 +13969,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -13914,18 +14001,23 @@ pub fn v1_get_disk_utilization_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<DiskUtilMetricsResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<DiskUtilMetricsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -13981,13 +14073,11 @@ pub fn v1_get_disk_utilization_task(
 pub fn v1_get_disk_utilization_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<DiskUtilMetricsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<DiskUtilMetricsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_disk_utilization_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -14014,13 +14104,11 @@ pub fn v1_get_disk_utilization(
     client: &SimpleHttpClient,
     args: &V1GetDiskUtilizationArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<DiskUtilMetricsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<DiskUtilMetricsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_disk_utilization_builder(client, &args.ref_rs)?;
     v1_get_disk_utilization_execute(builder)
 }
@@ -14038,7 +14126,6 @@ pub fn v1_get_realtime_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/realtime",
@@ -14046,7 +14133,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -14077,18 +14165,23 @@ pub fn v1_get_realtime_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<RealtimeConfigResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<RealtimeConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -14144,13 +14237,11 @@ pub fn v1_get_realtime_config_task(
 pub fn v1_get_realtime_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<RealtimeConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<RealtimeConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_realtime_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -14177,13 +14268,11 @@ pub fn v1_get_realtime_config(
     client: &SimpleHttpClient,
     args: &V1GetRealtimeConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<RealtimeConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<RealtimeConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_realtime_config_builder(client, &args.ref_rs)?;
     v1_get_realtime_config_execute(builder)
 }
@@ -14197,12 +14286,11 @@ pub fn v1_get_realtime_config(
 pub fn v1_update_realtime_config_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &UpdateRealtimeConfigBody
+    body: &UpdateRealtimeConfigBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/realtime",
@@ -14210,10 +14298,12 @@ where
     );
 
     // Build request
-    let builder = client.patch(&endpoint_url)
+    let builder = client
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -14242,18 +14332,23 @@ pub fn v1_update_realtime_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -14306,13 +14401,9 @@ pub fn v1_update_realtime_config_task(
 pub fn v1_update_realtime_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_update_realtime_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -14341,13 +14432,9 @@ pub fn v1_update_realtime_config(
     client: &SimpleHttpClient,
     args: &V1UpdateRealtimeConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_update_realtime_config_builder(client, &args.ref_rs, &args.body)?;
     v1_update_realtime_config_execute(builder)
 }
@@ -14365,7 +14452,6 @@ pub fn v1_shutdown_realtime_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/realtime/shutdown",
@@ -14373,7 +14459,8 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -14404,18 +14491,23 @@ pub fn v1_shutdown_realtime_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -14468,13 +14560,9 @@ pub fn v1_shutdown_realtime_task(
 pub fn v1_shutdown_realtime_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_shutdown_realtime_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -14501,13 +14589,9 @@ pub fn v1_shutdown_realtime(
     client: &SimpleHttpClient,
     args: &V1ShutdownRealtimeArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_shutdown_realtime_builder(client, &args.ref_rs)?;
     v1_shutdown_realtime_execute(builder)
 }
@@ -14525,7 +14609,6 @@ pub fn v1_get_storage_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/storage",
@@ -14533,7 +14616,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -14564,18 +14648,23 @@ pub fn v1_get_storage_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<StorageConfigResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<StorageConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -14631,13 +14720,11 @@ pub fn v1_get_storage_config_task(
 pub fn v1_get_storage_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<StorageConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<StorageConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_storage_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -14664,13 +14751,11 @@ pub fn v1_get_storage_config(
     client: &SimpleHttpClient,
     args: &V1GetStorageConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<StorageConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<StorageConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_storage_config_builder(client, &args.ref_rs)?;
     v1_get_storage_config_execute(builder)
 }
@@ -14684,12 +14769,11 @@ pub fn v1_get_storage_config(
 pub fn v1_update_storage_config_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &UpdateStorageConfigBody
+    body: &UpdateStorageConfigBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/config/storage",
@@ -14697,10 +14781,12 @@ where
     );
 
     // Build request
-    let builder = client.patch(&endpoint_url)
+    let builder = client
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -14729,18 +14815,23 @@ pub fn v1_update_storage_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -14793,13 +14884,9 @@ pub fn v1_update_storage_config_task(
 pub fn v1_update_storage_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_update_storage_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -14828,13 +14915,9 @@ pub fn v1_update_storage_config(
     client: &SimpleHttpClient,
     args: &V1UpdateStorageConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_update_storage_config_builder(client, &args.ref_rs, &args.body)?;
     v1_update_storage_config_execute(builder)
 }
@@ -14852,7 +14935,6 @@ pub fn v1_get_hostname_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/custom-hostname",
@@ -14860,7 +14942,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -14891,18 +14974,23 @@ pub fn v1_get_hostname_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -14959,12 +15047,12 @@ pub fn v1_get_hostname_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_hostname_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -14992,12 +15080,12 @@ pub fn v1_get_hostname_config(
     args: &V1GetHostnameConfigArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_hostname_config_builder(client, &args.ref_rs)?;
     v1_get_hostname_config_execute(builder)
 }
@@ -15006,16 +15094,15 @@ pub fn v1_get_hostname_config(
 /// [Beta] Deletes a project's custom hostname configuration
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `v1_delete hostname config_execute()` to send, or `v1_delete hostname config` for simplest API.
+/// Use `v1_delete_hostname_config_execute()` to send, or `v1_delete_hostname_config` for simplest API.
 
-pub fn v1_delete hostname config_builder<R>(
+pub fn v1_delete_hostname_config_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/custom-hostname",
@@ -15023,7 +15110,8 @@ where
     );
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -15040,32 +15128,37 @@ where
 /// - Compose multiple tasks before execution
 /// - Intercept task execution for logging or testing
 ///
-/// For direct execution, use `v1_delete hostname config_execute()` or `v1_delete hostname config`.
+/// For direct execution, use `v1_delete_hostname_config_execute()` or `v1_delete_hostname_config`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `v1_delete hostname config_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `v1_delete_hostname_config_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn v1_delete hostname config_task(
+pub fn v1_delete_hostname_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -15101,37 +15194,33 @@ pub fn v1_delete hostname config_task(
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
 ///
-/// For full customization, use `v1_delete hostname config_builder()` to create the builder,
+/// For full customization, use `v1_delete_hostname_config_builder()` to create the builder,
 /// modify it, then call this function with your customized builder.
-/// For task-level control, use `v1_delete hostname config_task()`.
-/// For the simplest API, use `v1_delete hostname config()`.
+/// For task-level control, use `v1_delete_hostname_config_task()`.
+/// For the simplest API, use `v1_delete_hostname_config()`.
 ///
 /// # Arguments
 ///
-/// * `builder` - A `ClientRequestBuilder`, typically from `v1_delete hostname config_builder()`
+/// * `builder` - A `ClientRequestBuilder`, typically from `v1_delete_hostname_config_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 /// HTTP errors during execution are returned via the StreamIterator.
 
-pub fn v1_delete hostname config_execute(
+pub fn v1_delete_hostname_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
-    let task = v1_delete hostname config_task(builder)?;
+    let task = v1_delete_hostname_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`v1_delete hostname config`].
+/// Arguments for [`v1_delete_hostname_config`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct V1Delete hostname configArgs {
+pub struct V1DeleteHostnameConfigArgs {
     /// Path parameter: ref
     pub ref_rs: String,
 }
@@ -15140,26 +15229,22 @@ pub struct V1Delete hostname configArgs {
 /// [Beta] Deletes a project's custom hostname configuration
 ///
 /// Simplest API - builds and executes the request in one call.
-/// For customization, use `v1_delete hostname config_builder()` + `v1_delete hostname config_execute()`.
-/// For task-level control, use `v1_delete hostname config_task()`.
+/// For customization, use `v1_delete_hostname_config_builder()` + `v1_delete_hostname_config_execute()`.
+/// For task-level control, use `v1_delete_hostname_config_task()`.
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn v1_delete hostname config(
+pub fn v1_delete_hostname_config(
     client: &SimpleHttpClient,
-    args: &V1Delete hostname configArgs,
+    args: &V1DeleteHostnameConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
-    let builder = v1_delete hostname config_builder(client, &args.ref_rs)?;
-    v1_delete hostname config_execute(builder)
+    let builder = v1_delete_hostname_config_builder(client, &args.ref_rs)?;
+    v1_delete_hostname_config_execute(builder)
 }
 
 /// POST /v1/projects/{ref}/custom-hostname/activate
@@ -15175,7 +15260,6 @@ pub fn v1_activate_custom_hostname_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/custom-hostname/activate",
@@ -15183,7 +15267,8 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -15214,18 +15299,23 @@ pub fn v1_activate_custom_hostname_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -15282,12 +15372,12 @@ pub fn v1_activate_custom_hostname_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_activate_custom_hostname_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -15315,12 +15405,12 @@ pub fn v1_activate_custom_hostname(
     args: &V1ActivateCustomHostnameArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_activate_custom_hostname_builder(client, &args.ref_rs)?;
     v1_activate_custom_hostname_execute(builder)
 }
@@ -15334,12 +15424,11 @@ pub fn v1_activate_custom_hostname(
 pub fn v1_update_hostname_config_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &UpdateCustomHostnameBody
+    body: &UpdateCustomHostnameBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/custom-hostname/initialize",
@@ -15347,10 +15436,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -15379,18 +15470,23 @@ pub fn v1_update_hostname_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -15447,12 +15543,12 @@ pub fn v1_update_hostname_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_hostname_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -15482,12 +15578,12 @@ pub fn v1_update_hostname_config(
     args: &V1UpdateHostnameConfigArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_hostname_config_builder(client, &args.ref_rs, &args.body)?;
     v1_update_hostname_config_execute(builder)
 }
@@ -15505,7 +15601,6 @@ pub fn v1_verify_dns_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/custom-hostname/reverify",
@@ -15513,7 +15608,8 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -15544,18 +15640,23 @@ pub fn v1_verify_dns_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -15612,12 +15713,12 @@ pub fn v1_verify_dns_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_verify_dns_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -15645,12 +15746,12 @@ pub fn v1_verify_dns_config(
     args: &V1VerifyDnsConfigArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_verify_dns_config_builder(client, &args.ref_rs)?;
     v1_verify_dns_config_execute(builder)
 }
@@ -15668,7 +15769,6 @@ pub fn v1_list_all_backups_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/backups",
@@ -15676,7 +15776,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -15707,18 +15808,23 @@ pub fn v1_list_all_backups_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1BackupsResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1BackupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -15774,13 +15880,11 @@ pub fn v1_list_all_backups_task(
 pub fn v1_list_all_backups_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1BackupsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1BackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_all_backups_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -15807,13 +15911,11 @@ pub fn v1_list_all_backups(
     client: &SimpleHttpClient,
     args: &V1ListAllBackupsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1BackupsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1BackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_all_backups_builder(client, &args.ref_rs)?;
     v1_list_all_backups_execute(builder)
 }
@@ -15827,12 +15929,11 @@ pub fn v1_list_all_backups(
 pub fn v1_restore_pitr_backup_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &V1RestorePitrBody
+    body: &V1RestorePitrBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/backups/restore-pitr",
@@ -15840,10 +15941,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -15872,18 +15975,23 @@ pub fn v1_restore_pitr_backup_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -15936,13 +16044,9 @@ pub fn v1_restore_pitr_backup_task(
 pub fn v1_restore_pitr_backup_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_restore_pitr_backup_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -15971,13 +16075,9 @@ pub fn v1_restore_pitr_backup(
     client: &SimpleHttpClient,
     args: &V1RestorePitrBackupArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_restore_pitr_backup_builder(client, &args.ref_rs, &args.body)?;
     v1_restore_pitr_backup_execute(builder)
 }
@@ -15991,12 +16091,11 @@ pub fn v1_restore_pitr_backup(
 pub fn v1_get_restore_point_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/backups/restore-point",
@@ -16015,7 +16114,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -16046,18 +16146,23 @@ pub fn v1_get_restore_point_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1RestorePointResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1RestorePointResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -16113,13 +16218,11 @@ pub fn v1_get_restore_point_task(
 pub fn v1_get_restore_point_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1RestorePointResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1RestorePointResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_restore_point_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -16130,7 +16233,7 @@ pub struct V1GetRestorePointArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// GET /v1/projects/{ref}/database/backups/restore-point
@@ -16148,13 +16251,11 @@ pub fn v1_get_restore_point(
     client: &SimpleHttpClient,
     args: &V1GetRestorePointArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1RestorePointResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1RestorePointResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_restore_point_builder(client, &args.ref_rs, &args.name)?;
     v1_get_restore_point_execute(builder)
 }
@@ -16168,12 +16269,11 @@ pub fn v1_get_restore_point(
 pub fn v1_create_restore_point_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &V1RestorePointPostBody
+    body: &V1RestorePointPostBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/backups/restore-point",
@@ -16181,10 +16281,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -16213,18 +16315,23 @@ pub fn v1_create_restore_point_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1RestorePointResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1RestorePointResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -16280,13 +16387,11 @@ pub fn v1_create_restore_point_task(
 pub fn v1_create_restore_point_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1RestorePointResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1RestorePointResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_create_restore_point_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -16315,13 +16420,11 @@ pub fn v1_create_restore_point(
     client: &SimpleHttpClient,
     args: &V1CreateRestorePointArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1RestorePointResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1RestorePointResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_create_restore_point_builder(client, &args.ref_rs, &args.body)?;
     v1_create_restore_point_execute(builder)
 }
@@ -16335,12 +16438,11 @@ pub fn v1_create_restore_point(
 pub fn v1_undo_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &V1UndoBody
+    body: &V1UndoBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/backups/undo",
@@ -16348,10 +16450,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -16380,18 +16484,23 @@ pub fn v1_undo_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -16444,13 +16553,9 @@ pub fn v1_undo_task(
 pub fn v1_undo_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_undo_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -16479,13 +16584,9 @@ pub fn v1_undo(
     client: &SimpleHttpClient,
     args: &V1UndoArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_undo_builder(client, &args.ref_rs, &args.body)?;
     v1_undo_execute(builder)
 }
@@ -16503,7 +16604,6 @@ pub fn v1_get_database_metadata_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/context",
@@ -16511,7 +16611,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -16542,18 +16643,23 @@ pub fn v1_get_database_metadata_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<GetProjectDbMetadataResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<GetProjectDbMetadataResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -16610,12 +16716,12 @@ pub fn v1_get_database_metadata_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<GetProjectDbMetadataResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<GetProjectDbMetadataResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_database_metadata_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -16643,12 +16749,12 @@ pub fn v1_get_database_metadata(
     args: &V1GetDatabaseMetadataArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<GetProjectDbMetadataResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<GetProjectDbMetadataResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_database_metadata_builder(client, &args.ref_rs)?;
     v1_get_database_metadata_execute(builder)
 }
@@ -16666,7 +16772,6 @@ pub fn v1_get_jit_access_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/jit",
@@ -16674,7 +16779,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -16705,18 +16811,23 @@ pub fn v1_get_jit_access_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<JitAccessResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<JitAccessResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -16772,13 +16883,11 @@ pub fn v1_get_jit_access_task(
 pub fn v1_get_jit_access_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<JitAccessResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<JitAccessResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_jit_access_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -16805,13 +16914,11 @@ pub fn v1_get_jit_access(
     client: &SimpleHttpClient,
     args: &V1GetJitAccessArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<JitAccessResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<JitAccessResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_jit_access_builder(client, &args.ref_rs)?;
     v1_get_jit_access_execute(builder)
 }
@@ -16825,12 +16932,11 @@ pub fn v1_get_jit_access(
 pub fn v1_authorize_jit_access_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &AuthorizeJitAccessBody
+    body: &AuthorizeJitAccessBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/jit",
@@ -16838,10 +16944,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -16870,18 +16978,23 @@ pub fn v1_authorize_jit_access_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<JitAuthorizeAccessResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<JitAuthorizeAccessResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -16938,12 +17051,12 @@ pub fn v1_authorize_jit_access_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<JitAuthorizeAccessResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<JitAuthorizeAccessResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_authorize_jit_access_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -16973,12 +17086,12 @@ pub fn v1_authorize_jit_access(
     args: &V1AuthorizeJitAccessArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<JitAuthorizeAccessResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<JitAuthorizeAccessResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_authorize_jit_access_builder(client, &args.ref_rs, &args.body)?;
     v1_authorize_jit_access_execute(builder)
 }
@@ -16992,12 +17105,11 @@ pub fn v1_authorize_jit_access(
 pub fn v1_update_jit_access_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &UpdateJitAccessBody
+    body: &UpdateJitAccessBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/jit",
@@ -17005,10 +17117,12 @@ where
     );
 
     // Build request
-    let builder = client.put(&endpoint_url)
+    let builder = client
+        .put(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -17037,18 +17151,23 @@ pub fn v1_update_jit_access_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<JitAccessResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<JitAccessResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -17104,13 +17223,11 @@ pub fn v1_update_jit_access_task(
 pub fn v1_update_jit_access_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<JitAccessResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<JitAccessResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_jit_access_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -17139,13 +17256,11 @@ pub fn v1_update_jit_access(
     client: &SimpleHttpClient,
     args: &V1UpdateJitAccessArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<JitAccessResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<JitAccessResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_jit_access_builder(client, &args.ref_rs, &args.body)?;
     v1_update_jit_access_execute(builder)
 }
@@ -17163,7 +17278,6 @@ pub fn v1_list_jit_access_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/jit/list",
@@ -17171,7 +17285,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -17202,18 +17317,23 @@ pub fn v1_list_jit_access_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<JitListAccessResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<JitListAccessResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -17269,13 +17389,11 @@ pub fn v1_list_jit_access_task(
 pub fn v1_list_jit_access_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<JitListAccessResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<JitListAccessResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_jit_access_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -17302,13 +17420,11 @@ pub fn v1_list_jit_access(
     client: &SimpleHttpClient,
     args: &V1ListJitAccessArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<JitListAccessResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<JitListAccessResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_jit_access_builder(client, &args.ref_rs)?;
     v1_list_jit_access_execute(builder)
 }
@@ -17327,16 +17443,15 @@ pub fn v1_delete_jit_access_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/jit/{}",
-        ref_rs,
-        user_id,
+        ref_rs, user_id,
     );
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -17367,18 +17482,23 @@ pub fn v1_delete_jit_access_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -17431,13 +17551,9 @@ pub fn v1_delete_jit_access_task(
 pub fn v1_delete_jit_access_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_delete_jit_access_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -17466,13 +17582,9 @@ pub fn v1_delete_jit_access(
     client: &SimpleHttpClient,
     args: &V1DeleteJitAccessArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_delete_jit_access_builder(client, &args.ref_rs, &args.user_id)?;
     v1_delete_jit_access_execute(builder)
 }
@@ -17490,7 +17602,6 @@ pub fn v1_list_migration_history_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/migrations",
@@ -17498,7 +17609,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -17529,18 +17641,23 @@ pub fn v1_list_migration_history_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1ListMigrationsResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1ListMigrationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -17596,13 +17713,11 @@ pub fn v1_list_migration_history_task(
 pub fn v1_list_migration_history_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ListMigrationsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ListMigrationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_migration_history_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -17629,13 +17744,11 @@ pub fn v1_list_migration_history(
     client: &SimpleHttpClient,
     args: &V1ListMigrationHistoryArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1ListMigrationsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1ListMigrationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_migration_history_builder(client, &args.ref_rs)?;
     v1_list_migration_history_execute(builder)
 }
@@ -17649,12 +17762,11 @@ pub fn v1_list_migration_history(
 pub fn v1_apply_a_migration_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &V1CreateMigrationBody
+    body: &V1CreateMigrationBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/migrations",
@@ -17662,10 +17774,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -17694,18 +17808,23 @@ pub fn v1_apply_a_migration_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -17758,13 +17877,9 @@ pub fn v1_apply_a_migration_task(
 pub fn v1_apply_a_migration_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_apply_a_migration_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -17793,13 +17908,9 @@ pub fn v1_apply_a_migration(
     client: &SimpleHttpClient,
     args: &V1ApplyAMigrationArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_apply_a_migration_builder(client, &args.ref_rs, &args.body)?;
     v1_apply_a_migration_execute(builder)
 }
@@ -17813,12 +17924,11 @@ pub fn v1_apply_a_migration(
 pub fn v1_upsert_a_migration_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &V1UpsertMigrationBody
+    body: &V1UpsertMigrationBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/migrations",
@@ -17826,10 +17936,12 @@ where
     );
 
     // Build request
-    let builder = client.put(&endpoint_url)
+    let builder = client
+        .put(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -17858,18 +17970,23 @@ pub fn v1_upsert_a_migration_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -17922,13 +18039,9 @@ pub fn v1_upsert_a_migration_task(
 pub fn v1_upsert_a_migration_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_upsert_a_migration_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -17957,13 +18070,9 @@ pub fn v1_upsert_a_migration(
     client: &SimpleHttpClient,
     args: &V1UpsertAMigrationArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_upsert_a_migration_builder(client, &args.ref_rs, &args.body)?;
     v1_upsert_a_migration_execute(builder)
 }
@@ -17977,12 +18086,11 @@ pub fn v1_upsert_a_migration(
 pub fn v1_rollback_migrations_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    gte: &Option<Option<String>>,
+    gte: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/migrations",
@@ -18001,7 +18109,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.delete(&url_with_query)
+    let builder = client
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -18032,18 +18141,23 @@ pub fn v1_rollback_migrations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -18096,13 +18210,9 @@ pub fn v1_rollback_migrations_task(
 pub fn v1_rollback_migrations_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_rollback_migrations_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -18113,7 +18223,7 @@ pub struct V1RollbackMigrationsArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: gte
-    pub gte: Option<Option<String>>,
+    pub gte: Option<String>,
 }
 
 /// DELETE /v1/projects/{ref}/database/migrations
@@ -18131,13 +18241,9 @@ pub fn v1_rollback_migrations(
     client: &SimpleHttpClient,
     args: &V1RollbackMigrationsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_rollback_migrations_builder(client, &args.ref_rs, &args.gte)?;
     v1_rollback_migrations_execute(builder)
 }
@@ -18156,16 +18262,15 @@ pub fn v1_get_a_migration_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/migrations/{}",
-        ref_rs,
-        version,
+        ref_rs, version,
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -18196,18 +18301,23 @@ pub fn v1_get_a_migration_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1GetMigrationResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1GetMigrationResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -18263,13 +18373,11 @@ pub fn v1_get_a_migration_task(
 pub fn v1_get_a_migration_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1GetMigrationResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1GetMigrationResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_a_migration_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -18298,13 +18406,11 @@ pub fn v1_get_a_migration(
     client: &SimpleHttpClient,
     args: &V1GetAMigrationArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1GetMigrationResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1GetMigrationResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_a_migration_builder(client, &args.ref_rs, &args.version)?;
     v1_get_a_migration_execute(builder)
 }
@@ -18319,24 +18425,24 @@ pub fn v1_patch_a_migration_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
     version: &String,
-    body: &V1PatchMigrationBody
+    body: &V1PatchMigrationBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/migrations/{}",
-        ref_rs,
-        version,
+        ref_rs, version,
     );
 
     // Build request
-    let builder = client.patch(&endpoint_url)
+    let builder = client
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -18365,18 +18471,23 @@ pub fn v1_patch_a_migration_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -18429,13 +18540,9 @@ pub fn v1_patch_a_migration_task(
 pub fn v1_patch_a_migration_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_patch_a_migration_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -18466,13 +18573,9 @@ pub fn v1_patch_a_migration(
     client: &SimpleHttpClient,
     args: &V1PatchAMigrationArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_patch_a_migration_builder(client, &args.ref_rs, &args.version, &args.body)?;
     v1_patch_a_migration_execute(builder)
 }
@@ -18486,12 +18589,11 @@ pub fn v1_patch_a_migration(
 pub fn v1_get_database_openapi_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    schema: &Option<Option<String>>,
+    schema: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/openapi",
@@ -18510,7 +18612,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -18541,18 +18644,23 @@ pub fn v1_get_database_openapi_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -18608,13 +18716,11 @@ pub fn v1_get_database_openapi_task(
 pub fn v1_get_database_openapi_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_database_openapi_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -18625,7 +18731,7 @@ pub struct V1GetDatabaseOpenapiArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: schema
-    pub schema: Option<Option<String>>,
+    pub schema: Option<String>,
 }
 
 /// GET /v1/projects/{ref}/database/openapi
@@ -18643,13 +18749,11 @@ pub fn v1_get_database_openapi(
     client: &SimpleHttpClient,
     args: &V1GetDatabaseOpenapiArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_database_openapi_builder(client, &args.ref_rs, &args.schema)?;
     v1_get_database_openapi_execute(builder)
 }
@@ -18663,12 +18767,11 @@ pub fn v1_get_database_openapi(
 pub fn v1_update_database_password_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &V1UpdatePasswordBody
+    body: &V1UpdatePasswordBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/password",
@@ -18676,10 +18779,12 @@ where
     );
 
     // Build request
-    let builder = client.patch(&endpoint_url)
+    let builder = client
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -18708,18 +18813,23 @@ pub fn v1_update_database_password_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1UpdatePasswordResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1UpdatePasswordResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -18775,13 +18885,11 @@ pub fn v1_update_database_password_task(
 pub fn v1_update_database_password_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1UpdatePasswordResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1UpdatePasswordResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_database_password_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -18810,13 +18918,11 @@ pub fn v1_update_database_password(
     client: &SimpleHttpClient,
     args: &V1UpdateDatabasePasswordArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1UpdatePasswordResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1UpdatePasswordResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_database_password_builder(client, &args.ref_rs, &args.body)?;
     v1_update_database_password_execute(builder)
 }
@@ -18830,12 +18936,11 @@ pub fn v1_update_database_password(
 pub fn v1_run_a_query_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &V1RunQueryBody
+    body: &V1RunQueryBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/query",
@@ -18843,10 +18948,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -18875,18 +18982,23 @@ pub fn v1_run_a_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -18939,13 +19051,9 @@ pub fn v1_run_a_query_task(
 pub fn v1_run_a_query_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_run_a_query_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -18974,13 +19082,9 @@ pub fn v1_run_a_query(
     client: &SimpleHttpClient,
     args: &V1RunAQueryArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_run_a_query_builder(client, &args.ref_rs, &args.body)?;
     v1_run_a_query_execute(builder)
 }
@@ -18994,12 +19098,11 @@ pub fn v1_run_a_query(
 pub fn v1_read_only_query_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &V1ReadOnlyQueryBody
+    body: &V1ReadOnlyQueryBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/query/read-only",
@@ -19007,10 +19110,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -19039,18 +19144,23 @@ pub fn v1_read_only_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -19103,13 +19213,9 @@ pub fn v1_read_only_query_task(
 pub fn v1_read_only_query_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_read_only_query_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -19138,13 +19244,9 @@ pub fn v1_read_only_query(
     client: &SimpleHttpClient,
     args: &V1ReadOnlyQueryArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_read_only_query_builder(client, &args.ref_rs, &args.body)?;
     v1_read_only_query_execute(builder)
 }
@@ -19162,7 +19264,6 @@ pub fn v1_enable_database_webhook_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/database/webhooks/enable",
@@ -19170,7 +19271,8 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -19201,18 +19303,23 @@ pub fn v1_enable_database_webhook_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -19265,13 +19372,9 @@ pub fn v1_enable_database_webhook_task(
 pub fn v1_enable_database_webhook_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_enable_database_webhook_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -19298,13 +19401,9 @@ pub fn v1_enable_database_webhook(
     client: &SimpleHttpClient,
     args: &V1EnableDatabaseWebhookArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_enable_database_webhook_builder(client, &args.ref_rs)?;
     v1_enable_database_webhook_execute(builder)
 }
@@ -19322,15 +19421,12 @@ pub fn v1_list_all_functions_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/functions",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/functions", ref_rs,);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -19361,18 +19457,23 @@ pub fn v1_list_all_functions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -19428,13 +19529,11 @@ pub fn v1_list_all_functions_task(
 pub fn v1_list_all_functions_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_all_functions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -19461,13 +19560,11 @@ pub fn v1_list_all_functions(
     client: &SimpleHttpClient,
     args: &V1ListAllFunctionsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_all_functions_builder(client, &args.ref_rs)?;
     v1_list_all_functions_execute(builder)
 }
@@ -19481,24 +19578,20 @@ pub fn v1_list_all_functions(
 pub fn v1_create_a_function_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    slug: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    verify_jwt: &Option<Option<String>>,
-    import_map: &Option<Option<String>>,
-    entrypoint_path: &Option<Option<String>>,
-    import_map_path: &Option<Option<String>>,
-    ezbr_sha256: &Option<Option<String>>,
-    body: &V1CreateFunctionBody
+    slug: &Option<String>,
+    name: &Option<String>,
+    verify_jwt: &Option<String>,
+    import_map: &Option<String>,
+    entrypoint_path: &Option<String>,
+    import_map_path: &Option<String>,
+    ezbr_sha256: &Option<String>,
+    body: &V1CreateFunctionBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/functions",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/functions", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -19530,10 +19623,12 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.post(&url_with_query)
+    let builder = client
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -19562,18 +19657,23 @@ pub fn v1_create_a_function_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<FunctionResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<FunctionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -19629,13 +19729,11 @@ pub fn v1_create_a_function_task(
 pub fn v1_create_a_function_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<FunctionResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<FunctionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_create_a_function_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -19646,19 +19744,19 @@ pub struct V1CreateAFunctionArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: slug
-    pub slug: Option<Option<String>>,
+    pub slug: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: verify_jwt
-    pub verify_jwt: Option<Option<String>>,
+    pub verify_jwt: Option<String>,
     /// Query parameter: import_map
-    pub import_map: Option<Option<String>>,
+    pub import_map: Option<String>,
     /// Query parameter: entrypoint_path
-    pub entrypoint_path: Option<Option<String>>,
+    pub entrypoint_path: Option<String>,
     /// Query parameter: import_map_path
-    pub import_map_path: Option<Option<String>>,
+    pub import_map_path: Option<String>,
     /// Query parameter: ezbr_sha256
-    pub ezbr_sha256: Option<Option<String>>,
+    pub ezbr_sha256: Option<String>,
     /// Request body.
     pub body: V1CreateFunctionBody,
 }
@@ -19678,14 +19776,23 @@ pub fn v1_create_a_function(
     client: &SimpleHttpClient,
     args: &V1CreateAFunctionArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<FunctionResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<FunctionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
-    let builder = v1_create_a_function_builder(client, &args.ref_rs, &args.slug, &args.name, &args.verify_jwt, &args.import_map, &args.entrypoint_path, &args.import_map_path, &args.ezbr_sha256, &args.body)?;
+    let builder = v1_create_a_function_builder(
+        client,
+        &args.ref_rs,
+        &args.slug,
+        &args.name,
+        &args.verify_jwt,
+        &args.import_map,
+        &args.entrypoint_path,
+        &args.import_map_path,
+        &args.ezbr_sha256,
+        &args.body,
+    )?;
     v1_create_a_function_execute(builder)
 }
 
@@ -19698,23 +19805,21 @@ pub fn v1_create_a_function(
 pub fn v1_bulk_update_functions_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &BulkUpdateFunctionBody
+    body: &Vec<serde_json::Value>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/functions",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/functions", ref_rs,);
 
     // Build request
-    let builder = client.put(&endpoint_url)
+    let builder = client
+        .put(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -19743,18 +19848,23 @@ pub fn v1_bulk_update_functions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<BulkUpdateFunctionResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<BulkUpdateFunctionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -19811,12 +19921,12 @@ pub fn v1_bulk_update_functions_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<BulkUpdateFunctionResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<BulkUpdateFunctionResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_bulk_update_functions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -19827,7 +19937,7 @@ pub struct V1BulkUpdateFunctionsArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Request body.
-    pub body: BulkUpdateFunctionBody,
+    pub body: Vec<serde_json::Value>,
 }
 
 /// PUT /v1/projects/{ref}/functions
@@ -19846,12 +19956,12 @@ pub fn v1_bulk_update_functions(
     args: &V1BulkUpdateFunctionsArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<BulkUpdateFunctionResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<BulkUpdateFunctionResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_bulk_update_functions_builder(client, &args.ref_rs, &args.body)?;
     v1_bulk_update_functions_execute(builder)
 }
@@ -19865,13 +19975,12 @@ pub fn v1_bulk_update_functions(
 pub fn v1_deploy_a_function_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    slug: &Option<Option<String>>,
-    bundleOnly: &Option<Option<String>>,
+    slug: &Option<String>,
+    bundleOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/functions/deploy",
@@ -19893,7 +20002,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.post(&url_with_query)
+    let builder = client
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -19924,18 +20034,23 @@ pub fn v1_deploy_a_function_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<DeployFunctionResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<DeployFunctionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -19991,13 +20106,11 @@ pub fn v1_deploy_a_function_task(
 pub fn v1_deploy_a_function_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<DeployFunctionResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<DeployFunctionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_deploy_a_function_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -20008,9 +20121,9 @@ pub struct V1DeployAFunctionArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: slug
-    pub slug: Option<Option<String>>,
+    pub slug: Option<String>,
     /// Query parameter: bundleOnly
-    pub bundleOnly: Option<Option<String>>,
+    pub bundleOnly: Option<String>,
 }
 
 /// POST /v1/projects/{ref}/functions/deploy
@@ -20028,13 +20141,11 @@ pub fn v1_deploy_a_function(
     client: &SimpleHttpClient,
     args: &V1DeployAFunctionArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<DeployFunctionResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<DeployFunctionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_deploy_a_function_builder(client, &args.ref_rs, &args.slug, &args.bundleOnly)?;
     v1_deploy_a_function_execute(builder)
 }
@@ -20053,16 +20164,15 @@ pub fn v1_get_a_function_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/functions/{}",
-        ref_rs,
-        function_slug,
+        ref_rs, function_slug,
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -20093,18 +20203,23 @@ pub fn v1_get_a_function_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<FunctionSlugResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<FunctionSlugResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -20160,13 +20275,11 @@ pub fn v1_get_a_function_task(
 pub fn v1_get_a_function_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<FunctionSlugResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<FunctionSlugResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_a_function_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -20195,13 +20308,11 @@ pub fn v1_get_a_function(
     client: &SimpleHttpClient,
     args: &V1GetAFunctionArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<FunctionSlugResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<FunctionSlugResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_a_function_builder(client, &args.ref_rs, &args.function_slug)?;
     v1_get_a_function_execute(builder)
 }
@@ -20216,24 +20327,22 @@ pub fn v1_update_a_function_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
     function_slug: &String,
-    slug: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    verify_jwt: &Option<Option<String>>,
-    import_map: &Option<Option<String>>,
-    entrypoint_path: &Option<Option<String>>,
-    import_map_path: &Option<Option<String>>,
-    ezbr_sha256: &Option<Option<String>>,
-    body: &V1UpdateFunctionBody
+    slug: &Option<String>,
+    name: &Option<String>,
+    verify_jwt: &Option<String>,
+    import_map: &Option<String>,
+    entrypoint_path: &Option<String>,
+    import_map_path: &Option<String>,
+    ezbr_sha256: &Option<String>,
+    body: &V1UpdateFunctionBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/functions/{}",
-        ref_rs,
-        function_slug,
+        ref_rs, function_slug,
     );
 
     // Build request
@@ -20266,10 +20375,12 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.patch(&url_with_query)
+    let builder = client
+        .patch(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -20298,18 +20409,23 @@ pub fn v1_update_a_function_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<FunctionResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<FunctionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -20365,13 +20481,11 @@ pub fn v1_update_a_function_task(
 pub fn v1_update_a_function_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<FunctionResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<FunctionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_a_function_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -20384,19 +20498,19 @@ pub struct V1UpdateAFunctionArgs {
     /// Path parameter: function_slug
     pub function_slug: String,
     /// Query parameter: slug
-    pub slug: Option<Option<String>>,
+    pub slug: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: verify_jwt
-    pub verify_jwt: Option<Option<String>>,
+    pub verify_jwt: Option<String>,
     /// Query parameter: import_map
-    pub import_map: Option<Option<String>>,
+    pub import_map: Option<String>,
     /// Query parameter: entrypoint_path
-    pub entrypoint_path: Option<Option<String>>,
+    pub entrypoint_path: Option<String>,
     /// Query parameter: import_map_path
-    pub import_map_path: Option<Option<String>>,
+    pub import_map_path: Option<String>,
     /// Query parameter: ezbr_sha256
-    pub ezbr_sha256: Option<Option<String>>,
+    pub ezbr_sha256: Option<String>,
     /// Request body.
     pub body: V1UpdateFunctionBody,
 }
@@ -20416,14 +20530,24 @@ pub fn v1_update_a_function(
     client: &SimpleHttpClient,
     args: &V1UpdateAFunctionArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<FunctionResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<FunctionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
-    let builder = v1_update_a_function_builder(client, &args.ref_rs, &args.function_slug, &args.slug, &args.name, &args.verify_jwt, &args.import_map, &args.entrypoint_path, &args.import_map_path, &args.ezbr_sha256, &args.body)?;
+    let builder = v1_update_a_function_builder(
+        client,
+        &args.ref_rs,
+        &args.function_slug,
+        &args.slug,
+        &args.name,
+        &args.verify_jwt,
+        &args.import_map,
+        &args.entrypoint_path,
+        &args.import_map_path,
+        &args.ezbr_sha256,
+        &args.body,
+    )?;
     v1_update_a_function_execute(builder)
 }
 
@@ -20441,16 +20565,15 @@ pub fn v1_delete_a_function_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/functions/{}",
-        ref_rs,
-        function_slug,
+        ref_rs, function_slug,
     );
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -20481,18 +20604,23 @@ pub fn v1_delete_a_function_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -20545,13 +20673,9 @@ pub fn v1_delete_a_function_task(
 pub fn v1_delete_a_function_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_delete_a_function_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -20580,13 +20704,9 @@ pub fn v1_delete_a_function(
     client: &SimpleHttpClient,
     args: &V1DeleteAFunctionArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_delete_a_function_builder(client, &args.ref_rs, &args.function_slug)?;
     v1_delete_a_function_execute(builder)
 }
@@ -20605,16 +20725,15 @@ pub fn v1_get_a_function_body_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/functions/{}/body",
-        ref_rs,
-        function_slug,
+        ref_rs, function_slug,
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -20645,18 +20764,23 @@ pub fn v1_get_a_function_body_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<StreamableFile>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<StreamableFile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -20712,13 +20836,11 @@ pub fn v1_get_a_function_body_task(
 pub fn v1_get_a_function_body_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<StreamableFile>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<StreamableFile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_a_function_body_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -20747,13 +20869,11 @@ pub fn v1_get_a_function_body(
     client: &SimpleHttpClient,
     args: &V1GetAFunctionBodyArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<StreamableFile>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<StreamableFile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_a_function_body_builder(client, &args.ref_rs, &args.function_slug)?;
     v1_get_a_function_body_execute(builder)
 }
@@ -20767,18 +20887,14 @@ pub fn v1_get_a_function_body(
 pub fn v1_get_services_health_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    services: &Option<Option<String>>,
-    timeout_ms: &Option<Option<String>>,
+    services: &Option<String>,
+    timeout_ms: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/health",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/health", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -20795,7 +20911,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -20826,18 +20943,23 @@ pub fn v1_get_services_health_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -20893,13 +21015,11 @@ pub fn v1_get_services_health_task(
 pub fn v1_get_services_health_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_services_health_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -20910,9 +21030,9 @@ pub struct V1GetServicesHealthArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: services
-    pub services: Option<Option<String>>,
+    pub services: Option<String>,
     /// Query parameter: timeout_ms
-    pub timeout_ms: Option<Option<String>>,
+    pub timeout_ms: Option<String>,
 }
 
 /// GET /v1/projects/{ref}/health
@@ -20930,14 +21050,13 @@ pub fn v1_get_services_health(
     client: &SimpleHttpClient,
     args: &V1GetServicesHealthArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
-    let builder = v1_get_services_health_builder(client, &args.ref_rs, &args.services, &args.timeout_ms)?;
+    let builder =
+        v1_get_services_health_builder(client, &args.ref_rs, &args.services, &args.timeout_ms)?;
     v1_get_services_health_execute(builder)
 }
 
@@ -20954,15 +21073,12 @@ pub fn v1_get_jit_access_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/jit-access",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/jit-access", ref_rs,);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -20993,18 +21109,23 @@ pub fn v1_get_jit_access_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<JitAccessResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<JitAccessResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -21060,13 +21181,11 @@ pub fn v1_get_jit_access_config_task(
 pub fn v1_get_jit_access_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<JitAccessResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<JitAccessResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_jit_access_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -21093,13 +21212,11 @@ pub fn v1_get_jit_access_config(
     client: &SimpleHttpClient,
     args: &V1GetJitAccessConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<JitAccessResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<JitAccessResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_jit_access_config_builder(client, &args.ref_rs)?;
     v1_get_jit_access_config_execute(builder)
 }
@@ -21113,23 +21230,21 @@ pub fn v1_get_jit_access_config(
 pub fn v1_update_jit_access_config_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &JitAccessRequestRequest
+    body: &JitAccessRequestRequest,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/jit-access",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/jit-access", ref_rs,);
 
     // Build request
-    let builder = client.put(&endpoint_url)
+    let builder = client
+        .put(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -21158,18 +21273,23 @@ pub fn v1_update_jit_access_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<JitAccessResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<JitAccessResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -21225,13 +21345,11 @@ pub fn v1_update_jit_access_config_task(
 pub fn v1_update_jit_access_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<JitAccessResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<JitAccessResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_jit_access_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -21260,13 +21378,11 @@ pub fn v1_update_jit_access_config(
     client: &SimpleHttpClient,
     args: &V1UpdateJitAccessConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<JitAccessResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<JitAccessResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_jit_access_config_builder(client, &args.ref_rs, &args.body)?;
     v1_update_jit_access_config_execute(builder)
 }
@@ -21280,12 +21396,11 @@ pub fn v1_update_jit_access_config(
 pub fn v1_delete_network_bans_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &RemoveNetworkBanRequest
+    body: &RemoveNetworkBanRequest,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/network-bans",
@@ -21293,10 +21408,12 @@ where
     );
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -21325,18 +21442,23 @@ pub fn v1_delete_network_bans_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -21389,13 +21511,9 @@ pub fn v1_delete_network_bans_task(
 pub fn v1_delete_network_bans_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_delete_network_bans_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -21424,13 +21542,9 @@ pub fn v1_delete_network_bans(
     client: &SimpleHttpClient,
     args: &V1DeleteNetworkBansArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_delete_network_bans_builder(client, &args.ref_rs, &args.body)?;
     v1_delete_network_bans_execute(builder)
 }
@@ -21448,7 +21562,6 @@ pub fn v1_list_all_network_bans_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/network-bans/retrieve",
@@ -21456,7 +21569,8 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -21487,18 +21601,23 @@ pub fn v1_list_all_network_bans_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<NetworkBanResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<NetworkBanResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -21554,13 +21673,11 @@ pub fn v1_list_all_network_bans_task(
 pub fn v1_list_all_network_bans_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<NetworkBanResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<NetworkBanResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_all_network_bans_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -21587,13 +21704,11 @@ pub fn v1_list_all_network_bans(
     client: &SimpleHttpClient,
     args: &V1ListAllNetworkBansArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<NetworkBanResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<NetworkBanResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_all_network_bans_builder(client, &args.ref_rs)?;
     v1_list_all_network_bans_execute(builder)
 }
@@ -21611,7 +21726,6 @@ pub fn v1_list_all_network_bans_enriched_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/network-bans/retrieve/enriched",
@@ -21619,7 +21733,8 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -21650,18 +21765,23 @@ pub fn v1_list_all_network_bans_enriched_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<NetworkBanResponseEnriched>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<NetworkBanResponseEnriched>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -21718,12 +21838,12 @@ pub fn v1_list_all_network_bans_enriched_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<NetworkBanResponseEnriched>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<NetworkBanResponseEnriched>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_all_network_bans_enriched_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -21751,12 +21871,12 @@ pub fn v1_list_all_network_bans_enriched(
     args: &V1ListAllNetworkBansEnrichedArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<NetworkBanResponseEnriched>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<NetworkBanResponseEnriched>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_all_network_bans_enriched_builder(client, &args.ref_rs)?;
     v1_list_all_network_bans_enriched_execute(builder)
 }
@@ -21774,7 +21894,6 @@ pub fn v1_get_network_restrictions_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/network-restrictions",
@@ -21782,7 +21901,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -21813,18 +21933,23 @@ pub fn v1_get_network_restrictions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -21881,12 +22006,12 @@ pub fn v1_get_network_restrictions_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_network_restrictions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -21914,12 +22039,12 @@ pub fn v1_get_network_restrictions(
     args: &V1GetNetworkRestrictionsArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_network_restrictions_builder(client, &args.ref_rs)?;
     v1_get_network_restrictions_execute(builder)
 }
@@ -21933,12 +22058,11 @@ pub fn v1_get_network_restrictions(
 pub fn v1_patch_network_restrictions_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &NetworkRestrictionsPatchRequest
+    body: &NetworkRestrictionsPatchRequest,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/network-restrictions",
@@ -21946,10 +22070,12 @@ where
     );
 
     // Build request
-    let builder = client.patch(&endpoint_url)
+    let builder = client
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -21978,18 +22104,23 @@ pub fn v1_patch_network_restrictions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<NetworkRestrictionsV2Response>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<NetworkRestrictionsV2Response>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -22046,12 +22177,12 @@ pub fn v1_patch_network_restrictions_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<NetworkRestrictionsV2Response>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<NetworkRestrictionsV2Response>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_patch_network_restrictions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -22081,12 +22212,12 @@ pub fn v1_patch_network_restrictions(
     args: &V1PatchNetworkRestrictionsArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<NetworkRestrictionsV2Response>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<NetworkRestrictionsV2Response>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_patch_network_restrictions_builder(client, &args.ref_rs, &args.body)?;
     v1_patch_network_restrictions_execute(builder)
 }
@@ -22100,12 +22231,11 @@ pub fn v1_patch_network_restrictions(
 pub fn v1_update_network_restrictions_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &NetworkRestrictionsRequest
+    body: &NetworkRestrictionsRequest,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/network-restrictions/apply",
@@ -22113,10 +22243,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -22145,18 +22277,23 @@ pub fn v1_update_network_restrictions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -22213,12 +22350,12 @@ pub fn v1_update_network_restrictions_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_network_restrictions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -22248,12 +22385,12 @@ pub fn v1_update_network_restrictions(
     args: &V1UpdateNetworkRestrictionsArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_network_restrictions_builder(client, &args.ref_rs, &args.body)?;
     v1_update_network_restrictions_execute(builder)
 }
@@ -22271,15 +22408,12 @@ pub fn v1_pause_a_project_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/pause",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/pause", ref_rs,);
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -22310,18 +22444,23 @@ pub fn v1_pause_a_project_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -22374,13 +22513,9 @@ pub fn v1_pause_a_project_task(
 pub fn v1_pause_a_project_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_pause_a_project_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -22407,13 +22542,9 @@ pub fn v1_pause_a_project(
     client: &SimpleHttpClient,
     args: &V1PauseAProjectArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_pause_a_project_builder(client, &args.ref_rs)?;
     v1_pause_a_project_execute(builder)
 }
@@ -22431,15 +22562,12 @@ pub fn v1_get_pgsodium_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/pgsodium",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/pgsodium", ref_rs,);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -22470,18 +22598,23 @@ pub fn v1_get_pgsodium_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -22537,13 +22670,11 @@ pub fn v1_get_pgsodium_config_task(
 pub fn v1_get_pgsodium_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_pgsodium_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -22570,13 +22701,11 @@ pub fn v1_get_pgsodium_config(
     client: &SimpleHttpClient,
     args: &V1GetPgsodiumConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_pgsodium_config_builder(client, &args.ref_rs)?;
     v1_get_pgsodium_config_execute(builder)
 }
@@ -22590,23 +22719,21 @@ pub fn v1_get_pgsodium_config(
 pub fn v1_update_pgsodium_config_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &UpdatePgsodiumConfigBody
+    body: &UpdatePgsodiumConfigBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/pgsodium",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/pgsodium", ref_rs,);
 
     // Build request
-    let builder = client.put(&endpoint_url)
+    let builder = client
+        .put(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -22635,18 +22762,23 @@ pub fn v1_update_pgsodium_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -22702,13 +22834,11 @@ pub fn v1_update_pgsodium_config_task(
 pub fn v1_update_pgsodium_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_pgsodium_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -22737,13 +22867,11 @@ pub fn v1_update_pgsodium_config(
     client: &SimpleHttpClient,
     args: &V1UpdatePgsodiumConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_pgsodium_config_builder(client, &args.ref_rs, &args.body)?;
     v1_update_pgsodium_config_execute(builder)
 }
@@ -22761,15 +22889,12 @@ pub fn v1_get_postgrest_service_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/postgrest",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/postgrest", ref_rs,);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -22800,18 +22925,23 @@ pub fn v1_get_postgrest_service_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<PostgrestConfigWithJWTSecretResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<PostgrestConfigWithJWTSecretResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -22868,12 +22998,12 @@ pub fn v1_get_postgrest_service_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<PostgrestConfigWithJWTSecretResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<PostgrestConfigWithJWTSecretResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_postgrest_service_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -22901,12 +23031,12 @@ pub fn v1_get_postgrest_service_config(
     args: &V1GetPostgrestServiceConfigArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<PostgrestConfigWithJWTSecretResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<PostgrestConfigWithJWTSecretResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_postgrest_service_config_builder(client, &args.ref_rs)?;
     v1_get_postgrest_service_config_execute(builder)
 }
@@ -22920,23 +23050,21 @@ pub fn v1_get_postgrest_service_config(
 pub fn v1_update_postgrest_service_config_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &V1UpdatePostgrestConfigBody
+    body: &V1UpdatePostgrestConfigBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/postgrest",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/postgrest", ref_rs,);
 
     // Build request
-    let builder = client.patch(&endpoint_url)
+    let builder = client
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -22965,18 +23093,23 @@ pub fn v1_update_postgrest_service_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<V1PostgrestConfigResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<V1PostgrestConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -23032,13 +23165,11 @@ pub fn v1_update_postgrest_service_config_task(
 pub fn v1_update_postgrest_service_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1PostgrestConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1PostgrestConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_postgrest_service_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -23067,13 +23198,11 @@ pub fn v1_update_postgrest_service_config(
     client: &SimpleHttpClient,
     args: &V1UpdatePostgrestServiceConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<V1PostgrestConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<V1PostgrestConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_postgrest_service_config_builder(client, &args.ref_rs, &args.body)?;
     v1_update_postgrest_service_config_execute(builder)
 }
@@ -23087,12 +23216,11 @@ pub fn v1_update_postgrest_service_config(
 pub fn v1_remove_a_read_replica_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &RemoveReadReplicaBody
+    body: &RemoveReadReplicaBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/read-replicas/remove",
@@ -23100,10 +23228,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -23132,18 +23262,23 @@ pub fn v1_remove_a_read_replica_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -23196,13 +23331,9 @@ pub fn v1_remove_a_read_replica_task(
 pub fn v1_remove_a_read_replica_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_remove_a_read_replica_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -23231,13 +23362,9 @@ pub fn v1_remove_a_read_replica(
     client: &SimpleHttpClient,
     args: &V1RemoveAReadReplicaArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_remove_a_read_replica_builder(client, &args.ref_rs, &args.body)?;
     v1_remove_a_read_replica_execute(builder)
 }
@@ -23251,12 +23378,11 @@ pub fn v1_remove_a_read_replica(
 pub fn v1_setup_a_read_replica_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &SetUpReadReplicaBody
+    body: &SetUpReadReplicaBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/read-replicas/setup",
@@ -23264,10 +23390,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -23296,18 +23424,23 @@ pub fn v1_setup_a_read_replica_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -23360,13 +23493,9 @@ pub fn v1_setup_a_read_replica_task(
 pub fn v1_setup_a_read_replica_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_setup_a_read_replica_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -23395,13 +23524,9 @@ pub fn v1_setup_a_read_replica(
     client: &SimpleHttpClient,
     args: &V1SetupAReadReplicaArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_setup_a_read_replica_builder(client, &args.ref_rs, &args.body)?;
     v1_setup_a_read_replica_execute(builder)
 }
@@ -23419,15 +23544,12 @@ pub fn v1_get_readonly_mode_status_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/readonly",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/readonly", ref_rs,);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -23458,18 +23580,23 @@ pub fn v1_get_readonly_mode_status_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ReadOnlyStatusResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ReadOnlyStatusResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -23525,13 +23652,11 @@ pub fn v1_get_readonly_mode_status_task(
 pub fn v1_get_readonly_mode_status_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ReadOnlyStatusResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ReadOnlyStatusResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_readonly_mode_status_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -23558,13 +23683,11 @@ pub fn v1_get_readonly_mode_status(
     client: &SimpleHttpClient,
     args: &V1GetReadonlyModeStatusArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<ReadOnlyStatusResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<ReadOnlyStatusResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_readonly_mode_status_builder(client, &args.ref_rs)?;
     v1_get_readonly_mode_status_execute(builder)
 }
@@ -23582,7 +23705,6 @@ pub fn v1_disable_readonly_mode_temporarily_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/readonly/temporary-disable",
@@ -23590,7 +23712,8 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -23621,18 +23744,23 @@ pub fn v1_disable_readonly_mode_temporarily_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -23685,13 +23813,9 @@ pub fn v1_disable_readonly_mode_temporarily_task(
 pub fn v1_disable_readonly_mode_temporarily_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_disable_readonly_mode_temporarily_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -23718,13 +23842,9 @@ pub fn v1_disable_readonly_mode_temporarily(
     client: &SimpleHttpClient,
     args: &V1DisableReadonlyModeTemporarilyArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_disable_readonly_mode_temporarily_builder(client, &args.ref_rs)?;
     v1_disable_readonly_mode_temporarily_execute(builder)
 }
@@ -23742,15 +23862,12 @@ pub fn v1_list_available_restore_versions_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/restore",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/restore", ref_rs,);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -23781,18 +23898,23 @@ pub fn v1_list_available_restore_versions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<GetProjectAvailableRestoreVersionsResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<GetProjectAvailableRestoreVersionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -23811,8 +23933,9 @@ pub fn v1_list_available_restore_versions_task(
                 }
 
                 let body = body_reader::collect_string(stream);
-                let parsed: GetProjectAvailableRestoreVersionsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+                let parsed: GetProjectAvailableRestoreVersionsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
 
                 Ok(ApiResponse {
                     status: status_code as u16,
@@ -23849,12 +23972,12 @@ pub fn v1_list_available_restore_versions_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<GetProjectAvailableRestoreVersionsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<GetProjectAvailableRestoreVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_available_restore_versions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -23882,12 +24005,12 @@ pub fn v1_list_available_restore_versions(
     args: &V1ListAvailableRestoreVersionsArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<GetProjectAvailableRestoreVersionsResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<GetProjectAvailableRestoreVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_available_restore_versions_builder(client, &args.ref_rs)?;
     v1_list_available_restore_versions_execute(builder)
 }
@@ -23905,15 +24028,12 @@ pub fn v1_restore_a_project_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/restore",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/restore", ref_rs,);
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -23944,18 +24064,23 @@ pub fn v1_restore_a_project_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -24008,13 +24133,9 @@ pub fn v1_restore_a_project_task(
 pub fn v1_restore_a_project_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_restore_a_project_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -24041,13 +24162,9 @@ pub fn v1_restore_a_project(
     client: &SimpleHttpClient,
     args: &V1RestoreAProjectArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_restore_a_project_builder(client, &args.ref_rs)?;
     v1_restore_a_project_execute(builder)
 }
@@ -24065,7 +24182,6 @@ pub fn v1_cancel_a_project_restoration_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/restore/cancel",
@@ -24073,7 +24189,8 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -24104,18 +24221,23 @@ pub fn v1_cancel_a_project_restoration_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -24168,13 +24290,9 @@ pub fn v1_cancel_a_project_restoration_task(
 pub fn v1_cancel_a_project_restoration_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_cancel_a_project_restoration_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -24201,13 +24319,9 @@ pub fn v1_cancel_a_project_restoration(
     client: &SimpleHttpClient,
     args: &V1CancelAProjectRestorationArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_cancel_a_project_restoration_builder(client, &args.ref_rs)?;
     v1_cancel_a_project_restoration_execute(builder)
 }
@@ -24225,15 +24339,12 @@ pub fn v1_list_all_secrets_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/secrets",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/secrets", ref_rs,);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -24264,18 +24375,23 @@ pub fn v1_list_all_secrets_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -24331,13 +24447,11 @@ pub fn v1_list_all_secrets_task(
 pub fn v1_list_all_secrets_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_all_secrets_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -24364,13 +24478,11 @@ pub fn v1_list_all_secrets(
     client: &SimpleHttpClient,
     args: &V1ListAllSecretsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_all_secrets_builder(client, &args.ref_rs)?;
     v1_list_all_secrets_execute(builder)
 }
@@ -24384,23 +24496,21 @@ pub fn v1_list_all_secrets(
 pub fn v1_bulk_create_secrets_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &CreateSecretBody
+    body: &Vec<serde_json::Value>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/secrets",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/secrets", ref_rs,);
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -24429,18 +24539,23 @@ pub fn v1_bulk_create_secrets_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -24493,13 +24608,9 @@ pub fn v1_bulk_create_secrets_task(
 pub fn v1_bulk_create_secrets_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_bulk_create_secrets_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -24510,7 +24621,7 @@ pub struct V1BulkCreateSecretsArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Request body.
-    pub body: CreateSecretBody,
+    pub body: Vec<serde_json::Value>,
 }
 
 /// POST /v1/projects/{ref}/secrets
@@ -24528,13 +24639,9 @@ pub fn v1_bulk_create_secrets(
     client: &SimpleHttpClient,
     args: &V1BulkCreateSecretsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_bulk_create_secrets_builder(client, &args.ref_rs, &args.body)?;
     v1_bulk_create_secrets_execute(builder)
 }
@@ -24548,23 +24655,21 @@ pub fn v1_bulk_create_secrets(
 pub fn v1_bulk_delete_secrets_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &DeleteSecretsBody
+    body: &Vec<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/secrets",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/secrets", ref_rs,);
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -24593,18 +24698,23 @@ pub fn v1_bulk_delete_secrets_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -24657,13 +24767,9 @@ pub fn v1_bulk_delete_secrets_task(
 pub fn v1_bulk_delete_secrets_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_bulk_delete_secrets_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -24674,7 +24780,7 @@ pub struct V1BulkDeleteSecretsArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Request body.
-    pub body: DeleteSecretsBody,
+    pub body: Vec<String>,
 }
 
 /// DELETE /v1/projects/{ref}/secrets
@@ -24692,13 +24798,9 @@ pub fn v1_bulk_delete_secrets(
     client: &SimpleHttpClient,
     args: &V1BulkDeleteSecretsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_bulk_delete_secrets_builder(client, &args.ref_rs, &args.body)?;
     v1_bulk_delete_secrets_execute(builder)
 }
@@ -24716,7 +24818,6 @@ pub fn v1_get_ssl_enforcement_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/ssl-enforcement",
@@ -24724,7 +24825,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -24755,18 +24857,23 @@ pub fn v1_get_ssl_enforcement_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<SslEnforcementResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<SslEnforcementResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -24822,13 +24929,11 @@ pub fn v1_get_ssl_enforcement_config_task(
 pub fn v1_get_ssl_enforcement_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SslEnforcementResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SslEnforcementResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_ssl_enforcement_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -24855,13 +24960,11 @@ pub fn v1_get_ssl_enforcement_config(
     client: &SimpleHttpClient,
     args: &V1GetSslEnforcementConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SslEnforcementResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SslEnforcementResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_ssl_enforcement_config_builder(client, &args.ref_rs)?;
     v1_get_ssl_enforcement_config_execute(builder)
 }
@@ -24875,12 +24978,11 @@ pub fn v1_get_ssl_enforcement_config(
 pub fn v1_update_ssl_enforcement_config_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &SslEnforcementRequest
+    body: &SslEnforcementRequest,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/ssl-enforcement",
@@ -24888,10 +24990,12 @@ where
     );
 
     // Build request
-    let builder = client.put(&endpoint_url)
+    let builder = client
+        .put(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -24920,18 +25024,23 @@ pub fn v1_update_ssl_enforcement_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<SslEnforcementResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<SslEnforcementResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -24987,13 +25096,11 @@ pub fn v1_update_ssl_enforcement_config_task(
 pub fn v1_update_ssl_enforcement_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SslEnforcementResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SslEnforcementResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_update_ssl_enforcement_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -25022,13 +25129,11 @@ pub fn v1_update_ssl_enforcement_config(
     client: &SimpleHttpClient,
     args: &V1UpdateSslEnforcementConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SslEnforcementResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SslEnforcementResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_update_ssl_enforcement_config_builder(client, &args.ref_rs, &args.body)?;
     v1_update_ssl_enforcement_config_execute(builder)
 }
@@ -25046,7 +25151,6 @@ pub fn v1_list_all_buckets_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/storage/buckets",
@@ -25054,7 +25158,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -25085,18 +25190,23 @@ pub fn v1_list_all_buckets_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<serde_json::Value>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -25152,13 +25262,11 @@ pub fn v1_list_all_buckets_task(
 pub fn v1_list_all_buckets_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_list_all_buckets_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -25185,13 +25293,11 @@ pub fn v1_list_all_buckets(
     client: &SimpleHttpClient,
     args: &V1ListAllBucketsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<serde_json::Value>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<serde_json::Value>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_list_all_buckets_builder(client, &args.ref_rs)?;
     v1_list_all_buckets_execute(builder)
 }
@@ -25205,12 +25311,11 @@ pub fn v1_list_all_buckets(
 pub fn v1_generate_typescript_types_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    included_schemas: &Option<Option<String>>,
+    included_schemas: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/types/typescript",
@@ -25229,7 +25334,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -25260,18 +25366,23 @@ pub fn v1_generate_typescript_types_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<TypescriptResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<TypescriptResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -25327,13 +25438,11 @@ pub fn v1_generate_typescript_types_task(
 pub fn v1_generate_typescript_types_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<TypescriptResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<TypescriptResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_generate_typescript_types_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -25344,7 +25453,7 @@ pub struct V1GenerateTypescriptTypesArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: included_schemas
-    pub included_schemas: Option<Option<String>>,
+    pub included_schemas: Option<String>,
 }
 
 /// GET /v1/projects/{ref}/types/typescript
@@ -25362,14 +25471,13 @@ pub fn v1_generate_typescript_types(
     client: &SimpleHttpClient,
     args: &V1GenerateTypescriptTypesArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<TypescriptResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<TypescriptResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
-    let builder = v1_generate_typescript_types_builder(client, &args.ref_rs, &args.included_schemas)?;
+    let builder =
+        v1_generate_typescript_types_builder(client, &args.ref_rs, &args.included_schemas)?;
     v1_generate_typescript_types_execute(builder)
 }
 
@@ -25382,23 +25490,21 @@ pub fn v1_generate_typescript_types(
 pub fn v1_upgrade_postgres_version_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &UpgradeDatabaseBody
+    body: &UpgradeDatabaseBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/projects/{}/upgrade",
-        ref_rs,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/projects/{}/upgrade", ref_rs,);
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -25427,18 +25533,23 @@ pub fn v1_upgrade_postgres_version_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ProjectUpgradeInitiateResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ProjectUpgradeInitiateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -25495,12 +25606,12 @@ pub fn v1_upgrade_postgres_version_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<ProjectUpgradeInitiateResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<ProjectUpgradeInitiateResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_upgrade_postgres_version_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -25530,12 +25641,12 @@ pub fn v1_upgrade_postgres_version(
     args: &V1UpgradePostgresVersionArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<ProjectUpgradeInitiateResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<ProjectUpgradeInitiateResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_upgrade_postgres_version_builder(client, &args.ref_rs, &args.body)?;
     v1_upgrade_postgres_version_execute(builder)
 }
@@ -25553,7 +25664,6 @@ pub fn v1_get_postgres_upgrade_eligibility_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/upgrade/eligibility",
@@ -25561,7 +25671,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -25592,18 +25703,23 @@ pub fn v1_get_postgres_upgrade_eligibility_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ProjectUpgradeEligibilityResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ProjectUpgradeEligibilityResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -25660,12 +25776,12 @@ pub fn v1_get_postgres_upgrade_eligibility_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<ProjectUpgradeEligibilityResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<ProjectUpgradeEligibilityResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_postgres_upgrade_eligibility_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -25693,12 +25809,12 @@ pub fn v1_get_postgres_upgrade_eligibility(
     args: &V1GetPostgresUpgradeEligibilityArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<ProjectUpgradeEligibilityResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<ProjectUpgradeEligibilityResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_postgres_upgrade_eligibility_builder(client, &args.ref_rs)?;
     v1_get_postgres_upgrade_eligibility_execute(builder)
 }
@@ -25712,12 +25828,11 @@ pub fn v1_get_postgres_upgrade_eligibility(
 pub fn v1_get_postgres_upgrade_status_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    tracking_id: &Option<Option<String>>,
+    tracking_id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/upgrade/status",
@@ -25736,7 +25851,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -25767,18 +25883,23 @@ pub fn v1_get_postgres_upgrade_status_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<DatabaseUpgradeStatusResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<DatabaseUpgradeStatusResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -25835,12 +25956,12 @@ pub fn v1_get_postgres_upgrade_status_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<DatabaseUpgradeStatusResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<DatabaseUpgradeStatusResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_postgres_upgrade_status_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -25851,7 +25972,7 @@ pub struct V1GetPostgresUpgradeStatusArgs {
     /// Path parameter: ref
     pub ref_rs: String,
     /// Query parameter: tracking_id
-    pub tracking_id: Option<Option<String>>,
+    pub tracking_id: Option<String>,
 }
 
 /// GET /v1/projects/{ref}/upgrade/status
@@ -25870,12 +25991,12 @@ pub fn v1_get_postgres_upgrade_status(
     args: &V1GetPostgresUpgradeStatusArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<DatabaseUpgradeStatusResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<DatabaseUpgradeStatusResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_postgres_upgrade_status_builder(client, &args.ref_rs, &args.tracking_id)?;
     v1_get_postgres_upgrade_status_execute(builder)
 }
@@ -25893,7 +26014,6 @@ pub fn v1_get_vanity_subdomain_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/vanity-subdomain",
@@ -25901,7 +26021,8 @@ where
     );
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -25932,18 +26053,23 @@ pub fn v1_get_vanity_subdomain_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<VanitySubdomainConfigResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<VanitySubdomainConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -26000,12 +26126,12 @@ pub fn v1_get_vanity_subdomain_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<VanitySubdomainConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<VanitySubdomainConfigResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_vanity_subdomain_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -26033,12 +26159,12 @@ pub fn v1_get_vanity_subdomain_config(
     args: &V1GetVanitySubdomainConfigArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<VanitySubdomainConfigResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<VanitySubdomainConfigResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_vanity_subdomain_config_builder(client, &args.ref_rs)?;
     v1_get_vanity_subdomain_config_execute(builder)
 }
@@ -26056,7 +26182,6 @@ pub fn v1_deactivate_vanity_subdomain_config_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/vanity-subdomain",
@@ -26064,7 +26189,8 @@ where
     );
 
     // Build request
-    let builder = client.delete(&endpoint_url)
+    let builder = client
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -26095,18 +26221,23 @@ pub fn v1_deactivate_vanity_subdomain_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<()>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -26159,13 +26290,9 @@ pub fn v1_deactivate_vanity_subdomain_config_task(
 pub fn v1_deactivate_vanity_subdomain_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_deactivate_vanity_subdomain_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -26192,13 +26319,9 @@ pub fn v1_deactivate_vanity_subdomain_config(
     client: &SimpleHttpClient,
     args: &V1DeactivateVanitySubdomainConfigArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<()>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let builder = v1_deactivate_vanity_subdomain_config_builder(client, &args.ref_rs)?;
     v1_deactivate_vanity_subdomain_config_execute(builder)
 }
@@ -26212,12 +26335,11 @@ pub fn v1_deactivate_vanity_subdomain_config(
 pub fn v1_activate_vanity_subdomain_config_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &VanitySubdomainBody
+    body: &VanitySubdomainBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/vanity-subdomain/activate",
@@ -26225,10 +26347,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -26257,18 +26381,23 @@ pub fn v1_activate_vanity_subdomain_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<ActivateVanitySubdomainResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<ActivateVanitySubdomainResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -26325,12 +26454,12 @@ pub fn v1_activate_vanity_subdomain_config_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<ActivateVanitySubdomainResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<ActivateVanitySubdomainResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_activate_vanity_subdomain_config_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -26360,12 +26489,12 @@ pub fn v1_activate_vanity_subdomain_config(
     args: &V1ActivateVanitySubdomainConfigArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<ActivateVanitySubdomainResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<ActivateVanitySubdomainResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_activate_vanity_subdomain_config_builder(client, &args.ref_rs, &args.body)?;
     v1_activate_vanity_subdomain_config_execute(builder)
 }
@@ -26379,12 +26508,11 @@ pub fn v1_activate_vanity_subdomain_config(
 pub fn v1_check_vanity_subdomain_availability_builder<R>(
     client: &SimpleHttpClient<R>,
     ref_rs: &String,
-    body: &VanitySubdomainBody
+    body: &VanitySubdomainBody,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
     let endpoint_url = format!(
         "https://api.supabase.com/v1/projects/{}/vanity-subdomain/check-availability",
@@ -26392,10 +26520,12 @@ where
     );
 
     // Build request
-    let builder = client.post(&endpoint_url)
+    let builder = client
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(body)
+    builder
+        .body_json(body)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -26424,18 +26554,23 @@ pub fn v1_check_vanity_subdomain_availability_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<SubdomainAvailabilityResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<SubdomainAvailabilityResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -26492,12 +26627,12 @@ pub fn v1_check_vanity_subdomain_availability_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<SubdomainAvailabilityResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<SubdomainAvailabilityResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_check_vanity_subdomain_availability_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -26527,12 +26662,12 @@ pub fn v1_check_vanity_subdomain_availability(
     args: &V1CheckVanitySubdomainAvailabilityArgs,
 ) -> Result<
     impl StreamIterator<
-        D = Result<ApiResponse<SubdomainAvailabilityResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+            D = Result<ApiResponse<SubdomainAvailabilityResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_check_vanity_subdomain_availability_builder(client, &args.ref_rs, &args.body)?;
     v1_check_vanity_subdomain_availability_execute(builder)
 }
@@ -26545,20 +26680,17 @@ pub fn v1_check_vanity_subdomain_availability(
 
 pub fn v1_list_all_snippets_builder<R>(
     client: &SimpleHttpClient<R>,
-    project_ref: &Option<Option<String>>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    sort_by: &Option<Option<String>>,
-    sort_order: &Option<Option<String>>,
+    project_ref: &Option<String>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
+    sort_by: &Option<String>,
+    sort_order: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/snippets",
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/snippets",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -26584,7 +26716,8 @@ where
         format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
-    let builder = client.get(&url_with_query)
+    let builder = client
+        .get(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -26615,18 +26748,23 @@ pub fn v1_list_all_snippets_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<SnippetList>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<SnippetList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -26682,13 +26820,9 @@ pub fn v1_list_all_snippets_task(
 pub fn v1_list_all_snippets_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SnippetList>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SnippetList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
     let task = v1_list_all_snippets_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -26697,15 +26831,15 @@ pub fn v1_list_all_snippets_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct V1ListAllSnippetsArgs {
     /// Query parameter: project_ref
-    pub project_ref: Option<Option<String>>,
+    pub project_ref: Option<String>,
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: sort_by
-    pub sort_by: Option<Option<String>>,
+    pub sort_by: Option<String>,
     /// Query parameter: sort_order
-    pub sort_order: Option<Option<String>>,
+    pub sort_order: Option<String>,
 }
 
 /// GET /v1/snippets
@@ -26723,14 +26857,17 @@ pub fn v1_list_all_snippets(
     client: &SimpleHttpClient,
     args: &V1ListAllSnippetsArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SnippetList>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SnippetList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-
-    let builder = v1_list_all_snippets_builder(client, &args.project_ref, &args.cursor, &args.limit, &args.sort_by, &args.sort_order)?;
+    let builder = v1_list_all_snippets_builder(
+        client,
+        &args.project_ref,
+        &args.cursor,
+        &args.limit,
+        &args.sort_by,
+        &args.sort_order,
+    )?;
     v1_list_all_snippets_execute(builder)
 }
 
@@ -26747,15 +26884,12 @@ pub fn v1_get_a_snippet_builder<R>(
 where
     R: DnsResolver + Clone,
 {
-
     // Build URL
-    let endpoint_url = format!(
-        "https://api.supabase.com/v1/snippets/{}",
-        id,
-    );
+    let endpoint_url = format!("https://api.supabase.com/v1/snippets/{}", id,);
 
     // Build request
-    let builder = client.get(&endpoint_url)
+    let builder = client
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -26786,18 +26920,23 @@ pub fn v1_get_a_snippet_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-        Ready = Result<ApiResponse<SnippetResponse>, ApiError>,
-        Pending = ApiPending,
-        Spawner = BoxedSendExecutionAction
-    > + Send + 'static,
+            Ready = Result<ApiResponse<SnippetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
-
     Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, intro, headers, .. } => {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
@@ -26853,13 +26992,11 @@ pub fn v1_get_a_snippet_task(
 pub fn v1_get_a_snippet_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SnippetResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SnippetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let task = v1_get_a_snippet_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
@@ -26886,13 +27023,11 @@ pub fn v1_get_a_snippet(
     client: &SimpleHttpClient,
     args: &V1GetASnippetArgs,
 ) -> Result<
-    impl StreamIterator<
-        D = Result<ApiResponse<SnippetResponse>, ApiError>,
-        P = ApiPending
-    > + Send + 'static,
+    impl StreamIterator<D = Result<ApiResponse<SnippetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
     ApiError,
 > {
-
     let builder = v1_get_a_snippet_builder(client, &args.id)?;
     v1_get_a_snippet_execute(builder)
 }
@@ -27128,52 +27263,6 @@ impl ResourceIdentifier<V1RevokeTokenArgs> for () {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for OAuthTokenResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for OAuthTokenResponse with V1ExchangeOauthTokenArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<V1ExchangeOauthTokenArgs> for OAuthTokenResponse {
-    fn generate_resource_id(&self, input: &V1ExchangeOauthTokenArgs) -> String {
-        "supabase::OAuthTokenResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "supabase::OAuthTokenResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "supabase"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for serde_json::Value
-// =============================================================================
-
-/// ResourceIdentifier implementation for serde_json::Value with V1ListAllOrganizationsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<V1ListAllOrganizationsArgs> for serde_json::Value {
-    fn generate_resource_id(&self, input: &V1ListAllOrganizationsArgs) -> String {
-        "supabase::serde_json::Value".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "supabase::serde_json::Value"
-    }
-
-    fn provider(&self) -> &'static str {
-        "supabase"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for OrganizationResponseV1
 // =============================================================================
 
@@ -27276,7 +27365,10 @@ impl ResourceIdentifier<V1ListOrganizationMembersArgs> for serde_json::Value {
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<V1GetOrganizationProjectClaimArgs> for OrganizationProjectClaimResponse {
     fn generate_resource_id(&self, input: &V1GetOrganizationProjectClaimArgs) -> String {
-        format!("supabase::OrganizationProjectClaimResponse/{}/{}", input.slug, input.token)
+        format!(
+            "supabase::OrganizationProjectClaimResponse/{}/{}",
+            input.slug, input.token
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -27327,52 +27419,6 @@ impl ResourceIdentifier<V1GetAllProjectsForOrganizationArgs> for OrganizationPro
 
     fn resource_kind(&self) -> &'static str {
         "supabase::OrganizationProjectsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "supabase"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for V1ProfileResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for V1ProfileResponse with V1GetProfileArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<V1GetProfileArgs> for V1ProfileResponse {
-    fn generate_resource_id(&self, input: &V1GetProfileArgs) -> String {
-        "supabase::V1ProfileResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "supabase::V1ProfileResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "supabase"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for serde_json::Value
-// =============================================================================
-
-/// ResourceIdentifier implementation for serde_json::Value with V1ListAllProjectsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<V1ListAllProjectsArgs> for serde_json::Value {
-    fn generate_resource_id(&self, input: &V1ListAllProjectsArgs) -> String {
-        "supabase::serde_json::Value".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "supabase::serde_json::Value"
     }
 
     fn provider(&self) -> &'static str {
@@ -27529,7 +27575,10 @@ impl ResourceIdentifier<V1ListActionRunsArgs> for ListActionRunResponse {
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<V1GetActionRunArgs> for ActionRunResponse {
     fn generate_resource_id(&self, input: &V1GetActionRunArgs) -> String {
-        format!("supabase::ActionRunResponse/{}/{}", input.ref_rs, input.run_id)
+        format!(
+            "supabase::ActionRunResponse/{}/{}",
+            input.ref_rs, input.run_id
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -27552,7 +27601,10 @@ impl ResourceIdentifier<V1GetActionRunArgs> for ActionRunResponse {
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<V1UpdateActionRunStatusArgs> for UpdateRunStatusResponse {
     fn generate_resource_id(&self, input: &V1UpdateActionRunStatusArgs) -> String {
-        format!("supabase::UpdateRunStatusResponse/{}/{}", input.ref_rs, input.run_id)
+        format!(
+            "supabase::UpdateRunStatusResponse/{}/{}",
+            input.ref_rs, input.run_id
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -27690,7 +27742,10 @@ impl ResourceIdentifier<V1GetProjectUsageApiCountArgs> for V1GetUsageApiCountRes
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<V1GetProjectUsageRequestCountArgs> for V1GetUsageApiRequestsCountResponse {
     fn generate_resource_id(&self, input: &V1GetProjectUsageRequestCountArgs) -> String {
-        format!("supabase::V1GetUsageApiRequestsCountResponse/{}", input.ref_rs)
+        format!(
+            "supabase::V1GetUsageApiRequestsCountResponse/{}",
+            input.ref_rs
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -28334,7 +28389,10 @@ impl ResourceIdentifier<V1CreateASsoProviderArgs> for CreateProviderResponse {
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<V1GetASsoProviderArgs> for GetProviderResponse {
     fn generate_resource_id(&self, input: &V1GetASsoProviderArgs) -> String {
-        format!("supabase::GetProviderResponse/{}/{}", input.ref_rs, input.provider_id)
+        format!(
+            "supabase::GetProviderResponse/{}/{}",
+            input.ref_rs, input.provider_id
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -28357,7 +28415,10 @@ impl ResourceIdentifier<V1GetASsoProviderArgs> for GetProviderResponse {
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<V1UpdateASsoProviderArgs> for UpdateProviderResponse {
     fn generate_resource_id(&self, input: &V1UpdateASsoProviderArgs) -> String {
-        format!("supabase::UpdateProviderResponse/{}/{}", input.ref_rs, input.provider_id)
+        format!(
+            "supabase::UpdateProviderResponse/{}/{}",
+            input.ref_rs, input.provider_id
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -28380,7 +28441,10 @@ impl ResourceIdentifier<V1UpdateASsoProviderArgs> for UpdateProviderResponse {
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<V1DeleteASsoProviderArgs> for DeleteProviderResponse {
     fn generate_resource_id(&self, input: &V1DeleteASsoProviderArgs) -> String {
-        format!("supabase::DeleteProviderResponse/{}/{}", input.ref_rs, input.provider_id)
+        format!(
+            "supabase::DeleteProviderResponse/{}/{}",
+            input.ref_rs, input.provider_id
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -29070,7 +29134,10 @@ impl ResourceIdentifier<V1ListMigrationHistoryArgs> for V1ListMigrationsResponse
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<V1GetAMigrationArgs> for V1GetMigrationResponse {
     fn generate_resource_id(&self, input: &V1GetAMigrationArgs) -> String {
-        format!("supabase::V1GetMigrationResponse/{}/{}", input.ref_rs, input.version)
+        format!(
+            "supabase::V1GetMigrationResponse/{}/{}",
+            input.ref_rs, input.version
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -29231,7 +29298,10 @@ impl ResourceIdentifier<V1DeployAFunctionArgs> for DeployFunctionResponse {
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<V1GetAFunctionArgs> for FunctionSlugResponse {
     fn generate_resource_id(&self, input: &V1GetAFunctionArgs) -> String {
-        format!("supabase::FunctionSlugResponse/{}/{}", input.ref_rs, input.function_slug)
+        format!(
+            "supabase::FunctionSlugResponse/{}/{}",
+            input.ref_rs, input.function_slug
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -29254,7 +29324,10 @@ impl ResourceIdentifier<V1GetAFunctionArgs> for FunctionSlugResponse {
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<V1UpdateAFunctionArgs> for FunctionResponse {
     fn generate_resource_id(&self, input: &V1UpdateAFunctionArgs) -> String {
-        format!("supabase::FunctionResponse/{}/{}", input.ref_rs, input.function_slug)
+        format!(
+            "supabase::FunctionResponse/{}/{}",
+            input.ref_rs, input.function_slug
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -29277,7 +29350,10 @@ impl ResourceIdentifier<V1UpdateAFunctionArgs> for FunctionResponse {
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<V1GetAFunctionBodyArgs> for StreamableFile {
     fn generate_resource_id(&self, input: &V1GetAFunctionBodyArgs) -> String {
-        format!("supabase::StreamableFile/{}/{}", input.ref_rs, input.function_slug)
+        format!(
+            "supabase::StreamableFile/{}/{}",
+            input.ref_rs, input.function_slug
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -29530,7 +29606,10 @@ impl ResourceIdentifier<V1UpdatePgsodiumConfigArgs> for PgsodiumConfigResponse {
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<V1GetPostgrestServiceConfigArgs> for PostgrestConfigWithJWTSecretResponse {
     fn generate_resource_id(&self, input: &V1GetPostgrestServiceConfigArgs) -> String {
-        format!("supabase::PostgrestConfigWithJWTSecretResponse/{}", input.ref_rs)
+        format!(
+            "supabase::PostgrestConfigWithJWTSecretResponse/{}",
+            input.ref_rs
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -29597,9 +29676,14 @@ impl ResourceIdentifier<V1GetReadonlyModeStatusArgs> for ReadOnlyStatusResponse 
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
 ///
 /// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<V1ListAvailableRestoreVersionsArgs> for GetProjectAvailableRestoreVersionsResponse {
+impl ResourceIdentifier<V1ListAvailableRestoreVersionsArgs>
+    for GetProjectAvailableRestoreVersionsResponse
+{
     fn generate_resource_id(&self, input: &V1ListAvailableRestoreVersionsArgs) -> String {
-        format!("supabase::GetProjectAvailableRestoreVersionsResponse/{}", input.ref_rs)
+        format!(
+            "supabase::GetProjectAvailableRestoreVersionsResponse/{}",
+            input.ref_rs
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -29760,7 +29844,10 @@ impl ResourceIdentifier<V1UpgradePostgresVersionArgs> for ProjectUpgradeInitiate
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<V1GetPostgresUpgradeEligibilityArgs> for ProjectUpgradeEligibilityResponse {
     fn generate_resource_id(&self, input: &V1GetPostgresUpgradeEligibilityArgs) -> String {
-        format!("supabase::ProjectUpgradeEligibilityResponse/{}", input.ref_rs)
+        format!(
+            "supabase::ProjectUpgradeEligibilityResponse/{}",
+            input.ref_rs
+        )
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -29909,4 +29996,3 @@ impl ResourceIdentifier<V1GetASnippetArgs> for SnippetResponse {
         "supabase"
     }
 }
-

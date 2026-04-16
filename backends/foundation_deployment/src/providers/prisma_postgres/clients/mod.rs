@@ -7,6 +7,8 @@
 
 #![cfg(feature = "prisma_postgres")]
 
+pub mod types;
+
 use crate::providers::prisma_postgres::clients::types::*;
 use crate::providers::prisma_postgres::resources::*;
 use foundation_core::valtron::{
@@ -29,9 +31,9 @@ use serde::Serialize;
 
 pub fn get_v1_compute_services_builder<R>(
     client: &SimpleHttpClient<R>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    projectId: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
+    projectId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -176,11 +178,11 @@ pub fn get_v1_compute_services_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1ComputeServicesArgs {
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
 }
 
 /// GET /v1/compute-services
@@ -1720,8 +1722,8 @@ pub fn post_v1_compute_services_by_compute_service_id_promote(
 pub fn get_v1_compute_services_by_compute_service_id_versions_builder<R>(
     client: &SimpleHttpClient<R>,
     computeServiceId: &String,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1868,9 +1870,9 @@ pub struct GetV1ComputeServicesByComputeServiceIdVersionsArgs {
     /// Path parameter: computeServiceId
     pub computeServiceId: String,
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /v1/compute-services/{computeServiceId}/versions
@@ -2089,9 +2091,9 @@ pub fn post_v1_compute_services_by_compute_service_id_versions(
 
 pub fn get_v1_connections_builder<R>(
     client: &SimpleHttpClient<R>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    databaseId: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
+    databaseId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2234,11 +2236,11 @@ pub fn get_v1_connections_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1ConnectionsArgs {
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: databaseId
-    pub databaseId: Option<Option<String>>,
+    pub databaseId: Option<String>,
 }
 
 /// GET /v1/connections
@@ -2916,9 +2918,9 @@ pub fn post_v1_connections_by_id_rotate(
 
 pub fn get_v1_databases_builder<R>(
     client: &SimpleHttpClient<R>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    projectId: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
+    projectId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3061,11 +3063,11 @@ pub fn get_v1_databases_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1DatabasesArgs {
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
 }
 
 /// GET /v1/databases
@@ -3745,7 +3747,7 @@ pub fn delete_v1_databases_by_database_id(
 pub fn get_v1_databases_by_database_id_backups_builder<R>(
     client: &SimpleHttpClient<R>,
     databaseId: &String,
-    limit: &Option<Option<String>>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3886,7 +3888,7 @@ pub struct GetV1DatabasesByDatabaseIdBackupsArgs {
     /// Path parameter: databaseId
     pub databaseId: String,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /v1/databases/{databaseId}/backups
@@ -3925,8 +3927,8 @@ pub fn get_v1_databases_by_database_id_backups(
 pub fn get_v1_databases_by_database_id_connections_builder<R>(
     client: &SimpleHttpClient<R>,
     databaseId: &String,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4073,9 +4075,9 @@ pub struct GetV1DatabasesByDatabaseIdConnectionsArgs {
     /// Path parameter: databaseId
     pub databaseId: String,
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /v1/databases/{databaseId}/connections
@@ -4292,8 +4294,8 @@ pub fn post_v1_databases_by_database_id_connections(
 pub fn get_v1_databases_by_database_id_usage_builder<R>(
     client: &SimpleHttpClient<R>,
     databaseId: &String,
-    startDate: &Option<Option<String>>,
-    endDate: &Option<Option<String>>,
+    startDate: &Option<String>,
+    endDate: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4435,9 +4437,9 @@ pub struct GetV1DatabasesByDatabaseIdUsageArgs {
     /// Path parameter: databaseId
     pub databaseId: String,
     /// Query parameter: startDate
-    pub startDate: Option<Option<String>>,
+    pub startDate: Option<String>,
     /// Query parameter: endDate
-    pub endDate: Option<Option<String>>,
+    pub endDate: Option<String>,
 }
 
 /// GET /v1/databases/{databaseId}/usage
@@ -4654,9 +4656,9 @@ pub fn post_v1_databases_by_target_database_id_restore(
 
 pub fn get_v1_integrations_builder<R>(
     client: &SimpleHttpClient<R>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    workspaceId: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
+    workspaceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4799,11 +4801,11 @@ pub fn get_v1_integrations_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1IntegrationsArgs {
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: workspaceId
-    pub workspaceId: Option<Option<String>>,
+    pub workspaceId: Option<String>,
 }
 
 /// GET /v1/integrations
@@ -5154,8 +5156,8 @@ pub fn delete_v1_integrations_by_id(
 
 pub fn get_v1_projects_builder<R>(
     client: &SimpleHttpClient<R>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5295,9 +5297,9 @@ pub fn get_v1_projects_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1ProjectsArgs {
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /v1/projects
@@ -6136,8 +6138,8 @@ pub fn post_v1_projects_by_id_transfer(
 pub fn get_v1_projects_by_project_id_compute_services_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6284,9 +6286,9 @@ pub struct GetV1ProjectsByProjectIdComputeServicesArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /v1/projects/{projectId}/compute-services
@@ -6506,8 +6508,8 @@ pub fn post_v1_projects_by_project_id_compute_services(
 pub fn get_v1_projects_by_project_id_databases_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6651,9 +6653,9 @@ pub struct GetV1ProjectsByProjectIdDatabasesArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /v1/projects/{projectId}/databases
@@ -6866,7 +6868,7 @@ pub fn post_v1_projects_by_project_id_databases(
 
 pub fn get_v1_regions_builder<R>(
     client: &SimpleHttpClient<R>,
-    product: &Option<Option<String>>,
+    product: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7003,7 +7005,7 @@ pub fn get_v1_regions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1RegionsArgs {
     /// Query parameter: product
-    pub product: Option<Option<String>>,
+    pub product: Option<String>,
 }
 
 /// GET /v1/regions
@@ -7350,9 +7352,9 @@ pub fn get_v1_regions_postgres(
 
 pub fn get_v1_versions_builder<R>(
     client: &SimpleHttpClient<R>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    computeServiceId: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
+    computeServiceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7495,11 +7497,11 @@ pub fn get_v1_versions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1VersionsArgs {
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: computeServiceId
-    pub computeServiceId: Option<Option<String>>,
+    pub computeServiceId: Option<String>,
 }
 
 /// GET /v1/versions
@@ -8328,8 +8330,8 @@ pub fn post_v1_versions_by_version_id_stop(
 
 pub fn get_v1_workspaces_builder<R>(
     client: &SimpleHttpClient<R>,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8469,9 +8471,9 @@ pub fn get_v1_workspaces_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV1WorkspacesArgs {
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /v1/workspaces
@@ -8668,8 +8670,8 @@ pub fn get_v1_workspaces_by_id(
 pub fn get_v1_workspaces_by_workspace_id_integrations_builder<R>(
     client: &SimpleHttpClient<R>,
     workspaceId: &String,
-    cursor: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
+    cursor: &Option<String>,
+    limit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8816,9 +8818,9 @@ pub struct GetV1WorkspacesByWorkspaceIdIntegrationsArgs {
     /// Path parameter: workspaceId
     pub workspaceId: String,
     /// Query parameter: cursor
-    pub cursor: Option<Option<String>>,
+    pub cursor: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
 }
 
 /// GET /v1/workspaces/{workspaceId}/integrations
@@ -10049,52 +10051,6 @@ impl ResourceIdentifier<GetV1RegionsArgs> for RegionsGetResponse {
 
     fn resource_kind(&self) -> &'static str {
         "prisma_postgres::RegionsGetResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "prisma_postgres"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for RegionsAccelerateGetResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for RegionsAccelerateGetResponse with GetV1RegionsAccelerateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GetV1RegionsAccelerateArgs> for RegionsAccelerateGetResponse {
-    fn generate_resource_id(&self, input: &GetV1RegionsAccelerateArgs) -> String {
-        "prisma_postgres::RegionsAccelerateGetResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "prisma_postgres::RegionsAccelerateGetResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "prisma_postgres"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for RegionsPostgresGetResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for RegionsPostgresGetResponse with GetV1RegionsPostgresArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GetV1RegionsPostgresArgs> for RegionsPostgresGetResponse {
-    fn generate_resource_id(&self, input: &GetV1RegionsPostgresArgs) -> String {
-        "prisma_postgres::RegionsPostgresGetResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "prisma_postgres::RegionsPostgresGetResponse"
     }
 
     fn provider(&self) -> &'static str {
