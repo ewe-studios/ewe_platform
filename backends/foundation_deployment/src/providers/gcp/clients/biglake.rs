@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,7 +32,7 @@ use serde::Serialize;
 pub fn biglake_projects_catalogs_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -170,7 +172,7 @@ pub struct BiglakeProjectsCatalogsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/catalogs/{catalogsId}:getIamPolicy
@@ -536,7 +538,7 @@ pub fn biglake_projects_catalogs_test_iam_permissions(
 pub fn biglake_projects_catalogs_namespaces_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -676,7 +678,7 @@ pub struct BiglakeProjectsCatalogsNamespacesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/catalogs/{catalogsId}/namespaces/{namespacesId}:getIamPolicy
@@ -1044,7 +1046,7 @@ pub fn biglake_projects_catalogs_namespaces_test_iam_permissions(
 pub fn biglake_projects_catalogs_namespaces_tables_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1184,7 +1186,7 @@ pub struct BiglakeProjectsCatalogsNamespacesTablesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/catalogs/{catalogsId}/namespaces/{namespacesId}/tables/{tablesId}:getIamPolicy
@@ -1554,7 +1556,7 @@ pub fn biglake_projects_catalogs_namespaces_tables_test_iam_permissions(
 pub fn biglake_projects_locations_catalogs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    catalogId: &Option<Option<String>>,
+    catalogId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1694,7 +1696,7 @@ pub struct BiglakeProjectsLocationsCatalogsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: catalogId
-    pub catalogId: Option<Option<String>>,
+    pub catalogId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/catalogs
@@ -2049,8 +2051,8 @@ pub fn biglake_projects_locations_catalogs_get(
 pub fn biglake_projects_locations_catalogs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2195,9 +2197,9 @@ pub struct BiglakeProjectsLocationsCatalogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs
@@ -2238,7 +2240,7 @@ pub fn biglake_projects_locations_catalogs_list(
 pub fn biglake_projects_locations_catalogs_databases_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    databaseId: &Option<Option<String>>,
+    databaseId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2378,7 +2380,7 @@ pub struct BiglakeProjectsLocationsCatalogsDatabasesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: databaseId
-    pub databaseId: Option<Option<String>>,
+    pub databaseId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases
@@ -2736,8 +2738,8 @@ pub fn biglake_projects_locations_catalogs_databases_get(
 pub fn biglake_projects_locations_catalogs_databases_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2882,9 +2884,9 @@ pub struct BiglakeProjectsLocationsCatalogsDatabasesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases
@@ -2925,7 +2927,7 @@ pub fn biglake_projects_locations_catalogs_databases_list(
 pub fn biglake_projects_locations_catalogs_databases_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3065,7 +3067,7 @@ pub struct BiglakeProjectsLocationsCatalogsDatabasesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}
@@ -3103,7 +3105,7 @@ pub fn biglake_projects_locations_catalogs_databases_patch(
 pub fn biglake_projects_locations_catalogs_databases_tables_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    tableId: &Option<Option<String>>,
+    tableId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3243,7 +3245,7 @@ pub struct BiglakeProjectsLocationsCatalogsDatabasesTablesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: tableId
-    pub tableId: Option<Option<String>>,
+    pub tableId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables
@@ -3603,9 +3605,9 @@ pub fn biglake_projects_locations_catalogs_databases_tables_get(
 pub fn biglake_projects_locations_catalogs_databases_tables_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3753,11 +3755,11 @@ pub struct BiglakeProjectsLocationsCatalogsDatabasesTablesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables
@@ -3799,7 +3801,7 @@ pub fn biglake_projects_locations_catalogs_databases_tables_list(
 pub fn biglake_projects_locations_catalogs_databases_tables_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3939,7 +3941,7 @@ pub struct BiglakeProjectsLocationsCatalogsDatabasesTablesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/databases/{databasesId}/tables/{tablesId}

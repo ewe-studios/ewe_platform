@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,10 +32,10 @@ use serde::Serialize;
 pub fn authorizedbuyersmarketplace_bidders_auction_packages_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -186,13 +188,13 @@ pub struct AuthorizedbuyersmarketplaceBiddersAuctionPackagesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/bidders/{biddersId}/auctionPackages
@@ -237,10 +239,10 @@ pub fn authorizedbuyersmarketplace_bidders_auction_packages_list(
 pub fn authorizedbuyersmarketplace_bidders_finalized_deals_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -393,13 +395,13 @@ pub struct AuthorizedbuyersmarketplaceBiddersFinalizedDealsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/bidders/{biddersId}/finalizedDeals
@@ -776,10 +778,10 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_get(
 pub fn authorizedbuyersmarketplace_buyers_auction_packages_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -932,13 +934,13 @@ pub struct AuthorizedbuyersmarketplaceBuyersAuctionPackagesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/buyers/{buyersId}/auctionPackages
@@ -2290,9 +2292,9 @@ pub fn authorizedbuyersmarketplace_buyers_clients_get(
 pub fn authorizedbuyersmarketplace_buyers_clients_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2440,11 +2442,11 @@ pub struct AuthorizedbuyersmarketplaceBuyersClientsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/buyers/{buyersId}/clients
@@ -2486,7 +2488,7 @@ pub fn authorizedbuyersmarketplace_buyers_clients_list(
 pub fn authorizedbuyersmarketplace_buyers_clients_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2626,7 +2628,7 @@ pub struct AuthorizedbuyersmarketplaceBuyersClientsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/buyers/{buyersId}/clients/{clientsId}
@@ -3468,8 +3470,8 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_get(
 pub fn authorizedbuyersmarketplace_buyers_clients_users_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3614,9 +3616,9 @@ pub struct AuthorizedbuyersmarketplaceBuyersClientsUsersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/buyers/{buyersId}/clients/{clientsId}/users
@@ -3988,10 +3990,10 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_get(
 pub fn authorizedbuyersmarketplace_buyers_finalized_deals_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4144,13 +4146,13 @@ pub struct AuthorizedbuyersmarketplaceBuyersFinalizedDealsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/buyers/{buyersId}/finalizedDeals
@@ -5335,9 +5337,9 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_get(
 pub fn authorizedbuyersmarketplace_buyers_proposals_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5485,11 +5487,11 @@ pub struct AuthorizedbuyersmarketplaceBuyersProposalsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/buyers/{buyersId}/proposals
@@ -5531,7 +5533,7 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_list(
 pub fn authorizedbuyersmarketplace_buyers_proposals_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5671,7 +5673,7 @@ pub struct AuthorizedbuyersmarketplaceBuyersProposalsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/buyers/{buyersId}/proposals/{proposalsId}
@@ -6198,8 +6200,8 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_get(
 pub fn authorizedbuyersmarketplace_buyers_proposals_deals_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6344,9 +6346,9 @@ pub struct AuthorizedbuyersmarketplaceBuyersProposalsDealsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/buyers/{buyersId}/proposals/{proposalsId}/deals
@@ -6387,7 +6389,7 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_list(
 pub fn authorizedbuyersmarketplace_buyers_proposals_deals_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6527,7 +6529,7 @@ pub struct AuthorizedbuyersmarketplaceBuyersProposalsDealsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/buyers/{buyersId}/proposals/{proposalsId}/deals/{dealsId}
@@ -6730,9 +6732,9 @@ pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_get(
 pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6882,11 +6884,11 @@ pub struct AuthorizedbuyersmarketplaceBuyersPublisherProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/buyers/{buyersId}/publisherProfiles

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -510,9 +512,9 @@ pub fn sql_backups_get_backup(
 pub fn sql_backups_list_backups_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -660,11 +662,11 @@ pub struct SqlBackupsListBackupsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/backups
@@ -706,7 +708,7 @@ pub fn sql_backups_list_backups(
 pub fn sql_backups_update_backup_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -846,7 +848,7 @@ pub struct SqlBackupsUpdateBackupArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/backups/{backupsId}
@@ -1376,8 +1378,8 @@ pub fn sql_backup_runs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1524,9 +1526,9 @@ pub struct SqlBackupRunsListArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{project}/instances/{instance}/backupRuns
@@ -1740,7 +1742,7 @@ pub fn sql_connect_get_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-    readTime: &Option<Option<String>>,
+    readTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1884,7 +1886,7 @@ pub struct SqlConnectGetArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: readTime
-    pub readTime: Option<Option<String>>,
+    pub readTime: Option<String>,
 }
 
 /// GET v1/projects/{project}/instances/{instance}/connectSettings
@@ -2916,8 +2918,8 @@ pub fn sql_databases_update(
 
 pub fn sql_flags_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    databaseVersion: &Option<Option<String>>,
-    flagScope: &Option<Option<String>>,
+    databaseVersion: &Option<String>,
+    flagScope: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3057,9 +3059,9 @@ pub fn sql_flags_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SqlFlagsListArgs {
     /// Query parameter: databaseVersion
-    pub databaseVersion: Option<Option<String>>,
+    pub databaseVersion: Option<String>,
     /// Query parameter: flagScope
-    pub flagScope: Option<Option<String>>,
+    pub flagScope: Option<String>,
 }
 
 /// GET v1/flags
@@ -4594,10 +4596,10 @@ pub fn sql_instances_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-    enableFinalBackup: &Option<Option<String>>,
-    finalBackupDescription: &Option<Option<String>>,
-    finalBackupExpiryTime: &Option<Option<String>>,
-    finalBackupTtlDays: &Option<Option<String>>,
+    enableFinalBackup: &Option<String>,
+    finalBackupDescription: &Option<String>,
+    finalBackupExpiryTime: &Option<String>,
+    finalBackupTtlDays: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4748,13 +4750,13 @@ pub struct SqlInstancesDeleteArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: enableFinalBackup
-    pub enableFinalBackup: Option<Option<String>>,
+    pub enableFinalBackup: Option<String>,
     /// Query parameter: finalBackupDescription
-    pub finalBackupDescription: Option<Option<String>>,
+    pub finalBackupDescription: Option<String>,
     /// Query parameter: finalBackupExpiryTime
-    pub finalBackupExpiryTime: Option<Option<String>>,
+    pub finalBackupExpiryTime: Option<String>,
     /// Query parameter: finalBackupTtlDays
-    pub finalBackupTtlDays: Option<Option<String>>,
+    pub finalBackupTtlDays: Option<String>,
 }
 
 /// DELETE v1/projects/{project}/instances/{instance}
@@ -6109,9 +6111,9 @@ pub fn sql_instances_insert(
 pub fn sql_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6259,11 +6261,11 @@ pub struct SqlInstancesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{project}/instances
@@ -6967,7 +6969,7 @@ pub fn sql_instances_promote_replica_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-    failover: &Option<Option<String>>,
+    failover: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7109,7 +7111,7 @@ pub struct SqlInstancesPromoteReplicaArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: failover
-    pub failover: Option<Option<String>>,
+    pub failover: Option<String>,
 }
 
 /// POST v1/projects/{project}/instances/{instance}/promoteReplica
@@ -7483,7 +7485,7 @@ pub fn sql_instances_reset_ssl_config_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-    mode: &Option<Option<String>>,
+    mode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7625,7 +7627,7 @@ pub struct SqlInstancesResetSslConfigArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: mode
-    pub mode: Option<Option<String>>,
+    pub mode: Option<String>,
 }
 
 /// POST v1/projects/{project}/instances/{instance}/resetSslConfig
@@ -8476,7 +8478,7 @@ pub fn sql_instances_switchover_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-    dbTimeout: &Option<Option<String>>,
+    dbTimeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8618,7 +8620,7 @@ pub struct SqlInstancesSwitchoverArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: dbTimeout
-    pub dbTimeout: Option<Option<String>>,
+    pub dbTimeout: Option<String>,
 }
 
 /// POST v1/projects/{project}/instances/{instance}/switchover
@@ -9305,9 +9307,9 @@ pub fn sql_operations_get(
 pub fn sql_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    instance: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    instance: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9455,11 +9457,11 @@ pub struct SqlOperationsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: instance
-    pub instance: Option<Option<String>>,
+    pub instance: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{project}/operations
@@ -9678,7 +9680,7 @@ pub fn sql_projects_instances_get_latest_recovery_time_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-    sourceInstanceDeletionTime: &Option<Option<String>>,
+    sourceInstanceDeletionTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9824,7 +9826,7 @@ pub struct SqlProjectsInstancesGetLatestRecoveryTimeArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: sourceInstanceDeletionTime
-    pub sourceInstanceDeletionTime: Option<Option<String>>,
+    pub sourceInstanceDeletionTime: Option<String>,
 }
 
 /// GET v1/projects/{project}/instances/{instance}/getLatestRecoveryTime
@@ -11698,8 +11700,8 @@ pub fn sql_users_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-    host: &Option<Option<String>>,
-    name: &Option<Option<String>>,
+    host: &Option<String>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11844,9 +11846,9 @@ pub struct SqlUsersDeleteArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: host
-    pub host: Option<Option<String>>,
+    pub host: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// DELETE v1/projects/{project}/instances/{instance}/users
@@ -11888,7 +11890,7 @@ pub fn sql_users_get_builder<R>(
     project: &String,
     instance: &String,
     name: &String,
-    host: &Option<Option<String>>,
+    host: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12032,7 +12034,7 @@ pub struct SqlUsersGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: host
-    pub host: Option<Option<String>>,
+    pub host: Option<String>,
 }
 
 /// GET v1/projects/{project}/instances/{instance}/users/{name}
@@ -12403,10 +12405,10 @@ pub fn sql_users_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     instance: &String,
-    databaseRoles: &Option<Option<String>>,
-    host: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    revokeExistingRoles: &Option<Option<String>>,
+    databaseRoles: &Option<String>,
+    host: &Option<String>,
+    name: &Option<String>,
+    revokeExistingRoles: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12557,13 +12559,13 @@ pub struct SqlUsersUpdateArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: databaseRoles
-    pub databaseRoles: Option<Option<String>>,
+    pub databaseRoles: Option<String>,
     /// Query parameter: host
-    pub host: Option<Option<String>>,
+    pub host: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: revokeExistingRoles
-    pub revokeExistingRoles: Option<Option<String>>,
+    pub revokeExistingRoles: Option<String>,
 }
 
 /// PUT v1/projects/{project}/instances/{instance}/users

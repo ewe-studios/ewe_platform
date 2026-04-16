@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -350,10 +352,10 @@ pub fn dataform_projects_locations_get_config(
 pub fn dataform_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -504,13 +506,13 @@ pub struct DataformProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -553,10 +555,10 @@ pub fn dataform_projects_locations_list(
 pub fn dataform_projects_locations_query_user_root_contents_builder<R>(
     client: &SimpleHttpClient<R>,
     location: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -709,13 +711,13 @@ pub struct DataformProjectsLocationsQueryUserRootContentsArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:queryUserRootContents
@@ -760,7 +762,7 @@ pub fn dataform_projects_locations_query_user_root_contents(
 pub fn dataform_projects_locations_update_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -900,7 +902,7 @@ pub struct DataformProjectsLocationsUpdateConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/config
@@ -1575,7 +1577,7 @@ pub fn dataform_projects_locations_folders_get(
 pub fn dataform_projects_locations_folders_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1715,7 +1717,7 @@ pub struct DataformProjectsLocationsFoldersGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/folders/{foldersId}:getIamPolicy
@@ -1913,7 +1915,7 @@ pub fn dataform_projects_locations_folders_move(
 pub fn dataform_projects_locations_folders_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2053,7 +2055,7 @@ pub struct DataformProjectsLocationsFoldersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/folders/{foldersId}
@@ -2088,10 +2090,10 @@ pub fn dataform_projects_locations_folders_patch(
 pub fn dataform_projects_locations_folders_query_folder_contents_builder<R>(
     client: &SimpleHttpClient<R>,
     folder: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2244,13 +2246,13 @@ pub struct DataformProjectsLocationsFoldersQueryFolderContentsArgs {
     /// Path parameter: folder
     pub folder: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/folders/{foldersId}:queryFolderContents
@@ -3105,10 +3107,10 @@ pub fn dataform_projects_locations_operations_get(
 pub fn dataform_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3259,13 +3261,13 @@ pub struct DataformProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -3647,7 +3649,7 @@ pub fn dataform_projects_locations_repositories_compute_access_token_status(
 pub fn dataform_projects_locations_repositories_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    repositoryId: &Option<Option<String>>,
+    repositoryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3787,7 +3789,7 @@ pub struct DataformProjectsLocationsRepositoriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: repositoryId
-    pub repositoryId: Option<Option<String>>,
+    pub repositoryId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories
@@ -3825,7 +3827,7 @@ pub fn dataform_projects_locations_repositories_create(
 pub fn dataform_projects_locations_repositories_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3965,7 +3967,7 @@ pub struct DataformProjectsLocationsRepositoriesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
@@ -4000,8 +4002,8 @@ pub fn dataform_projects_locations_repositories_delete(
 pub fn dataform_projects_locations_repositories_fetch_history_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4148,9 +4150,9 @@ pub struct DataformProjectsLocationsRepositoriesFetchHistoryArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchHistory
@@ -4522,7 +4524,7 @@ pub fn dataform_projects_locations_repositories_get(
 pub fn dataform_projects_locations_repositories_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4662,7 +4664,7 @@ pub struct DataformProjectsLocationsRepositoriesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy
@@ -4700,10 +4702,10 @@ pub fn dataform_projects_locations_repositories_get_iam_policy(
 pub fn dataform_projects_locations_repositories_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4854,13 +4856,13 @@ pub struct DataformProjectsLocationsRepositoriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories
@@ -5063,7 +5065,7 @@ pub fn dataform_projects_locations_repositories_move(
 pub fn dataform_projects_locations_repositories_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5203,7 +5205,7 @@ pub struct DataformProjectsLocationsRepositoriesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
@@ -5241,10 +5243,10 @@ pub fn dataform_projects_locations_repositories_patch(
 pub fn dataform_projects_locations_repositories_query_directory_contents_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    commitSha: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    path: &Option<Option<String>>,
+    commitSha: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    path: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5397,13 +5399,13 @@ pub struct DataformProjectsLocationsRepositoriesQueryDirectoryContentsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: commitSha
-    pub commitSha: Option<Option<String>>,
+    pub commitSha: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: path
-    pub path: Option<Option<String>>,
+    pub path: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:queryDirectoryContents
@@ -5448,8 +5450,8 @@ pub fn dataform_projects_locations_repositories_query_directory_contents(
 pub fn dataform_projects_locations_repositories_read_file_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    commitSha: &Option<Option<String>>,
-    path: &Option<Option<String>>,
+    commitSha: &Option<String>,
+    path: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5596,9 +5598,9 @@ pub struct DataformProjectsLocationsRepositoriesReadFileArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: commitSha
-    pub commitSha: Option<Option<String>>,
+    pub commitSha: Option<String>,
     /// Query parameter: path
-    pub path: Option<Option<String>>,
+    pub path: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:readFile
@@ -6306,10 +6308,10 @@ pub fn dataform_projects_locations_repositories_compilation_results_get(
 pub fn dataform_projects_locations_repositories_compilation_results_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6462,13 +6464,13 @@ pub struct DataformProjectsLocationsRepositoriesCompilationResultsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/compilationResults
@@ -6513,9 +6515,9 @@ pub fn dataform_projects_locations_repositories_compilation_results_list(
 pub fn dataform_projects_locations_repositories_compilation_results_query_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6665,11 +6667,11 @@ pub struct DataformProjectsLocationsRepositoriesCompilationResultsQueryArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/compilationResults/{compilationResultsId}:query
@@ -6713,7 +6715,7 @@ pub fn dataform_projects_locations_repositories_compilation_results_query(
 pub fn dataform_projects_locations_repositories_release_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    releaseConfigId: &Option<Option<String>>,
+    releaseConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6855,7 +6857,7 @@ pub struct DataformProjectsLocationsRepositoriesReleaseConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: releaseConfigId
-    pub releaseConfigId: Option<Option<String>>,
+    pub releaseConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/releaseConfigs
@@ -7222,8 +7224,8 @@ pub fn dataform_projects_locations_repositories_release_configs_get(
 pub fn dataform_projects_locations_repositories_release_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7370,9 +7372,9 @@ pub struct DataformProjectsLocationsRepositoriesReleaseConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/releaseConfigs
@@ -7415,7 +7417,7 @@ pub fn dataform_projects_locations_repositories_release_configs_list(
 pub fn dataform_projects_locations_repositories_release_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7557,7 +7559,7 @@ pub struct DataformProjectsLocationsRepositoriesReleaseConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/releaseConfigs/{releaseConfigsId}
@@ -7597,7 +7599,7 @@ pub fn dataform_projects_locations_repositories_release_configs_patch(
 pub fn dataform_projects_locations_repositories_workflow_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    workflowConfigId: &Option<Option<String>>,
+    workflowConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7739,7 +7741,7 @@ pub struct DataformProjectsLocationsRepositoriesWorkflowConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: workflowConfigId
-    pub workflowConfigId: Option<Option<String>>,
+    pub workflowConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowConfigs
@@ -8106,8 +8108,8 @@ pub fn dataform_projects_locations_repositories_workflow_configs_get(
 pub fn dataform_projects_locations_repositories_workflow_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8254,9 +8256,9 @@ pub struct DataformProjectsLocationsRepositoriesWorkflowConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowConfigs
@@ -8299,7 +8301,7 @@ pub fn dataform_projects_locations_repositories_workflow_configs_list(
 pub fn dataform_projects_locations_repositories_workflow_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8441,7 +8443,7 @@ pub struct DataformProjectsLocationsRepositoriesWorkflowConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowConfigs/{workflowConfigsId}
@@ -9146,10 +9148,10 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_get(
 pub fn dataform_projects_locations_repositories_workflow_invocations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9302,13 +9304,13 @@ pub struct DataformProjectsLocationsRepositoriesWorkflowInvocationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations
@@ -9353,8 +9355,8 @@ pub fn dataform_projects_locations_repositories_workflow_invocations_list(
 pub fn dataform_projects_locations_repositories_workflow_invocations_query_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9501,9 +9503,9 @@ pub struct DataformProjectsLocationsRepositoriesWorkflowInvocationsQueryArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workflowInvocations/{workflowInvocationsId}:query
@@ -9715,7 +9717,7 @@ pub fn dataform_projects_locations_repositories_workspaces_commit(
 pub fn dataform_projects_locations_repositories_workspaces_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    workspaceId: &Option<Option<String>>,
+    workspaceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9855,7 +9857,7 @@ pub struct DataformProjectsLocationsRepositoriesWorkspacesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: workspaceId
-    pub workspaceId: Option<Option<String>>,
+    pub workspaceId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces
@@ -10054,7 +10056,7 @@ pub fn dataform_projects_locations_repositories_workspaces_delete(
 pub fn dataform_projects_locations_repositories_workspaces_fetch_file_diff_builder<R>(
     client: &SimpleHttpClient<R>,
     workspace: &String,
-    path: &Option<Option<String>>,
+    path: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10196,7 +10198,7 @@ pub struct DataformProjectsLocationsRepositoriesWorkspacesFetchFileDiffArgs {
     /// Path parameter: workspace
     pub workspace: String,
     /// Query parameter: path
-    pub path: Option<Option<String>>,
+    pub path: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:fetchFileDiff
@@ -10408,7 +10410,7 @@ pub fn dataform_projects_locations_repositories_workspaces_fetch_file_git_status
 pub fn dataform_projects_locations_repositories_workspaces_fetch_git_ahead_behind_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    remoteBranch: &Option<Option<String>>,
+    remoteBranch: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10553,7 +10555,7 @@ pub struct DataformProjectsLocationsRepositoriesWorkspacesFetchGitAheadBehindArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: remoteBranch
-    pub remoteBranch: Option<Option<String>>,
+    pub remoteBranch: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:fetchGitAheadBehind
@@ -10757,7 +10759,7 @@ pub fn dataform_projects_locations_repositories_workspaces_get(
 pub fn dataform_projects_locations_repositories_workspaces_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10897,7 +10899,7 @@ pub struct DataformProjectsLocationsRepositoriesWorkspacesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:getIamPolicy
@@ -11107,10 +11109,10 @@ pub fn dataform_projects_locations_repositories_workspaces_install_npm_packages(
 pub fn dataform_projects_locations_repositories_workspaces_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11261,13 +11263,13 @@ pub struct DataformProjectsLocationsRepositoriesWorkspacesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces
@@ -12141,10 +12143,10 @@ pub fn dataform_projects_locations_repositories_workspaces_push(
 pub fn dataform_projects_locations_repositories_workspaces_query_directory_contents_builder<R>(
     client: &SimpleHttpClient<R>,
     workspace: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    path: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    path: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12298,13 +12300,13 @@ pub struct DataformProjectsLocationsRepositoriesWorkspacesQueryDirectoryContents
     /// Path parameter: workspace
     pub workspace: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: path
-    pub path: Option<Option<String>>,
+    pub path: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:queryDirectoryContents
@@ -12350,8 +12352,8 @@ pub fn dataform_projects_locations_repositories_workspaces_query_directory_conte
 pub fn dataform_projects_locations_repositories_workspaces_read_file_builder<R>(
     client: &SimpleHttpClient<R>,
     workspace: &String,
-    path: &Option<Option<String>>,
-    revision: &Option<Option<String>>,
+    path: &Option<String>,
+    revision: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12496,9 +12498,9 @@ pub struct DataformProjectsLocationsRepositoriesWorkspacesReadFileArgs {
     /// Path parameter: workspace
     pub workspace: String,
     /// Query parameter: path
-    pub path: Option<Option<String>>,
+    pub path: Option<String>,
     /// Query parameter: revision
-    pub revision: Option<Option<String>>,
+    pub revision: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:readFile
@@ -13042,9 +13044,9 @@ pub fn dataform_projects_locations_repositories_workspaces_reset(
 pub fn dataform_projects_locations_repositories_workspaces_search_files_builder<R>(
     client: &SimpleHttpClient<R>,
     workspace: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13192,11 +13194,11 @@ pub struct DataformProjectsLocationsRepositoriesWorkspacesSearchFilesArgs {
     /// Path parameter: workspace
     pub workspace: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/workspaces/{workspacesId}:searchFiles
@@ -14380,7 +14382,7 @@ pub fn dataform_projects_locations_team_folders_get(
 pub fn dataform_projects_locations_team_folders_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14520,7 +14522,7 @@ pub struct DataformProjectsLocationsTeamFoldersGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/teamFolders/{teamFoldersId}:getIamPolicy
@@ -14558,7 +14560,7 @@ pub fn dataform_projects_locations_team_folders_get_iam_policy(
 pub fn dataform_projects_locations_team_folders_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14698,7 +14700,7 @@ pub struct DataformProjectsLocationsTeamFoldersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/teamFolders/{teamFoldersId}
@@ -14736,10 +14738,10 @@ pub fn dataform_projects_locations_team_folders_patch(
 pub fn dataform_projects_locations_team_folders_query_contents_builder<R>(
     client: &SimpleHttpClient<R>,
     teamFolder: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14892,13 +14894,13 @@ pub struct DataformProjectsLocationsTeamFoldersQueryContentsArgs {
     /// Path parameter: teamFolder
     pub teamFolder: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/teamFolders/{teamFoldersId}:queryContents
@@ -14943,10 +14945,10 @@ pub fn dataform_projects_locations_team_folders_query_contents(
 pub fn dataform_projects_locations_team_folders_search_builder<R>(
     client: &SimpleHttpClient<R>,
     location: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15097,13 +15099,13 @@ pub struct DataformProjectsLocationsTeamFoldersSearchArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/teamFolders:search

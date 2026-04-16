@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn securesourcemanager_projects_locations_get(
 pub fn securesourcemanager_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct SecuresourcemanagerProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,8 +395,8 @@ pub fn securesourcemanager_projects_locations_list(
 pub fn securesourcemanager_projects_locations_instances_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    instanceId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    instanceId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -537,9 +539,9 @@ pub struct SecuresourcemanagerProjectsLocationsInstancesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: instanceId
-    pub instanceId: Option<Option<String>>,
+    pub instanceId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/instances
@@ -578,8 +580,8 @@ pub fn securesourcemanager_projects_locations_instances_create(
 pub fn securesourcemanager_projects_locations_instances_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    force: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -722,9 +724,9 @@ pub struct SecuresourcemanagerProjectsLocationsInstancesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
@@ -923,7 +925,7 @@ pub fn securesourcemanager_projects_locations_instances_get(
 pub fn securesourcemanager_projects_locations_instances_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1063,7 +1065,7 @@ pub struct SecuresourcemanagerProjectsLocationsInstancesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:getIamPolicy
@@ -1101,10 +1103,10 @@ pub fn securesourcemanager_projects_locations_instances_get_iam_policy(
 pub fn securesourcemanager_projects_locations_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1255,13 +1257,13 @@ pub struct SecuresourcemanagerProjectsLocationsInstancesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
@@ -2121,10 +2123,10 @@ pub fn securesourcemanager_projects_locations_operations_get(
 pub fn securesourcemanager_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2275,13 +2277,13 @@ pub struct SecuresourcemanagerProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -2324,7 +2326,7 @@ pub fn securesourcemanager_projects_locations_operations_list(
 pub fn securesourcemanager_projects_locations_repositories_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    repositoryId: &Option<Option<String>>,
+    repositoryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2464,7 +2466,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: repositoryId
-    pub repositoryId: Option<Option<String>>,
+    pub repositoryId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories
@@ -2502,7 +2504,7 @@ pub fn securesourcemanager_projects_locations_repositories_create(
 pub fn securesourcemanager_projects_locations_repositories_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
+    allowMissing: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2642,7 +2644,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
@@ -2680,7 +2682,7 @@ pub fn securesourcemanager_projects_locations_repositories_delete(
 pub fn securesourcemanager_projects_locations_repositories_fetch_blob_builder<R>(
     client: &SimpleHttpClient<R>,
     repository: &String,
-    sha: &Option<Option<String>>,
+    sha: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2822,7 +2824,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesFetchBlobArgs {
     /// Path parameter: repository
     pub repository: String,
     /// Query parameter: sha
-    pub sha: Option<Option<String>>,
+    pub sha: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchBlob
@@ -2862,10 +2864,10 @@ pub fn securesourcemanager_projects_locations_repositories_fetch_blob(
 pub fn securesourcemanager_projects_locations_repositories_fetch_tree_builder<R>(
     client: &SimpleHttpClient<R>,
     repository: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    recursive: &Option<Option<String>>,
-    ref_rs: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    recursive: &Option<String>,
+    ref_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3016,13 +3018,13 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesFetchTreeArgs {
     /// Path parameter: repository
     pub repository: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: recursive
-    pub recursive: Option<Option<String>>,
+    pub recursive: Option<String>,
     /// Query parameter: ref
-    pub ref_rs: Option<Option<String>>,
+    pub ref_rs: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:fetchTree
@@ -3226,7 +3228,7 @@ pub fn securesourcemanager_projects_locations_repositories_get(
 pub fn securesourcemanager_projects_locations_repositories_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3366,7 +3368,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy
@@ -3404,10 +3406,10 @@ pub fn securesourcemanager_projects_locations_repositories_get_iam_policy(
 pub fn securesourcemanager_projects_locations_repositories_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    instance: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    instance: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3558,13 +3560,13 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: instance
-    pub instance: Option<Option<String>>,
+    pub instance: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories
@@ -3607,8 +3609,8 @@ pub fn securesourcemanager_projects_locations_repositories_list(
 pub fn securesourcemanager_projects_locations_repositories_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3751,9 +3753,9 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
@@ -4127,7 +4129,7 @@ pub fn securesourcemanager_projects_locations_repositories_test_iam_permissions(
 pub fn securesourcemanager_projects_locations_repositories_branch_rules_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    branchRuleId: &Option<Option<String>>,
+    branchRuleId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4268,7 +4270,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesCreateArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: branchRuleId
-    pub branchRuleId: Option<Option<String>>,
+    pub branchRuleId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/branchRules
@@ -4306,7 +4308,7 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_create(
 pub fn securesourcemanager_projects_locations_repositories_branch_rules_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
+    allowMissing: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4447,7 +4449,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesDeleteArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/branchRules/{branchRulesId}
@@ -4647,8 +4649,8 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_get(
 pub fn securesourcemanager_projects_locations_repositories_branch_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4793,9 +4795,9 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/branchRules
@@ -4836,8 +4838,8 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_list(
 pub fn securesourcemanager_projects_locations_repositories_branch_rules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4981,9 +4983,9 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesBranchRulesPatchArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/branchRules/{branchRulesId}
@@ -5022,7 +5024,7 @@ pub fn securesourcemanager_projects_locations_repositories_branch_rules_patch(
 pub fn securesourcemanager_projects_locations_repositories_hooks_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    hookId: &Option<Option<String>>,
+    hookId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5162,7 +5164,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesHooksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: hookId
-    pub hookId: Option<Option<String>>,
+    pub hookId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/hooks
@@ -5523,8 +5525,8 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_get(
 pub fn securesourcemanager_projects_locations_repositories_hooks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5669,9 +5671,9 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesHooksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/hooks
@@ -5712,7 +5714,7 @@ pub fn securesourcemanager_projects_locations_repositories_hooks_list(
 pub fn securesourcemanager_projects_locations_repositories_hooks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5852,7 +5854,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesHooksPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/hooks/{hooksId}
@@ -6215,7 +6217,7 @@ pub fn securesourcemanager_projects_locations_repositories_issues_create(
 pub fn securesourcemanager_projects_locations_repositories_issues_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6355,7 +6357,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}
@@ -6552,9 +6554,9 @@ pub fn securesourcemanager_projects_locations_repositories_issues_get(
 pub fn securesourcemanager_projects_locations_repositories_issues_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6702,11 +6704,11 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues
@@ -6910,7 +6912,7 @@ pub fn securesourcemanager_projects_locations_repositories_issues_open(
 pub fn securesourcemanager_projects_locations_repositories_issues_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7050,7 +7052,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}
@@ -7594,8 +7596,8 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7742,9 +7744,9 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesIssueCommentsLi
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}/issueComments
@@ -7786,7 +7788,7 @@ pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments
 pub fn securesourcemanager_projects_locations_repositories_issues_issue_comments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7929,7 +7931,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesIssuesIssueCommentsPa
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/issues/{issuesId}/issueComments/{issueCommentsId}
@@ -8457,8 +8459,8 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_get(
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8604,9 +8606,9 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests
@@ -8649,8 +8651,8 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_list_fi
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8800,9 +8802,9 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsListFileD
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}:listFileDiffs
@@ -9174,7 +9176,7 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_open(
 pub fn securesourcemanager_projects_locations_repositories_pull_requests_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9315,7 +9317,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPatchArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}
@@ -10010,8 +10012,8 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10158,9 +10160,9 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullReque
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments
@@ -10200,7 +10202,7 @@ pub fn securesourcemanager_projects_locations_repositories_pull_requests_pull_re
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10341,7 +10343,7 @@ pub struct SecuresourcemanagerProjectsLocationsRepositoriesPullRequestsPullReque
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pullRequests/{pullRequestsId}/pullRequestComments/{pullRequestCommentsId}

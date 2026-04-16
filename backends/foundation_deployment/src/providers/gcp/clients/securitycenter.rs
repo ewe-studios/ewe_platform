@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -194,13 +196,13 @@ pub fn securitycenter_folders_assets_group(
 pub fn securitycenter_folders_assets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    compareDuration: &Option<Option<String>>,
-    fieldMask: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readTime: &Option<Option<String>>,
+    compareDuration: &Option<String>,
+    fieldMask: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -360,19 +362,19 @@ pub struct SecuritycenterFoldersAssetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: compareDuration
-    pub compareDuration: Option<Option<String>>,
+    pub compareDuration: Option<String>,
     /// Query parameter: fieldMask
-    pub fieldMask: Option<Option<String>>,
+    pub fieldMask: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readTime
-    pub readTime: Option<Option<String>>,
+    pub readTime: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/assets
@@ -418,8 +420,8 @@ pub fn securitycenter_folders_assets_list(
 pub fn securitycenter_folders_assets_update_security_marks_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    startTime: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    startTime: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -564,9 +566,9 @@ pub struct SecuritycenterFoldersAssetsUpdateSecurityMarksArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/folders/{foldersId}/assets/{assetsId}/securityMarks
@@ -607,7 +609,7 @@ pub fn securitycenter_folders_assets_update_security_marks(
 pub fn securitycenter_folders_big_query_exports_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bigQueryExportId: &Option<Option<String>>,
+    bigQueryExportId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -751,7 +753,7 @@ pub struct SecuritycenterFoldersBigQueryExportsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bigQueryExportId
-    pub bigQueryExportId: Option<Option<String>>,
+    pub bigQueryExportId: Option<String>,
 }
 
 /// POST v1/folders/{foldersId}/bigQueryExports
@@ -1121,8 +1123,8 @@ pub fn securitycenter_folders_big_query_exports_get(
 pub fn securitycenter_folders_big_query_exports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1269,9 +1271,9 @@ pub struct SecuritycenterFoldersBigQueryExportsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/bigQueryExports
@@ -1314,7 +1316,7 @@ pub fn securitycenter_folders_big_query_exports_list(
 pub fn securitycenter_folders_big_query_exports_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1458,7 +1460,7 @@ pub struct SecuritycenterFoldersBigQueryExportsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/folders/{foldersId}/bigQueryExports/{bigQueryExportsId}
@@ -2184,8 +2186,8 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_get
 pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2334,9 +2336,9 @@ pub struct SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesListArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/eventThreatDetectionSettings/customModules
@@ -2382,8 +2384,8 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_lis
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2540,9 +2542,9 @@ pub struct SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesListDes
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/eventThreatDetectionSettings/customModules:listDescendant
@@ -2585,7 +2587,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_lis
 pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2730,7 +2732,7 @@ pub struct SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesPatchAr
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/folders/{foldersId}/eventThreatDetectionSettings/customModules/{customModulesId}
@@ -2950,8 +2952,8 @@ pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_m
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3108,9 +3110,9 @@ pub struct SecuritycenterFoldersEventThreatDetectionSettingsEffectiveCustomModul
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/eventThreatDetectionSettings/effectiveCustomModules
@@ -3641,7 +3643,7 @@ pub fn securitycenter_folders_locations_mute_configs_get(
 pub fn securitycenter_folders_locations_mute_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3785,7 +3787,7 @@ pub struct SecuritycenterFoldersLocationsMuteConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/folders/{foldersId}/locations/{locationsId}/muteConfigs/{muteConfigsId}
@@ -3827,7 +3829,7 @@ pub fn securitycenter_folders_locations_mute_configs_patch(
 pub fn securitycenter_folders_mute_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    muteConfigId: &Option<Option<String>>,
+    muteConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3971,7 +3973,7 @@ pub struct SecuritycenterFoldersMuteConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: muteConfigId
-    pub muteConfigId: Option<Option<String>>,
+    pub muteConfigId: Option<String>,
 }
 
 /// POST v1/folders/{foldersId}/muteConfigs
@@ -4341,8 +4343,8 @@ pub fn securitycenter_folders_mute_configs_get(
 pub fn securitycenter_folders_mute_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4487,9 +4489,9 @@ pub struct SecuritycenterFoldersMuteConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/muteConfigs
@@ -4530,7 +4532,7 @@ pub fn securitycenter_folders_mute_configs_list(
 pub fn securitycenter_folders_mute_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4674,7 +4676,7 @@ pub struct SecuritycenterFoldersMuteConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/folders/{foldersId}/muteConfigs/{muteConfigsId}
@@ -4713,7 +4715,7 @@ pub fn securitycenter_folders_mute_configs_patch(
 pub fn securitycenter_folders_notification_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    configId: &Option<Option<String>>,
+    configId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4855,7 +4857,7 @@ pub struct SecuritycenterFoldersNotificationConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: configId
-    pub configId: Option<Option<String>>,
+    pub configId: Option<String>,
 }
 
 /// POST v1/folders/{foldersId}/notificationConfigs
@@ -5219,8 +5221,8 @@ pub fn securitycenter_folders_notification_configs_get(
 pub fn securitycenter_folders_notification_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5367,9 +5369,9 @@ pub struct SecuritycenterFoldersNotificationConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/notificationConfigs
@@ -5412,7 +5414,7 @@ pub fn securitycenter_folders_notification_configs_list(
 pub fn securitycenter_folders_notification_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5554,7 +5556,7 @@ pub struct SecuritycenterFoldersNotificationConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/folders/{foldersId}/notificationConfigs/{notificationConfigsId}
@@ -6127,8 +6129,8 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6278,9 +6280,9 @@ pub struct SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesList
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/securityHealthAnalyticsSettings/customModules
@@ -6326,8 +6328,8 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6481,9 +6483,9 @@ pub struct SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesList
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/securityHealthAnalyticsSettings/customModules:listDescendant
@@ -6526,7 +6528,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6679,7 +6681,7 @@ pub struct SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesPatc
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/folders/{foldersId}/securityHealthAnalyticsSettings/customModules/{customModulesId}
@@ -7092,8 +7094,8 @@ pub fn securitycenter_folders_security_health_analytics_settings_effective_custo
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7247,9 +7249,9 @@ pub struct SecuritycenterFoldersSecurityHealthAnalyticsSettingsEffectiveCustomMo
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/securityHealthAnalyticsSettings/effectiveCustomModules
@@ -7292,8 +7294,8 @@ pub fn securitycenter_folders_security_health_analytics_settings_effective_custo
 pub fn securitycenter_folders_sources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7438,9 +7440,9 @@ pub struct SecuritycenterFoldersSourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/sources
@@ -7645,13 +7647,13 @@ pub fn securitycenter_folders_sources_findings_group(
 pub fn securitycenter_folders_sources_findings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    compareDuration: &Option<Option<String>>,
-    fieldMask: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readTime: &Option<Option<String>>,
+    compareDuration: &Option<String>,
+    fieldMask: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7811,19 +7813,19 @@ pub struct SecuritycenterFoldersSourcesFindingsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: compareDuration
-    pub compareDuration: Option<Option<String>>,
+    pub compareDuration: Option<String>,
     /// Query parameter: fieldMask
-    pub fieldMask: Option<Option<String>>,
+    pub fieldMask: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readTime
-    pub readTime: Option<Option<String>>,
+    pub readTime: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/sources/{sourcesId}/findings
@@ -7869,7 +7871,7 @@ pub fn securitycenter_folders_sources_findings_list(
 pub fn securitycenter_folders_sources_findings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8009,7 +8011,7 @@ pub struct SecuritycenterFoldersSourcesFindingsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/folders/{foldersId}/sources/{sourcesId}/findings/{findingsId}
@@ -8367,8 +8369,8 @@ pub fn securitycenter_folders_sources_findings_set_state(
 pub fn securitycenter_folders_sources_findings_update_security_marks_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    startTime: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    startTime: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8513,9 +8515,9 @@ pub struct SecuritycenterFoldersSourcesFindingsUpdateSecurityMarksArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/folders/{foldersId}/sources/{sourcesId}/findings/{findingsId}/securityMarks
@@ -8556,7 +8558,7 @@ pub fn securitycenter_folders_sources_findings_update_security_marks(
 pub fn securitycenter_folders_sources_findings_external_systems_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8700,7 +8702,7 @@ pub struct SecuritycenterFoldersSourcesFindingsExternalSystemsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/folders/{foldersId}/sources/{sourcesId}/findings/{findingsId}/externalSystems/{externalSystemsId}
@@ -8907,7 +8909,7 @@ pub fn securitycenter_organizations_get_organization_settings(
 pub fn securitycenter_organizations_update_organization_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9049,7 +9051,7 @@ pub struct SecuritycenterOrganizationsUpdateOrganizationSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/organizationSettings
@@ -9253,13 +9255,13 @@ pub fn securitycenter_organizations_assets_group(
 pub fn securitycenter_organizations_assets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    compareDuration: &Option<Option<String>>,
-    fieldMask: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readTime: &Option<Option<String>>,
+    compareDuration: &Option<String>,
+    fieldMask: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9419,19 +9421,19 @@ pub struct SecuritycenterOrganizationsAssetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: compareDuration
-    pub compareDuration: Option<Option<String>>,
+    pub compareDuration: Option<String>,
     /// Query parameter: fieldMask
-    pub fieldMask: Option<Option<String>>,
+    pub fieldMask: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readTime
-    pub readTime: Option<Option<String>>,
+    pub readTime: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/assets
@@ -9637,8 +9639,8 @@ pub fn securitycenter_organizations_assets_run_discovery(
 pub fn securitycenter_organizations_assets_update_security_marks_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    startTime: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    startTime: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9783,9 +9785,9 @@ pub struct SecuritycenterOrganizationsAssetsUpdateSecurityMarksArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/assets/{assetsId}/securityMarks
@@ -9826,9 +9828,9 @@ pub fn securitycenter_organizations_assets_update_security_marks(
 pub fn securitycenter_organizations_attack_paths_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9976,11 +9978,11 @@ pub struct SecuritycenterOrganizationsAttackPathsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/attackPaths
@@ -10022,7 +10024,7 @@ pub fn securitycenter_organizations_attack_paths_list(
 pub fn securitycenter_organizations_big_query_exports_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bigQueryExportId: &Option<Option<String>>,
+    bigQueryExportId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10166,7 +10168,7 @@ pub struct SecuritycenterOrganizationsBigQueryExportsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bigQueryExportId
-    pub bigQueryExportId: Option<Option<String>>,
+    pub bigQueryExportId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/bigQueryExports
@@ -10537,8 +10539,8 @@ pub fn securitycenter_organizations_big_query_exports_get(
 pub fn securitycenter_organizations_big_query_exports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10685,9 +10687,9 @@ pub struct SecuritycenterOrganizationsBigQueryExportsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/bigQueryExports
@@ -10730,7 +10732,7 @@ pub fn securitycenter_organizations_big_query_exports_list(
 pub fn securitycenter_organizations_big_query_exports_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10874,7 +10876,7 @@ pub struct SecuritycenterOrganizationsBigQueryExportsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/bigQueryExports/{bigQueryExportsId}
@@ -11615,8 +11617,8 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11767,9 +11769,9 @@ pub struct SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesL
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/eventThreatDetectionSettings/customModules
@@ -11817,8 +11819,8 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11972,9 +11974,9 @@ pub struct SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesL
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/eventThreatDetectionSettings/customModules:listDescendant
@@ -12017,7 +12019,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12164,7 +12166,7 @@ pub struct SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesP
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/eventThreatDetectionSettings/customModules/{customModulesId}
@@ -12381,8 +12383,8 @@ pub fn securitycenter_organizations_event_threat_detection_settings_effective_cu
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12536,9 +12538,9 @@ pub struct SecuritycenterOrganizationsEventThreatDetectionSettingsEffectiveCusto
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/eventThreatDetectionSettings/effectiveCustomModules
@@ -13069,7 +13071,7 @@ pub fn securitycenter_organizations_locations_mute_configs_get(
 pub fn securitycenter_organizations_locations_mute_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13213,7 +13215,7 @@ pub struct SecuritycenterOrganizationsLocationsMuteConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/muteConfigs/{muteConfigsId}
@@ -13255,7 +13257,7 @@ pub fn securitycenter_organizations_locations_mute_configs_patch(
 pub fn securitycenter_organizations_mute_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    muteConfigId: &Option<Option<String>>,
+    muteConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13399,7 +13401,7 @@ pub struct SecuritycenterOrganizationsMuteConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: muteConfigId
-    pub muteConfigId: Option<Option<String>>,
+    pub muteConfigId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/muteConfigs
@@ -13769,8 +13771,8 @@ pub fn securitycenter_organizations_mute_configs_get(
 pub fn securitycenter_organizations_mute_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13915,9 +13917,9 @@ pub struct SecuritycenterOrganizationsMuteConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/muteConfigs
@@ -13958,7 +13960,7 @@ pub fn securitycenter_organizations_mute_configs_list(
 pub fn securitycenter_organizations_mute_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14102,7 +14104,7 @@ pub struct SecuritycenterOrganizationsMuteConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/muteConfigs/{muteConfigsId}
@@ -14144,7 +14146,7 @@ pub fn securitycenter_organizations_mute_configs_patch(
 pub fn securitycenter_organizations_notification_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    configId: &Option<Option<String>>,
+    configId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14286,7 +14288,7 @@ pub struct SecuritycenterOrganizationsNotificationConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: configId
-    pub configId: Option<Option<String>>,
+    pub configId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/notificationConfigs
@@ -14652,8 +14654,8 @@ pub fn securitycenter_organizations_notification_configs_get(
 pub fn securitycenter_organizations_notification_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14800,9 +14802,9 @@ pub struct SecuritycenterOrganizationsNotificationConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/notificationConfigs
@@ -14845,7 +14847,7 @@ pub fn securitycenter_organizations_notification_configs_list(
 pub fn securitycenter_organizations_notification_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14987,7 +14989,7 @@ pub struct SecuritycenterOrganizationsNotificationConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/notificationConfigs/{notificationConfigsId}
@@ -15507,10 +15509,10 @@ pub fn securitycenter_organizations_operations_get(
 pub fn securitycenter_organizations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15661,13 +15663,13 @@ pub struct SecuritycenterOrganizationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/operations
@@ -16213,8 +16215,8 @@ pub fn securitycenter_organizations_resource_value_configs_get(
 pub fn securitycenter_organizations_resource_value_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16361,9 +16363,9 @@ pub struct SecuritycenterOrganizationsResourceValueConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/resourceValueConfigs
@@ -16406,7 +16408,7 @@ pub fn securitycenter_organizations_resource_value_configs_list(
 pub fn securitycenter_organizations_resource_value_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16551,7 +16553,7 @@ pub struct SecuritycenterOrganizationsResourceValueConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/resourceValueConfigs/{resourceValueConfigsId}
@@ -17135,8 +17137,8 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17287,9 +17289,9 @@ pub struct SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModul
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/securityHealthAnalyticsSettings/customModules
@@ -17331,8 +17333,8 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17487,9 +17489,9 @@ pub struct SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModul
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/securityHealthAnalyticsSettings/customModules:listDescendant
@@ -17532,7 +17534,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17686,7 +17688,7 @@ pub struct SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModul
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/securityHealthAnalyticsSettings/customModules/{customModulesId}
@@ -18087,8 +18089,8 @@ pub fn securitycenter_organizations_security_health_analytics_settings_effective
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18243,9 +18245,9 @@ pub struct SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsEffectiveCu
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/securityHealthAnalyticsSettings/effectiveCustomModules
@@ -18448,9 +18450,9 @@ pub fn securitycenter_organizations_simulations_attack_exposure_results_attack_p
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18601,11 +18603,11 @@ pub struct SecuritycenterOrganizationsSimulationsAttackExposureResultsAttackPath
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/simulations/{simulationsId}/attackExposureResults/{attackExposureResultsId}/attackPaths
@@ -18652,10 +18654,10 @@ pub fn securitycenter_organizations_simulations_attack_exposure_results_valued_r
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18808,13 +18810,13 @@ pub struct SecuritycenterOrganizationsSimulationsAttackExposureResultsValuedReso
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/simulations/{simulationsId}/attackExposureResults/{attackExposureResultsId}/valuedResources
@@ -18854,9 +18856,9 @@ pub fn securitycenter_organizations_simulations_attack_exposure_results_valued_r
 pub fn securitycenter_organizations_simulations_attack_paths_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19004,11 +19006,11 @@ pub struct SecuritycenterOrganizationsSimulationsAttackPathsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/simulations/{simulationsId}/attackPaths
@@ -19215,10 +19217,10 @@ pub fn securitycenter_organizations_simulations_valued_resources_get(
 pub fn securitycenter_organizations_simulations_valued_resources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19371,13 +19373,13 @@ pub struct SecuritycenterOrganizationsSimulationsValuedResourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/simulations/{simulationsId}/valuedResources
@@ -19422,9 +19424,9 @@ pub fn securitycenter_organizations_simulations_valued_resources_list(
 pub fn securitycenter_organizations_simulations_valued_resources_attack_paths_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19573,11 +19575,11 @@ pub struct SecuritycenterOrganizationsSimulationsValuedResourcesAttackPathsListA
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/simulations/{simulationsId}/valuedResources/{valuedResourcesId}/attackPaths
@@ -20101,8 +20103,8 @@ pub fn securitycenter_organizations_sources_get_iam_policy(
 pub fn securitycenter_organizations_sources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20247,9 +20249,9 @@ pub struct SecuritycenterOrganizationsSourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/sources
@@ -20290,7 +20292,7 @@ pub fn securitycenter_organizations_sources_list(
 pub fn securitycenter_organizations_sources_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20430,7 +20432,7 @@ pub struct SecuritycenterOrganizationsSourcesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/sources/{sourcesId}
@@ -20795,7 +20797,7 @@ pub fn securitycenter_organizations_sources_test_iam_permissions(
 pub fn securitycenter_organizations_sources_findings_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    findingId: &Option<Option<String>>,
+    findingId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20935,7 +20937,7 @@ pub struct SecuritycenterOrganizationsSourcesFindingsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: findingId
-    pub findingId: Option<Option<String>>,
+    pub findingId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/sources/{sourcesId}/findings
@@ -21138,13 +21140,13 @@ pub fn securitycenter_organizations_sources_findings_group(
 pub fn securitycenter_organizations_sources_findings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    compareDuration: &Option<Option<String>>,
-    fieldMask: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readTime: &Option<Option<String>>,
+    compareDuration: &Option<String>,
+    fieldMask: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21304,19 +21306,19 @@ pub struct SecuritycenterOrganizationsSourcesFindingsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: compareDuration
-    pub compareDuration: Option<Option<String>>,
+    pub compareDuration: Option<String>,
     /// Query parameter: fieldMask
-    pub fieldMask: Option<Option<String>>,
+    pub fieldMask: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readTime
-    pub readTime: Option<Option<String>>,
+    pub readTime: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}/findings
@@ -21362,7 +21364,7 @@ pub fn securitycenter_organizations_sources_findings_list(
 pub fn securitycenter_organizations_sources_findings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21502,7 +21504,7 @@ pub struct SecuritycenterOrganizationsSourcesFindingsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/sources/{sourcesId}/findings/{findingsId}
@@ -21862,8 +21864,8 @@ pub fn securitycenter_organizations_sources_findings_set_state(
 pub fn securitycenter_organizations_sources_findings_update_security_marks_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    startTime: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    startTime: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22008,9 +22010,9 @@ pub struct SecuritycenterOrganizationsSourcesFindingsUpdateSecurityMarksArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/sources/{sourcesId}/findings/{findingsId}/securityMarks
@@ -22051,7 +22053,7 @@ pub fn securitycenter_organizations_sources_findings_update_security_marks(
 pub fn securitycenter_organizations_sources_findings_external_systems_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22195,7 +22197,7 @@ pub struct SecuritycenterOrganizationsSourcesFindingsExternalSystemsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/sources/{sourcesId}/findings/{findingsId}/externalSystems/{externalSystemsId}
@@ -22237,10 +22239,10 @@ pub fn securitycenter_organizations_sources_findings_external_systems_patch(
 pub fn securitycenter_organizations_valued_resources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22393,13 +22395,13 @@ pub struct SecuritycenterOrganizationsValuedResourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/valuedResources
@@ -22608,13 +22610,13 @@ pub fn securitycenter_projects_assets_group(
 pub fn securitycenter_projects_assets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    compareDuration: &Option<Option<String>>,
-    fieldMask: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readTime: &Option<Option<String>>,
+    compareDuration: &Option<String>,
+    fieldMask: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22774,19 +22776,19 @@ pub struct SecuritycenterProjectsAssetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: compareDuration
-    pub compareDuration: Option<Option<String>>,
+    pub compareDuration: Option<String>,
     /// Query parameter: fieldMask
-    pub fieldMask: Option<Option<String>>,
+    pub fieldMask: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readTime
-    pub readTime: Option<Option<String>>,
+    pub readTime: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/assets
@@ -22832,8 +22834,8 @@ pub fn securitycenter_projects_assets_list(
 pub fn securitycenter_projects_assets_update_security_marks_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    startTime: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    startTime: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22978,9 +22980,9 @@ pub struct SecuritycenterProjectsAssetsUpdateSecurityMarksArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/assets/{assetsId}/securityMarks
@@ -23021,7 +23023,7 @@ pub fn securitycenter_projects_assets_update_security_marks(
 pub fn securitycenter_projects_big_query_exports_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bigQueryExportId: &Option<Option<String>>,
+    bigQueryExportId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23165,7 +23167,7 @@ pub struct SecuritycenterProjectsBigQueryExportsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bigQueryExportId
-    pub bigQueryExportId: Option<Option<String>>,
+    pub bigQueryExportId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/bigQueryExports
@@ -23535,8 +23537,8 @@ pub fn securitycenter_projects_big_query_exports_get(
 pub fn securitycenter_projects_big_query_exports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23683,9 +23685,9 @@ pub struct SecuritycenterProjectsBigQueryExportsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/bigQueryExports
@@ -23728,7 +23730,7 @@ pub fn securitycenter_projects_big_query_exports_list(
 pub fn securitycenter_projects_big_query_exports_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23872,7 +23874,7 @@ pub struct SecuritycenterProjectsBigQueryExportsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/bigQueryExports/{bigQueryExportsId}
@@ -24600,8 +24602,8 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_ge
 pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24750,9 +24752,9 @@ pub struct SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesListAr
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/eventThreatDetectionSettings/customModules
@@ -24798,8 +24800,8 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_li
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24953,9 +24955,9 @@ pub struct SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesListDe
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/eventThreatDetectionSettings/customModules:listDescendant
@@ -24998,7 +25000,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_li
 pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25143,7 +25145,7 @@ pub struct SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesPatchA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/eventThreatDetectionSettings/customModules/{customModulesId}
@@ -25363,8 +25365,8 @@ pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25521,9 +25523,9 @@ pub struct SecuritycenterProjectsEventThreatDetectionSettingsEffectiveCustomModu
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/eventThreatDetectionSettings/effectiveCustomModules
@@ -26055,7 +26057,7 @@ pub fn securitycenter_projects_locations_mute_configs_get(
 pub fn securitycenter_projects_locations_mute_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26199,7 +26201,7 @@ pub struct SecuritycenterProjectsLocationsMuteConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/muteConfigs/{muteConfigsId}
@@ -26241,7 +26243,7 @@ pub fn securitycenter_projects_locations_mute_configs_patch(
 pub fn securitycenter_projects_mute_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    muteConfigId: &Option<Option<String>>,
+    muteConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26385,7 +26387,7 @@ pub struct SecuritycenterProjectsMuteConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: muteConfigId
-    pub muteConfigId: Option<Option<String>>,
+    pub muteConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/muteConfigs
@@ -26755,8 +26757,8 @@ pub fn securitycenter_projects_mute_configs_get(
 pub fn securitycenter_projects_mute_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26901,9 +26903,9 @@ pub struct SecuritycenterProjectsMuteConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/muteConfigs
@@ -26944,7 +26946,7 @@ pub fn securitycenter_projects_mute_configs_list(
 pub fn securitycenter_projects_mute_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27088,7 +27090,7 @@ pub struct SecuritycenterProjectsMuteConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/muteConfigs/{muteConfigsId}
@@ -27127,7 +27129,7 @@ pub fn securitycenter_projects_mute_configs_patch(
 pub fn securitycenter_projects_notification_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    configId: &Option<Option<String>>,
+    configId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27269,7 +27271,7 @@ pub struct SecuritycenterProjectsNotificationConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: configId
-    pub configId: Option<Option<String>>,
+    pub configId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/notificationConfigs
@@ -27633,8 +27635,8 @@ pub fn securitycenter_projects_notification_configs_get(
 pub fn securitycenter_projects_notification_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27781,9 +27783,9 @@ pub struct SecuritycenterProjectsNotificationConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/notificationConfigs
@@ -27826,7 +27828,7 @@ pub fn securitycenter_projects_notification_configs_list(
 pub fn securitycenter_projects_notification_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27968,7 +27970,7 @@ pub struct SecuritycenterProjectsNotificationConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/notificationConfigs/{notificationConfigsId}
@@ -28546,8 +28548,8 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28697,9 +28699,9 @@ pub struct SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesLis
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/securityHealthAnalyticsSettings/customModules
@@ -28745,8 +28747,8 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28900,9 +28902,9 @@ pub struct SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesLis
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/securityHealthAnalyticsSettings/customModules:listDescendant
@@ -28943,7 +28945,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29097,7 +29099,7 @@ pub struct SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesPat
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/securityHealthAnalyticsSettings/customModules/{customModulesId}
@@ -29510,8 +29512,8 @@ pub fn securitycenter_projects_security_health_analytics_settings_effective_cust
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29665,9 +29667,9 @@ pub struct SecuritycenterProjectsSecurityHealthAnalyticsSettingsEffectiveCustomM
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/securityHealthAnalyticsSettings/effectiveCustomModules
@@ -29710,8 +29712,8 @@ pub fn securitycenter_projects_security_health_analytics_settings_effective_cust
 pub fn securitycenter_projects_sources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29856,9 +29858,9 @@ pub struct SecuritycenterProjectsSourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/sources
@@ -30063,13 +30065,13 @@ pub fn securitycenter_projects_sources_findings_group(
 pub fn securitycenter_projects_sources_findings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    compareDuration: &Option<Option<String>>,
-    fieldMask: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readTime: &Option<Option<String>>,
+    compareDuration: &Option<String>,
+    fieldMask: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30229,19 +30231,19 @@ pub struct SecuritycenterProjectsSourcesFindingsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: compareDuration
-    pub compareDuration: Option<Option<String>>,
+    pub compareDuration: Option<String>,
     /// Query parameter: fieldMask
-    pub fieldMask: Option<Option<String>>,
+    pub fieldMask: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readTime
-    pub readTime: Option<Option<String>>,
+    pub readTime: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/sources/{sourcesId}/findings
@@ -30287,7 +30289,7 @@ pub fn securitycenter_projects_sources_findings_list(
 pub fn securitycenter_projects_sources_findings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30427,7 +30429,7 @@ pub struct SecuritycenterProjectsSourcesFindingsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/sources/{sourcesId}/findings/{findingsId}
@@ -30785,8 +30787,8 @@ pub fn securitycenter_projects_sources_findings_set_state(
 pub fn securitycenter_projects_sources_findings_update_security_marks_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    startTime: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    startTime: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30931,9 +30933,9 @@ pub struct SecuritycenterProjectsSourcesFindingsUpdateSecurityMarksArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/sources/{sourcesId}/findings/{findingsId}/securityMarks
@@ -30974,7 +30976,7 @@ pub fn securitycenter_projects_sources_findings_update_security_marks(
 pub fn securitycenter_projects_sources_findings_external_systems_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31118,7 +31120,7 @@ pub struct SecuritycenterProjectsSourcesFindingsExternalSystemsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/sources/{sourcesId}/findings/{findingsId}/externalSystems/{externalSystemsId}

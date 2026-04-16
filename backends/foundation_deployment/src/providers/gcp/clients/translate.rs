@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -194,8 +196,8 @@ pub fn translate_projects_detect_language(
 pub fn translate_projects_get_supported_languages_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    displayLanguageCode: &Option<Option<String>>,
-    model: &Option<Option<String>>,
+    displayLanguageCode: &Option<String>,
+    model: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -340,9 +342,9 @@ pub struct TranslateProjectsGetSupportedLanguagesArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: displayLanguageCode
-    pub displayLanguageCode: Option<Option<String>>,
+    pub displayLanguageCode: Option<String>,
     /// Query parameter: model
-    pub model: Option<Option<String>>,
+    pub model: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/supportedLanguages
@@ -1524,8 +1526,8 @@ pub fn translate_projects_locations_get(
 pub fn translate_projects_locations_get_supported_languages_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    displayLanguageCode: &Option<Option<String>>,
-    model: &Option<Option<String>>,
+    displayLanguageCode: &Option<String>,
+    model: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1670,9 +1672,9 @@ pub struct TranslateProjectsLocationsGetSupportedLanguagesArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: displayLanguageCode
-    pub displayLanguageCode: Option<Option<String>>,
+    pub displayLanguageCode: Option<String>,
     /// Query parameter: model
-    pub model: Option<Option<String>>,
+    pub model: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/supportedLanguages
@@ -1713,10 +1715,10 @@ pub fn translate_projects_locations_get_supported_languages(
 pub fn translate_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1867,13 +1869,13 @@ pub struct TranslateProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations
@@ -3236,9 +3238,9 @@ pub fn translate_projects_locations_adaptive_mt_datasets_import_adaptive_mt_file
 pub fn translate_projects_locations_adaptive_mt_datasets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3388,11 +3390,11 @@ pub struct TranslateProjectsLocationsAdaptiveMtDatasetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets
@@ -3767,8 +3769,8 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_get(
 pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3916,9 +3918,9 @@ pub struct TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles
@@ -3963,8 +3965,8 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adapt
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4111,9 +4113,9 @@ pub struct TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtFilesAdaptiveMt
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtFiles/{adaptiveMtFilesId}/adaptiveMtSentences
@@ -4151,8 +4153,8 @@ pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_files_adapt
 pub fn translate_projects_locations_adaptive_mt_datasets_adaptive_mt_sentences_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4300,9 +4302,9 @@ pub struct TranslateProjectsLocationsAdaptiveMtDatasetsAdaptiveMtSentencesListAr
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/adaptiveMtDatasets/{adaptiveMtDatasetsId}/adaptiveMtSentences
@@ -5146,8 +5148,8 @@ pub fn translate_projects_locations_datasets_import_data(
 pub fn translate_projects_locations_datasets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5292,9 +5294,9 @@ pub struct TranslateProjectsLocationsDatasetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/datasets
@@ -5335,9 +5337,9 @@ pub fn translate_projects_locations_datasets_list(
 pub fn translate_projects_locations_datasets_examples_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5485,11 +5487,11 @@ pub struct TranslateProjectsLocationsDatasetsExamplesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/examples
@@ -6011,9 +6013,9 @@ pub fn translate_projects_locations_glossaries_get(
 pub fn translate_projects_locations_glossaries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6161,11 +6163,11 @@ pub struct TranslateProjectsLocationsGlossariesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries
@@ -6207,7 +6209,7 @@ pub fn translate_projects_locations_glossaries_list(
 pub fn translate_projects_locations_glossaries_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6347,7 +6349,7 @@ pub struct TranslateProjectsLocationsGlossariesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
@@ -6879,8 +6881,8 @@ pub fn translate_projects_locations_glossaries_glossary_entries_get(
 pub fn translate_projects_locations_glossaries_glossary_entries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7027,9 +7029,9 @@ pub struct TranslateProjectsLocationsGlossariesGlossaryEntriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/glossaryEntries
@@ -7717,9 +7719,9 @@ pub fn translate_projects_locations_models_get(
 pub fn translate_projects_locations_models_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7867,11 +7869,11 @@ pub struct TranslateProjectsLocationsModelsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/models
@@ -8393,10 +8395,10 @@ pub fn translate_projects_locations_operations_get(
 pub fn translate_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8547,13 +8549,13 @@ pub struct TranslateProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations

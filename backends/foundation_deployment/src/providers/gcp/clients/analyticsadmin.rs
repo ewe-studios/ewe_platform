@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,8 +31,8 @@ use serde::Serialize;
 
 pub fn analyticsadmin_account_summaries_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -179,9 +181,9 @@ pub fn analyticsadmin_account_summaries_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AnalyticsadminAccountSummariesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta/accountSummaries
@@ -723,9 +725,9 @@ pub fn analyticsadmin_accounts_get_data_sharing_settings(
 
 pub fn analyticsadmin_accounts_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -871,11 +873,11 @@ pub fn analyticsadmin_accounts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AnalyticsadminAccountsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v1beta/accounts
@@ -918,7 +920,7 @@ pub fn analyticsadmin_accounts_list(
 pub fn analyticsadmin_accounts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1062,7 +1064,7 @@ pub struct AnalyticsadminAccountsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta/accounts/{accountsId}
@@ -2458,10 +2460,10 @@ pub fn analyticsadmin_properties_get_data_retention_settings(
 
 pub fn analyticsadmin_properties_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2610,13 +2612,13 @@ pub fn analyticsadmin_properties_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AnalyticsadminPropertiesListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v1beta/properties
@@ -2660,7 +2662,7 @@ pub fn analyticsadmin_properties_list(
 pub fn analyticsadmin_properties_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2804,7 +2806,7 @@ pub struct AnalyticsadminPropertiesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta/properties/{propertiesId}
@@ -3014,7 +3016,7 @@ pub fn analyticsadmin_properties_run_access_report(
 pub fn analyticsadmin_properties_update_data_retention_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3159,7 +3161,7 @@ pub struct AnalyticsadminPropertiesUpdateDataRetentionSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta/properties/{propertiesId}/dataRetentionSettings
@@ -3701,8 +3703,8 @@ pub fn analyticsadmin_properties_conversion_events_get(
 pub fn analyticsadmin_properties_conversion_events_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3856,9 +3858,9 @@ pub struct AnalyticsadminPropertiesConversionEventsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta/properties/{propertiesId}/conversionEvents
@@ -3904,7 +3906,7 @@ pub fn analyticsadmin_properties_conversion_events_list(
 pub fn analyticsadmin_properties_conversion_events_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4048,7 +4050,7 @@ pub struct AnalyticsadminPropertiesConversionEventsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
@@ -4590,8 +4592,8 @@ pub fn analyticsadmin_properties_custom_dimensions_get(
 pub fn analyticsadmin_properties_custom_dimensions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4745,9 +4747,9 @@ pub struct AnalyticsadminPropertiesCustomDimensionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta/properties/{propertiesId}/customDimensions
@@ -4793,7 +4795,7 @@ pub fn analyticsadmin_properties_custom_dimensions_list(
 pub fn analyticsadmin_properties_custom_dimensions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4937,7 +4939,7 @@ pub struct AnalyticsadminPropertiesCustomDimensionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}
@@ -5479,8 +5481,8 @@ pub fn analyticsadmin_properties_custom_metrics_get(
 pub fn analyticsadmin_properties_custom_metrics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5631,9 +5633,9 @@ pub struct AnalyticsadminPropertiesCustomMetricsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta/properties/{propertiesId}/customMetrics
@@ -5676,7 +5678,7 @@ pub fn analyticsadmin_properties_custom_metrics_list(
 pub fn analyticsadmin_properties_custom_metrics_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5820,7 +5822,7 @@ pub struct AnalyticsadminPropertiesCustomMetricsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}
@@ -6362,8 +6364,8 @@ pub fn analyticsadmin_properties_data_streams_get(
 pub fn analyticsadmin_properties_data_streams_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6514,9 +6516,9 @@ pub struct AnalyticsadminPropertiesDataStreamsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta/properties/{propertiesId}/dataStreams
@@ -6559,7 +6561,7 @@ pub fn analyticsadmin_properties_data_streams_list(
 pub fn analyticsadmin_properties_data_streams_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6703,7 +6705,7 @@ pub struct AnalyticsadminPropertiesDataStreamsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
@@ -7262,8 +7264,8 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_get(
 pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7418,9 +7420,9 @@ pub struct AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsListArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets
@@ -7466,7 +7468,7 @@ pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list(
 pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7615,7 +7617,7 @@ pub struct AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsPatchArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
@@ -7990,8 +7992,8 @@ pub fn analyticsadmin_properties_firebase_links_delete(
 pub fn analyticsadmin_properties_firebase_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8142,9 +8144,9 @@ pub struct AnalyticsadminPropertiesFirebaseLinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta/properties/{propertiesId}/firebaseLinks
@@ -8520,8 +8522,8 @@ pub fn analyticsadmin_properties_google_ads_links_delete(
 pub fn analyticsadmin_properties_google_ads_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8672,9 +8674,9 @@ pub struct AnalyticsadminPropertiesGoogleAdsLinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta/properties/{propertiesId}/googleAdsLinks
@@ -8717,7 +8719,7 @@ pub fn analyticsadmin_properties_google_ads_links_list(
 pub fn analyticsadmin_properties_google_ads_links_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8862,7 +8864,7 @@ pub struct AnalyticsadminPropertiesGoogleAdsLinksPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta/properties/{propertiesId}/googleAdsLinks/{googleAdsLinksId}
@@ -9404,8 +9406,8 @@ pub fn analyticsadmin_properties_key_events_get(
 pub fn analyticsadmin_properties_key_events_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9553,9 +9555,9 @@ pub struct AnalyticsadminPropertiesKeyEventsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta/properties/{propertiesId}/keyEvents
@@ -9598,7 +9600,7 @@ pub fn analyticsadmin_properties_key_events_list(
 pub fn analyticsadmin_properties_key_events_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9742,7 +9744,7 @@ pub struct AnalyticsadminPropertiesKeyEventsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
@@ -9929,34 +9931,6 @@ impl ResourceIdentifier<AnalyticsadminAccountsPatchArgs> for GoogleAnalyticsAdmi
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse with AnalyticsadminAccountsProvisionAccountTicketArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AnalyticsadminAccountsProvisionAccountTicketArgs>
-    for GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &AnalyticsadminAccountsProvisionAccountTicketArgs,
-    ) -> String {
-        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaRunAccessReportResponse
 // =============================================================================
 
@@ -10036,29 +10010,6 @@ impl ResourceIdentifier<AnalyticsadminPropertiesAcknowledgeUserDataCollectionArg
 
     fn resource_kind(&self) -> &'static str {
         "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProperty
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProperty with AnalyticsadminPropertiesCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AnalyticsadminPropertiesCreateArgs> for GoogleAnalyticsAdminV1betaProperty {
-    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesCreateArgs) -> String {
-        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProperty".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProperty"
     }
 
     fn provider(&self) -> &'static str {

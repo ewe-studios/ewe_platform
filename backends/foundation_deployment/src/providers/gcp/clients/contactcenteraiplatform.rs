@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -351,10 +353,10 @@ pub fn contactcenteraiplatform_projects_locations_get(
 pub fn contactcenteraiplatform_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -505,13 +507,13 @@ pub struct ContactcenteraiplatformProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/projects/{projectsId}/locations
@@ -721,8 +723,8 @@ pub fn contactcenteraiplatform_projects_locations_query_contact_center_quota(
 pub fn contactcenteraiplatform_projects_locations_contact_centers_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    contactCenterId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    contactCenterId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -865,9 +867,9 @@ pub struct ContactcenteraiplatformProjectsLocationsContactCentersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: contactCenterId
-    pub contactCenterId: Option<Option<String>>,
+    pub contactCenterId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1alpha1/projects/{projectsId}/locations/{locationsId}/contactCenters
@@ -906,7 +908,7 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_create(
 pub fn contactcenteraiplatform_projects_locations_contact_centers_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1046,7 +1048,7 @@ pub struct ContactcenteraiplatformProjectsLocationsContactCentersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1alpha1/projects/{projectsId}/locations/{locationsId}/contactCenters/{contactCentersId}
@@ -1249,10 +1251,10 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_get(
 pub fn contactcenteraiplatform_projects_locations_contact_centers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1405,13 +1407,13 @@ pub struct ContactcenteraiplatformProjectsLocationsContactCentersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}/contactCenters
@@ -1456,8 +1458,8 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_list(
 pub fn contactcenteraiplatform_projects_locations_contact_centers_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1600,9 +1602,9 @@ pub struct ContactcenteraiplatformProjectsLocationsContactCentersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1alpha1/projects/{projectsId}/locations/{locationsId}/contactCenters/{contactCentersId}
@@ -2124,10 +2126,10 @@ pub fn contactcenteraiplatform_projects_locations_operations_get(
 pub fn contactcenteraiplatform_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2278,13 +2280,13 @@ pub struct ContactcenteraiplatformProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}/operations

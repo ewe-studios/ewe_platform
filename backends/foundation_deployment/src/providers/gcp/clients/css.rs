@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,7 +32,7 @@ use serde::Serialize;
 pub fn css_accounts_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -167,7 +169,7 @@ pub struct CssAccountsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}
@@ -201,10 +203,10 @@ pub fn css_accounts_get(
 pub fn css_accounts_list_child_accounts_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    fullName: &Option<Option<String>>,
-    labelId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    fullName: &Option<String>,
+    labelId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -355,13 +357,13 @@ pub struct CssAccountsListChildAccountsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: fullName
-    pub fullName: Option<Option<String>>,
+    pub fullName: Option<String>,
     /// Query parameter: labelId
-    pub labelId: Option<Option<String>>,
+    pub labelId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}:listChildAccounts
@@ -564,7 +566,7 @@ pub fn css_accounts_update_labels(
 pub fn css_accounts_css_product_inputs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    supplementalFeedId: &Option<Option<String>>,
+    supplementalFeedId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -704,7 +706,7 @@ pub struct CssAccountsCssProductInputsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: supplementalFeedId
-    pub supplementalFeedId: Option<Option<String>>,
+    pub supplementalFeedId: Option<String>,
 }
 
 /// DELETE v1/accounts/{accountsId}/cssProductInputs/{cssProductInputsId}
@@ -742,7 +744,7 @@ pub fn css_accounts_css_product_inputs_delete(
 pub fn css_accounts_css_product_inputs_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    feedId: &Option<Option<String>>,
+    feedId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -884,7 +886,7 @@ pub struct CssAccountsCssProductInputsInsertArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: feedId
-    pub feedId: Option<Option<String>>,
+    pub feedId: Option<String>,
 }
 
 /// POST v1/accounts/{accountsId}/cssProductInputs:insert
@@ -921,7 +923,7 @@ pub fn css_accounts_css_product_inputs_insert(
 pub fn css_accounts_css_product_inputs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1063,7 +1065,7 @@ pub struct CssAccountsCssProductInputsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/accounts/{accountsId}/cssProductInputs/{cssProductInputsId}
@@ -1260,8 +1262,8 @@ pub fn css_accounts_css_products_get(
 pub fn css_accounts_css_products_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1406,9 +1408,9 @@ pub struct CssAccountsCssProductsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/cssProducts
@@ -1770,8 +1772,8 @@ pub fn css_accounts_labels_delete(
 pub fn css_accounts_labels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1913,9 +1915,9 @@ pub struct CssAccountsLabelsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/labels
@@ -2116,8 +2118,8 @@ pub fn css_accounts_labels_patch(
 pub fn css_accounts_quotas_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2259,9 +2261,9 @@ pub struct CssAccountsQuotasListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/quotas

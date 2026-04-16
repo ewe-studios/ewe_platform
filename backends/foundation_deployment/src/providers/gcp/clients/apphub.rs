@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -519,10 +521,10 @@ pub fn apphub_projects_locations_get_boundary(
 pub fn apphub_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -673,13 +675,13 @@ pub struct ApphubProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -891,8 +893,8 @@ pub fn apphub_projects_locations_lookup_service_project_attachment(
 pub fn apphub_projects_locations_update_boundary_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1035,9 +1037,9 @@ pub struct ApphubProjectsLocationsUpdateBoundaryArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/boundary
@@ -1076,8 +1078,8 @@ pub fn apphub_projects_locations_update_boundary(
 pub fn apphub_projects_locations_applications_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    applicationId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    applicationId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1220,9 +1222,9 @@ pub struct ApphubProjectsLocationsApplicationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: applicationId
-    pub applicationId: Option<Option<String>>,
+    pub applicationId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/applications
@@ -1261,7 +1263,7 @@ pub fn apphub_projects_locations_applications_create(
 pub fn apphub_projects_locations_applications_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1401,7 +1403,7 @@ pub struct ApphubProjectsLocationsApplicationsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}
@@ -1596,7 +1598,7 @@ pub fn apphub_projects_locations_applications_get(
 pub fn apphub_projects_locations_applications_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1736,7 +1738,7 @@ pub struct ApphubProjectsLocationsApplicationsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}:getIamPolicy
@@ -1774,10 +1776,10 @@ pub fn apphub_projects_locations_applications_get_iam_policy(
 pub fn apphub_projects_locations_applications_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1928,13 +1930,13 @@ pub struct ApphubProjectsLocationsApplicationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications
@@ -1977,8 +1979,8 @@ pub fn apphub_projects_locations_applications_list(
 pub fn apphub_projects_locations_applications_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2121,9 +2123,9 @@ pub struct ApphubProjectsLocationsApplicationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}
@@ -2494,8 +2496,8 @@ pub fn apphub_projects_locations_applications_test_iam_permissions(
 pub fn apphub_projects_locations_applications_services_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    serviceId: &Option<Option<String>>,
+    requestId: &Option<String>,
+    serviceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2638,9 +2640,9 @@ pub struct ApphubProjectsLocationsApplicationsServicesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: serviceId
-    pub serviceId: Option<Option<String>>,
+    pub serviceId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services
@@ -2679,7 +2681,7 @@ pub fn apphub_projects_locations_applications_services_create(
 pub fn apphub_projects_locations_applications_services_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2819,7 +2821,7 @@ pub struct ApphubProjectsLocationsApplicationsServicesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}
@@ -3017,10 +3019,10 @@ pub fn apphub_projects_locations_applications_services_get(
 pub fn apphub_projects_locations_applications_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3171,13 +3173,13 @@ pub struct ApphubProjectsLocationsApplicationsServicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services
@@ -3220,8 +3222,8 @@ pub fn apphub_projects_locations_applications_services_list(
 pub fn apphub_projects_locations_applications_services_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3364,9 +3366,9 @@ pub struct ApphubProjectsLocationsApplicationsServicesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}
@@ -3405,8 +3407,8 @@ pub fn apphub_projects_locations_applications_services_patch(
 pub fn apphub_projects_locations_applications_workloads_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    workloadId: &Option<Option<String>>,
+    requestId: &Option<String>,
+    workloadId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3549,9 +3551,9 @@ pub struct ApphubProjectsLocationsApplicationsWorkloadsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: workloadId
-    pub workloadId: Option<Option<String>>,
+    pub workloadId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/workloads
@@ -3590,7 +3592,7 @@ pub fn apphub_projects_locations_applications_workloads_create(
 pub fn apphub_projects_locations_applications_workloads_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3730,7 +3732,7 @@ pub struct ApphubProjectsLocationsApplicationsWorkloadsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/workloads/{workloadsId}
@@ -3928,10 +3930,10 @@ pub fn apphub_projects_locations_applications_workloads_get(
 pub fn apphub_projects_locations_applications_workloads_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4082,13 +4084,13 @@ pub struct ApphubProjectsLocationsApplicationsWorkloadsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/workloads
@@ -4131,8 +4133,8 @@ pub fn apphub_projects_locations_applications_workloads_list(
 pub fn apphub_projects_locations_applications_workloads_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4275,9 +4277,9 @@ pub struct ApphubProjectsLocationsApplicationsWorkloadsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/workloads/{workloadsId}
@@ -4480,10 +4482,10 @@ pub fn apphub_projects_locations_discovered_services_get(
 pub fn apphub_projects_locations_discovered_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4636,13 +4638,13 @@ pub struct ApphubProjectsLocationsDiscoveredServicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredServices
@@ -4687,7 +4689,7 @@ pub fn apphub_projects_locations_discovered_services_list(
 pub fn apphub_projects_locations_discovered_services_lookup_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    uri: &Option<Option<String>>,
+    uri: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4831,7 +4833,7 @@ pub struct ApphubProjectsLocationsDiscoveredServicesLookupArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: uri
-    pub uri: Option<Option<String>>,
+    pub uri: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredServices:lookup
@@ -5037,10 +5039,10 @@ pub fn apphub_projects_locations_discovered_workloads_get(
 pub fn apphub_projects_locations_discovered_workloads_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5193,13 +5195,13 @@ pub struct ApphubProjectsLocationsDiscoveredWorkloadsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredWorkloads
@@ -5244,7 +5246,7 @@ pub fn apphub_projects_locations_discovered_workloads_list(
 pub fn apphub_projects_locations_discovered_workloads_lookup_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    uri: &Option<Option<String>>,
+    uri: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5388,7 +5390,7 @@ pub struct ApphubProjectsLocationsDiscoveredWorkloadsLookupArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: uri
-    pub uri: Option<Option<String>>,
+    pub uri: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredWorkloads:lookup
@@ -5595,8 +5597,8 @@ pub fn apphub_projects_locations_extended_metadata_schemas_get(
 pub fn apphub_projects_locations_extended_metadata_schemas_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5743,9 +5745,9 @@ pub struct ApphubProjectsLocationsExtendedMetadataSchemasListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/extendedMetadataSchemas
@@ -6268,10 +6270,10 @@ pub fn apphub_projects_locations_operations_get(
 pub fn apphub_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6422,13 +6424,13 @@ pub struct ApphubProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -6471,8 +6473,8 @@ pub fn apphub_projects_locations_operations_list(
 pub fn apphub_projects_locations_service_project_attachments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    serviceProjectAttachmentId: &Option<Option<String>>,
+    requestId: &Option<String>,
+    serviceProjectAttachmentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6615,9 +6617,9 @@ pub struct ApphubProjectsLocationsServiceProjectAttachmentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: serviceProjectAttachmentId
-    pub serviceProjectAttachmentId: Option<Option<String>>,
+    pub serviceProjectAttachmentId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/serviceProjectAttachments
@@ -6656,7 +6658,7 @@ pub fn apphub_projects_locations_service_project_attachments_create(
 pub fn apphub_projects_locations_service_project_attachments_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6796,7 +6798,7 @@ pub struct ApphubProjectsLocationsServiceProjectAttachmentsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/serviceProjectAttachments/{serviceProjectAttachmentsId}
@@ -6999,10 +7001,10 @@ pub fn apphub_projects_locations_service_project_attachments_get(
 pub fn apphub_projects_locations_service_project_attachments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7155,13 +7157,13 @@ pub struct ApphubProjectsLocationsServiceProjectAttachmentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceProjectAttachments

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,10 +32,10 @@ use serde::Serialize;
 pub fn kmsinventory_organizations_protected_resources_search_builder<R>(
     client: &SimpleHttpClient<R>,
     scope: &String,
-    cryptoKey: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resourceTypes: &Option<Option<String>>,
+    cryptoKey: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    resourceTypes: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -193,13 +195,13 @@ pub struct KmsinventoryOrganizationsProtectedResourcesSearchArgs {
     /// Path parameter: scope
     pub scope: String,
     /// Query parameter: cryptoKey
-    pub cryptoKey: Option<Option<String>>,
+    pub cryptoKey: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resourceTypes
-    pub resourceTypes: Option<Option<String>>,
+    pub resourceTypes: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/protectedResources:search
@@ -247,8 +249,8 @@ pub fn kmsinventory_organizations_protected_resources_search(
 pub fn kmsinventory_projects_crypto_keys_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -396,9 +398,9 @@ pub struct KmsinventoryProjectsCryptoKeysListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/cryptoKeys
@@ -443,7 +445,7 @@ pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resou
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    fallbackScope: &Option<Option<String>>,
+    fallbackScope: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -594,7 +596,7 @@ pub struct KmsinventoryProjectsLocationsKeyRingsCryptoKeysGetProtectedResourcesS
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fallbackScope
-    pub fallbackScope: Option<Option<String>>,
+    pub fallbackScope: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/protectedResourcesSummary
@@ -634,10 +636,10 @@ pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resou
 pub fn kmsinventory_projects_protected_resources_search_builder<R>(
     client: &SimpleHttpClient<R>,
     scope: &String,
-    cryptoKey: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resourceTypes: &Option<Option<String>>,
+    cryptoKey: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    resourceTypes: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -797,13 +799,13 @@ pub struct KmsinventoryProjectsProtectedResourcesSearchArgs {
     /// Path parameter: scope
     pub scope: String,
     /// Query parameter: cryptoKey
-    pub cryptoKey: Option<Option<String>>,
+    pub cryptoKey: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resourceTypes
-    pub resourceTypes: Option<Option<String>>,
+    pub resourceTypes: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/protectedResources:search

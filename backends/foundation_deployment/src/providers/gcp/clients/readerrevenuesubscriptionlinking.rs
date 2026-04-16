@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,7 +32,7 @@ use serde::Serialize;
 pub fn readerrevenuesubscriptionlinking_publications_readers_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -172,7 +174,7 @@ pub struct ReaderrevenuesubscriptionlinkingPublicationsReadersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/publications/{publicationsId}/readers/{readersId}
@@ -540,7 +542,7 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_get_entitlements(
 pub fn readerrevenuesubscriptionlinking_publications_readers_update_entitlements_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -683,7 +685,7 @@ pub struct ReaderrevenuesubscriptionlinkingPublicationsReadersUpdateEntitlements
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/publications/{publicationsId}/readers/{readersId}/entitlements

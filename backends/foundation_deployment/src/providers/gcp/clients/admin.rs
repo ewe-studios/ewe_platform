@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -31,21 +33,21 @@ pub fn reports_activities_list_builder<R>(
     client: &SimpleHttpClient<R>,
     userKey: &String,
     applicationName: &String,
-    actorIpAddress: &Option<Option<String>>,
-    applicationInfoFilter: &Option<Option<String>>,
-    customerId: &Option<Option<String>>,
-    endTime: &Option<Option<String>>,
-    eventName: &Option<Option<String>>,
-    filters: &Option<Option<String>>,
-    groupIdFilter: &Option<Option<String>>,
-    includeSensitiveData: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    networkInfoFilter: &Option<Option<String>>,
-    orgUnitID: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resourceDetailsFilter: &Option<Option<String>>,
-    startTime: &Option<Option<String>>,
-    statusFilter: &Option<Option<String>>,
+    actorIpAddress: &Option<String>,
+    applicationInfoFilter: &Option<String>,
+    customerId: &Option<String>,
+    endTime: &Option<String>,
+    eventName: &Option<String>,
+    filters: &Option<String>,
+    groupIdFilter: &Option<String>,
+    includeSensitiveData: &Option<String>,
+    maxResults: &Option<String>,
+    networkInfoFilter: &Option<String>,
+    orgUnitID: &Option<String>,
+    pageToken: &Option<String>,
+    resourceDetailsFilter: &Option<String>,
+    startTime: &Option<String>,
+    statusFilter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -229,35 +231,35 @@ pub struct ReportsActivitiesListArgs {
     /// Path parameter: applicationName
     pub applicationName: String,
     /// Query parameter: actorIpAddress
-    pub actorIpAddress: Option<Option<String>>,
+    pub actorIpAddress: Option<String>,
     /// Query parameter: applicationInfoFilter
-    pub applicationInfoFilter: Option<Option<String>>,
+    pub applicationInfoFilter: Option<String>,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
     /// Query parameter: endTime
-    pub endTime: Option<Option<String>>,
+    pub endTime: Option<String>,
     /// Query parameter: eventName
-    pub eventName: Option<Option<String>>,
+    pub eventName: Option<String>,
     /// Query parameter: filters
-    pub filters: Option<Option<String>>,
+    pub filters: Option<String>,
     /// Query parameter: groupIdFilter
-    pub groupIdFilter: Option<Option<String>>,
+    pub groupIdFilter: Option<String>,
     /// Query parameter: includeSensitiveData
-    pub includeSensitiveData: Option<Option<String>>,
+    pub includeSensitiveData: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: networkInfoFilter
-    pub networkInfoFilter: Option<Option<String>>,
+    pub networkInfoFilter: Option<String>,
     /// Query parameter: orgUnitID
-    pub orgUnitID: Option<Option<String>>,
+    pub orgUnitID: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resourceDetailsFilter
-    pub resourceDetailsFilter: Option<Option<String>>,
+    pub resourceDetailsFilter: Option<String>,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
     /// Query parameter: statusFilter
-    pub statusFilter: Option<Option<String>>,
+    pub statusFilter: Option<String>,
 }
 
 /// GET admin/reports/v1/activity/users/{userKey}/applications/{applicationName}
@@ -311,16 +313,16 @@ pub fn reports_activities_watch_builder<R>(
     client: &SimpleHttpClient<R>,
     userKey: &String,
     applicationName: &String,
-    actorIpAddress: &Option<Option<String>>,
-    customerId: &Option<Option<String>>,
-    endTime: &Option<Option<String>>,
-    eventName: &Option<Option<String>>,
-    filters: &Option<Option<String>>,
-    groupIdFilter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orgUnitID: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startTime: &Option<Option<String>>,
+    actorIpAddress: &Option<String>,
+    customerId: &Option<String>,
+    endTime: &Option<String>,
+    eventName: &Option<String>,
+    filters: &Option<String>,
+    groupIdFilter: &Option<String>,
+    maxResults: &Option<String>,
+    orgUnitID: &Option<String>,
+    pageToken: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -489,25 +491,25 @@ pub struct ReportsActivitiesWatchArgs {
     /// Path parameter: applicationName
     pub applicationName: String,
     /// Query parameter: actorIpAddress
-    pub actorIpAddress: Option<Option<String>>,
+    pub actorIpAddress: Option<String>,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
     /// Query parameter: endTime
-    pub endTime: Option<Option<String>>,
+    pub endTime: Option<String>,
     /// Query parameter: eventName
-    pub eventName: Option<Option<String>>,
+    pub eventName: Option<String>,
     /// Query parameter: filters
-    pub filters: Option<Option<String>>,
+    pub filters: Option<String>,
     /// Query parameter: groupIdFilter
-    pub groupIdFilter: Option<Option<String>>,
+    pub groupIdFilter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orgUnitID
-    pub orgUnitID: Option<Option<String>>,
+    pub orgUnitID: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
 }
 
 /// POST admin/reports/v1/activity/users/{userKey}/applications/{applicationName}/watch
@@ -700,9 +702,9 @@ pub fn admin_channels_stop(
 pub fn reports_customer_usage_reports_get_builder<R>(
     client: &SimpleHttpClient<R>,
     date: &String,
-    customerId: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parameters: &Option<Option<String>>,
+    customerId: &Option<String>,
+    pageToken: &Option<String>,
+    parameters: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -850,11 +852,11 @@ pub struct ReportsCustomerUsageReportsGetArgs {
     /// Path parameter: date
     pub date: String,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parameters
-    pub parameters: Option<Option<String>>,
+    pub parameters: Option<String>,
 }
 
 /// GET admin/reports/v1/usage/dates/{date}
@@ -898,11 +900,11 @@ pub fn reports_entity_usage_reports_get_builder<R>(
     entityType: &String,
     entityKey: &String,
     date: &String,
-    customerId: &Option<Option<String>>,
-    filters: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parameters: &Option<Option<String>>,
+    customerId: &Option<String>,
+    filters: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    parameters: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1060,15 +1062,15 @@ pub struct ReportsEntityUsageReportsGetArgs {
     /// Path parameter: date
     pub date: String,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
     /// Query parameter: filters
-    pub filters: Option<Option<String>>,
+    pub filters: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parameters
-    pub parameters: Option<Option<String>>,
+    pub parameters: Option<String>,
 }
 
 /// GET admin/reports/v1/usage/{entityType}/{entityKey}/dates/{date}
@@ -1115,13 +1117,13 @@ pub fn reports_user_usage_report_get_builder<R>(
     client: &SimpleHttpClient<R>,
     userKey: &String,
     date: &String,
-    customerId: &Option<Option<String>>,
-    filters: &Option<Option<String>>,
-    groupIdFilter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orgUnitID: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parameters: &Option<Option<String>>,
+    customerId: &Option<String>,
+    filters: &Option<String>,
+    groupIdFilter: &Option<String>,
+    maxResults: &Option<String>,
+    orgUnitID: &Option<String>,
+    pageToken: &Option<String>,
+    parameters: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1283,19 +1285,19 @@ pub struct ReportsUserUsageReportGetArgs {
     /// Path parameter: date
     pub date: String,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
     /// Query parameter: filters
-    pub filters: Option<Option<String>>,
+    pub filters: Option<String>,
     /// Query parameter: groupIdFilter
-    pub groupIdFilter: Option<Option<String>>,
+    pub groupIdFilter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orgUnitID
-    pub orgUnitID: Option<Option<String>>,
+    pub orgUnitID: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parameters
-    pub parameters: Option<Option<String>>,
+    pub parameters: Option<String>,
 }
 
 /// GET admin/reports/v1/usage/users/{userKey}/dates/{date}

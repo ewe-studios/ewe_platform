@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -503,11 +505,11 @@ pub fn serviceusage_operations_get(
 
 pub fn serviceusage_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    name: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -656,15 +658,15 @@ pub fn serviceusage_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ServiceusageOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/operations
@@ -867,7 +869,7 @@ pub fn serviceusage_services_batch_enable(
 pub fn serviceusage_services_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    names: &Option<Option<String>>,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1009,7 +1011,7 @@ pub struct ServiceusageServicesBatchGetArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: names
-    pub names: Option<Option<String>>,
+    pub names: Option<String>,
 }
 
 /// GET v1/{v1Id}/{v1Id1}/services:batchGet
@@ -1533,9 +1535,9 @@ pub fn serviceusage_services_get(
 pub fn serviceusage_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1683,11 +1685,11 @@ pub struct ServiceusageServicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/{v1Id}/{v1Id1}/services

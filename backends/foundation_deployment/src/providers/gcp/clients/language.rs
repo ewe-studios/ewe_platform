@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -779,119 +781,4 @@ pub fn language_documents_moderate_text(
 > {
     let builder = language_documents_moderate_text_builder(client)?;
     language_documents_moderate_text_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for AnalyzeEntitiesResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for AnalyzeEntitiesResponse with LanguageDocumentsAnalyzeEntitiesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<LanguageDocumentsAnalyzeEntitiesArgs> for AnalyzeEntitiesResponse {
-    fn generate_resource_id(&self, input: &LanguageDocumentsAnalyzeEntitiesArgs) -> String {
-        "gcp::language::AnalyzeEntitiesResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::language::AnalyzeEntitiesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for AnalyzeSentimentResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for AnalyzeSentimentResponse with LanguageDocumentsAnalyzeSentimentArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<LanguageDocumentsAnalyzeSentimentArgs> for AnalyzeSentimentResponse {
-    fn generate_resource_id(&self, input: &LanguageDocumentsAnalyzeSentimentArgs) -> String {
-        "gcp::language::AnalyzeSentimentResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::language::AnalyzeSentimentResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for AnnotateTextResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for AnnotateTextResponse with LanguageDocumentsAnnotateTextArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<LanguageDocumentsAnnotateTextArgs> for AnnotateTextResponse {
-    fn generate_resource_id(&self, input: &LanguageDocumentsAnnotateTextArgs) -> String {
-        "gcp::language::AnnotateTextResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::language::AnnotateTextResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ClassifyTextResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ClassifyTextResponse with LanguageDocumentsClassifyTextArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<LanguageDocumentsClassifyTextArgs> for ClassifyTextResponse {
-    fn generate_resource_id(&self, input: &LanguageDocumentsClassifyTextArgs) -> String {
-        "gcp::language::ClassifyTextResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::language::ClassifyTextResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ModerateTextResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ModerateTextResponse with LanguageDocumentsModerateTextArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<LanguageDocumentsModerateTextArgs> for ModerateTextResponse {
-    fn generate_resource_id(&self, input: &LanguageDocumentsModerateTextArgs) -> String {
-        "gcp::language::ModerateTextResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::language::ModerateTextResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }

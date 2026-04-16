@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,8 +31,8 @@ use serde::Serialize;
 
 pub fn youtube_analytics_group_items_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -170,9 +172,9 @@ pub fn youtube_analytics_group_items_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeAnalyticsGroupItemsDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// DELETE v2/groupItems
@@ -211,7 +213,7 @@ pub fn youtube_analytics_group_items_delete(
 
 pub fn youtube_analytics_group_items_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -346,7 +348,7 @@ pub fn youtube_analytics_group_items_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeAnalyticsGroupItemsInsertArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// POST v2/groupItems
@@ -380,8 +382,8 @@ pub fn youtube_analytics_group_items_insert(
 
 pub fn youtube_analytics_group_items_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    groupId: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    groupId: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -521,9 +523,9 @@ pub fn youtube_analytics_group_items_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeAnalyticsGroupItemsListArgs {
     /// Query parameter: groupId
-    pub groupId: Option<Option<String>>,
+    pub groupId: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// GET v2/groupItems
@@ -562,8 +564,8 @@ pub fn youtube_analytics_group_items_list(
 
 pub fn youtube_analytics_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -703,9 +705,9 @@ pub fn youtube_analytics_groups_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeAnalyticsGroupsDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// DELETE v2/groups
@@ -741,7 +743,7 @@ pub fn youtube_analytics_groups_delete(
 
 pub fn youtube_analytics_groups_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -876,7 +878,7 @@ pub fn youtube_analytics_groups_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeAnalyticsGroupsInsertArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// POST v2/groups
@@ -909,10 +911,10 @@ pub fn youtube_analytics_groups_insert(
 
 pub fn youtube_analytics_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    mine: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    id: &Option<String>,
+    mine: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1058,13 +1060,13 @@ pub fn youtube_analytics_groups_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeAnalyticsGroupsListArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: mine
-    pub mine: Option<Option<String>>,
+    pub mine: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/groups
@@ -1105,7 +1107,7 @@ pub fn youtube_analytics_groups_list(
 
 pub fn youtube_analytics_groups_update_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1240,7 +1242,7 @@ pub fn youtube_analytics_groups_update_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeAnalyticsGroupsUpdateArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// PUT v2/groups
@@ -1273,17 +1275,17 @@ pub fn youtube_analytics_groups_update(
 
 pub fn youtube_analytics_reports_query_builder<R>(
     client: &SimpleHttpClient<R>,
-    currency: &Option<Option<String>>,
-    dimensions: &Option<Option<String>>,
-    endDate: &Option<Option<String>>,
-    filters: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    includeHistoricalChannelData: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    metrics: &Option<Option<String>>,
-    sort: &Option<Option<String>>,
-    startDate: &Option<Option<String>>,
-    startIndex: &Option<Option<String>>,
+    currency: &Option<String>,
+    dimensions: &Option<String>,
+    endDate: &Option<String>,
+    filters: &Option<String>,
+    ids: &Option<String>,
+    includeHistoricalChannelData: &Option<String>,
+    maxResults: &Option<String>,
+    metrics: &Option<String>,
+    sort: &Option<String>,
+    startDate: &Option<String>,
+    startIndex: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1450,27 +1452,27 @@ pub fn youtube_analytics_reports_query_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeAnalyticsReportsQueryArgs {
     /// Query parameter: currency
-    pub currency: Option<Option<String>>,
+    pub currency: Option<String>,
     /// Query parameter: dimensions
-    pub dimensions: Option<Option<String>>,
+    pub dimensions: Option<String>,
     /// Query parameter: endDate
-    pub endDate: Option<Option<String>>,
+    pub endDate: Option<String>,
     /// Query parameter: filters
-    pub filters: Option<Option<String>>,
+    pub filters: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: includeHistoricalChannelData
-    pub includeHistoricalChannelData: Option<Option<String>>,
+    pub includeHistoricalChannelData: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: metrics
-    pub metrics: Option<Option<String>>,
+    pub metrics: Option<String>,
     /// Query parameter: sort
-    pub sort: Option<Option<String>>,
+    pub sort: Option<String>,
     /// Query parameter: startDate
-    pub startDate: Option<Option<String>>,
+    pub startDate: Option<String>,
     /// Query parameter: startIndex
-    pub startIndex: Option<Option<String>>,
+    pub startIndex: Option<String>,
 }
 
 /// GET v2/reports

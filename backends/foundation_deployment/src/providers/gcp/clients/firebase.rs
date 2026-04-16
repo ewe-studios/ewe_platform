@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,8 +31,8 @@ use serde::Serialize;
 
 pub fn firebase_available_projects_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -172,9 +174,9 @@ pub fn firebase_available_projects_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FirebaseAvailableProjectsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta1/availableProjects
@@ -1181,9 +1183,9 @@ pub fn firebase_projects_get_analytics_details(
 
 pub fn firebase_projects_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1328,11 +1330,11 @@ pub fn firebase_projects_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FirebaseProjectsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v1beta1/projects
@@ -1371,7 +1373,7 @@ pub fn firebase_projects_list(
 pub fn firebase_projects_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1510,7 +1512,7 @@ pub struct FirebaseProjectsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta1/projects/{projectsId}
@@ -1706,10 +1708,10 @@ pub fn firebase_projects_remove_analytics(
 pub fn firebase_projects_search_apps_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1862,13 +1864,13 @@ pub struct FirebaseProjectsSearchAppsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}:searchApps
@@ -2397,9 +2399,9 @@ pub fn firebase_projects_android_apps_get_config(
 pub fn firebase_projects_android_apps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2547,11 +2549,11 @@ pub struct FirebaseProjectsAndroidAppsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/androidApps
@@ -2593,7 +2595,7 @@ pub fn firebase_projects_android_apps_list(
 pub fn firebase_projects_android_apps_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2733,7 +2735,7 @@ pub struct FirebaseProjectsAndroidAppsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta1/projects/{projectsId}/androidApps/{androidAppsId}
@@ -3580,8 +3582,8 @@ pub fn firebase_projects_android_apps_sha_list(
 pub fn firebase_projects_available_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3728,9 +3730,9 @@ pub struct FirebaseProjectsAvailableLocationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/availableLocations
@@ -4417,9 +4419,9 @@ pub fn firebase_projects_ios_apps_get_config(
 pub fn firebase_projects_ios_apps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4567,11 +4569,11 @@ pub struct FirebaseProjectsIosAppsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/iosApps
@@ -4613,7 +4615,7 @@ pub fn firebase_projects_ios_apps_list(
 pub fn firebase_projects_ios_apps_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4753,7 +4755,7 @@ pub struct FirebaseProjectsIosAppsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta1/projects/{projectsId}/iosApps/{iosAppsId}
@@ -5591,9 +5593,9 @@ pub fn firebase_projects_web_apps_get_config(
 pub fn firebase_projects_web_apps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5741,11 +5743,11 @@ pub struct FirebaseProjectsWebAppsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/webApps
@@ -5787,7 +5789,7 @@ pub fn firebase_projects_web_apps_list(
 pub fn firebase_projects_web_apps_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5927,7 +5929,7 @@ pub struct FirebaseProjectsWebAppsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta1/projects/{projectsId}/webApps/{webAppsId}

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn blockchainnodeengine_projects_locations_get(
 pub fn blockchainnodeengine_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct BlockchainnodeengineProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,8 +395,8 @@ pub fn blockchainnodeengine_projects_locations_list(
 pub fn blockchainnodeengine_projects_locations_blockchain_nodes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    blockchainNodeId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    blockchainNodeId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -537,9 +539,9 @@ pub struct BlockchainnodeengineProjectsLocationsBlockchainNodesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: blockchainNodeId
-    pub blockchainNodeId: Option<Option<String>>,
+    pub blockchainNodeId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/blockchainNodes
@@ -578,7 +580,7 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_create(
 pub fn blockchainnodeengine_projects_locations_blockchain_nodes_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -718,7 +720,7 @@ pub struct BlockchainnodeengineProjectsLocationsBlockchainNodesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/blockchainNodes/{blockchainNodesId}
@@ -921,10 +923,10 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_get(
 pub fn blockchainnodeengine_projects_locations_blockchain_nodes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1077,13 +1079,13 @@ pub struct BlockchainnodeengineProjectsLocationsBlockchainNodesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/blockchainNodes
@@ -1128,8 +1130,8 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_list(
 pub fn blockchainnodeengine_projects_locations_blockchain_nodes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1272,9 +1274,9 @@ pub struct BlockchainnodeengineProjectsLocationsBlockchainNodesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/blockchainNodes/{blockchainNodesId}
@@ -1804,9 +1806,9 @@ pub fn blockchainnodeengine_projects_locations_operations_get(
 pub fn blockchainnodeengine_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1954,11 +1956,11 @@ pub struct BlockchainnodeengineProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations

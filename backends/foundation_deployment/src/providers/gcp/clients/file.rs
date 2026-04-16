@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn file_projects_locations_get(
 pub fn file_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -341,13 +343,13 @@ pub struct FileProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -390,7 +392,7 @@ pub fn file_projects_locations_list(
 pub fn file_projects_locations_backups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    backupId: &Option<Option<String>>,
+    backupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -530,7 +532,7 @@ pub struct FileProjectsLocationsBackupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: backupId
-    pub backupId: Option<Option<String>>,
+    pub backupId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/backups
@@ -885,10 +887,10 @@ pub fn file_projects_locations_backups_get(
 pub fn file_projects_locations_backups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1039,13 +1041,13 @@ pub struct FileProjectsLocationsBackupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups
@@ -1088,7 +1090,7 @@ pub fn file_projects_locations_backups_list(
 pub fn file_projects_locations_backups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1228,7 +1230,7 @@ pub struct FileProjectsLocationsBackupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/backups/{backupsId}
@@ -1263,7 +1265,7 @@ pub fn file_projects_locations_backups_patch(
 pub fn file_projects_locations_instances_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    instanceId: &Option<Option<String>>,
+    instanceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1403,7 +1405,7 @@ pub struct FileProjectsLocationsInstancesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: instanceId
-    pub instanceId: Option<Option<String>>,
+    pub instanceId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/instances
@@ -1438,7 +1440,7 @@ pub fn file_projects_locations_instances_create(
 pub fn file_projects_locations_instances_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1578,7 +1580,7 @@ pub struct FileProjectsLocationsInstancesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
@@ -1773,10 +1775,10 @@ pub fn file_projects_locations_instances_get(
 pub fn file_projects_locations_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1927,13 +1929,13 @@ pub struct FileProjectsLocationsInstancesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
@@ -1976,7 +1978,7 @@ pub fn file_projects_locations_instances_list(
 pub fn file_projects_locations_instances_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2116,7 +2118,7 @@ pub struct FileProjectsLocationsInstancesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
@@ -2951,7 +2953,7 @@ pub fn file_projects_locations_instances_revert(
 pub fn file_projects_locations_instances_snapshots_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    snapshotId: &Option<Option<String>>,
+    snapshotId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3091,7 +3093,7 @@ pub struct FileProjectsLocationsInstancesSnapshotsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: snapshotId
-    pub snapshotId: Option<Option<String>>,
+    pub snapshotId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/snapshots
@@ -3449,11 +3451,11 @@ pub fn file_projects_locations_instances_snapshots_get(
 pub fn file_projects_locations_instances_snapshots_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3607,15 +3609,15 @@ pub struct FileProjectsLocationsInstancesSnapshotsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/snapshots
@@ -3659,7 +3661,7 @@ pub fn file_projects_locations_instances_snapshots_list(
 pub fn file_projects_locations_instances_snapshots_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3799,7 +3801,7 @@ pub struct FileProjectsLocationsInstancesSnapshotsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}/snapshots/{snapshotsId}
@@ -4317,10 +4319,10 @@ pub fn file_projects_locations_operations_get(
 pub fn file_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4471,13 +4473,13 @@ pub struct FileProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations

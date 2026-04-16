@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,7 +31,7 @@ use serde::Serialize;
 
 pub fn indexing_url_notifications_get_metadata_builder<R>(
     client: &SimpleHttpClient<R>,
-    url: &Option<Option<String>>,
+    url: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -166,7 +168,7 @@ pub fn indexing_url_notifications_get_metadata_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IndexingUrlNotificationsGetMetadataArgs {
     /// Query parameter: url
-    pub url: Option<Option<String>>,
+    pub url: Option<String>,
 }
 
 /// GET v3/urlNotifications/metadata
@@ -365,29 +367,6 @@ impl ResourceIdentifier<IndexingUrlNotificationsGetMetadataArgs> for UrlNotifica
 
     fn resource_kind(&self) -> &'static str {
         "gcp::indexing::UrlNotificationMetadata"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for PublishUrlNotificationResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for PublishUrlNotificationResponse with IndexingUrlNotificationsPublishArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<IndexingUrlNotificationsPublishArgs> for PublishUrlNotificationResponse {
-    fn generate_resource_id(&self, input: &IndexingUrlNotificationsPublishArgs) -> String {
-        "gcp::indexing::PublishUrlNotificationResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::indexing::PublishUrlNotificationResponse"
     }
 
     fn provider(&self) -> &'static str {

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,9 +32,9 @@ use serde::Serialize;
 pub fn playdeveloperreporting_anomalies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -189,11 +191,11 @@ pub struct PlaydeveloperreportingAnomaliesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta1/apps/{appsId}/anomalies
@@ -418,8 +420,8 @@ pub fn playdeveloperreporting_apps_fetch_release_filter_options(
 
 pub fn playdeveloperreporting_apps_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -569,9 +571,9 @@ pub fn playdeveloperreporting_apps_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PlaydeveloperreportingAppsSearchArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta1/apps:search
@@ -1675,31 +1677,31 @@ pub fn playdeveloperreporting_vitals_errors_counts_query(
 pub fn playdeveloperreporting_vitals_errors_issues_search_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    interval_endTime_day: &Option<Option<String>>,
-    interval_endTime_hours: &Option<Option<String>>,
-    interval_endTime_minutes: &Option<Option<String>>,
-    interval_endTime_month: &Option<Option<String>>,
-    interval_endTime_nanos: &Option<Option<String>>,
-    interval_endTime_seconds: &Option<Option<String>>,
-    interval_endTime_timeZone_id: &Option<Option<String>>,
-    interval_endTime_timeZone_version: &Option<Option<String>>,
-    interval_endTime_utcOffset: &Option<Option<String>>,
-    interval_endTime_year: &Option<Option<String>>,
-    interval_startTime_day: &Option<Option<String>>,
-    interval_startTime_hours: &Option<Option<String>>,
-    interval_startTime_minutes: &Option<Option<String>>,
-    interval_startTime_month: &Option<Option<String>>,
-    interval_startTime_nanos: &Option<Option<String>>,
-    interval_startTime_seconds: &Option<Option<String>>,
-    interval_startTime_timeZone_id: &Option<Option<String>>,
-    interval_startTime_timeZone_version: &Option<Option<String>>,
-    interval_startTime_utcOffset: &Option<Option<String>>,
-    interval_startTime_year: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    sampleErrorReportLimit: &Option<Option<String>>,
+    filter: &Option<String>,
+    interval_endTime_day: &Option<String>,
+    interval_endTime_hours: &Option<String>,
+    interval_endTime_minutes: &Option<String>,
+    interval_endTime_month: &Option<String>,
+    interval_endTime_nanos: &Option<String>,
+    interval_endTime_seconds: &Option<String>,
+    interval_endTime_timeZone_id: &Option<String>,
+    interval_endTime_timeZone_version: &Option<String>,
+    interval_endTime_utcOffset: &Option<String>,
+    interval_endTime_year: &Option<String>,
+    interval_startTime_day: &Option<String>,
+    interval_startTime_hours: &Option<String>,
+    interval_startTime_minutes: &Option<String>,
+    interval_startTime_month: &Option<String>,
+    interval_startTime_nanos: &Option<String>,
+    interval_startTime_seconds: &Option<String>,
+    interval_startTime_timeZone_id: &Option<String>,
+    interval_startTime_timeZone_version: &Option<String>,
+    interval_startTime_utcOffset: &Option<String>,
+    interval_startTime_year: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    sampleErrorReportLimit: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1922,55 +1924,55 @@ pub struct PlaydeveloperreportingVitalsErrorsIssuesSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: interval_endTime_day
-    pub interval_endTime_day: Option<Option<String>>,
+    pub interval_endTime_day: Option<String>,
     /// Query parameter: interval_endTime_hours
-    pub interval_endTime_hours: Option<Option<String>>,
+    pub interval_endTime_hours: Option<String>,
     /// Query parameter: interval_endTime_minutes
-    pub interval_endTime_minutes: Option<Option<String>>,
+    pub interval_endTime_minutes: Option<String>,
     /// Query parameter: interval_endTime_month
-    pub interval_endTime_month: Option<Option<String>>,
+    pub interval_endTime_month: Option<String>,
     /// Query parameter: interval_endTime_nanos
-    pub interval_endTime_nanos: Option<Option<String>>,
+    pub interval_endTime_nanos: Option<String>,
     /// Query parameter: interval_endTime_seconds
-    pub interval_endTime_seconds: Option<Option<String>>,
+    pub interval_endTime_seconds: Option<String>,
     /// Query parameter: interval_endTime_timeZone_id
-    pub interval_endTime_timeZone_id: Option<Option<String>>,
+    pub interval_endTime_timeZone_id: Option<String>,
     /// Query parameter: interval_endTime_timeZone_version
-    pub interval_endTime_timeZone_version: Option<Option<String>>,
+    pub interval_endTime_timeZone_version: Option<String>,
     /// Query parameter: interval_endTime_utcOffset
-    pub interval_endTime_utcOffset: Option<Option<String>>,
+    pub interval_endTime_utcOffset: Option<String>,
     /// Query parameter: interval_endTime_year
-    pub interval_endTime_year: Option<Option<String>>,
+    pub interval_endTime_year: Option<String>,
     /// Query parameter: interval_startTime_day
-    pub interval_startTime_day: Option<Option<String>>,
+    pub interval_startTime_day: Option<String>,
     /// Query parameter: interval_startTime_hours
-    pub interval_startTime_hours: Option<Option<String>>,
+    pub interval_startTime_hours: Option<String>,
     /// Query parameter: interval_startTime_minutes
-    pub interval_startTime_minutes: Option<Option<String>>,
+    pub interval_startTime_minutes: Option<String>,
     /// Query parameter: interval_startTime_month
-    pub interval_startTime_month: Option<Option<String>>,
+    pub interval_startTime_month: Option<String>,
     /// Query parameter: interval_startTime_nanos
-    pub interval_startTime_nanos: Option<Option<String>>,
+    pub interval_startTime_nanos: Option<String>,
     /// Query parameter: interval_startTime_seconds
-    pub interval_startTime_seconds: Option<Option<String>>,
+    pub interval_startTime_seconds: Option<String>,
     /// Query parameter: interval_startTime_timeZone_id
-    pub interval_startTime_timeZone_id: Option<Option<String>>,
+    pub interval_startTime_timeZone_id: Option<String>,
     /// Query parameter: interval_startTime_timeZone_version
-    pub interval_startTime_timeZone_version: Option<Option<String>>,
+    pub interval_startTime_timeZone_version: Option<String>,
     /// Query parameter: interval_startTime_utcOffset
-    pub interval_startTime_utcOffset: Option<Option<String>>,
+    pub interval_startTime_utcOffset: Option<String>,
     /// Query parameter: interval_startTime_year
-    pub interval_startTime_year: Option<Option<String>>,
+    pub interval_startTime_year: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: sampleErrorReportLimit
-    pub sampleErrorReportLimit: Option<Option<String>>,
+    pub sampleErrorReportLimit: Option<String>,
 }
 
 /// GET v1beta1/apps/{appsId}/errorIssues:search
@@ -2039,29 +2041,29 @@ pub fn playdeveloperreporting_vitals_errors_issues_search(
 pub fn playdeveloperreporting_vitals_errors_reports_search_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    interval_endTime_day: &Option<Option<String>>,
-    interval_endTime_hours: &Option<Option<String>>,
-    interval_endTime_minutes: &Option<Option<String>>,
-    interval_endTime_month: &Option<Option<String>>,
-    interval_endTime_nanos: &Option<Option<String>>,
-    interval_endTime_seconds: &Option<Option<String>>,
-    interval_endTime_timeZone_id: &Option<Option<String>>,
-    interval_endTime_timeZone_version: &Option<Option<String>>,
-    interval_endTime_utcOffset: &Option<Option<String>>,
-    interval_endTime_year: &Option<Option<String>>,
-    interval_startTime_day: &Option<Option<String>>,
-    interval_startTime_hours: &Option<Option<String>>,
-    interval_startTime_minutes: &Option<Option<String>>,
-    interval_startTime_month: &Option<Option<String>>,
-    interval_startTime_nanos: &Option<Option<String>>,
-    interval_startTime_seconds: &Option<Option<String>>,
-    interval_startTime_timeZone_id: &Option<Option<String>>,
-    interval_startTime_timeZone_version: &Option<Option<String>>,
-    interval_startTime_utcOffset: &Option<Option<String>>,
-    interval_startTime_year: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    interval_endTime_day: &Option<String>,
+    interval_endTime_hours: &Option<String>,
+    interval_endTime_minutes: &Option<String>,
+    interval_endTime_month: &Option<String>,
+    interval_endTime_nanos: &Option<String>,
+    interval_endTime_seconds: &Option<String>,
+    interval_endTime_timeZone_id: &Option<String>,
+    interval_endTime_timeZone_version: &Option<String>,
+    interval_endTime_utcOffset: &Option<String>,
+    interval_endTime_year: &Option<String>,
+    interval_startTime_day: &Option<String>,
+    interval_startTime_hours: &Option<String>,
+    interval_startTime_minutes: &Option<String>,
+    interval_startTime_month: &Option<String>,
+    interval_startTime_nanos: &Option<String>,
+    interval_startTime_seconds: &Option<String>,
+    interval_startTime_timeZone_id: &Option<String>,
+    interval_startTime_timeZone_version: &Option<String>,
+    interval_startTime_utcOffset: &Option<String>,
+    interval_startTime_year: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2278,51 +2280,51 @@ pub struct PlaydeveloperreportingVitalsErrorsReportsSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: interval_endTime_day
-    pub interval_endTime_day: Option<Option<String>>,
+    pub interval_endTime_day: Option<String>,
     /// Query parameter: interval_endTime_hours
-    pub interval_endTime_hours: Option<Option<String>>,
+    pub interval_endTime_hours: Option<String>,
     /// Query parameter: interval_endTime_minutes
-    pub interval_endTime_minutes: Option<Option<String>>,
+    pub interval_endTime_minutes: Option<String>,
     /// Query parameter: interval_endTime_month
-    pub interval_endTime_month: Option<Option<String>>,
+    pub interval_endTime_month: Option<String>,
     /// Query parameter: interval_endTime_nanos
-    pub interval_endTime_nanos: Option<Option<String>>,
+    pub interval_endTime_nanos: Option<String>,
     /// Query parameter: interval_endTime_seconds
-    pub interval_endTime_seconds: Option<Option<String>>,
+    pub interval_endTime_seconds: Option<String>,
     /// Query parameter: interval_endTime_timeZone_id
-    pub interval_endTime_timeZone_id: Option<Option<String>>,
+    pub interval_endTime_timeZone_id: Option<String>,
     /// Query parameter: interval_endTime_timeZone_version
-    pub interval_endTime_timeZone_version: Option<Option<String>>,
+    pub interval_endTime_timeZone_version: Option<String>,
     /// Query parameter: interval_endTime_utcOffset
-    pub interval_endTime_utcOffset: Option<Option<String>>,
+    pub interval_endTime_utcOffset: Option<String>,
     /// Query parameter: interval_endTime_year
-    pub interval_endTime_year: Option<Option<String>>,
+    pub interval_endTime_year: Option<String>,
     /// Query parameter: interval_startTime_day
-    pub interval_startTime_day: Option<Option<String>>,
+    pub interval_startTime_day: Option<String>,
     /// Query parameter: interval_startTime_hours
-    pub interval_startTime_hours: Option<Option<String>>,
+    pub interval_startTime_hours: Option<String>,
     /// Query parameter: interval_startTime_minutes
-    pub interval_startTime_minutes: Option<Option<String>>,
+    pub interval_startTime_minutes: Option<String>,
     /// Query parameter: interval_startTime_month
-    pub interval_startTime_month: Option<Option<String>>,
+    pub interval_startTime_month: Option<String>,
     /// Query parameter: interval_startTime_nanos
-    pub interval_startTime_nanos: Option<Option<String>>,
+    pub interval_startTime_nanos: Option<String>,
     /// Query parameter: interval_startTime_seconds
-    pub interval_startTime_seconds: Option<Option<String>>,
+    pub interval_startTime_seconds: Option<String>,
     /// Query parameter: interval_startTime_timeZone_id
-    pub interval_startTime_timeZone_id: Option<Option<String>>,
+    pub interval_startTime_timeZone_id: Option<String>,
     /// Query parameter: interval_startTime_timeZone_version
-    pub interval_startTime_timeZone_version: Option<Option<String>>,
+    pub interval_startTime_timeZone_version: Option<String>,
     /// Query parameter: interval_startTime_utcOffset
-    pub interval_startTime_utcOffset: Option<Option<String>>,
+    pub interval_startTime_utcOffset: Option<String>,
     /// Query parameter: interval_startTime_year
-    pub interval_startTime_year: Option<Option<String>>,
+    pub interval_startTime_year: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta1/apps/{appsId}/errorReports:search

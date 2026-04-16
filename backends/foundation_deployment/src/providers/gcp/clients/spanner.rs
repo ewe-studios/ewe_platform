@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,9 +32,9 @@ use serde::Serialize;
 pub fn spanner_projects_instance_config_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -182,11 +184,11 @@ pub struct SpannerProjectsInstanceConfigOperationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instanceConfigOperations
@@ -390,8 +392,8 @@ pub fn spanner_projects_instance_configs_create(
 pub fn spanner_projects_instance_configs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -534,9 +536,9 @@ pub struct SpannerProjectsInstanceConfigsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
@@ -739,8 +741,8 @@ pub fn spanner_projects_instance_configs_get(
 pub fn spanner_projects_instance_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -887,9 +889,9 @@ pub struct SpannerProjectsInstanceConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instanceConfigs
@@ -1572,10 +1574,10 @@ pub fn spanner_projects_instance_configs_operations_get(
 pub fn spanner_projects_instance_configs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1726,13 +1728,13 @@ pub struct SpannerProjectsInstanceConfigsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations
@@ -2258,10 +2260,10 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_get(
 pub fn spanner_projects_instance_configs_ssd_caches_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2412,13 +2414,13 @@ pub struct SpannerProjectsInstanceConfigsSsdCachesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations
@@ -2781,7 +2783,7 @@ pub fn spanner_projects_instances_delete(
 pub fn spanner_projects_instances_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    fieldMask: &Option<Option<String>>,
+    fieldMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2921,7 +2923,7 @@ pub struct SpannerProjectsInstancesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fieldMask
-    pub fieldMask: Option<Option<String>>,
+    pub fieldMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}
@@ -3115,10 +3117,10 @@ pub fn spanner_projects_instances_get_iam_policy(
 pub fn spanner_projects_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    instanceDeadline: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    instanceDeadline: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3269,13 +3271,13 @@ pub struct SpannerProjectsInstancesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: instanceDeadline
-    pub instanceDeadline: Option<Option<String>>,
+    pub instanceDeadline: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances
@@ -3966,9 +3968,9 @@ pub fn spanner_projects_instances_test_iam_permissions(
 pub fn spanner_projects_instances_backup_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4118,11 +4120,11 @@ pub struct SpannerProjectsInstancesBackupOperationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backupOperations
@@ -4326,10 +4328,10 @@ pub fn spanner_projects_instances_backups_copy(
 pub fn spanner_projects_instances_backups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    backupId: &Option<Option<String>>,
-    encryptionConfig_encryptionType: &Option<Option<String>>,
-    encryptionConfig_kmsKeyName: &Option<Option<String>>,
-    encryptionConfig_kmsKeyNames: &Option<Option<String>>,
+    backupId: &Option<String>,
+    encryptionConfig_encryptionType: &Option<String>,
+    encryptionConfig_kmsKeyName: &Option<String>,
+    encryptionConfig_kmsKeyNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4478,13 +4480,13 @@ pub struct SpannerProjectsInstancesBackupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: backupId
-    pub backupId: Option<Option<String>>,
+    pub backupId: Option<String>,
     /// Query parameter: encryptionConfig_encryptionType
-    pub encryptionConfig_encryptionType: Option<Option<String>>,
+    pub encryptionConfig_encryptionType: Option<String>,
     /// Query parameter: encryptionConfig_kmsKeyName
-    pub encryptionConfig_kmsKeyName: Option<Option<String>>,
+    pub encryptionConfig_kmsKeyName: Option<String>,
     /// Query parameter: encryptionConfig_kmsKeyNames
-    pub encryptionConfig_kmsKeyNames: Option<Option<String>>,
+    pub encryptionConfig_kmsKeyNames: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/backups
@@ -5006,9 +5008,9 @@ pub fn spanner_projects_instances_backups_get_iam_policy(
 pub fn spanner_projects_instances_backups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5156,11 +5158,11 @@ pub struct SpannerProjectsInstancesBackupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups
@@ -5202,7 +5204,7 @@ pub fn spanner_projects_instances_backups_list(
 pub fn spanner_projects_instances_backups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5342,7 +5344,7 @@ pub struct SpannerProjectsInstancesBackupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
@@ -6187,10 +6189,10 @@ pub fn spanner_projects_instances_backups_operations_get(
 pub fn spanner_projects_instances_backups_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6341,13 +6343,13 @@ pub struct SpannerProjectsInstancesBackupsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations
@@ -6390,9 +6392,9 @@ pub fn spanner_projects_instances_backups_operations_list(
 pub fn spanner_projects_instances_database_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6542,11 +6544,11 @@ pub struct SpannerProjectsInstancesDatabaseOperationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databaseOperations
@@ -7721,9 +7723,9 @@ pub fn spanner_projects_instances_databases_get_iam_policy(
 pub fn spanner_projects_instances_databases_get_scans_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    endTime: &Option<Option<String>>,
-    startTime: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    endTime: &Option<String>,
+    startTime: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7869,11 +7871,11 @@ pub struct SpannerProjectsInstancesDatabasesGetScansArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: endTime
-    pub endTime: Option<Option<String>>,
+    pub endTime: Option<String>,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/scans
@@ -7913,8 +7915,8 @@ pub fn spanner_projects_instances_databases_get_scans(
 pub fn spanner_projects_instances_databases_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8059,9 +8061,9 @@ pub struct SpannerProjectsInstancesDatabasesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases
@@ -8102,7 +8104,7 @@ pub fn spanner_projects_instances_databases_list(
 pub fn spanner_projects_instances_databases_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8242,7 +8244,7 @@ pub struct SpannerProjectsInstancesDatabasesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
@@ -8927,7 +8929,7 @@ pub fn spanner_projects_instances_databases_update_ddl(
 pub fn spanner_projects_instances_databases_backup_schedules_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    backupScheduleId: &Option<Option<String>>,
+    backupScheduleId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9069,7 +9071,7 @@ pub struct SpannerProjectsInstancesDatabasesBackupSchedulesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: backupScheduleId
-    pub backupScheduleId: Option<Option<String>>,
+    pub backupScheduleId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules
@@ -9598,8 +9600,8 @@ pub fn spanner_projects_instances_databases_backup_schedules_get_iam_policy(
 pub fn spanner_projects_instances_databases_backup_schedules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9746,9 +9748,9 @@ pub struct SpannerProjectsInstancesDatabasesBackupSchedulesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules
@@ -9791,7 +9793,7 @@ pub fn spanner_projects_instances_databases_backup_schedules_list(
 pub fn spanner_projects_instances_databases_backup_schedules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9933,7 +9935,7 @@ pub struct SpannerProjectsInstancesDatabasesBackupSchedulesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
@@ -10309,8 +10311,8 @@ pub fn spanner_projects_instances_databases_backup_schedules_test_iam_permission
 pub fn spanner_projects_instances_databases_database_roles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10455,9 +10457,9 @@ pub struct SpannerProjectsInstancesDatabasesDatabaseRolesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/databaseRoles
@@ -11152,10 +11154,10 @@ pub fn spanner_projects_instances_databases_operations_get(
 pub fn spanner_projects_instances_databases_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11306,13 +11308,13 @@ pub struct SpannerProjectsInstancesDatabasesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations
@@ -13323,9 +13325,9 @@ pub fn spanner_projects_instances_databases_sessions_get(
 pub fn spanner_projects_instances_databases_sessions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     database: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13473,11 +13475,11 @@ pub struct SpannerProjectsInstancesDatabasesSessionsListArgs {
     /// Path parameter: database
     pub database: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
@@ -14342,10 +14344,10 @@ pub fn spanner_projects_instances_databases_sessions_streaming_read(
 pub fn spanner_projects_instances_instance_partition_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    instancePartitionDeadline: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    instancePartitionDeadline: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14499,13 +14501,13 @@ pub struct SpannerProjectsInstancesInstancePartitionOperationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: instancePartitionDeadline
-    pub instancePartitionDeadline: Option<Option<String>>,
+    pub instancePartitionDeadline: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitionOperations
@@ -14711,7 +14713,7 @@ pub fn spanner_projects_instances_instance_partitions_create(
 pub fn spanner_projects_instances_instance_partitions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14851,7 +14853,7 @@ pub struct SpannerProjectsInstancesInstancePartitionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
@@ -15051,9 +15053,9 @@ pub fn spanner_projects_instances_instance_partitions_get(
 pub fn spanner_projects_instances_instance_partitions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    instancePartitionDeadline: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    instancePartitionDeadline: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15203,11 +15205,11 @@ pub struct SpannerProjectsInstancesInstancePartitionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: instancePartitionDeadline
-    pub instancePartitionDeadline: Option<Option<String>>,
+    pub instancePartitionDeadline: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
@@ -15896,10 +15898,10 @@ pub fn spanner_projects_instances_instance_partitions_operations_get(
 pub fn spanner_projects_instances_instance_partitions_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16050,13 +16052,13 @@ pub struct SpannerProjectsInstancesInstancePartitionsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations
@@ -16579,10 +16581,10 @@ pub fn spanner_projects_instances_operations_get(
 pub fn spanner_projects_instances_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16733,13 +16735,13 @@ pub struct SpannerProjectsInstancesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/instances/{instancesId}/operations
@@ -16781,10 +16783,10 @@ pub fn spanner_projects_instances_operations_list(
 
 pub fn spanner_scans_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16930,13 +16932,13 @@ pub fn spanner_scans_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpannerScansListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/scans

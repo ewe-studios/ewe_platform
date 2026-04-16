@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -199,8 +201,8 @@ pub fn deploymentmanager_deployments_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
-    deletePolicy: &Option<Option<String>>,
-    header_bypassBillingFilter: &Option<Option<String>>,
+    deletePolicy: &Option<String>,
+    header_bypassBillingFilter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -346,9 +348,9 @@ pub struct DeploymentmanagerDeploymentsDeleteArgs {
     /// Path parameter: deployment
     pub deployment: String,
     /// Query parameter: deletePolicy
-    pub deletePolicy: Option<Option<String>>,
+    pub deletePolicy: Option<String>,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<Option<String>>,
+    pub header_bypassBillingFilter: Option<String>,
 }
 
 /// DELETE deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
@@ -389,7 +391,7 @@ pub fn deploymentmanager_deployments_get_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
-    header_bypassBillingFilter: &Option<Option<String>>,
+    header_bypassBillingFilter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -532,7 +534,7 @@ pub struct DeploymentmanagerDeploymentsGetArgs {
     /// Path parameter: deployment
     pub deployment: String,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<Option<String>>,
+    pub header_bypassBillingFilter: Option<String>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
@@ -572,8 +574,8 @@ pub fn deploymentmanager_deployments_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-    header_bypassBillingFilter: &Option<Option<String>>,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    header_bypassBillingFilter: &Option<String>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -719,9 +721,9 @@ pub struct DeploymentmanagerDeploymentsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<Option<String>>,
+    pub header_bypassBillingFilter: Option<String>,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/getIamPolicy
@@ -761,9 +763,9 @@ pub fn deploymentmanager_deployments_get_iam_policy(
 pub fn deploymentmanager_deployments_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    createPolicy: &Option<Option<String>>,
-    header_bypassBillingFilter: &Option<Option<String>>,
-    preview: &Option<Option<String>>,
+    createPolicy: &Option<String>,
+    header_bypassBillingFilter: &Option<String>,
+    preview: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -909,11 +911,11 @@ pub struct DeploymentmanagerDeploymentsInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: createPolicy
-    pub createPolicy: Option<Option<String>>,
+    pub createPolicy: Option<String>,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<Option<String>>,
+    pub header_bypassBillingFilter: Option<String>,
     /// Query parameter: preview
-    pub preview: Option<Option<String>>,
+    pub preview: Option<String>,
 }
 
 /// POST deploymentmanager/v2/projects/{project}/global/deployments
@@ -953,10 +955,10 @@ pub fn deploymentmanager_deployments_insert(
 pub fn deploymentmanager_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1107,13 +1109,13 @@ pub struct DeploymentmanagerDeploymentsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments
@@ -1157,10 +1159,10 @@ pub fn deploymentmanager_deployments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
-    createPolicy: &Option<Option<String>>,
-    deletePolicy: &Option<Option<String>>,
-    header_bypassBillingFilter: &Option<Option<String>>,
-    preview: &Option<Option<String>>,
+    createPolicy: &Option<String>,
+    deletePolicy: &Option<String>,
+    header_bypassBillingFilter: &Option<String>,
+    preview: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1312,13 +1314,13 @@ pub struct DeploymentmanagerDeploymentsPatchArgs {
     /// Path parameter: deployment
     pub deployment: String,
     /// Query parameter: createPolicy
-    pub createPolicy: Option<Option<String>>,
+    pub createPolicy: Option<String>,
     /// Query parameter: deletePolicy
-    pub deletePolicy: Option<Option<String>>,
+    pub deletePolicy: Option<String>,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<Option<String>>,
+    pub header_bypassBillingFilter: Option<String>,
     /// Query parameter: preview
-    pub preview: Option<Option<String>>,
+    pub preview: Option<String>,
 }
 
 /// PATCH deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
@@ -1694,7 +1696,7 @@ pub fn deploymentmanager_deployments_test_iam_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-    header_bypassBillingFilter: &Option<Option<String>>,
+    header_bypassBillingFilter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1839,7 +1841,7 @@ pub struct DeploymentmanagerDeploymentsTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<Option<String>>,
+    pub header_bypassBillingFilter: Option<String>,
 }
 
 /// POST deploymentmanager/v2/projects/{project}/global/deployments/{resource}/testIamPermissions
@@ -1881,10 +1883,10 @@ pub fn deploymentmanager_deployments_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
-    createPolicy: &Option<Option<String>>,
-    deletePolicy: &Option<Option<String>>,
-    header_bypassBillingFilter: &Option<Option<String>>,
-    preview: &Option<Option<String>>,
+    createPolicy: &Option<String>,
+    deletePolicy: &Option<String>,
+    header_bypassBillingFilter: &Option<String>,
+    preview: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2036,13 +2038,13 @@ pub struct DeploymentmanagerDeploymentsUpdateArgs {
     /// Path parameter: deployment
     pub deployment: String,
     /// Query parameter: createPolicy
-    pub createPolicy: Option<Option<String>>,
+    pub createPolicy: Option<String>,
     /// Query parameter: deletePolicy
-    pub deletePolicy: Option<Option<String>>,
+    pub deletePolicy: Option<String>,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<Option<String>>,
+    pub header_bypassBillingFilter: Option<String>,
     /// Query parameter: preview
-    pub preview: Option<Option<String>>,
+    pub preview: Option<String>,
 }
 
 /// PUT deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
@@ -2086,7 +2088,7 @@ pub fn deploymentmanager_manifests_get_builder<R>(
     project: &String,
     deployment: &String,
     manifest: &String,
-    header_bypassBillingFilter: &Option<Option<String>>,
+    header_bypassBillingFilter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2232,7 +2234,7 @@ pub struct DeploymentmanagerManifestsGetArgs {
     /// Path parameter: manifest
     pub manifest: String,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<Option<String>>,
+    pub header_bypassBillingFilter: Option<String>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/manifests/{manifest}
@@ -2273,10 +2275,10 @@ pub fn deploymentmanager_manifests_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2430,13 +2432,13 @@ pub struct DeploymentmanagerManifestsListArgs {
     /// Path parameter: deployment
     pub deployment: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/manifests
@@ -2481,7 +2483,7 @@ pub fn deploymentmanager_operations_get_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     operation: &String,
-    header_bypassBillingFilter: &Option<Option<String>>,
+    header_bypassBillingFilter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2624,7 +2626,7 @@ pub struct DeploymentmanagerOperationsGetArgs {
     /// Path parameter: operation
     pub operation: String,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<Option<String>>,
+    pub header_bypassBillingFilter: Option<String>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/operations/{operation}
@@ -2663,10 +2665,10 @@ pub fn deploymentmanager_operations_get(
 pub fn deploymentmanager_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2817,13 +2819,13 @@ pub struct DeploymentmanagerOperationsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/operations
@@ -2868,7 +2870,7 @@ pub fn deploymentmanager_resources_get_builder<R>(
     project: &String,
     deployment: &String,
     resource: &String,
-    header_bypassBillingFilter: &Option<Option<String>>,
+    header_bypassBillingFilter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3014,7 +3016,7 @@ pub struct DeploymentmanagerResourcesGetArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<Option<String>>,
+    pub header_bypassBillingFilter: Option<String>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/resources/{resource}
@@ -3055,10 +3057,10 @@ pub fn deploymentmanager_resources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     deployment: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3212,13 +3214,13 @@ pub struct DeploymentmanagerResourcesListArgs {
     /// Path parameter: deployment
     pub deployment: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/resources
@@ -3262,10 +3264,10 @@ pub fn deploymentmanager_resources_list(
 pub fn deploymentmanager_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3416,13 +3418,13 @@ pub struct DeploymentmanagerTypesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/types

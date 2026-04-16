@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,8 +32,8 @@ use serde::Serialize;
 pub fn recommendationengine_projects_locations_catalogs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -185,9 +187,9 @@ pub struct RecommendationengineProjectsLocationsCatalogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs
@@ -233,7 +235,7 @@ pub fn recommendationengine_projects_locations_catalogs_list(
 pub fn recommendationengine_projects_locations_catalogs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -378,7 +380,7 @@ pub struct RecommendationengineProjectsLocationsCatalogsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}
@@ -1106,9 +1108,9 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_import(
 pub fn recommendationengine_projects_locations_catalogs_catalog_items_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1265,11 +1267,11 @@ pub struct RecommendationengineProjectsLocationsCatalogsCatalogItemsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems
@@ -1316,7 +1318,7 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_list(
 pub fn recommendationengine_projects_locations_catalogs_catalog_items_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1464,7 +1466,7 @@ pub struct RecommendationengineProjectsLocationsCatalogsCatalogItemsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems/{catalogItemsId}
@@ -1678,10 +1680,10 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_
 pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1837,13 +1839,13 @@ pub struct RecommendationengineProjectsLocationsCatalogsEventStoresOperationsLis
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/operations
@@ -2425,8 +2427,8 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2579,9 +2581,9 @@ pub struct RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApi
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/predictionApiKeyRegistrations
@@ -2626,9 +2628,9 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    ets: &Option<Option<String>>,
-    uri: &Option<Option<String>>,
-    userEvent: &Option<Option<String>>,
+    ets: &Option<String>,
+    uri: &Option<String>,
+    userEvent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2779,11 +2781,11 @@ pub struct RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsCol
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: ets
-    pub ets: Option<Option<String>>,
+    pub ets: Option<String>,
     /// Query parameter: uri
-    pub uri: Option<Option<String>>,
+    pub uri: Option<String>,
     /// Query parameter: userEvent
-    pub userEvent: Option<Option<String>>,
+    pub userEvent: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:collect
@@ -3005,9 +3007,9 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3166,11 +3168,11 @@ pub struct RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsLis
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents
@@ -3916,10 +3918,10 @@ pub fn recommendationengine_projects_locations_catalogs_operations_get(
 pub fn recommendationengine_projects_locations_catalogs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4073,13 +4075,13 @@ pub struct RecommendationengineProjectsLocationsCatalogsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations

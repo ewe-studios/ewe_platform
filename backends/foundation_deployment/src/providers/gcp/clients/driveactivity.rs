@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -175,27 +177,4 @@ pub fn driveactivity_activity_query(
 > {
     let builder = driveactivity_activity_query_builder(client)?;
     driveactivity_activity_query_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for QueryDriveActivityResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for QueryDriveActivityResponse with DriveactivityActivityQueryArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DriveactivityActivityQueryArgs> for QueryDriveActivityResponse {
-    fn generate_resource_id(&self, input: &DriveactivityActivityQueryArgs) -> String {
-        "gcp::driveactivity::QueryDriveActivityResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::driveactivity::QueryDriveActivityResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }

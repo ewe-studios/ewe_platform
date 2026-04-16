@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,8 +32,8 @@ use serde::Serialize;
 pub fn mybusinessbusinessinformation_accounts_locations_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -174,9 +176,9 @@ pub struct MybusinessbusinessinformationAccountsLocationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/accounts/{accountsId}/locations
@@ -215,11 +217,11 @@ pub fn mybusinessbusinessinformation_accounts_locations_create(
 pub fn mybusinessbusinessinformation_accounts_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -373,15 +375,15 @@ pub struct MybusinessbusinessinformationAccountsLocationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/locations
@@ -424,13 +426,13 @@ pub fn mybusinessbusinessinformation_accounts_locations_list(
 
 pub fn mybusinessbusinessinformation_attributes_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    categoryName: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    regionCode: &Option<Option<String>>,
-    showAll: &Option<Option<String>>,
+    categoryName: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    regionCode: &Option<String>,
+    showAll: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -588,19 +590,19 @@ pub fn mybusinessbusinessinformation_attributes_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MybusinessbusinessinformationAttributesListArgs {
     /// Query parameter: categoryName
-    pub categoryName: Option<Option<String>>,
+    pub categoryName: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: regionCode
-    pub regionCode: Option<Option<String>>,
+    pub regionCode: Option<String>,
     /// Query parameter: showAll
-    pub showAll: Option<Option<String>>,
+    pub showAll: Option<String>,
 }
 
 /// GET v1/attributes
@@ -646,10 +648,10 @@ pub fn mybusinessbusinessinformation_attributes_list(
 
 pub fn mybusinessbusinessinformation_categories_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    languageCode: &Option<Option<String>>,
-    names: &Option<Option<String>>,
-    regionCode: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    names: &Option<String>,
+    regionCode: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -798,13 +800,13 @@ pub fn mybusinessbusinessinformation_categories_batch_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MybusinessbusinessinformationCategoriesBatchGetArgs {
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: names
-    pub names: Option<Option<String>>,
+    pub names: Option<String>,
     /// Query parameter: regionCode
-    pub regionCode: Option<Option<String>>,
+    pub regionCode: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/categories:batchGet
@@ -847,12 +849,12 @@ pub fn mybusinessbusinessinformation_categories_batch_get(
 
 pub fn mybusinessbusinessinformation_categories_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    regionCode: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    regionCode: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1005,17 +1007,17 @@ pub fn mybusinessbusinessinformation_categories_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MybusinessbusinessinformationCategoriesListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: regionCode
-    pub regionCode: Option<Option<String>>,
+    pub regionCode: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/categories
@@ -1218,8 +1220,8 @@ pub fn mybusinessbusinessinformation_chains_get(
 
 pub fn mybusinessbusinessinformation_chains_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    chainName: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
+    chainName: &Option<String>,
+    pageSize: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1360,9 +1362,9 @@ pub fn mybusinessbusinessinformation_chains_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MybusinessbusinessinformationChainsSearchArgs {
     /// Query parameter: chainName
-    pub chainName: Option<Option<String>>,
+    pub chainName: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
 }
 
 /// GET v1/chains:search
@@ -1719,7 +1721,7 @@ pub fn mybusinessbusinessinformation_locations_delete(
 pub fn mybusinessbusinessinformation_locations_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1859,7 +1861,7 @@ pub struct MybusinessbusinessinformationLocationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/locations/{locationsId}
@@ -2055,7 +2057,7 @@ pub fn mybusinessbusinessinformation_locations_get_attributes(
 pub fn mybusinessbusinessinformation_locations_get_google_updated_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2197,7 +2199,7 @@ pub struct MybusinessbusinessinformationLocationsGetGoogleUpdatedArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/locations/{locationsId}:getGoogleUpdated
@@ -2237,8 +2239,8 @@ pub fn mybusinessbusinessinformation_locations_get_google_updated(
 pub fn mybusinessbusinessinformation_locations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2381,9 +2383,9 @@ pub struct MybusinessbusinessinformationLocationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/locations/{locationsId}
@@ -2422,7 +2424,7 @@ pub fn mybusinessbusinessinformation_locations_patch(
 pub fn mybusinessbusinessinformation_locations_update_attributes_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    attributeMask: &Option<Option<String>>,
+    attributeMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2562,7 +2564,7 @@ pub struct MybusinessbusinessinformationLocationsUpdateAttributesArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: attributeMask
-    pub attributeMask: Option<Option<String>>,
+    pub attributeMask: Option<String>,
 }
 
 /// PATCH v1/locations/{locationsId}/attributes
@@ -2939,34 +2941,6 @@ impl ResourceIdentifier<MybusinessbusinessinformationChainsSearchArgs> for Searc
 
     fn resource_kind(&self) -> &'static str {
         "gcp::mybusinessbusinessinformation::SearchChainsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SearchGoogleLocationsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SearchGoogleLocationsResponse with MybusinessbusinessinformationGoogleLocationsSearchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<MybusinessbusinessinformationGoogleLocationsSearchArgs>
-    for SearchGoogleLocationsResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &MybusinessbusinessinformationGoogleLocationsSearchArgs,
-    ) -> String {
-        "gcp::mybusinessbusinessinformation::SearchGoogleLocationsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::mybusinessbusinessinformation::SearchGoogleLocationsResponse"
     }
 
     fn provider(&self) -> &'static str {

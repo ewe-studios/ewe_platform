@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -853,7 +855,7 @@ pub fn workflowexecutions_projects_locations_workflows_executions_export_data(
 pub fn workflowexecutions_projects_locations_workflows_executions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -993,7 +995,7 @@ pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions/{executionsId}
@@ -1029,11 +1031,11 @@ pub fn workflowexecutions_projects_locations_workflows_executions_get(
 pub fn workflowexecutions_projects_locations_workflows_executions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1187,15 +1189,15 @@ pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions
@@ -1239,8 +1241,8 @@ pub fn workflowexecutions_projects_locations_workflows_executions_list(
 pub fn workflowexecutions_projects_locations_workflows_executions_callbacks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1386,9 +1388,9 @@ pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsCallbacksListAr
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions/{executionsId}/callbacks
@@ -1430,7 +1432,7 @@ pub fn workflowexecutions_projects_locations_workflows_executions_callbacks_list
 pub fn workflowexecutions_projects_locations_workflows_executions_step_entries_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1571,7 +1573,7 @@ pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsStepEntriesGetA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions/{executionsId}/stepEntries/{stepEntriesId}
@@ -1608,12 +1610,12 @@ pub fn workflowexecutions_projects_locations_workflows_executions_step_entries_g
 pub fn workflowexecutions_projects_locations_workflows_executions_step_entries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    skip: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    skip: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1771,17 +1773,17 @@ pub struct WorkflowexecutionsProjectsLocationsWorkflowsExecutionsStepEntriesList
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: skip
-    pub skip: Option<Option<String>>,
+    pub skip: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}/executions/{executionsId}/stepEntries

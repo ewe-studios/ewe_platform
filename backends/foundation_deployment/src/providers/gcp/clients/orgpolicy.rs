@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,8 +32,8 @@ use serde::Serialize;
 pub fn orgpolicy_folders_constraints_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -179,9 +181,9 @@ pub struct OrgpolicyFoldersConstraintsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/constraints
@@ -392,7 +394,7 @@ pub fn orgpolicy_folders_policies_create(
 pub fn orgpolicy_folders_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -534,7 +536,7 @@ pub struct OrgpolicyFoldersPoliciesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v2/folders/{foldersId}/policies/{policiesId}
@@ -906,8 +908,8 @@ pub fn orgpolicy_folders_policies_get_effective_policy(
 pub fn orgpolicy_folders_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1055,9 +1057,9 @@ pub struct OrgpolicyFoldersPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/policies
@@ -1100,7 +1102,7 @@ pub fn orgpolicy_folders_policies_list(
 pub fn orgpolicy_folders_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1244,7 +1246,7 @@ pub struct OrgpolicyFoldersPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/folders/{foldersId}/policies/{policiesId}
@@ -1282,8 +1284,8 @@ pub fn orgpolicy_folders_policies_patch(
 pub fn orgpolicy_organizations_constraints_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1431,9 +1433,9 @@ pub struct OrgpolicyOrganizationsConstraintsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/constraints
@@ -1976,8 +1978,8 @@ pub fn orgpolicy_organizations_custom_constraints_get(
 pub fn orgpolicy_organizations_custom_constraints_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2128,9 +2130,9 @@ pub struct OrgpolicyOrganizationsCustomConstraintsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/customConstraints
@@ -2509,7 +2511,7 @@ pub fn orgpolicy_organizations_policies_create(
 pub fn orgpolicy_organizations_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2651,7 +2653,7 @@ pub struct OrgpolicyOrganizationsPoliciesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v2/organizations/{organizationsId}/policies/{policiesId}
@@ -3024,8 +3026,8 @@ pub fn orgpolicy_organizations_policies_get_effective_policy(
 pub fn orgpolicy_organizations_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3173,9 +3175,9 @@ pub struct OrgpolicyOrganizationsPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/policies
@@ -3218,7 +3220,7 @@ pub fn orgpolicy_organizations_policies_list(
 pub fn orgpolicy_organizations_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3362,7 +3364,7 @@ pub struct OrgpolicyOrganizationsPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/organizations/{organizationsId}/policies/{policiesId}
@@ -3401,8 +3403,8 @@ pub fn orgpolicy_organizations_policies_patch(
 pub fn orgpolicy_projects_constraints_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3550,9 +3552,9 @@ pub struct OrgpolicyProjectsConstraintsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/constraints
@@ -3763,7 +3765,7 @@ pub fn orgpolicy_projects_policies_create(
 pub fn orgpolicy_projects_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3905,7 +3907,7 @@ pub struct OrgpolicyProjectsPoliciesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v2/projects/{projectsId}/policies/{policiesId}
@@ -4277,8 +4279,8 @@ pub fn orgpolicy_projects_policies_get_effective_policy(
 pub fn orgpolicy_projects_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4426,9 +4428,9 @@ pub struct OrgpolicyProjectsPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/policies
@@ -4471,7 +4473,7 @@ pub fn orgpolicy_projects_policies_list(
 pub fn orgpolicy_projects_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4615,7 +4617,7 @@ pub struct OrgpolicyProjectsPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/policies/{policiesId}

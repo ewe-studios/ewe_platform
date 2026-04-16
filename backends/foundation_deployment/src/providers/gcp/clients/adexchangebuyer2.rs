@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -357,9 +359,9 @@ pub fn adexchangebuyer2_accounts_clients_get(
 pub fn adexchangebuyer2_accounts_clients_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerClientId: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerClientId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -507,11 +509,11 @@ pub struct Adexchangebuyer2AccountsClientsListArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerClientId
-    pub partnerClientId: Option<Option<String>>,
+    pub partnerClientId: Option<String>,
 }
 
 /// GET v2beta1/accounts/{accountId}/clients
@@ -1067,8 +1069,8 @@ pub fn adexchangebuyer2_accounts_clients_invitations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
     clientAccountId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1217,9 +1219,9 @@ pub struct Adexchangebuyer2AccountsClientsInvitationsListArgs {
     /// Path parameter: clientAccountId
     pub clientAccountId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/invitations
@@ -1435,8 +1437,8 @@ pub fn adexchangebuyer2_accounts_clients_users_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
     clientAccountId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1583,9 +1585,9 @@ pub struct Adexchangebuyer2AccountsClientsUsersListArgs {
     /// Path parameter: clientAccountId
     pub clientAccountId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/users
@@ -1798,7 +1800,7 @@ pub fn adexchangebuyer2_accounts_clients_users_update(
 pub fn adexchangebuyer2_accounts_creatives_create_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
-    duplicateIdMode: &Option<Option<String>>,
+    duplicateIdMode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1938,7 +1940,7 @@ pub struct Adexchangebuyer2AccountsCreativesCreateArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: duplicateIdMode
-    pub duplicateIdMode: Option<Option<String>>,
+    pub duplicateIdMode: Option<String>,
 }
 
 /// POST v2beta1/accounts/{accountId}/creatives
@@ -2140,9 +2142,9 @@ pub fn adexchangebuyer2_accounts_creatives_get(
 pub fn adexchangebuyer2_accounts_creatives_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2290,11 +2292,11 @@ pub struct Adexchangebuyer2AccountsCreativesListArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v2beta1/accounts/{accountId}/creatives
@@ -3006,9 +3008,9 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
     creativeId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3160,11 +3162,11 @@ pub struct Adexchangebuyer2AccountsCreativesDealAssociationsListArgs {
     /// Path parameter: creativeId
     pub creativeId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v2beta1/accounts/{accountId}/creatives/{creativeId}/dealAssociations
@@ -3377,10 +3379,10 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove(
 pub fn adexchangebuyer2_accounts_finalized_proposals_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
-    filter: &Option<Option<String>>,
-    filterSyntax: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    filterSyntax: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3531,13 +3533,13 @@ pub struct Adexchangebuyer2AccountsFinalizedProposalsListArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: filterSyntax
-    pub filterSyntax: Option<Option<String>>,
+    pub filterSyntax: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/accounts/{accountId}/finalizedProposals
@@ -4078,9 +4080,9 @@ pub fn adexchangebuyer2_accounts_products_get(
 pub fn adexchangebuyer2_accounts_products_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4228,11 +4230,11 @@ pub struct Adexchangebuyer2AccountsProductsListArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/accounts/{accountId}/products
@@ -5266,10 +5268,10 @@ pub fn adexchangebuyer2_accounts_proposals_get(
 pub fn adexchangebuyer2_accounts_proposals_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
-    filter: &Option<Option<String>>,
-    filterSyntax: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    filterSyntax: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5420,13 +5422,13 @@ pub struct Adexchangebuyer2AccountsProposalsListArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: filterSyntax
-    pub filterSyntax: Option<Option<String>>,
+    pub filterSyntax: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/accounts/{accountId}/proposals
@@ -6141,8 +6143,8 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_get(
 pub fn adexchangebuyer2_accounts_publisher_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6289,9 +6291,9 @@ pub struct Adexchangebuyer2AccountsPublisherProfilesListArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/accounts/{accountId}/publisherProfiles
@@ -6334,7 +6336,7 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_list(
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     ownerName: &String,
-    isTransient: &Option<Option<String>>,
+    isTransient: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6474,7 +6476,7 @@ pub struct Adexchangebuyer2BiddersAccountsFilterSetsCreateArgs {
     /// Path parameter: ownerName
     pub ownerName: String,
     /// Query parameter: isTransient
-    pub isTransient: Option<Option<String>>,
+    pub isTransient: Option<String>,
 }
 
 /// POST v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets
@@ -6832,8 +6834,8 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_get(
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     ownerName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6978,9 +6980,9 @@ pub struct Adexchangebuyer2BiddersAccountsFilterSetsListArgs {
     /// Path parameter: ownerName
     pub ownerName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets
@@ -7021,8 +7023,8 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_list(
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7167,9 +7169,9 @@ pub struct Adexchangebuyer2BiddersAccountsFilterSetsBidMetricsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidMetrics
@@ -7210,8 +7212,8 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list(
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7359,9 +7361,9 @@ pub struct Adexchangebuyer2BiddersAccountsFilterSetsBidResponseErrorsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponseErrors
@@ -7404,8 +7406,8 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list(
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7554,9 +7556,9 @@ pub struct Adexchangebuyer2BiddersAccountsFilterSetsBidResponsesWithoutBidsListA
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
@@ -7600,8 +7602,8 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7749,9 +7751,9 @@ pub struct Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidRequestsListArgs 
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBidRequests
@@ -7794,8 +7796,8 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list(
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7940,9 +7942,9 @@ pub struct Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids
@@ -7984,8 +7986,8 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_lis
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
     creativeStatusId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8137,9 +8139,9 @@ pub struct Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsCreativesListArg
     /// Path parameter: creativeStatusId
     pub creativeStatusId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
@@ -8185,8 +8187,8 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
     creativeStatusId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8338,9 +8340,9 @@ pub struct Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsDetailsListArgs 
     /// Path parameter: creativeStatusId
     pub creativeStatusId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
@@ -8384,8 +8386,8 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list(
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8532,9 +8534,9 @@ pub struct Adexchangebuyer2BiddersAccountsFilterSetsImpressionMetricsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/impressionMetrics
@@ -8577,8 +8579,8 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list(
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8723,9 +8725,9 @@ pub struct Adexchangebuyer2BiddersAccountsFilterSetsLosingBidsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/losingBids
@@ -8766,8 +8768,8 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list(
 pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8915,9 +8917,9 @@ pub struct Adexchangebuyer2BiddersAccountsFilterSetsNonBillableWinningBidsListAr
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/nonBillableWinningBids
@@ -8961,7 +8963,7 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_l
 pub fn adexchangebuyer2_bidders_filter_sets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     ownerName: &String,
-    isTransient: &Option<Option<String>>,
+    isTransient: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9101,7 +9103,7 @@ pub struct Adexchangebuyer2BiddersFilterSetsCreateArgs {
     /// Path parameter: ownerName
     pub ownerName: String,
     /// Query parameter: isTransient
-    pub isTransient: Option<Option<String>>,
+    pub isTransient: Option<String>,
 }
 
 /// POST v2beta1/bidders/{biddersId}/filterSets
@@ -9459,8 +9461,8 @@ pub fn adexchangebuyer2_bidders_filter_sets_get(
 pub fn adexchangebuyer2_bidders_filter_sets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     ownerName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9605,9 +9607,9 @@ pub struct Adexchangebuyer2BiddersFilterSetsListArgs {
     /// Path parameter: ownerName
     pub ownerName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/filterSets
@@ -9648,8 +9650,8 @@ pub fn adexchangebuyer2_bidders_filter_sets_list(
 pub fn adexchangebuyer2_bidders_filter_sets_bid_metrics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9794,9 +9796,9 @@ pub struct Adexchangebuyer2BiddersFilterSetsBidMetricsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidMetrics
@@ -9837,8 +9839,8 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_metrics_list(
 pub fn adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9985,9 +9987,9 @@ pub struct Adexchangebuyer2BiddersFilterSetsBidResponseErrorsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidResponseErrors
@@ -10030,8 +10032,8 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_response_errors_list(
 pub fn adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10178,9 +10180,9 @@ pub struct Adexchangebuyer2BiddersFilterSetsBidResponsesWithoutBidsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
@@ -10223,8 +10225,8 @@ pub fn adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list(
 pub fn adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10371,9 +10373,9 @@ pub struct Adexchangebuyer2BiddersFilterSetsFilteredBidRequestsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBidRequests
@@ -10416,8 +10418,8 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list(
 pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10562,9 +10564,9 @@ pub struct Adexchangebuyer2BiddersFilterSetsFilteredBidsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids
@@ -10606,8 +10608,8 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_builder
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
     creativeStatusId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10758,9 +10760,9 @@ pub struct Adexchangebuyer2BiddersFilterSetsFilteredBidsCreativesListArgs {
     /// Path parameter: creativeStatusId
     pub creativeStatusId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
@@ -10805,8 +10807,8 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_builder<R
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
     creativeStatusId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10957,9 +10959,9 @@ pub struct Adexchangebuyer2BiddersFilterSetsFilteredBidsDetailsListArgs {
     /// Path parameter: creativeStatusId
     pub creativeStatusId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
@@ -11003,8 +11005,8 @@ pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list(
 pub fn adexchangebuyer2_bidders_filter_sets_impression_metrics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11151,9 +11153,9 @@ pub struct Adexchangebuyer2BiddersFilterSetsImpressionMetricsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/impressionMetrics
@@ -11196,8 +11198,8 @@ pub fn adexchangebuyer2_bidders_filter_sets_impression_metrics_list(
 pub fn adexchangebuyer2_bidders_filter_sets_losing_bids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11342,9 +11344,9 @@ pub struct Adexchangebuyer2BiddersFilterSetsLosingBidsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/losingBids
@@ -11385,8 +11387,8 @@ pub fn adexchangebuyer2_bidders_filter_sets_losing_bids_list(
 pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11533,9 +11535,9 @@ pub struct Adexchangebuyer2BiddersFilterSetsNonBillableWinningBidsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/nonBillableWinningBids
@@ -11578,7 +11580,7 @@ pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list(
 pub fn adexchangebuyer2_buyers_filter_sets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     ownerName: &String,
-    isTransient: &Option<Option<String>>,
+    isTransient: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11718,7 +11720,7 @@ pub struct Adexchangebuyer2BuyersFilterSetsCreateArgs {
     /// Path parameter: ownerName
     pub ownerName: String,
     /// Query parameter: isTransient
-    pub isTransient: Option<Option<String>>,
+    pub isTransient: Option<String>,
 }
 
 /// POST v2beta1/buyers/{buyersId}/filterSets
@@ -12076,8 +12078,8 @@ pub fn adexchangebuyer2_buyers_filter_sets_get(
 pub fn adexchangebuyer2_buyers_filter_sets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     ownerName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12222,9 +12224,9 @@ pub struct Adexchangebuyer2BuyersFilterSetsListArgs {
     /// Path parameter: ownerName
     pub ownerName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/buyers/{buyersId}/filterSets
@@ -12265,8 +12267,8 @@ pub fn adexchangebuyer2_buyers_filter_sets_list(
 pub fn adexchangebuyer2_buyers_filter_sets_bid_metrics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12411,9 +12413,9 @@ pub struct Adexchangebuyer2BuyersFilterSetsBidMetricsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidMetrics
@@ -12454,8 +12456,8 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_metrics_list(
 pub fn adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12602,9 +12604,9 @@ pub struct Adexchangebuyer2BuyersFilterSetsBidResponseErrorsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidResponseErrors
@@ -12647,8 +12649,8 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_response_errors_list(
 pub fn adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12795,9 +12797,9 @@ pub struct Adexchangebuyer2BuyersFilterSetsBidResponsesWithoutBidsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
@@ -12840,8 +12842,8 @@ pub fn adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list(
 pub fn adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12988,9 +12990,9 @@ pub struct Adexchangebuyer2BuyersFilterSetsFilteredBidRequestsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBidRequests
@@ -13033,8 +13035,8 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list(
 pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13179,9 +13181,9 @@ pub struct Adexchangebuyer2BuyersFilterSetsFilteredBidsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids
@@ -13223,8 +13225,8 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_builder<
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
     creativeStatusId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13375,9 +13377,9 @@ pub struct Adexchangebuyer2BuyersFilterSetsFilteredBidsCreativesListArgs {
     /// Path parameter: creativeStatusId
     pub creativeStatusId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
@@ -13422,8 +13424,8 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_builder<R>
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
     creativeStatusId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13574,9 +13576,9 @@ pub struct Adexchangebuyer2BuyersFilterSetsFilteredBidsDetailsListArgs {
     /// Path parameter: creativeStatusId
     pub creativeStatusId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
@@ -13620,8 +13622,8 @@ pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list(
 pub fn adexchangebuyer2_buyers_filter_sets_impression_metrics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13768,9 +13770,9 @@ pub struct Adexchangebuyer2BuyersFilterSetsImpressionMetricsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/impressionMetrics
@@ -13813,8 +13815,8 @@ pub fn adexchangebuyer2_buyers_filter_sets_impression_metrics_list(
 pub fn adexchangebuyer2_buyers_filter_sets_losing_bids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13959,9 +13961,9 @@ pub struct Adexchangebuyer2BuyersFilterSetsLosingBidsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/losingBids
@@ -14002,8 +14004,8 @@ pub fn adexchangebuyer2_buyers_filter_sets_losing_bids_list(
 pub fn adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     filterSetName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14150,9 +14152,9 @@ pub struct Adexchangebuyer2BuyersFilterSetsNonBillableWinningBidsListArgs {
     /// Path parameter: filterSetName
     pub filterSetName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/nonBillableWinningBids

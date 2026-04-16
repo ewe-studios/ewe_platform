@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,9 +32,9 @@ use serde::Serialize;
 pub fn container_projects_aggregated_usable_subnetworks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -182,11 +184,11 @@ pub struct ContainerProjectsAggregatedUsableSubnetworksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/aggregated/usableSubnetworks
@@ -230,8 +232,8 @@ pub fn container_projects_aggregated_usable_subnetworks_list(
 pub fn container_projects_locations_get_server_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    projectId: &Option<Option<String>>,
-    zone: &Option<Option<String>>,
+    projectId: &Option<String>,
+    zone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -376,9 +378,9 @@ pub struct ContainerProjectsLocationsGetServerConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
     /// Query parameter: zone
-    pub zone: Option<Option<String>>,
+    pub zone: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serverConfig
@@ -910,9 +912,9 @@ pub fn container_projects_locations_clusters_create(
 pub fn container_projects_locations_clusters_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    clusterId: &Option<Option<String>>,
-    projectId: &Option<Option<String>>,
-    zone: &Option<Option<String>>,
+    clusterId: &Option<String>,
+    projectId: &Option<String>,
+    zone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1058,11 +1060,11 @@ pub struct ContainerProjectsLocationsClustersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: clusterId
-    pub clusterId: Option<Option<String>>,
+    pub clusterId: Option<String>,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
     /// Query parameter: zone
-    pub zone: Option<Option<String>>,
+    pub zone: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
@@ -1102,7 +1104,7 @@ pub fn container_projects_locations_clusters_delete(
 pub fn container_projects_locations_clusters_fetch_cluster_upgrade_info_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    version: &Option<Option<String>>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1244,7 +1246,7 @@ pub struct ContainerProjectsLocationsClustersFetchClusterUpgradeInfoArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: version
-    pub version: Option<Option<String>>,
+    pub version: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}:fetchClusterUpgradeInfo
@@ -1284,9 +1286,9 @@ pub fn container_projects_locations_clusters_fetch_cluster_upgrade_info(
 pub fn container_projects_locations_clusters_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    clusterId: &Option<Option<String>>,
-    projectId: &Option<Option<String>>,
-    zone: &Option<Option<String>>,
+    clusterId: &Option<String>,
+    projectId: &Option<String>,
+    zone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1432,11 +1434,11 @@ pub struct ContainerProjectsLocationsClustersGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: clusterId
-    pub clusterId: Option<Option<String>>,
+    pub clusterId: Option<String>,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
     /// Query parameter: zone
-    pub zone: Option<Option<String>>,
+    pub zone: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
@@ -1640,8 +1642,8 @@ pub fn container_projects_locations_clusters_get_jwks(
 pub fn container_projects_locations_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    projectId: &Option<Option<String>>,
-    zone: &Option<Option<String>>,
+    projectId: &Option<String>,
+    zone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1786,9 +1788,9 @@ pub struct ContainerProjectsLocationsClustersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
     /// Query parameter: zone
-    pub zone: Option<Option<String>>,
+    pub zone: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
@@ -4078,10 +4080,10 @@ pub fn container_projects_locations_clusters_node_pools_create(
 pub fn container_projects_locations_clusters_node_pools_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    clusterId: &Option<Option<String>>,
-    nodePoolId: &Option<Option<String>>,
-    projectId: &Option<Option<String>>,
-    zone: &Option<Option<String>>,
+    clusterId: &Option<String>,
+    nodePoolId: &Option<String>,
+    projectId: &Option<String>,
+    zone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4230,13 +4232,13 @@ pub struct ContainerProjectsLocationsClustersNodePoolsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: clusterId
-    pub clusterId: Option<Option<String>>,
+    pub clusterId: Option<String>,
     /// Query parameter: nodePoolId
-    pub nodePoolId: Option<Option<String>>,
+    pub nodePoolId: Option<String>,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
     /// Query parameter: zone
-    pub zone: Option<Option<String>>,
+    pub zone: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
@@ -4277,7 +4279,7 @@ pub fn container_projects_locations_clusters_node_pools_delete(
 pub fn container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_info_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    version: &Option<Option<String>>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4421,7 +4423,7 @@ pub struct ContainerProjectsLocationsClustersNodePoolsFetchNodePoolUpgradeInfoAr
     /// Path parameter: name
     pub name: String,
     /// Query parameter: version
-    pub version: Option<Option<String>>,
+    pub version: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}:fetchNodePoolUpgradeInfo
@@ -4462,10 +4464,10 @@ pub fn container_projects_locations_clusters_node_pools_fetch_node_pool_upgrade_
 pub fn container_projects_locations_clusters_node_pools_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    clusterId: &Option<Option<String>>,
-    nodePoolId: &Option<Option<String>>,
-    projectId: &Option<Option<String>>,
-    zone: &Option<Option<String>>,
+    clusterId: &Option<String>,
+    nodePoolId: &Option<String>,
+    projectId: &Option<String>,
+    zone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4614,13 +4616,13 @@ pub struct ContainerProjectsLocationsClustersNodePoolsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: clusterId
-    pub clusterId: Option<Option<String>>,
+    pub clusterId: Option<String>,
     /// Query parameter: nodePoolId
-    pub nodePoolId: Option<Option<String>>,
+    pub nodePoolId: Option<String>,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
     /// Query parameter: zone
-    pub zone: Option<Option<String>>,
+    pub zone: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools/{nodePoolsId}
@@ -4661,9 +4663,9 @@ pub fn container_projects_locations_clusters_node_pools_get(
 pub fn container_projects_locations_clusters_node_pools_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    clusterId: &Option<Option<String>>,
-    projectId: &Option<Option<String>>,
-    zone: &Option<Option<String>>,
+    clusterId: &Option<String>,
+    projectId: &Option<String>,
+    zone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4811,11 +4813,11 @@ pub struct ContainerProjectsLocationsClustersNodePoolsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: clusterId
-    pub clusterId: Option<Option<String>>,
+    pub clusterId: Option<String>,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
     /// Query parameter: zone
-    pub zone: Option<Option<String>>,
+    pub zone: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/nodePools
@@ -5993,9 +5995,9 @@ pub fn container_projects_locations_operations_cancel(
 pub fn container_projects_locations_operations_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    operationId: &Option<Option<String>>,
-    projectId: &Option<Option<String>>,
-    zone: &Option<Option<String>>,
+    operationId: &Option<String>,
+    projectId: &Option<String>,
+    zone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6141,11 +6143,11 @@ pub struct ContainerProjectsLocationsOperationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: operationId
-    pub operationId: Option<Option<String>>,
+    pub operationId: Option<String>,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
     /// Query parameter: zone
-    pub zone: Option<Option<String>>,
+    pub zone: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
@@ -6185,8 +6187,8 @@ pub fn container_projects_locations_operations_get(
 pub fn container_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    projectId: &Option<Option<String>>,
-    zone: &Option<Option<String>>,
+    projectId: &Option<String>,
+    zone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6331,9 +6333,9 @@ pub struct ContainerProjectsLocationsOperationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
     /// Query parameter: zone
-    pub zone: Option<Option<String>>,
+    pub zone: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -6375,7 +6377,7 @@ pub fn container_projects_zones_get_serverconfig_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6519,7 +6521,7 @@ pub struct ContainerProjectsZonesGetServerconfigArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// GET v1/projects/{projectId}/zones/{zone}/serverconfig
@@ -7068,7 +7070,7 @@ pub fn container_projects_zones_clusters_delete_builder<R>(
     projectId: &String,
     zone: &String,
     clusterId: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7212,7 +7214,7 @@ pub struct ContainerProjectsZonesClustersDeleteArgs {
     /// Path parameter: clusterId
     pub clusterId: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// DELETE v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
@@ -7252,7 +7254,7 @@ pub fn container_projects_zones_clusters_delete(
 pub fn container_projects_zones_clusters_fetch_cluster_upgrade_info_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    version: &Option<Option<String>>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7394,7 +7396,7 @@ pub struct ContainerProjectsZonesClustersFetchClusterUpgradeInfoArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: version
-    pub version: Option<Option<String>>,
+    pub version: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/zones/{zonesId}/clusters/{clustersId}:fetchClusterUpgradeInfo
@@ -7436,7 +7438,7 @@ pub fn container_projects_zones_clusters_get_builder<R>(
     projectId: &String,
     zone: &String,
     clusterId: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7580,7 +7582,7 @@ pub struct ContainerProjectsZonesClustersGetArgs {
     /// Path parameter: clusterId
     pub clusterId: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}
@@ -7792,7 +7794,7 @@ pub fn container_projects_zones_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7936,7 +7938,7 @@ pub struct ContainerProjectsZonesClustersListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectId}/zones/{zone}/clusters
@@ -10039,7 +10041,7 @@ pub fn container_projects_zones_clusters_node_pools_delete_builder<R>(
     zone: &String,
     clusterId: &String,
     nodePoolId: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10185,7 +10187,7 @@ pub struct ContainerProjectsZonesClustersNodePoolsDeleteArgs {
     /// Path parameter: nodePoolId
     pub nodePoolId: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// DELETE v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools/{nodePoolId}
@@ -10226,7 +10228,7 @@ pub fn container_projects_zones_clusters_node_pools_delete(
 pub fn container_projects_zones_clusters_node_pools_fetch_node_pool_upgrade_info_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    version: &Option<Option<String>>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10369,7 +10371,7 @@ pub struct ContainerProjectsZonesClustersNodePoolsFetchNodePoolUpgradeInfoArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: version
-    pub version: Option<Option<String>>,
+    pub version: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/zones/{zonesId}/clusters/{clustersId}/nodePools/{nodePoolsId}:fetchNodePoolUpgradeInfo
@@ -10413,7 +10415,7 @@ pub fn container_projects_zones_clusters_node_pools_get_builder<R>(
     zone: &String,
     clusterId: &String,
     nodePoolId: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10559,7 +10561,7 @@ pub struct ContainerProjectsZonesClustersNodePoolsGetArgs {
     /// Path parameter: nodePoolId
     pub nodePoolId: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools/{nodePoolId}
@@ -10602,7 +10604,7 @@ pub fn container_projects_zones_clusters_node_pools_list_builder<R>(
     projectId: &String,
     zone: &String,
     clusterId: &String,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10748,7 +10750,7 @@ pub struct ContainerProjectsZonesClustersNodePoolsListArgs {
     /// Path parameter: clusterId
     pub clusterId: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectId}/zones/{zone}/clusters/{clusterId}/nodePools
@@ -11669,7 +11671,7 @@ pub fn container_projects_zones_operations_get_builder<R>(
     projectId: &String,
     zone: &String,
     operationId: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11813,7 +11815,7 @@ pub struct ContainerProjectsZonesOperationsGetArgs {
     /// Path parameter: operationId
     pub operationId: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// GET v1/projects/{projectId}/zones/{zone}/operations/{operationId}
@@ -11854,7 +11856,7 @@ pub fn container_projects_zones_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     zone: &String,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11998,7 +12000,7 @@ pub struct ContainerProjectsZonesOperationsListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectId}/zones/{zone}/operations

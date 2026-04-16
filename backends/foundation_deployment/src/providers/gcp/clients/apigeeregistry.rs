@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,9 +192,9 @@ pub fn apigeeregistry_projects_locations_get(
 pub fn apigeeregistry_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -340,11 +342,11 @@ pub struct ApigeeregistryProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -386,7 +388,7 @@ pub fn apigeeregistry_projects_locations_list(
 pub fn apigeeregistry_projects_locations_apis_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    apiId: &Option<Option<String>>,
+    apiId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -526,7 +528,7 @@ pub struct ApigeeregistryProjectsLocationsApisCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: apiId
-    pub apiId: Option<Option<String>>,
+    pub apiId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis
@@ -561,7 +563,7 @@ pub fn apigeeregistry_projects_locations_apis_create(
 pub fn apigeeregistry_projects_locations_apis_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -701,7 +703,7 @@ pub struct ApigeeregistryProjectsLocationsApisDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
@@ -896,7 +898,7 @@ pub fn apigeeregistry_projects_locations_apis_get(
 pub fn apigeeregistry_projects_locations_apis_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1036,7 +1038,7 @@ pub struct ApigeeregistryProjectsLocationsApisGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}:getIamPolicy
@@ -1074,10 +1076,10 @@ pub fn apigeeregistry_projects_locations_apis_get_iam_policy(
 pub fn apigeeregistry_projects_locations_apis_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1228,13 +1230,13 @@ pub struct ApigeeregistryProjectsLocationsApisListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis
@@ -1277,8 +1279,8 @@ pub fn apigeeregistry_projects_locations_apis_list(
 pub fn apigeeregistry_projects_locations_apis_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1421,9 +1423,9 @@ pub struct ApigeeregistryProjectsLocationsApisPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
@@ -1794,7 +1796,7 @@ pub fn apigeeregistry_projects_locations_apis_test_iam_permissions(
 pub fn apigeeregistry_projects_locations_apis_artifacts_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    artifactId: &Option<Option<String>>,
+    artifactId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1934,7 +1936,7 @@ pub struct ApigeeregistryProjectsLocationsApisArtifactsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: artifactId
-    pub artifactId: Option<Option<String>>,
+    pub artifactId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/artifacts
@@ -2454,7 +2456,7 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_get_contents(
 pub fn apigeeregistry_projects_locations_apis_artifacts_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2594,7 +2596,7 @@ pub struct ApigeeregistryProjectsLocationsApisArtifactsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}:getIamPolicy
@@ -2632,10 +2634,10 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_get_iam_policy(
 pub fn apigeeregistry_projects_locations_apis_artifacts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2786,13 +2788,13 @@ pub struct ApigeeregistryProjectsLocationsApisArtifactsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/artifacts
@@ -3331,7 +3333,7 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_test_iam_permissions(
 pub fn apigeeregistry_projects_locations_apis_deployments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    apiDeploymentId: &Option<Option<String>>,
+    apiDeploymentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3473,7 +3475,7 @@ pub struct ApigeeregistryProjectsLocationsApisDeploymentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: apiDeploymentId
-    pub apiDeploymentId: Option<Option<String>>,
+    pub apiDeploymentId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments
@@ -3513,7 +3515,7 @@ pub fn apigeeregistry_projects_locations_apis_deployments_create(
 pub fn apigeeregistry_projects_locations_apis_deployments_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3653,7 +3655,7 @@ pub struct ApigeeregistryProjectsLocationsApisDeploymentsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}
@@ -4022,7 +4024,7 @@ pub fn apigeeregistry_projects_locations_apis_deployments_get(
 pub fn apigeeregistry_projects_locations_apis_deployments_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4162,7 +4164,7 @@ pub struct ApigeeregistryProjectsLocationsApisDeploymentsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:getIamPolicy
@@ -4200,10 +4202,10 @@ pub fn apigeeregistry_projects_locations_apis_deployments_get_iam_policy(
 pub fn apigeeregistry_projects_locations_apis_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4356,13 +4358,13 @@ pub struct ApigeeregistryProjectsLocationsApisDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments
@@ -4407,9 +4409,9 @@ pub fn apigeeregistry_projects_locations_apis_deployments_list(
 pub fn apigeeregistry_projects_locations_apis_deployments_list_revisions_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4559,11 +4561,11 @@ pub struct ApigeeregistryProjectsLocationsApisDeploymentsListRevisionsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:listRevisions
@@ -4607,8 +4609,8 @@ pub fn apigeeregistry_projects_locations_apis_deployments_list_revisions(
 pub fn apigeeregistry_projects_locations_apis_deployments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4753,9 +4755,9 @@ pub struct ApigeeregistryProjectsLocationsApisDeploymentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}
@@ -5462,7 +5464,7 @@ pub fn apigeeregistry_projects_locations_apis_deployments_test_iam_permissions(
 pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    artifactId: &Option<Option<String>>,
+    artifactId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5602,7 +5604,7 @@ pub struct ApigeeregistryProjectsLocationsApisDeploymentsArtifactsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: artifactId
-    pub artifactId: Option<Option<String>>,
+    pub artifactId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts
@@ -6128,10 +6130,10 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_get_contents
 pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6282,13 +6284,13 @@ pub struct ApigeeregistryProjectsLocationsApisDeploymentsArtifactsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts
@@ -6496,7 +6498,7 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_replace_arti
 pub fn apigeeregistry_projects_locations_apis_versions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    apiVersionId: &Option<Option<String>>,
+    apiVersionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6636,7 +6638,7 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: apiVersionId
-    pub apiVersionId: Option<Option<String>>,
+    pub apiVersionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
@@ -6674,7 +6676,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_create(
 pub fn apigeeregistry_projects_locations_apis_versions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6814,7 +6816,7 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
@@ -7012,7 +7014,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_get(
 pub fn apigeeregistry_projects_locations_apis_versions_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7152,7 +7154,7 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}:getIamPolicy
@@ -7190,10 +7192,10 @@ pub fn apigeeregistry_projects_locations_apis_versions_get_iam_policy(
 pub fn apigeeregistry_projects_locations_apis_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7344,13 +7346,13 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
@@ -7393,8 +7395,8 @@ pub fn apigeeregistry_projects_locations_apis_versions_list(
 pub fn apigeeregistry_projects_locations_apis_versions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7537,9 +7539,9 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
@@ -7912,7 +7914,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_test_iam_permissions(
 pub fn apigeeregistry_projects_locations_apis_versions_artifacts_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    artifactId: &Option<Option<String>>,
+    artifactId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8052,7 +8054,7 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsArtifactsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: artifactId
-    pub artifactId: Option<Option<String>>,
+    pub artifactId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts
@@ -8576,7 +8578,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_contents(
 pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8717,7 +8719,7 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsArtifactsGetIamPolicyArgs 
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}:getIamPolicy
@@ -8755,10 +8757,10 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_iam_policy(
 pub fn apigeeregistry_projects_locations_apis_versions_artifacts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8909,13 +8911,13 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsArtifactsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts
@@ -9460,7 +9462,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_test_iam_permis
 pub fn apigeeregistry_projects_locations_apis_versions_specs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    apiSpecId: &Option<Option<String>>,
+    apiSpecId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9600,7 +9602,7 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: apiSpecId
-    pub apiSpecId: Option<Option<String>>,
+    pub apiSpecId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
@@ -9638,7 +9640,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_create(
 pub fn apigeeregistry_projects_locations_apis_versions_specs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9778,7 +9780,7 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
@@ -10301,7 +10303,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_get_contents(
 pub fn apigeeregistry_projects_locations_apis_versions_specs_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10441,7 +10443,7 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:getIamPolicy
@@ -10479,10 +10481,10 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_get_iam_policy(
 pub fn apigeeregistry_projects_locations_apis_versions_specs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10633,13 +10635,13 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
@@ -10682,9 +10684,9 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_list(
 pub fn apigeeregistry_projects_locations_apis_versions_specs_list_revisions_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10834,11 +10836,11 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsListRevisionsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:listRevisions
@@ -10882,8 +10884,8 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_list_revisions(
 pub fn apigeeregistry_projects_locations_apis_versions_specs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11026,9 +11028,9 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
@@ -11726,7 +11728,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_test_iam_permission
 pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    artifactId: &Option<Option<String>>,
+    artifactId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11867,7 +11869,7 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: artifactId
-    pub artifactId: Option<Option<String>>,
+    pub artifactId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts
@@ -12394,7 +12396,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_conte
 pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12536,7 +12538,7 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsGetIamPolicy
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}:getIamPolicy
@@ -12575,10 +12577,10 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_p
 pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12729,13 +12731,13 @@ pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts
@@ -13287,7 +13289,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_
 pub fn apigeeregistry_projects_locations_artifacts_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    artifactId: &Option<Option<String>>,
+    artifactId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13427,7 +13429,7 @@ pub struct ApigeeregistryProjectsLocationsArtifactsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: artifactId
-    pub artifactId: Option<Option<String>>,
+    pub artifactId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/artifacts
@@ -13946,7 +13948,7 @@ pub fn apigeeregistry_projects_locations_artifacts_get_contents(
 pub fn apigeeregistry_projects_locations_artifacts_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14086,7 +14088,7 @@ pub struct ApigeeregistryProjectsLocationsArtifactsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/artifacts/{artifactsId}:getIamPolicy
@@ -14124,10 +14126,10 @@ pub fn apigeeregistry_projects_locations_artifacts_get_iam_policy(
 pub fn apigeeregistry_projects_locations_artifacts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14278,13 +14280,13 @@ pub struct ApigeeregistryProjectsLocationsArtifactsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/artifacts
@@ -14820,7 +14822,7 @@ pub fn apigeeregistry_projects_locations_artifacts_test_iam_permissions(
 pub fn apigeeregistry_projects_locations_documents_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14960,7 +14962,7 @@ pub struct ApigeeregistryProjectsLocationsDocumentsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents:getIamPolicy
@@ -15330,7 +15332,7 @@ pub fn apigeeregistry_projects_locations_documents_test_iam_permissions(
 pub fn apigeeregistry_projects_locations_instances_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    instanceId: &Option<Option<String>>,
+    instanceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15470,7 +15472,7 @@ pub struct ApigeeregistryProjectsLocationsInstancesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: instanceId
-    pub instanceId: Option<Option<String>>,
+    pub instanceId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/instances
@@ -15828,7 +15830,7 @@ pub fn apigeeregistry_projects_locations_instances_get(
 pub fn apigeeregistry_projects_locations_instances_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15968,7 +15970,7 @@ pub struct ApigeeregistryProjectsLocationsInstancesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:getIamPolicy
@@ -16818,9 +16820,9 @@ pub fn apigeeregistry_projects_locations_operations_get(
 pub fn apigeeregistry_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16968,11 +16970,11 @@ pub struct ApigeeregistryProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -17014,7 +17016,7 @@ pub fn apigeeregistry_projects_locations_operations_list(
 pub fn apigeeregistry_projects_locations_runtime_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17154,7 +17156,7 @@ pub struct ApigeeregistryProjectsLocationsRuntimeGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/runtime:getIamPolicy

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -194,7 +196,7 @@ pub fn artifactregistry_projects_get_project_settings(
 pub fn artifactregistry_projects_update_project_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -336,7 +338,7 @@ pub struct ArtifactregistryProjectsUpdateProjectSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/projectSettings
@@ -861,10 +863,10 @@ pub fn artifactregistry_projects_locations_get_vpcsc_config(
 pub fn artifactregistry_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1015,13 +1017,13 @@ pub struct ArtifactregistryProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -1064,7 +1066,7 @@ pub fn artifactregistry_projects_locations_list(
 pub fn artifactregistry_projects_locations_update_project_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1206,7 +1208,7 @@ pub struct ArtifactregistryProjectsLocationsUpdateProjectConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/projectConfig
@@ -1246,7 +1248,7 @@ pub fn artifactregistry_projects_locations_update_project_config(
 pub fn artifactregistry_projects_locations_update_vpcsc_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1386,7 +1388,7 @@ pub struct ArtifactregistryProjectsLocationsUpdateVpcscConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/vpcscConfig
@@ -1745,7 +1747,7 @@ pub fn artifactregistry_projects_locations_operations_get(
 pub fn artifactregistry_projects_locations_repositories_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    repositoryId: &Option<Option<String>>,
+    repositoryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1885,7 +1887,7 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: repositoryId
-    pub repositoryId: Option<Option<String>>,
+    pub repositoryId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories
@@ -2407,7 +2409,7 @@ pub fn artifactregistry_projects_locations_repositories_get(
 pub fn artifactregistry_projects_locations_repositories_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2547,7 +2549,7 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}:getIamPolicy
@@ -2585,10 +2587,10 @@ pub fn artifactregistry_projects_locations_repositories_get_iam_policy(
 pub fn artifactregistry_projects_locations_repositories_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2739,13 +2741,13 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories
@@ -2788,7 +2790,7 @@ pub fn artifactregistry_projects_locations_repositories_list(
 pub fn artifactregistry_projects_locations_repositories_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2928,7 +2930,7 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}
@@ -3634,7 +3636,7 @@ pub fn artifactregistry_projects_locations_repositories_apt_artifacts_upload(
 pub fn artifactregistry_projects_locations_repositories_attachments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    attachmentId: &Option<Option<String>>,
+    attachmentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3774,7 +3776,7 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesAttachmentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: attachmentId
-    pub attachmentId: Option<Option<String>>,
+    pub attachmentId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments
@@ -4136,9 +4138,9 @@ pub fn artifactregistry_projects_locations_repositories_attachments_get(
 pub fn artifactregistry_projects_locations_repositories_attachments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4286,11 +4288,11 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesAttachmentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/attachments
@@ -4494,9 +4496,9 @@ pub fn artifactregistry_projects_locations_repositories_docker_images_get(
 pub fn artifactregistry_projects_locations_repositories_docker_images_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4644,11 +4646,11 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesDockerImagesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/dockerImages
@@ -5186,10 +5188,10 @@ pub fn artifactregistry_projects_locations_repositories_files_get(
 pub fn artifactregistry_projects_locations_repositories_files_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5340,13 +5342,13 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesFilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files
@@ -5389,7 +5391,7 @@ pub fn artifactregistry_projects_locations_repositories_files_list(
 pub fn artifactregistry_projects_locations_repositories_files_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5533,7 +5535,7 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesFilesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/files/{filesId}
@@ -6759,8 +6761,8 @@ pub fn artifactregistry_projects_locations_repositories_maven_artifacts_get(
 pub fn artifactregistry_projects_locations_repositories_maven_artifacts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6907,9 +6909,9 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/mavenArtifacts
@@ -7114,8 +7116,8 @@ pub fn artifactregistry_projects_locations_repositories_npm_packages_get(
 pub fn artifactregistry_projects_locations_repositories_npm_packages_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7260,9 +7262,9 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesNpmPackagesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/npmPackages
@@ -7626,10 +7628,10 @@ pub fn artifactregistry_projects_locations_repositories_packages_get(
 pub fn artifactregistry_projects_locations_repositories_packages_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7780,13 +7782,13 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages
@@ -7829,7 +7831,7 @@ pub fn artifactregistry_projects_locations_repositories_packages_list(
 pub fn artifactregistry_projects_locations_repositories_packages_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7969,7 +7971,7 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}
@@ -8007,7 +8009,7 @@ pub fn artifactregistry_projects_locations_repositories_packages_patch(
 pub fn artifactregistry_projects_locations_repositories_packages_tags_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    tagId: &Option<Option<String>>,
+    tagId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8147,7 +8149,7 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesTagsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: tagId
-    pub tagId: Option<Option<String>>,
+    pub tagId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags
@@ -8509,9 +8511,9 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_get(
 pub fn artifactregistry_projects_locations_repositories_packages_tags_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8659,11 +8661,11 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesTagsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags
@@ -8705,7 +8707,7 @@ pub fn artifactregistry_projects_locations_repositories_packages_tags_list(
 pub fn artifactregistry_projects_locations_repositories_packages_tags_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8845,7 +8847,7 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesTagsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/tags/{tagsId}
@@ -9050,7 +9052,7 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_batch_
 pub fn artifactregistry_projects_locations_repositories_packages_versions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9191,7 +9193,7 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsDeleteAr
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
@@ -9230,7 +9232,7 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_delete
 pub fn artifactregistry_projects_locations_repositories_packages_versions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9371,7 +9373,7 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsGetArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
@@ -9407,11 +9409,11 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_get(
 pub fn artifactregistry_projects_locations_repositories_packages_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9566,15 +9568,15 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsListArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions
@@ -9618,7 +9620,7 @@ pub fn artifactregistry_projects_locations_repositories_packages_versions_list(
 pub fn artifactregistry_projects_locations_repositories_packages_versions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9759,7 +9761,7 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsPatchArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/packages/{packagesId}/versions/{versionsId}
@@ -9963,8 +9965,8 @@ pub fn artifactregistry_projects_locations_repositories_python_packages_get(
 pub fn artifactregistry_projects_locations_repositories_python_packages_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10111,9 +10113,9 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesPythonPackagesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/pythonPackages
@@ -10156,7 +10158,7 @@ pub fn artifactregistry_projects_locations_repositories_python_packages_list(
 pub fn artifactregistry_projects_locations_repositories_rules_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    ruleId: &Option<Option<String>>,
+    ruleId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10300,7 +10302,7 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesRulesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: ruleId
-    pub ruleId: Option<Option<String>>,
+    pub ruleId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules
@@ -10672,8 +10674,8 @@ pub fn artifactregistry_projects_locations_repositories_rules_get(
 pub fn artifactregistry_projects_locations_repositories_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10818,9 +10820,9 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesRulesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules
@@ -10861,7 +10863,7 @@ pub fn artifactregistry_projects_locations_repositories_rules_list(
 pub fn artifactregistry_projects_locations_repositories_rules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11005,7 +11007,7 @@ pub struct ArtifactregistryProjectsLocationsRepositoriesRulesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/repositories/{repositoriesId}/rules/{rulesId}

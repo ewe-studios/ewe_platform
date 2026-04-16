@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn workflows_projects_locations_get(
 pub fn workflows_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct WorkflowsProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -713,10 +715,10 @@ pub fn workflows_projects_locations_operations_get(
 pub fn workflows_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -867,13 +869,13 @@ pub struct WorkflowsProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -916,7 +918,7 @@ pub fn workflows_projects_locations_operations_list(
 pub fn workflows_projects_locations_workflows_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    workflowId: &Option<Option<String>>,
+    workflowId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1056,7 +1058,7 @@ pub struct WorkflowsProjectsLocationsWorkflowsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: workflowId
-    pub workflowId: Option<Option<String>>,
+    pub workflowId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/workflows
@@ -1254,7 +1256,7 @@ pub fn workflows_projects_locations_workflows_delete(
 pub fn workflows_projects_locations_workflows_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    revisionId: &Option<Option<String>>,
+    revisionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1394,7 +1396,7 @@ pub struct WorkflowsProjectsLocationsWorkflowsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: revisionId
-    pub revisionId: Option<Option<String>>,
+    pub revisionId: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}
@@ -1429,10 +1431,10 @@ pub fn workflows_projects_locations_workflows_get(
 pub fn workflows_projects_locations_workflows_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1583,13 +1585,13 @@ pub struct WorkflowsProjectsLocationsWorkflowsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows
@@ -1632,8 +1634,8 @@ pub fn workflows_projects_locations_workflows_list(
 pub fn workflows_projects_locations_workflows_list_revisions_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1780,9 +1782,9 @@ pub struct WorkflowsProjectsLocationsWorkflowsListRevisionsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}:listRevisions
@@ -1825,7 +1827,7 @@ pub fn workflows_projects_locations_workflows_list_revisions(
 pub fn workflows_projects_locations_workflows_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1965,7 +1967,7 @@ pub struct WorkflowsProjectsLocationsWorkflowsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}

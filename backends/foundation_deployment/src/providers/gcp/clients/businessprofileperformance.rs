@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,13 +32,13 @@ use serde::Serialize;
 pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_series_builder<R>(
     client: &SimpleHttpClient<R>,
     location: &String,
-    dailyMetrics: &Option<Option<String>>,
-    dailyRange_endDate_day: &Option<Option<String>>,
-    dailyRange_endDate_month: &Option<Option<String>>,
-    dailyRange_endDate_year: &Option<Option<String>>,
-    dailyRange_startDate_day: &Option<Option<String>>,
-    dailyRange_startDate_month: &Option<Option<String>>,
-    dailyRange_startDate_year: &Option<Option<String>>,
+    dailyMetrics: &Option<String>,
+    dailyRange_endDate_day: &Option<String>,
+    dailyRange_endDate_month: &Option<String>,
+    dailyRange_endDate_year: &Option<String>,
+    dailyRange_startDate_day: &Option<String>,
+    dailyRange_startDate_month: &Option<String>,
+    dailyRange_startDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -199,19 +201,19 @@ pub struct BusinessprofileperformanceLocationsFetchMultiDailyMetricsTimeSeriesAr
     /// Path parameter: location
     pub location: String,
     /// Query parameter: dailyMetrics
-    pub dailyMetrics: Option<Option<String>>,
+    pub dailyMetrics: Option<String>,
     /// Query parameter: dailyRange_endDate_day
-    pub dailyRange_endDate_day: Option<Option<String>>,
+    pub dailyRange_endDate_day: Option<String>,
     /// Query parameter: dailyRange_endDate_month
-    pub dailyRange_endDate_month: Option<Option<String>>,
+    pub dailyRange_endDate_month: Option<String>,
     /// Query parameter: dailyRange_endDate_year
-    pub dailyRange_endDate_year: Option<Option<String>>,
+    pub dailyRange_endDate_year: Option<String>,
     /// Query parameter: dailyRange_startDate_day
-    pub dailyRange_startDate_day: Option<Option<String>>,
+    pub dailyRange_startDate_day: Option<String>,
     /// Query parameter: dailyRange_startDate_month
-    pub dailyRange_startDate_month: Option<Option<String>>,
+    pub dailyRange_startDate_month: Option<String>,
     /// Query parameter: dailyRange_startDate_year
-    pub dailyRange_startDate_year: Option<Option<String>>,
+    pub dailyRange_startDate_year: Option<String>,
 }
 
 /// GET v1/locations/{locationsId}:fetchMultiDailyMetricsTimeSeries
@@ -260,18 +262,18 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
 pub fn businessprofileperformance_locations_get_daily_metrics_time_series_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    dailyMetric: &Option<Option<String>>,
-    dailyRange_endDate_day: &Option<Option<String>>,
-    dailyRange_endDate_month: &Option<Option<String>>,
-    dailyRange_endDate_year: &Option<Option<String>>,
-    dailyRange_startDate_day: &Option<Option<String>>,
-    dailyRange_startDate_month: &Option<Option<String>>,
-    dailyRange_startDate_year: &Option<Option<String>>,
-    dailySubEntityType_dayOfWeek: &Option<Option<String>>,
-    dailySubEntityType_timeOfDay_hours: &Option<Option<String>>,
-    dailySubEntityType_timeOfDay_minutes: &Option<Option<String>>,
-    dailySubEntityType_timeOfDay_nanos: &Option<Option<String>>,
-    dailySubEntityType_timeOfDay_seconds: &Option<Option<String>>,
+    dailyMetric: &Option<String>,
+    dailyRange_endDate_day: &Option<String>,
+    dailyRange_endDate_month: &Option<String>,
+    dailyRange_endDate_year: &Option<String>,
+    dailyRange_startDate_day: &Option<String>,
+    dailyRange_startDate_month: &Option<String>,
+    dailyRange_startDate_year: &Option<String>,
+    dailySubEntityType_dayOfWeek: &Option<String>,
+    dailySubEntityType_timeOfDay_hours: &Option<String>,
+    dailySubEntityType_timeOfDay_minutes: &Option<String>,
+    dailySubEntityType_timeOfDay_nanos: &Option<String>,
+    dailySubEntityType_timeOfDay_seconds: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -448,29 +450,29 @@ pub struct BusinessprofileperformanceLocationsGetDailyMetricsTimeSeriesArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: dailyMetric
-    pub dailyMetric: Option<Option<String>>,
+    pub dailyMetric: Option<String>,
     /// Query parameter: dailyRange_endDate_day
-    pub dailyRange_endDate_day: Option<Option<String>>,
+    pub dailyRange_endDate_day: Option<String>,
     /// Query parameter: dailyRange_endDate_month
-    pub dailyRange_endDate_month: Option<Option<String>>,
+    pub dailyRange_endDate_month: Option<String>,
     /// Query parameter: dailyRange_endDate_year
-    pub dailyRange_endDate_year: Option<Option<String>>,
+    pub dailyRange_endDate_year: Option<String>,
     /// Query parameter: dailyRange_startDate_day
-    pub dailyRange_startDate_day: Option<Option<String>>,
+    pub dailyRange_startDate_day: Option<String>,
     /// Query parameter: dailyRange_startDate_month
-    pub dailyRange_startDate_month: Option<Option<String>>,
+    pub dailyRange_startDate_month: Option<String>,
     /// Query parameter: dailyRange_startDate_year
-    pub dailyRange_startDate_year: Option<Option<String>>,
+    pub dailyRange_startDate_year: Option<String>,
     /// Query parameter: dailySubEntityType_dayOfWeek
-    pub dailySubEntityType_dayOfWeek: Option<Option<String>>,
+    pub dailySubEntityType_dayOfWeek: Option<String>,
     /// Query parameter: dailySubEntityType_timeOfDay_hours
-    pub dailySubEntityType_timeOfDay_hours: Option<Option<String>>,
+    pub dailySubEntityType_timeOfDay_hours: Option<String>,
     /// Query parameter: dailySubEntityType_timeOfDay_minutes
-    pub dailySubEntityType_timeOfDay_minutes: Option<Option<String>>,
+    pub dailySubEntityType_timeOfDay_minutes: Option<String>,
     /// Query parameter: dailySubEntityType_timeOfDay_nanos
-    pub dailySubEntityType_timeOfDay_nanos: Option<Option<String>>,
+    pub dailySubEntityType_timeOfDay_nanos: Option<String>,
     /// Query parameter: dailySubEntityType_timeOfDay_seconds
-    pub dailySubEntityType_timeOfDay_seconds: Option<Option<String>>,
+    pub dailySubEntityType_timeOfDay_seconds: Option<String>,
 }
 
 /// GET v1/locations/{locationsId}:getDailyMetricsTimeSeries
@@ -523,14 +525,14 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series(
 pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    monthlyRange_endMonth_day: &Option<Option<String>>,
-    monthlyRange_endMonth_month: &Option<Option<String>>,
-    monthlyRange_endMonth_year: &Option<Option<String>>,
-    monthlyRange_startMonth_day: &Option<Option<String>>,
-    monthlyRange_startMonth_month: &Option<Option<String>>,
-    monthlyRange_startMonth_year: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    monthlyRange_endMonth_day: &Option<String>,
+    monthlyRange_endMonth_month: &Option<String>,
+    monthlyRange_endMonth_year: &Option<String>,
+    monthlyRange_startMonth_day: &Option<String>,
+    monthlyRange_startMonth_month: &Option<String>,
+    monthlyRange_startMonth_year: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -697,21 +699,21 @@ pub struct BusinessprofileperformanceLocationsSearchkeywordsImpressionsMonthlyLi
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: monthlyRange_endMonth_day
-    pub monthlyRange_endMonth_day: Option<Option<String>>,
+    pub monthlyRange_endMonth_day: Option<String>,
     /// Query parameter: monthlyRange_endMonth_month
-    pub monthlyRange_endMonth_month: Option<Option<String>>,
+    pub monthlyRange_endMonth_month: Option<String>,
     /// Query parameter: monthlyRange_endMonth_year
-    pub monthlyRange_endMonth_year: Option<Option<String>>,
+    pub monthlyRange_endMonth_year: Option<String>,
     /// Query parameter: monthlyRange_startMonth_day
-    pub monthlyRange_startMonth_day: Option<Option<String>>,
+    pub monthlyRange_startMonth_day: Option<String>,
     /// Query parameter: monthlyRange_startMonth_month
-    pub monthlyRange_startMonth_month: Option<Option<String>>,
+    pub monthlyRange_startMonth_month: Option<String>,
     /// Query parameter: monthlyRange_startMonth_year
-    pub monthlyRange_startMonth_year: Option<Option<String>>,
+    pub monthlyRange_startMonth_year: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/locations/{locationsId}/searchkeywords/impressions/monthly

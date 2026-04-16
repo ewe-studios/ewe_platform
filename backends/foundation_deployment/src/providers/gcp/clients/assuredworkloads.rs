@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -199,10 +201,10 @@ pub fn assuredworkloads_organizations_locations_operations_get(
 pub fn assuredworkloads_organizations_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -356,13 +358,13 @@ pub struct AssuredworkloadsOrganizationsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
@@ -407,10 +409,10 @@ pub fn assuredworkloads_organizations_locations_operations_list(
 pub fn assuredworkloads_organizations_locations_workloads_analyze_workload_move_builder<R>(
     client: &SimpleHttpClient<R>,
     target: &String,
-    assetTypes: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    project: &Option<Option<String>>,
+    assetTypes: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    project: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -571,13 +573,13 @@ pub struct AssuredworkloadsOrganizationsLocationsWorkloadsAnalyzeWorkloadMoveArg
     /// Path parameter: target
     pub target: String,
     /// Query parameter: assetTypes
-    pub assetTypes: Option<Option<String>>,
+    pub assetTypes: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: project
-    pub project: Option<Option<String>>,
+    pub project: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}:analyzeWorkloadMove
@@ -625,7 +627,7 @@ pub fn assuredworkloads_organizations_locations_workloads_analyze_workload_move(
 pub fn assuredworkloads_organizations_locations_workloads_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    externalId: &Option<Option<String>>,
+    externalId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -769,7 +771,7 @@ pub struct AssuredworkloadsOrganizationsLocationsWorkloadsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: externalId
-    pub externalId: Option<Option<String>>,
+    pub externalId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/workloads
@@ -811,7 +813,7 @@ pub fn assuredworkloads_organizations_locations_workloads_create(
 pub fn assuredworkloads_organizations_locations_workloads_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -953,7 +955,7 @@ pub struct AssuredworkloadsOrganizationsLocationsWorkloadsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}
@@ -1525,9 +1527,9 @@ pub fn assuredworkloads_organizations_locations_workloads_get(
 pub fn assuredworkloads_organizations_locations_workloads_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1681,11 +1683,11 @@ pub struct AssuredworkloadsOrganizationsLocationsWorkloadsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads
@@ -1902,7 +1904,7 @@ pub fn assuredworkloads_organizations_locations_workloads_mutate_partner_permiss
 pub fn assuredworkloads_organizations_locations_workloads_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2046,7 +2048,7 @@ pub struct AssuredworkloadsOrganizationsLocationsWorkloadsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}
@@ -2441,8 +2443,8 @@ pub fn assuredworkloads_organizations_locations_workloads_updates_apply(
 pub fn assuredworkloads_organizations_locations_workloads_updates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2596,9 +2598,9 @@ pub struct AssuredworkloadsOrganizationsLocationsWorkloadsUpdatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}/updates
@@ -2996,11 +2998,11 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_get(
 pub fn assuredworkloads_organizations_locations_workloads_violations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    interval_endTime: &Option<Option<String>>,
-    interval_startTime: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    interval_endTime: &Option<String>,
+    interval_startTime: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3160,15 +3162,15 @@ pub struct AssuredworkloadsOrganizationsLocationsWorkloadsViolationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: interval_endTime
-    pub interval_endTime: Option<Option<String>>,
+    pub interval_endTime: Option<String>,
     /// Query parameter: interval_startTime
-    pub interval_startTime: Option<Option<String>>,
+    pub interval_startTime: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}/violations

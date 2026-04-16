@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -186,11 +188,11 @@ pub fn datacatalog_catalog_search(
 
 pub fn datacatalog_entries_lookup_builder<R>(
     client: &SimpleHttpClient<R>,
-    fullyQualifiedName: &Option<Option<String>>,
-    linkedResource: &Option<Option<String>>,
-    location: &Option<Option<String>>,
-    project: &Option<Option<String>>,
-    sqlResource: &Option<Option<String>>,
+    fullyQualifiedName: &Option<String>,
+    linkedResource: &Option<String>,
+    location: &Option<String>,
+    project: &Option<String>,
+    sqlResource: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -341,15 +343,15 @@ pub fn datacatalog_entries_lookup_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DatacatalogEntriesLookupArgs {
     /// Query parameter: fullyQualifiedName
-    pub fullyQualifiedName: Option<Option<String>>,
+    pub fullyQualifiedName: Option<String>,
     /// Query parameter: linkedResource
-    pub linkedResource: Option<Option<String>>,
+    pub linkedResource: Option<String>,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: project
-    pub project: Option<Option<String>>,
+    pub project: Option<String>,
     /// Query parameter: sqlResource
-    pub sqlResource: Option<Option<String>>,
+    pub sqlResource: Option<String>,
 }
 
 /// GET v1/entries:lookup
@@ -1241,7 +1243,7 @@ pub fn datacatalog_projects_locations_set_config(
 pub fn datacatalog_projects_locations_entry_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    entryGroupId: &Option<Option<String>>,
+    entryGroupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1385,7 +1387,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: entryGroupId
-    pub entryGroupId: Option<Option<String>>,
+    pub entryGroupId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups
@@ -1427,7 +1429,7 @@ pub fn datacatalog_projects_locations_entry_groups_create(
 pub fn datacatalog_projects_locations_entry_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1567,7 +1569,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
@@ -1605,7 +1607,7 @@ pub fn datacatalog_projects_locations_entry_groups_delete(
 pub fn datacatalog_projects_locations_entry_groups_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1749,7 +1751,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
@@ -1952,8 +1954,8 @@ pub fn datacatalog_projects_locations_entry_groups_get_iam_policy(
 pub fn datacatalog_projects_locations_entry_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2101,9 +2103,9 @@ pub struct DatacatalogProjectsLocationsEntryGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups
@@ -2146,7 +2148,7 @@ pub fn datacatalog_projects_locations_entry_groups_list(
 pub fn datacatalog_projects_locations_entry_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2290,7 +2292,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
@@ -2664,7 +2666,7 @@ pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions(
 pub fn datacatalog_projects_locations_entry_groups_entries_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    entryId: &Option<Option<String>>,
+    entryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2808,7 +2810,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsEntriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: entryId
-    pub entryId: Option<Option<String>>,
+    pub entryId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
@@ -3504,9 +3506,9 @@ pub fn datacatalog_projects_locations_entry_groups_entries_import(
 pub fn datacatalog_projects_locations_entry_groups_entries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3657,11 +3659,11 @@ pub struct DatacatalogProjectsLocationsEntryGroupsEntriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
@@ -4049,7 +4051,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_overview
 pub fn datacatalog_projects_locations_entry_groups_entries_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4193,7 +4195,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsEntriesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
@@ -5079,8 +5081,8 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_delete(
 pub fn datacatalog_projects_locations_entry_groups_entries_tags_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5227,9 +5229,9 @@ pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTagsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags
@@ -5272,7 +5274,7 @@ pub fn datacatalog_projects_locations_entry_groups_entries_tags_list(
 pub fn datacatalog_projects_locations_entry_groups_entries_tags_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5416,7 +5418,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTagsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}
@@ -5951,8 +5953,8 @@ pub fn datacatalog_projects_locations_entry_groups_tags_delete(
 pub fn datacatalog_projects_locations_entry_groups_tags_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6099,9 +6101,9 @@ pub struct DatacatalogProjectsLocationsEntryGroupsTagsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags
@@ -6144,7 +6146,7 @@ pub fn datacatalog_projects_locations_entry_groups_tags_list(
 pub fn datacatalog_projects_locations_entry_groups_tags_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6288,7 +6290,7 @@ pub struct DatacatalogProjectsLocationsEntryGroupsTagsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}
@@ -6810,10 +6812,10 @@ pub fn datacatalog_projects_locations_operations_get(
 pub fn datacatalog_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6964,13 +6966,13 @@ pub struct DatacatalogProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -7013,7 +7015,7 @@ pub fn datacatalog_projects_locations_operations_list(
 pub fn datacatalog_projects_locations_tag_templates_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    tagTemplateId: &Option<Option<String>>,
+    tagTemplateId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7157,7 +7159,7 @@ pub struct DatacatalogProjectsLocationsTagTemplatesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: tagTemplateId
-    pub tagTemplateId: Option<Option<String>>,
+    pub tagTemplateId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates
@@ -7199,7 +7201,7 @@ pub fn datacatalog_projects_locations_tag_templates_create(
 pub fn datacatalog_projects_locations_tag_templates_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7339,7 +7341,7 @@ pub struct DatacatalogProjectsLocationsTagTemplatesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
@@ -7708,7 +7710,7 @@ pub fn datacatalog_projects_locations_tag_templates_get_iam_policy(
 pub fn datacatalog_projects_locations_tag_templates_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7852,7 +7854,7 @@ pub struct DatacatalogProjectsLocationsTagTemplatesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
@@ -8228,7 +8230,7 @@ pub fn datacatalog_projects_locations_tag_templates_test_iam_permissions(
 pub fn datacatalog_projects_locations_tag_templates_fields_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    tagTemplateFieldId: &Option<Option<String>>,
+    tagTemplateFieldId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8372,7 +8374,7 @@ pub struct DatacatalogProjectsLocationsTagTemplatesFieldsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: tagTemplateFieldId
-    pub tagTemplateFieldId: Option<Option<String>>,
+    pub tagTemplateFieldId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields
@@ -8414,7 +8416,7 @@ pub fn datacatalog_projects_locations_tag_templates_fields_create(
 pub fn datacatalog_projects_locations_tag_templates_fields_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8554,7 +8556,7 @@ pub struct DatacatalogProjectsLocationsTagTemplatesFieldsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
@@ -8592,7 +8594,7 @@ pub fn datacatalog_projects_locations_tag_templates_fields_delete(
 pub fn datacatalog_projects_locations_tag_templates_fields_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8736,7 +8738,7 @@ pub struct DatacatalogProjectsLocationsTagTemplatesFieldsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
@@ -9446,8 +9448,8 @@ pub fn datacatalog_projects_locations_taxonomies_delete(
 pub fn datacatalog_projects_locations_taxonomies_export_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    serializedTaxonomies: &Option<Option<String>>,
-    taxonomies: &Option<Option<String>>,
+    serializedTaxonomies: &Option<String>,
+    taxonomies: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9595,9 +9597,9 @@ pub struct DatacatalogProjectsLocationsTaxonomiesExportArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: serializedTaxonomies
-    pub serializedTaxonomies: Option<Option<String>>,
+    pub serializedTaxonomies: Option<String>,
     /// Query parameter: taxonomies
-    pub taxonomies: Option<Option<String>>,
+    pub taxonomies: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies:export
@@ -10138,9 +10140,9 @@ pub fn datacatalog_projects_locations_taxonomies_import(
 pub fn datacatalog_projects_locations_taxonomies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10291,11 +10293,11 @@ pub struct DatacatalogProjectsLocationsTaxonomiesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies
@@ -10339,7 +10341,7 @@ pub fn datacatalog_projects_locations_taxonomies_list(
 pub fn datacatalog_projects_locations_taxonomies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10483,7 +10485,7 @@ pub struct DatacatalogProjectsLocationsTaxonomiesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
@@ -11687,8 +11689,8 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy(
 pub fn datacatalog_projects_locations_taxonomies_policy_tags_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11836,9 +11838,9 @@ pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags
@@ -11881,7 +11883,7 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_list(
 pub fn datacatalog_projects_locations_taxonomies_policy_tags_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12025,7 +12027,7 @@ pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
@@ -12392,31 +12394,6 @@ pub fn datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permission
             &args.resource,
         )?;
     datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleCloudDatacatalogV1SearchCatalogResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1SearchCatalogResponse with DatacatalogCatalogSearchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DatacatalogCatalogSearchArgs>
-    for GoogleCloudDatacatalogV1SearchCatalogResponse
-{
-    fn generate_resource_id(&self, input: &DatacatalogCatalogSearchArgs) -> String {
-        "gcp::datacatalog::GoogleCloudDatacatalogV1SearchCatalogResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::datacatalog::GoogleCloudDatacatalogV1SearchCatalogResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -518,10 +520,10 @@ pub fn beyondcorp_organizations_locations_operations_get(
 pub fn beyondcorp_organizations_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -675,13 +677,13 @@ pub struct BeyondcorpOrganizationsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
@@ -894,10 +896,10 @@ pub fn beyondcorp_projects_locations_get(
 pub fn beyondcorp_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1050,13 +1052,13 @@ pub struct BeyondcorpProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -1101,9 +1103,9 @@ pub fn beyondcorp_projects_locations_list(
 pub fn beyondcorp_projects_locations_app_connections_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    appConnectionId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    appConnectionId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1253,11 +1255,11 @@ pub struct BeyondcorpProjectsLocationsAppConnectionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: appConnectionId
-    pub appConnectionId: Option<Option<String>>,
+    pub appConnectionId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/appConnections
@@ -1301,8 +1303,8 @@ pub fn beyondcorp_projects_locations_app_connections_create(
 pub fn beyondcorp_projects_locations_app_connections_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1449,9 +1451,9 @@ pub struct BeyondcorpProjectsLocationsAppConnectionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
@@ -1666,7 +1668,7 @@ pub fn beyondcorp_projects_locations_app_connections_get(
 pub fn beyondcorp_projects_locations_app_connections_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1808,7 +1810,7 @@ pub struct BeyondcorpProjectsLocationsAppConnectionsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:getIamPolicy
@@ -1848,10 +1850,10 @@ pub fn beyondcorp_projects_locations_app_connections_get_iam_policy(
 pub fn beyondcorp_projects_locations_app_connections_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2011,13 +2013,13 @@ pub struct BeyondcorpProjectsLocationsAppConnectionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections
@@ -2065,10 +2067,10 @@ pub fn beyondcorp_projects_locations_app_connections_list(
 pub fn beyondcorp_projects_locations_app_connections_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2221,13 +2223,13 @@ pub struct BeyondcorpProjectsLocationsAppConnectionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
@@ -2272,9 +2274,9 @@ pub fn beyondcorp_projects_locations_app_connections_patch(
 pub fn beyondcorp_projects_locations_app_connections_resolve_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    appConnectorId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    appConnectorId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2431,11 +2433,11 @@ pub struct BeyondcorpProjectsLocationsAppConnectionsResolveArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: appConnectorId
-    pub appConnectorId: Option<Option<String>>,
+    pub appConnectorId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections:resolve
@@ -2820,9 +2822,9 @@ pub fn beyondcorp_projects_locations_app_connections_test_iam_permissions(
 pub fn beyondcorp_projects_locations_app_connectors_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    appConnectorId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    appConnectorId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2972,11 +2974,11 @@ pub struct BeyondcorpProjectsLocationsAppConnectorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: appConnectorId
-    pub appConnectorId: Option<Option<String>>,
+    pub appConnectorId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors
@@ -3020,8 +3022,8 @@ pub fn beyondcorp_projects_locations_app_connectors_create(
 pub fn beyondcorp_projects_locations_app_connectors_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3168,9 +3170,9 @@ pub struct BeyondcorpProjectsLocationsAppConnectorsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
@@ -3382,7 +3384,7 @@ pub fn beyondcorp_projects_locations_app_connectors_get(
 pub fn beyondcorp_projects_locations_app_connectors_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3524,7 +3526,7 @@ pub struct BeyondcorpProjectsLocationsAppConnectorsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:getIamPolicy
@@ -3564,10 +3566,10 @@ pub fn beyondcorp_projects_locations_app_connectors_get_iam_policy(
 pub fn beyondcorp_projects_locations_app_connectors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3727,13 +3729,13 @@ pub struct BeyondcorpProjectsLocationsAppConnectorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors
@@ -3781,9 +3783,9 @@ pub fn beyondcorp_projects_locations_app_connectors_list(
 pub fn beyondcorp_projects_locations_app_connectors_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3933,11 +3935,11 @@ pub struct BeyondcorpProjectsLocationsAppConnectorsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
@@ -4671,9 +4673,9 @@ pub fn beyondcorp_projects_locations_app_connectors_test_iam_permissions(
 pub fn beyondcorp_projects_locations_app_gateways_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    appGatewayId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    appGatewayId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4823,11 +4825,11 @@ pub struct BeyondcorpProjectsLocationsAppGatewaysCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: appGatewayId
-    pub appGatewayId: Option<Option<String>>,
+    pub appGatewayId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/appGateways
@@ -4871,8 +4873,8 @@ pub fn beyondcorp_projects_locations_app_gateways_create(
 pub fn beyondcorp_projects_locations_app_gateways_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5019,9 +5021,9 @@ pub struct BeyondcorpProjectsLocationsAppGatewaysDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}
@@ -5224,7 +5226,7 @@ pub fn beyondcorp_projects_locations_app_gateways_get(
 pub fn beyondcorp_projects_locations_app_gateways_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5366,7 +5368,7 @@ pub struct BeyondcorpProjectsLocationsAppGatewaysGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:getIamPolicy
@@ -5406,10 +5408,10 @@ pub fn beyondcorp_projects_locations_app_gateways_get_iam_policy(
 pub fn beyondcorp_projects_locations_app_gateways_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5560,13 +5562,13 @@ pub struct BeyondcorpProjectsLocationsAppGatewaysListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways
@@ -6433,10 +6435,10 @@ pub fn beyondcorp_projects_locations_operations_get(
 pub fn beyondcorp_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6590,13 +6592,13 @@ pub struct BeyondcorpProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -6641,8 +6643,8 @@ pub fn beyondcorp_projects_locations_operations_list(
 pub fn beyondcorp_projects_locations_security_gateways_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    securityGatewayId: &Option<Option<String>>,
+    requestId: &Option<String>,
+    securityGatewayId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6789,9 +6791,9 @@ pub struct BeyondcorpProjectsLocationsSecurityGatewaysCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: securityGatewayId
-    pub securityGatewayId: Option<Option<String>>,
+    pub securityGatewayId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways
@@ -6834,8 +6836,8 @@ pub fn beyondcorp_projects_locations_security_gateways_create(
 pub fn beyondcorp_projects_locations_security_gateways_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6982,9 +6984,9 @@ pub struct BeyondcorpProjectsLocationsSecurityGatewaysDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
@@ -7205,7 +7207,7 @@ pub fn beyondcorp_projects_locations_security_gateways_get(
 pub fn beyondcorp_projects_locations_security_gateways_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7347,7 +7349,7 @@ pub struct BeyondcorpProjectsLocationsSecurityGatewaysGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:getIamPolicy
@@ -7387,10 +7389,10 @@ pub fn beyondcorp_projects_locations_security_gateways_get_iam_policy(
 pub fn beyondcorp_projects_locations_security_gateways_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7550,13 +7552,13 @@ pub struct BeyondcorpProjectsLocationsSecurityGatewaysListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways
@@ -7604,8 +7606,8 @@ pub fn beyondcorp_projects_locations_security_gateways_list(
 pub fn beyondcorp_projects_locations_security_gateways_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7752,9 +7754,9 @@ pub struct BeyondcorpProjectsLocationsSecurityGatewaysPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
@@ -8135,8 +8137,8 @@ pub fn beyondcorp_projects_locations_security_gateways_test_iam_permissions(
 pub fn beyondcorp_projects_locations_security_gateways_applications_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    applicationId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    applicationId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8283,9 +8285,9 @@ pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: applicationId
-    pub applicationId: Option<Option<String>>,
+    pub applicationId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications
@@ -8328,8 +8330,8 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_create(
 pub fn beyondcorp_projects_locations_security_gateways_applications_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8476,9 +8478,9 @@ pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
@@ -8695,7 +8697,7 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_get(
 pub fn beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8838,7 +8840,7 @@ pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetIamPolicyAr
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:getIamPolicy
@@ -8879,10 +8881,10 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_get_iam_poli
 pub fn beyondcorp_projects_locations_security_gateways_applications_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9042,13 +9044,13 @@ pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications
@@ -9096,8 +9098,8 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_list(
 pub fn beyondcorp_projects_locations_security_gateways_applications_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9244,9 +9246,9 @@ pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -191,7 +193,7 @@ pub fn cloudcontrolspartner_organizations_locations_get_partner(
 pub fn cloudcontrolspartner_organizations_locations_customers_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    customerId: &Option<Option<String>>,
+    customerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -331,7 +333,7 @@ pub struct CloudcontrolspartnerOrganizationsLocationsCustomersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/customers
@@ -691,10 +693,10 @@ pub fn cloudcontrolspartner_organizations_locations_customers_get(
 pub fn cloudcontrolspartner_organizations_locations_customers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -845,13 +847,13 @@ pub struct CloudcontrolspartnerOrganizationsLocationsCustomersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers
@@ -894,7 +896,7 @@ pub fn cloudcontrolspartner_organizations_locations_customers_list(
 pub fn cloudcontrolspartner_organizations_locations_customers_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1034,7 +1036,7 @@ pub struct CloudcontrolspartnerOrganizationsLocationsCustomersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}
@@ -1573,10 +1575,10 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_get_part
 pub fn cloudcontrolspartner_organizations_locations_customers_workloads_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1727,13 +1729,13 @@ pub struct CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads
@@ -1778,10 +1780,10 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_access_a
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1935,13 +1937,13 @@ pub struct CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsAccessApp
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/accessApprovalRequests
@@ -2145,12 +2147,12 @@ pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violatio
 pub fn cloudcontrolspartner_organizations_locations_customers_workloads_violations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    interval_endTime: &Option<Option<String>>,
-    interval_startTime: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    interval_endTime: &Option<String>,
+    interval_startTime: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2310,17 +2312,17 @@ pub struct CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsViolation
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: interval_endTime
-    pub interval_endTime: Option<Option<String>>,
+    pub interval_endTime: Option<String>,
     /// Query parameter: interval_startTime
-    pub interval_startTime: Option<Option<String>>,
+    pub interval_startTime: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/customers/{customersId}/workloads/{workloadsId}/violations

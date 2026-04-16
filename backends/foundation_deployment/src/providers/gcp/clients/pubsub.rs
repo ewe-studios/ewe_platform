@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,7 +192,7 @@ pub fn pubsub_projects_schemas_commit(
 pub fn pubsub_projects_schemas_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    schemaId: &Option<Option<String>>,
+    schemaId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -330,7 +332,7 @@ pub struct PubsubProjectsSchemasCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: schemaId
-    pub schemaId: Option<Option<String>>,
+    pub schemaId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/schemas
@@ -524,7 +526,7 @@ pub fn pubsub_projects_schemas_delete(
 pub fn pubsub_projects_schemas_delete_revision_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    revisionId: &Option<Option<String>>,
+    revisionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -664,7 +666,7 @@ pub struct PubsubProjectsSchemasDeleteRevisionArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: revisionId
-    pub revisionId: Option<Option<String>>,
+    pub revisionId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/schemas/{schemasId}:deleteRevision
@@ -699,7 +701,7 @@ pub fn pubsub_projects_schemas_delete_revision(
 pub fn pubsub_projects_schemas_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -839,7 +841,7 @@ pub struct PubsubProjectsSchemasGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/schemas/{schemasId}
@@ -873,7 +875,7 @@ pub fn pubsub_projects_schemas_get(
 pub fn pubsub_projects_schemas_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1013,7 +1015,7 @@ pub struct PubsubProjectsSchemasGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/schemas/{schemasId}:getIamPolicy
@@ -1051,9 +1053,9 @@ pub fn pubsub_projects_schemas_get_iam_policy(
 pub fn pubsub_projects_schemas_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1201,11 +1203,11 @@ pub struct PubsubProjectsSchemasListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/schemas
@@ -1247,9 +1249,9 @@ pub fn pubsub_projects_schemas_list(
 pub fn pubsub_projects_schemas_list_revisions_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1399,11 +1401,11 @@ pub struct PubsubProjectsSchemasListRevisionsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/schemas/{schemasId}:listRevisions
@@ -2743,7 +2745,7 @@ pub fn pubsub_projects_snapshots_get(
 pub fn pubsub_projects_snapshots_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2883,7 +2885,7 @@ pub struct PubsubProjectsSnapshotsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/snapshots/{snapshotsId}:getIamPolicy
@@ -2921,8 +2923,8 @@ pub fn pubsub_projects_snapshots_get_iam_policy(
 pub fn pubsub_projects_snapshots_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3067,9 +3069,9 @@ pub struct PubsubProjectsSnapshotsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/snapshots
@@ -4414,7 +4416,7 @@ pub fn pubsub_projects_subscriptions_get(
 pub fn pubsub_projects_subscriptions_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4554,7 +4556,7 @@ pub struct PubsubProjectsSubscriptionsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}:getIamPolicy
@@ -4592,8 +4594,8 @@ pub fn pubsub_projects_subscriptions_get_iam_policy(
 pub fn pubsub_projects_subscriptions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4738,9 +4740,9 @@ pub struct PubsubProjectsSubscriptionsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/subscriptions
@@ -6404,7 +6406,7 @@ pub fn pubsub_projects_topics_get(
 pub fn pubsub_projects_topics_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6544,7 +6546,7 @@ pub struct PubsubProjectsTopicsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/topics/{topicsId}:getIamPolicy
@@ -6582,8 +6584,8 @@ pub fn pubsub_projects_topics_get_iam_policy(
 pub fn pubsub_projects_topics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6728,9 +6730,9 @@ pub struct PubsubProjectsTopicsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/topics
@@ -7423,8 +7425,8 @@ pub fn pubsub_projects_topics_test_iam_permissions(
 pub fn pubsub_projects_topics_snapshots_list_builder<R>(
     client: &SimpleHttpClient<R>,
     topic: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7571,9 +7573,9 @@ pub struct PubsubProjectsTopicsSnapshotsListArgs {
     /// Path parameter: topic
     pub topic: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/topics/{topicsId}/snapshots
@@ -7616,8 +7618,8 @@ pub fn pubsub_projects_topics_snapshots_list(
 pub fn pubsub_projects_topics_subscriptions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     topic: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7764,9 +7766,9 @@ pub struct PubsubProjectsTopicsSubscriptionsListArgs {
     /// Path parameter: topic
     pub topic: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/topics/{topicsId}/subscriptions

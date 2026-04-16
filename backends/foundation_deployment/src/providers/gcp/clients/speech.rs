@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -186,11 +188,11 @@ pub fn speech_operations_get(
 
 pub fn speech_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    name: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -339,15 +341,15 @@ pub fn speech_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpeechOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/operations
@@ -870,8 +872,8 @@ pub fn speech_projects_locations_custom_classes_get(
 pub fn speech_projects_locations_custom_classes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1016,9 +1018,9 @@ pub struct SpeechProjectsLocationsCustomClassesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customClasses
@@ -1059,7 +1061,7 @@ pub fn speech_projects_locations_custom_classes_list(
 pub fn speech_projects_locations_custom_classes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1199,7 +1201,7 @@ pub struct SpeechProjectsLocationsCustomClassesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/customClasses/{customClassesId}
@@ -1717,8 +1719,8 @@ pub fn speech_projects_locations_phrase_sets_get(
 pub fn speech_projects_locations_phrase_sets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1863,9 +1865,9 @@ pub struct SpeechProjectsLocationsPhraseSetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/phraseSets
@@ -1906,7 +1908,7 @@ pub fn speech_projects_locations_phrase_sets_list(
 pub fn speech_projects_locations_phrase_sets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2046,7 +2048,7 @@ pub struct SpeechProjectsLocationsPhraseSetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/phraseSets/{phraseSetsId}
@@ -2652,52 +2654,6 @@ impl ResourceIdentifier<SpeechProjectsLocationsPhraseSetsPatchArgs> for PhraseSe
 
     fn resource_kind(&self) -> &'static str {
         "gcp::speech::PhraseSet"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Operation with SpeechSpeechLongrunningrecognizeArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SpeechSpeechLongrunningrecognizeArgs> for Operation {
-    fn generate_resource_id(&self, input: &SpeechSpeechLongrunningrecognizeArgs) -> String {
-        "gcp::speech::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::speech::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for RecognizeResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for RecognizeResponse with SpeechSpeechRecognizeArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SpeechSpeechRecognizeArgs> for RecognizeResponse {
-    fn generate_resource_id(&self, input: &SpeechSpeechRecognizeArgs) -> String {
-        "gcp::speech::RecognizeResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::speech::RecognizeResponse"
     }
 
     fn provider(&self) -> &'static str {

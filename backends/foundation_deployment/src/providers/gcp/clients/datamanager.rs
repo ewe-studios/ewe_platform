@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -517,9 +519,9 @@ pub fn datamanager_account_types_accounts_partner_links_delete(
 pub fn datamanager_account_types_accounts_partner_links_search_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -669,11 +671,11 @@ pub struct DatamanagerAccountTypesAccountsPartnerLinksSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/partnerLinks:search
@@ -1050,9 +1052,9 @@ pub fn datamanager_account_types_accounts_user_list_direct_licenses_get(
 pub fn datamanager_account_types_accounts_user_list_direct_licenses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1202,11 +1204,11 @@ pub struct DatamanagerAccountTypesAccountsUserListDirectLicensesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses
@@ -1250,7 +1252,7 @@ pub fn datamanager_account_types_accounts_user_list_direct_licenses_list(
 pub fn datamanager_account_types_accounts_user_list_direct_licenses_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1392,7 +1394,7 @@ pub struct DatamanagerAccountTypesAccountsUserListDirectLicensesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListDirectLicenses/{userListDirectLicensesId}
@@ -1765,9 +1767,9 @@ pub fn datamanager_account_types_accounts_user_list_global_licenses_get(
 pub fn datamanager_account_types_accounts_user_list_global_licenses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1917,11 +1919,11 @@ pub struct DatamanagerAccountTypesAccountsUserListGlobalLicensesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses
@@ -1965,7 +1967,7 @@ pub fn datamanager_account_types_accounts_user_list_global_licenses_list(
 pub fn datamanager_account_types_accounts_user_list_global_licenses_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2107,7 +2109,7 @@ pub struct DatamanagerAccountTypesAccountsUserListGlobalLicensesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}
@@ -2149,9 +2151,9 @@ pub fn datamanager_account_types_accounts_user_list_global_licenses_user_list_gl
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2303,11 +2305,11 @@ pub struct DatamanagerAccountTypesAccountsUserListGlobalLicensesUserListGlobalLi
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userListGlobalLicenses/{userListGlobalLicensesId}/userListGlobalLicenseCustomerInfos
@@ -2345,7 +2347,7 @@ pub fn datamanager_account_types_accounts_user_list_global_licenses_user_list_gl
 pub fn datamanager_account_types_accounts_user_lists_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2485,7 +2487,7 @@ pub struct DatamanagerAccountTypesAccountsUserListsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists
@@ -2523,7 +2525,7 @@ pub fn datamanager_account_types_accounts_user_lists_create(
 pub fn datamanager_account_types_accounts_user_lists_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2663,7 +2665,7 @@ pub struct DatamanagerAccountTypesAccountsUserListsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
@@ -2861,9 +2863,9 @@ pub fn datamanager_account_types_accounts_user_lists_get(
 pub fn datamanager_account_types_accounts_user_lists_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3011,11 +3013,11 @@ pub struct DatamanagerAccountTypesAccountsUserListsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists
@@ -3057,8 +3059,8 @@ pub fn datamanager_account_types_accounts_user_lists_list(
 pub fn datamanager_account_types_accounts_user_lists_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3201,9 +3203,9 @@ pub struct DatamanagerAccountTypesAccountsUserListsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/accountTypes/{accountTypesId}/accounts/{accountsId}/userLists/{userListsId}
@@ -3705,7 +3707,7 @@ pub fn datamanager_events_ingest(
 
 pub fn datamanager_request_status_retrieve_builder<R>(
     client: &SimpleHttpClient<R>,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3844,7 +3846,7 @@ pub fn datamanager_request_status_retrieve_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DatamanagerRequestStatusRetrieveArgs {
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// GET v1/requestStatus:retrieve
@@ -4365,75 +4367,6 @@ impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListsPatchArgs> for U
 
     fn resource_kind(&self) -> &'static str {
         "gcp::datamanager::UserList"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for IngestAudienceMembersResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for IngestAudienceMembersResponse with DatamanagerAudienceMembersIngestArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DatamanagerAudienceMembersIngestArgs> for IngestAudienceMembersResponse {
-    fn generate_resource_id(&self, input: &DatamanagerAudienceMembersIngestArgs) -> String {
-        "gcp::datamanager::IngestAudienceMembersResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::datamanager::IngestAudienceMembersResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for RemoveAudienceMembersResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for RemoveAudienceMembersResponse with DatamanagerAudienceMembersRemoveArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DatamanagerAudienceMembersRemoveArgs> for RemoveAudienceMembersResponse {
-    fn generate_resource_id(&self, input: &DatamanagerAudienceMembersRemoveArgs) -> String {
-        "gcp::datamanager::RemoveAudienceMembersResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::datamanager::RemoveAudienceMembersResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for IngestEventsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for IngestEventsResponse with DatamanagerEventsIngestArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DatamanagerEventsIngestArgs> for IngestEventsResponse {
-    fn generate_resource_id(&self, input: &DatamanagerEventsIngestArgs) -> String {
-        "gcp::datamanager::IngestEventsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::datamanager::IngestEventsResponse"
     }
 
     fn provider(&self) -> &'static str {

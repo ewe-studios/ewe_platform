@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,15 +31,15 @@ use serde::Serialize;
 
 pub fn localservices_account_reports_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    endDate_day: &Option<Option<String>>,
-    endDate_month: &Option<Option<String>>,
-    endDate_year: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    startDate_day: &Option<Option<String>>,
-    startDate_month: &Option<Option<String>>,
-    startDate_year: &Option<Option<String>>,
+    endDate_day: &Option<String>,
+    endDate_month: &Option<String>,
+    endDate_year: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    startDate_day: &Option<String>,
+    startDate_month: &Option<String>,
+    startDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -207,23 +209,23 @@ pub fn localservices_account_reports_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct LocalservicesAccountReportsSearchArgs {
     /// Query parameter: endDate_day
-    pub endDate_day: Option<Option<String>>,
+    pub endDate_day: Option<String>,
     /// Query parameter: endDate_month
-    pub endDate_month: Option<Option<String>>,
+    pub endDate_month: Option<String>,
     /// Query parameter: endDate_year
-    pub endDate_year: Option<Option<String>>,
+    pub endDate_year: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: startDate_day
-    pub startDate_day: Option<Option<String>>,
+    pub startDate_day: Option<String>,
     /// Query parameter: startDate_month
-    pub startDate_month: Option<Option<String>>,
+    pub startDate_month: Option<String>,
     /// Query parameter: startDate_year
-    pub startDate_year: Option<Option<String>>,
+    pub startDate_year: Option<String>,
 }
 
 /// GET v1/accountReports:search
@@ -274,15 +276,15 @@ pub fn localservices_account_reports_search(
 
 pub fn localservices_detailed_lead_reports_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    endDate_day: &Option<Option<String>>,
-    endDate_month: &Option<Option<String>>,
-    endDate_year: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    startDate_day: &Option<Option<String>>,
-    startDate_month: &Option<Option<String>>,
-    startDate_year: &Option<Option<String>>,
+    endDate_day: &Option<String>,
+    endDate_month: &Option<String>,
+    endDate_year: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    startDate_day: &Option<String>,
+    startDate_month: &Option<String>,
+    startDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -452,23 +454,23 @@ pub fn localservices_detailed_lead_reports_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct LocalservicesDetailedLeadReportsSearchArgs {
     /// Query parameter: endDate_day
-    pub endDate_day: Option<Option<String>>,
+    pub endDate_day: Option<String>,
     /// Query parameter: endDate_month
-    pub endDate_month: Option<Option<String>>,
+    pub endDate_month: Option<String>,
     /// Query parameter: endDate_year
-    pub endDate_year: Option<Option<String>>,
+    pub endDate_year: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: startDate_day
-    pub startDate_day: Option<Option<String>>,
+    pub startDate_day: Option<String>,
     /// Query parameter: startDate_month
-    pub startDate_month: Option<Option<String>>,
+    pub startDate_month: Option<String>,
     /// Query parameter: startDate_year
-    pub startDate_year: Option<Option<String>>,
+    pub startDate_year: Option<String>,
 }
 
 /// GET v1/detailedLeadReports:search

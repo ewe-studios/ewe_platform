@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -521,9 +523,9 @@ pub fn mybusinessplaceactions_locations_place_action_links_get(
 pub fn mybusinessplaceactions_locations_place_action_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -673,11 +675,11 @@ pub struct MybusinessplaceactionsLocationsPlaceActionLinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/locations/{locationsId}/placeActionLinks
@@ -721,7 +723,7 @@ pub fn mybusinessplaceactions_locations_place_action_links_list(
 pub fn mybusinessplaceactions_locations_place_action_links_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -863,7 +865,7 @@ pub struct MybusinessplaceactionsLocationsPlaceActionLinksPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/locations/{locationsId}/placeActionLinks/{placeActionLinksId}
@@ -902,10 +904,10 @@ pub fn mybusinessplaceactions_locations_place_action_links_patch(
 
 pub fn mybusinessplaceactions_place_action_type_metadata_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1054,13 +1056,13 @@ pub fn mybusinessplaceactions_place_action_type_metadata_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MybusinessplaceactionsPlaceActionTypeMetadataListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/placeActionTypeMetadata

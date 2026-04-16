@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn firebasedataconnect_projects_locations_get(
 pub fn firebasedataconnect_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct FirebasedataconnectProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -876,10 +878,10 @@ pub fn firebasedataconnect_projects_locations_operations_get(
 pub fn firebasedataconnect_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1030,13 +1032,13 @@ pub struct FirebasedataconnectProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -1079,9 +1081,9 @@ pub fn firebasedataconnect_projects_locations_operations_list(
 pub fn firebasedataconnect_projects_locations_services_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    serviceId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    serviceId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1227,11 +1229,11 @@ pub struct FirebasedataconnectProjectsLocationsServicesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: serviceId
-    pub serviceId: Option<Option<String>>,
+    pub serviceId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services
@@ -1271,11 +1273,11 @@ pub fn firebasedataconnect_projects_locations_services_create(
 pub fn firebasedataconnect_projects_locations_services_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    force: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1427,15 +1429,15 @@ pub struct FirebasedataconnectProjectsLocationsServicesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}
@@ -2135,10 +2137,10 @@ pub fn firebasedataconnect_projects_locations_services_introspect_graphql(
 pub fn firebasedataconnect_projects_locations_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2289,13 +2291,13 @@ pub struct FirebasedataconnectProjectsLocationsServicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services
@@ -2338,10 +2340,10 @@ pub fn firebasedataconnect_projects_locations_services_list(
 pub fn firebasedataconnect_projects_locations_services_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2490,13 +2492,13 @@ pub struct FirebasedataconnectProjectsLocationsServicesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}
@@ -2537,9 +2539,9 @@ pub fn firebasedataconnect_projects_locations_services_patch(
 pub fn firebasedataconnect_projects_locations_services_connectors_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    connectorId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    connectorId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2685,11 +2687,11 @@ pub struct FirebasedataconnectProjectsLocationsServicesConnectorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: connectorId
-    pub connectorId: Option<Option<String>>,
+    pub connectorId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/connectors
@@ -2729,11 +2731,11 @@ pub fn firebasedataconnect_projects_locations_services_connectors_create(
 pub fn firebasedataconnect_projects_locations_services_connectors_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    force: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2885,15 +2887,15 @@ pub struct FirebasedataconnectProjectsLocationsServicesConnectorsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}
@@ -3769,10 +3771,10 @@ pub fn firebasedataconnect_projects_locations_services_connectors_impersonate_qu
 pub fn firebasedataconnect_projects_locations_services_connectors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3923,13 +3925,13 @@ pub struct FirebasedataconnectProjectsLocationsServicesConnectorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/connectors
@@ -3972,10 +3974,10 @@ pub fn firebasedataconnect_projects_locations_services_connectors_list(
 pub fn firebasedataconnect_projects_locations_services_connectors_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4124,13 +4126,13 @@ pub struct FirebasedataconnectProjectsLocationsServicesConnectorsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/connectors/{connectorsId}
@@ -4171,9 +4173,9 @@ pub fn firebasedataconnect_projects_locations_services_connectors_patch(
 pub fn firebasedataconnect_projects_locations_services_schemas_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    schemaId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    schemaId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4319,11 +4321,11 @@ pub struct FirebasedataconnectProjectsLocationsServicesSchemasCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: schemaId
-    pub schemaId: Option<Option<String>>,
+    pub schemaId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/schemas
@@ -4363,11 +4365,11 @@ pub fn firebasedataconnect_projects_locations_services_schemas_create(
 pub fn firebasedataconnect_projects_locations_services_schemas_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    force: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4519,15 +4521,15 @@ pub struct FirebasedataconnectProjectsLocationsServicesSchemasDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/schemas/{schemasId}
@@ -4730,10 +4732,10 @@ pub fn firebasedataconnect_projects_locations_services_schemas_get(
 pub fn firebasedataconnect_projects_locations_services_schemas_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4884,13 +4886,13 @@ pub struct FirebasedataconnectProjectsLocationsServicesSchemasListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/schemas
@@ -4933,10 +4935,10 @@ pub fn firebasedataconnect_projects_locations_services_schemas_list(
 pub fn firebasedataconnect_projects_locations_services_schemas_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5085,13 +5087,13 @@ pub struct FirebasedataconnectProjectsLocationsServicesSchemasPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/schemas/{schemasId}

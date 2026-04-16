@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -358,10 +360,10 @@ pub fn tpu_projects_locations_get(
 pub fn tpu_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -509,13 +511,13 @@ pub struct TpuProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations
@@ -722,10 +724,10 @@ pub fn tpu_projects_locations_accelerator_types_get(
 pub fn tpu_projects_locations_accelerator_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -878,13 +880,13 @@ pub struct TpuProjectsLocationsAcceleratorTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/acceleratorTypes
@@ -929,7 +931,7 @@ pub fn tpu_projects_locations_accelerator_types_list(
 pub fn tpu_projects_locations_nodes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    nodeId: &Option<Option<String>>,
+    nodeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1069,7 +1071,7 @@ pub struct TpuProjectsLocationsNodesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: nodeId
-    pub nodeId: Option<Option<String>>,
+    pub nodeId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/nodes
@@ -1591,8 +1593,8 @@ pub fn tpu_projects_locations_nodes_get_guest_attributes(
 pub fn tpu_projects_locations_nodes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1737,9 +1739,9 @@ pub struct TpuProjectsLocationsNodesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nodes
@@ -1780,7 +1782,7 @@ pub fn tpu_projects_locations_nodes_list(
 pub fn tpu_projects_locations_nodes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1920,7 +1922,7 @@ pub struct TpuProjectsLocationsNodesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/nodes/{nodesId}
@@ -2754,10 +2756,10 @@ pub fn tpu_projects_locations_operations_get(
 pub fn tpu_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2908,13 +2910,13 @@ pub struct TpuProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
@@ -2957,8 +2959,8 @@ pub fn tpu_projects_locations_operations_list(
 pub fn tpu_projects_locations_queued_resources_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    queuedResourceId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    queuedResourceId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3101,9 +3103,9 @@ pub struct TpuProjectsLocationsQueuedResourcesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: queuedResourceId
-    pub queuedResourceId: Option<Option<String>>,
+    pub queuedResourceId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/queuedResources
@@ -3142,8 +3144,8 @@ pub fn tpu_projects_locations_queued_resources_create(
 pub fn tpu_projects_locations_queued_resources_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    force: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3286,9 +3288,9 @@ pub struct TpuProjectsLocationsQueuedResourcesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v2/projects/{projectsId}/locations/{locationsId}/queuedResources/{queuedResourcesId}
@@ -3491,8 +3493,8 @@ pub fn tpu_projects_locations_queued_resources_get(
 pub fn tpu_projects_locations_queued_resources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3639,9 +3641,9 @@ pub struct TpuProjectsLocationsQueuedResourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queuedResources
@@ -4008,10 +4010,10 @@ pub fn tpu_projects_locations_runtime_versions_get(
 pub fn tpu_projects_locations_runtime_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4164,13 +4166,13 @@ pub struct TpuProjectsLocationsRuntimeVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/runtimeVersions

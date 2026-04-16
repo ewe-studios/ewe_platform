@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -323,50 +325,4 @@ pub fn verifiedaccess_challenge_verify(
 > {
     let builder = verifiedaccess_challenge_verify_builder(client)?;
     verifiedaccess_challenge_verify_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Challenge
-// =============================================================================
-
-/// ResourceIdentifier implementation for Challenge with VerifiedaccessChallengeGenerateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<VerifiedaccessChallengeGenerateArgs> for Challenge {
-    fn generate_resource_id(&self, input: &VerifiedaccessChallengeGenerateArgs) -> String {
-        "gcp::verifiedaccess::Challenge".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::verifiedaccess::Challenge"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for VerifyChallengeResponseResult
-// =============================================================================
-
-/// ResourceIdentifier implementation for VerifyChallengeResponseResult with VerifiedaccessChallengeVerifyArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<VerifiedaccessChallengeVerifyArgs> for VerifyChallengeResponseResult {
-    fn generate_resource_id(&self, input: &VerifiedaccessChallengeVerifyArgs) -> String {
-        "gcp::verifiedaccess::VerifyChallengeResponseResult".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::verifiedaccess::VerifyChallengeResponseResult"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }

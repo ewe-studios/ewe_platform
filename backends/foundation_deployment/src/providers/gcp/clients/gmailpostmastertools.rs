@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -510,8 +512,8 @@ pub fn gmailpostmastertools_domains_get_compliance_status(
 
 pub fn gmailpostmastertools_domains_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -651,9 +653,9 @@ pub fn gmailpostmastertools_domains_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GmailpostmastertoolsDomainsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/domains
@@ -843,34 +845,6 @@ pub fn gmailpostmastertools_domains_domain_stats_query(
 > {
     let builder = gmailpostmastertools_domains_domain_stats_query_builder(client, &args.parent)?;
     gmailpostmastertools_domains_domain_stats_query_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BatchQueryDomainStatsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for BatchQueryDomainStatsResponse with GmailpostmastertoolsDomainStatsBatchQueryArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GmailpostmastertoolsDomainStatsBatchQueryArgs>
-    for BatchQueryDomainStatsResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &GmailpostmastertoolsDomainStatsBatchQueryArgs,
-    ) -> String {
-        "gcp::gmailpostmastertools::BatchQueryDomainStatsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::gmailpostmastertools::BatchQueryDomainStatsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================

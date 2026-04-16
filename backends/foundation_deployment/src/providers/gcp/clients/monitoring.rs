@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,21 +32,21 @@ use serde::Serialize;
 pub fn monitoring_folders_time_series_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    aggregation_alignmentPeriod: &Option<Option<String>>,
-    aggregation_crossSeriesReducer: &Option<Option<String>>,
-    aggregation_groupByFields: &Option<Option<String>>,
-    aggregation_perSeriesAligner: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    interval_endTime: &Option<Option<String>>,
-    interval_startTime: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    secondaryAggregation_alignmentPeriod: &Option<Option<String>>,
-    secondaryAggregation_crossSeriesReducer: &Option<Option<String>>,
-    secondaryAggregation_groupByFields: &Option<Option<String>>,
-    secondaryAggregation_perSeriesAligner: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    aggregation_alignmentPeriod: &Option<String>,
+    aggregation_crossSeriesReducer: &Option<String>,
+    aggregation_groupByFields: &Option<String>,
+    aggregation_perSeriesAligner: &Option<String>,
+    filter: &Option<String>,
+    interval_endTime: &Option<String>,
+    interval_startTime: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    secondaryAggregation_alignmentPeriod: &Option<String>,
+    secondaryAggregation_crossSeriesReducer: &Option<String>,
+    secondaryAggregation_groupByFields: &Option<String>,
+    secondaryAggregation_perSeriesAligner: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -228,35 +230,35 @@ pub struct MonitoringFoldersTimeSeriesListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: aggregation_alignmentPeriod
-    pub aggregation_alignmentPeriod: Option<Option<String>>,
+    pub aggregation_alignmentPeriod: Option<String>,
     /// Query parameter: aggregation_crossSeriesReducer
-    pub aggregation_crossSeriesReducer: Option<Option<String>>,
+    pub aggregation_crossSeriesReducer: Option<String>,
     /// Query parameter: aggregation_groupByFields
-    pub aggregation_groupByFields: Option<Option<String>>,
+    pub aggregation_groupByFields: Option<String>,
     /// Query parameter: aggregation_perSeriesAligner
-    pub aggregation_perSeriesAligner: Option<Option<String>>,
+    pub aggregation_perSeriesAligner: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: interval_endTime
-    pub interval_endTime: Option<Option<String>>,
+    pub interval_endTime: Option<String>,
     /// Query parameter: interval_startTime
-    pub interval_startTime: Option<Option<String>>,
+    pub interval_startTime: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: secondaryAggregation_alignmentPeriod
-    pub secondaryAggregation_alignmentPeriod: Option<Option<String>>,
+    pub secondaryAggregation_alignmentPeriod: Option<String>,
     /// Query parameter: secondaryAggregation_crossSeriesReducer
-    pub secondaryAggregation_crossSeriesReducer: Option<Option<String>>,
+    pub secondaryAggregation_crossSeriesReducer: Option<String>,
     /// Query parameter: secondaryAggregation_groupByFields
-    pub secondaryAggregation_groupByFields: Option<Option<String>>,
+    pub secondaryAggregation_groupByFields: Option<String>,
     /// Query parameter: secondaryAggregation_perSeriesAligner
-    pub secondaryAggregation_perSeriesAligner: Option<Option<String>>,
+    pub secondaryAggregation_perSeriesAligner: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/folders/{foldersId}/timeSeries
@@ -310,21 +312,21 @@ pub fn monitoring_folders_time_series_list(
 pub fn monitoring_organizations_time_series_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    aggregation_alignmentPeriod: &Option<Option<String>>,
-    aggregation_crossSeriesReducer: &Option<Option<String>>,
-    aggregation_groupByFields: &Option<Option<String>>,
-    aggregation_perSeriesAligner: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    interval_endTime: &Option<Option<String>>,
-    interval_startTime: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    secondaryAggregation_alignmentPeriod: &Option<Option<String>>,
-    secondaryAggregation_crossSeriesReducer: &Option<Option<String>>,
-    secondaryAggregation_groupByFields: &Option<Option<String>>,
-    secondaryAggregation_perSeriesAligner: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    aggregation_alignmentPeriod: &Option<String>,
+    aggregation_crossSeriesReducer: &Option<String>,
+    aggregation_groupByFields: &Option<String>,
+    aggregation_perSeriesAligner: &Option<String>,
+    filter: &Option<String>,
+    interval_endTime: &Option<String>,
+    interval_startTime: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    secondaryAggregation_alignmentPeriod: &Option<String>,
+    secondaryAggregation_crossSeriesReducer: &Option<String>,
+    secondaryAggregation_groupByFields: &Option<String>,
+    secondaryAggregation_perSeriesAligner: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -508,35 +510,35 @@ pub struct MonitoringOrganizationsTimeSeriesListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: aggregation_alignmentPeriod
-    pub aggregation_alignmentPeriod: Option<Option<String>>,
+    pub aggregation_alignmentPeriod: Option<String>,
     /// Query parameter: aggregation_crossSeriesReducer
-    pub aggregation_crossSeriesReducer: Option<Option<String>>,
+    pub aggregation_crossSeriesReducer: Option<String>,
     /// Query parameter: aggregation_groupByFields
-    pub aggregation_groupByFields: Option<Option<String>>,
+    pub aggregation_groupByFields: Option<String>,
     /// Query parameter: aggregation_perSeriesAligner
-    pub aggregation_perSeriesAligner: Option<Option<String>>,
+    pub aggregation_perSeriesAligner: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: interval_endTime
-    pub interval_endTime: Option<Option<String>>,
+    pub interval_endTime: Option<String>,
     /// Query parameter: interval_startTime
-    pub interval_startTime: Option<Option<String>>,
+    pub interval_startTime: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: secondaryAggregation_alignmentPeriod
-    pub secondaryAggregation_alignmentPeriod: Option<Option<String>>,
+    pub secondaryAggregation_alignmentPeriod: Option<String>,
     /// Query parameter: secondaryAggregation_crossSeriesReducer
-    pub secondaryAggregation_crossSeriesReducer: Option<Option<String>>,
+    pub secondaryAggregation_crossSeriesReducer: Option<String>,
     /// Query parameter: secondaryAggregation_groupByFields
-    pub secondaryAggregation_groupByFields: Option<Option<String>>,
+    pub secondaryAggregation_groupByFields: Option<String>,
     /// Query parameter: secondaryAggregation_perSeriesAligner
-    pub secondaryAggregation_perSeriesAligner: Option<Option<String>>,
+    pub secondaryAggregation_perSeriesAligner: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/organizations/{organizationsId}/timeSeries
@@ -1070,10 +1072,10 @@ pub fn monitoring_projects_alert_policies_get(
 pub fn monitoring_projects_alert_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1224,13 +1226,13 @@ pub struct MonitoringProjectsAlertPoliciesListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/alertPolicies
@@ -1273,7 +1275,7 @@ pub fn monitoring_projects_alert_policies_list(
 pub fn monitoring_projects_alert_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1413,7 +1415,7 @@ pub struct MonitoringProjectsAlertPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
@@ -1608,10 +1610,10 @@ pub fn monitoring_projects_alerts_get(
 pub fn monitoring_projects_alerts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1762,13 +1764,13 @@ pub struct MonitoringProjectsAlertsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/alerts
@@ -1979,7 +1981,7 @@ pub fn monitoring_projects_collectd_time_series_create(
 pub fn monitoring_projects_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2119,7 +2121,7 @@ pub struct MonitoringProjectsGroupsCreateArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v3/projects/{projectsId}/groups
@@ -2154,7 +2156,7 @@ pub fn monitoring_projects_groups_create(
 pub fn monitoring_projects_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    recursive: &Option<Option<String>>,
+    recursive: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2294,7 +2296,7 @@ pub struct MonitoringProjectsGroupsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: recursive
-    pub recursive: Option<Option<String>>,
+    pub recursive: Option<String>,
 }
 
 /// DELETE v3/projects/{projectsId}/groups/{groupsId}
@@ -2488,11 +2490,11 @@ pub fn monitoring_projects_groups_get(
 pub fn monitoring_projects_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    ancestorsOfGroup: &Option<Option<String>>,
-    childrenOfGroup: &Option<Option<String>>,
-    descendantsOfGroup: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    ancestorsOfGroup: &Option<String>,
+    childrenOfGroup: &Option<String>,
+    descendantsOfGroup: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2646,15 +2648,15 @@ pub struct MonitoringProjectsGroupsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: ancestorsOfGroup
-    pub ancestorsOfGroup: Option<Option<String>>,
+    pub ancestorsOfGroup: Option<String>,
     /// Query parameter: childrenOfGroup
-    pub childrenOfGroup: Option<Option<String>>,
+    pub childrenOfGroup: Option<String>,
     /// Query parameter: descendantsOfGroup
-    pub descendantsOfGroup: Option<Option<String>>,
+    pub descendantsOfGroup: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/groups
@@ -2698,7 +2700,7 @@ pub fn monitoring_projects_groups_list(
 pub fn monitoring_projects_groups_update_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2838,7 +2840,7 @@ pub struct MonitoringProjectsGroupsUpdateArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PUT v3/projects/{projectsId}/groups/{groupsId}
@@ -2873,11 +2875,11 @@ pub fn monitoring_projects_groups_update(
 pub fn monitoring_projects_groups_members_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    interval_endTime: &Option<Option<String>>,
-    interval_startTime: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    interval_endTime: &Option<String>,
+    interval_startTime: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3031,15 +3033,15 @@ pub struct MonitoringProjectsGroupsMembersListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: interval_endTime
-    pub interval_endTime: Option<Option<String>>,
+    pub interval_endTime: Option<String>,
     /// Query parameter: interval_startTime
-    pub interval_startTime: Option<Option<String>>,
+    pub interval_startTime: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/groups/{groupsId}/members
@@ -3571,10 +3573,10 @@ pub fn monitoring_projects_metric_descriptors_get(
 pub fn monitoring_projects_metric_descriptors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    activeOnly: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    activeOnly: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3727,13 +3729,13 @@ pub struct MonitoringProjectsMetricDescriptorsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: activeOnly
-    pub activeOnly: Option<Option<String>>,
+    pub activeOnly: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/metricDescriptors
@@ -3947,9 +3949,9 @@ pub fn monitoring_projects_monitored_resource_descriptors_get(
 pub fn monitoring_projects_monitored_resource_descriptors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4099,11 +4101,11 @@ pub struct MonitoringProjectsMonitoredResourceDescriptorsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/monitoredResourceDescriptors
@@ -4316,8 +4318,8 @@ pub fn monitoring_projects_notification_channel_descriptors_get(
 pub fn monitoring_projects_notification_channel_descriptors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4465,9 +4467,9 @@ pub struct MonitoringProjectsNotificationChannelDescriptorsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/notificationChannelDescriptors
@@ -4674,7 +4676,7 @@ pub fn monitoring_projects_notification_channels_create(
 pub fn monitoring_projects_notification_channels_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4814,7 +4816,7 @@ pub struct MonitoringProjectsNotificationChannelsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
@@ -5184,10 +5186,10 @@ pub fn monitoring_projects_notification_channels_get_verification_code(
 pub fn monitoring_projects_notification_channels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5340,13 +5342,13 @@ pub struct MonitoringProjectsNotificationChannelsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/notificationChannels
@@ -5391,7 +5393,7 @@ pub fn monitoring_projects_notification_channels_list(
 pub fn monitoring_projects_notification_channels_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5533,7 +5535,7 @@ pub struct MonitoringProjectsNotificationChannelsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
@@ -6219,9 +6221,9 @@ pub fn monitoring_projects_snoozes_get(
 pub fn monitoring_projects_snoozes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6369,11 +6371,11 @@ pub struct MonitoringProjectsSnoozesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/snoozes
@@ -6415,7 +6417,7 @@ pub fn monitoring_projects_snoozes_list(
 pub fn monitoring_projects_snoozes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6555,7 +6557,7 @@ pub struct MonitoringProjectsSnoozesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/snoozes/{snoozesId}
@@ -6909,21 +6911,21 @@ pub fn monitoring_projects_time_series_create_service(
 pub fn monitoring_projects_time_series_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    aggregation_alignmentPeriod: &Option<Option<String>>,
-    aggregation_crossSeriesReducer: &Option<Option<String>>,
-    aggregation_groupByFields: &Option<Option<String>>,
-    aggregation_perSeriesAligner: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    interval_endTime: &Option<Option<String>>,
-    interval_startTime: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    secondaryAggregation_alignmentPeriod: &Option<Option<String>>,
-    secondaryAggregation_crossSeriesReducer: &Option<Option<String>>,
-    secondaryAggregation_groupByFields: &Option<Option<String>>,
-    secondaryAggregation_perSeriesAligner: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    aggregation_alignmentPeriod: &Option<String>,
+    aggregation_crossSeriesReducer: &Option<String>,
+    aggregation_groupByFields: &Option<String>,
+    aggregation_perSeriesAligner: &Option<String>,
+    filter: &Option<String>,
+    interval_endTime: &Option<String>,
+    interval_startTime: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    secondaryAggregation_alignmentPeriod: &Option<String>,
+    secondaryAggregation_crossSeriesReducer: &Option<String>,
+    secondaryAggregation_groupByFields: &Option<String>,
+    secondaryAggregation_perSeriesAligner: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7107,35 +7109,35 @@ pub struct MonitoringProjectsTimeSeriesListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: aggregation_alignmentPeriod
-    pub aggregation_alignmentPeriod: Option<Option<String>>,
+    pub aggregation_alignmentPeriod: Option<String>,
     /// Query parameter: aggregation_crossSeriesReducer
-    pub aggregation_crossSeriesReducer: Option<Option<String>>,
+    pub aggregation_crossSeriesReducer: Option<String>,
     /// Query parameter: aggregation_groupByFields
-    pub aggregation_groupByFields: Option<Option<String>>,
+    pub aggregation_groupByFields: Option<String>,
     /// Query parameter: aggregation_perSeriesAligner
-    pub aggregation_perSeriesAligner: Option<Option<String>>,
+    pub aggregation_perSeriesAligner: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: interval_endTime
-    pub interval_endTime: Option<Option<String>>,
+    pub interval_endTime: Option<String>,
     /// Query parameter: interval_startTime
-    pub interval_startTime: Option<Option<String>>,
+    pub interval_startTime: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: secondaryAggregation_alignmentPeriod
-    pub secondaryAggregation_alignmentPeriod: Option<Option<String>>,
+    pub secondaryAggregation_alignmentPeriod: Option<String>,
     /// Query parameter: secondaryAggregation_crossSeriesReducer
-    pub secondaryAggregation_crossSeriesReducer: Option<Option<String>>,
+    pub secondaryAggregation_crossSeriesReducer: Option<String>,
     /// Query parameter: secondaryAggregation_groupByFields
-    pub secondaryAggregation_groupByFields: Option<Option<String>>,
+    pub secondaryAggregation_groupByFields: Option<String>,
     /// Query parameter: secondaryAggregation_perSeriesAligner
-    pub secondaryAggregation_perSeriesAligner: Option<Option<String>>,
+    pub secondaryAggregation_perSeriesAligner: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/timeSeries
@@ -7841,9 +7843,9 @@ pub fn monitoring_projects_uptime_check_configs_get(
 pub fn monitoring_projects_uptime_check_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7993,11 +7995,11 @@ pub struct MonitoringProjectsUptimeCheckConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/uptimeCheckConfigs
@@ -8041,7 +8043,7 @@ pub fn monitoring_projects_uptime_check_configs_list(
 pub fn monitoring_projects_uptime_check_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8183,7 +8185,7 @@ pub struct MonitoringProjectsUptimeCheckConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
@@ -8223,7 +8225,7 @@ pub fn monitoring_projects_uptime_check_configs_patch(
 pub fn monitoring_services_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    serviceId: &Option<Option<String>>,
+    serviceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8363,7 +8365,7 @@ pub struct MonitoringServicesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: serviceId
-    pub serviceId: Option<Option<String>>,
+    pub serviceId: Option<String>,
 }
 
 /// POST v3/{v3Id}/{v3Id1}/services
@@ -8717,9 +8719,9 @@ pub fn monitoring_services_get(
 pub fn monitoring_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8867,11 +8869,11 @@ pub struct MonitoringServicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/{v3Id}/{v3Id1}/services
@@ -8913,7 +8915,7 @@ pub fn monitoring_services_list(
 pub fn monitoring_services_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9053,7 +9055,7 @@ pub struct MonitoringServicesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/{v3Id}/{v3Id1}/services/{servicesId}
@@ -9087,7 +9089,7 @@ pub fn monitoring_services_patch(
 pub fn monitoring_services_service_level_objectives_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    serviceLevelObjectiveId: &Option<Option<String>>,
+    serviceLevelObjectiveId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9229,7 +9231,7 @@ pub struct MonitoringServicesServiceLevelObjectivesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: serviceLevelObjectiveId
-    pub serviceLevelObjectiveId: Option<Option<String>>,
+    pub serviceLevelObjectiveId: Option<String>,
 }
 
 /// POST v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives
@@ -9429,7 +9431,7 @@ pub fn monitoring_services_service_level_objectives_delete(
 pub fn monitoring_services_service_level_objectives_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9571,7 +9573,7 @@ pub struct MonitoringServicesServiceLevelObjectivesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
@@ -9608,10 +9610,10 @@ pub fn monitoring_services_service_level_objectives_get(
 pub fn monitoring_services_service_level_objectives_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9764,13 +9766,13 @@ pub struct MonitoringServicesServiceLevelObjectivesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives
@@ -9815,7 +9817,7 @@ pub fn monitoring_services_service_level_objectives_list(
 pub fn monitoring_services_service_level_objectives_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9957,7 +9959,7 @@ pub struct MonitoringServicesServiceLevelObjectivesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
@@ -9996,8 +9998,8 @@ pub fn monitoring_services_service_level_objectives_patch(
 
 pub fn monitoring_uptime_check_ips_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10139,9 +10141,9 @@ pub fn monitoring_uptime_check_ips_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MonitoringUptimeCheckIpsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/uptimeCheckIps

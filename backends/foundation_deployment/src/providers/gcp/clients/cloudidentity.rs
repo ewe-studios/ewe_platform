@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -519,10 +521,10 @@ pub fn cloudidentity_customers_userinvitations_is_invitable_user(
 pub fn cloudidentity_customers_userinvitations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -675,13 +677,13 @@ pub struct CloudidentityCustomersUserinvitationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/userinvitations
@@ -1045,7 +1047,7 @@ pub fn cloudidentity_devices_cancel_wipe(
 
 pub fn cloudidentity_devices_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    customer: &Option<Option<String>>,
+    customer: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1180,7 +1182,7 @@ pub fn cloudidentity_devices_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityDevicesCreateArgs {
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
 }
 
 /// POST v1/devices
@@ -1214,7 +1216,7 @@ pub fn cloudidentity_devices_create(
 pub fn cloudidentity_devices_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    customer: &Option<Option<String>>,
+    customer: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1351,7 +1353,7 @@ pub struct CloudidentityDevicesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
 }
 
 /// DELETE v1/devices/{devicesId}
@@ -1385,7 +1387,7 @@ pub fn cloudidentity_devices_delete(
 pub fn cloudidentity_devices_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    customer: &Option<Option<String>>,
+    customer: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1526,7 +1528,7 @@ pub struct CloudidentityDevicesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
 }
 
 /// GET v1/devices/{devicesId}
@@ -1563,12 +1565,12 @@ pub fn cloudidentity_devices_get(
 
 pub fn cloudidentity_devices_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    customer: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    customer: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1726,17 +1728,17 @@ pub fn cloudidentity_devices_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityDevicesListArgs {
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/devices
@@ -2422,7 +2424,7 @@ pub fn cloudidentity_devices_device_users_cancel_wipe(
 pub fn cloudidentity_devices_device_users_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    customer: &Option<Option<String>>,
+    customer: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2562,7 +2564,7 @@ pub struct CloudidentityDevicesDeviceUsersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
 }
 
 /// DELETE v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
@@ -2597,7 +2599,7 @@ pub fn cloudidentity_devices_device_users_delete(
 pub fn cloudidentity_devices_device_users_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    customer: &Option<Option<String>>,
+    customer: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2742,7 +2744,7 @@ pub struct CloudidentityDevicesDeviceUsersGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
 }
 
 /// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}
@@ -2781,11 +2783,11 @@ pub fn cloudidentity_devices_device_users_get(
 pub fn cloudidentity_devices_device_users_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    customer: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    customer: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2948,15 +2950,15 @@ pub struct CloudidentityDevicesDeviceUsersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/devices/{devicesId}/deviceUsers
@@ -3005,13 +3007,13 @@ pub fn cloudidentity_devices_device_users_list(
 pub fn cloudidentity_devices_device_users_lookup_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    androidId: &Option<Option<String>>,
-    iosDeviceId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partner: &Option<Option<String>>,
-    rawResourceId: &Option<Option<String>>,
-    userId: &Option<Option<String>>,
+    androidId: &Option<String>,
+    iosDeviceId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partner: &Option<String>,
+    rawResourceId: &Option<String>,
+    userId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3180,19 +3182,19 @@ pub struct CloudidentityDevicesDeviceUsersLookupArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: androidId
-    pub androidId: Option<Option<String>>,
+    pub androidId: Option<String>,
     /// Query parameter: iosDeviceId
-    pub iosDeviceId: Option<Option<String>>,
+    pub iosDeviceId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partner
-    pub partner: Option<Option<String>>,
+    pub partner: Option<String>,
     /// Query parameter: rawResourceId
-    pub rawResourceId: Option<Option<String>>,
+    pub rawResourceId: Option<String>,
     /// Query parameter: userId
-    pub userId: Option<Option<String>>,
+    pub userId: Option<String>,
 }
 
 /// GET v1/devices/{devicesId}/deviceUsers:lookup
@@ -3403,7 +3405,7 @@ pub fn cloudidentity_devices_device_users_wipe(
 pub fn cloudidentity_devices_device_users_client_states_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    customer: &Option<Option<String>>,
+    customer: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3548,7 +3550,7 @@ pub struct CloudidentityDevicesDeviceUsersClientStatesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
 }
 
 /// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}
@@ -3590,10 +3592,10 @@ pub fn cloudidentity_devices_device_users_client_states_get(
 pub fn cloudidentity_devices_device_users_client_states_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    customer: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    customer: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3753,13 +3755,13 @@ pub struct CloudidentityDevicesDeviceUsersClientStatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates
@@ -3807,8 +3809,8 @@ pub fn cloudidentity_devices_device_users_client_states_list(
 pub fn cloudidentity_devices_device_users_client_states_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    customer: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    customer: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3951,9 +3953,9 @@ pub struct CloudidentityDevicesDeviceUsersClientStatesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/devices/{devicesId}/deviceUsers/{deviceUsersId}/clientStates/{clientStatesId}
@@ -3991,7 +3993,7 @@ pub fn cloudidentity_devices_device_users_client_states_patch(
 
 pub fn cloudidentity_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    initialGroupConfig: &Option<Option<String>>,
+    initialGroupConfig: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4126,7 +4128,7 @@ pub fn cloudidentity_groups_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityGroupsCreateArgs {
     /// Query parameter: initialGroupConfig
-    pub initialGroupConfig: Option<Option<String>>,
+    pub initialGroupConfig: Option<String>,
 }
 
 /// POST v1/groups
@@ -4474,7 +4476,7 @@ pub fn cloudidentity_groups_get(
 pub fn cloudidentity_groups_get_security_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4616,7 +4618,7 @@ pub struct CloudidentityGroupsGetSecuritySettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/groups/{groupsId}/securitySettings
@@ -4652,10 +4654,10 @@ pub fn cloudidentity_groups_get_security_settings(
 
 pub fn cloudidentity_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4801,13 +4803,13 @@ pub fn cloudidentity_groups_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityGroupsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/groups
@@ -4848,8 +4850,8 @@ pub fn cloudidentity_groups_list(
 
 pub fn cloudidentity_groups_lookup_builder<R>(
     client: &SimpleHttpClient<R>,
-    groupKey_id: &Option<Option<String>>,
-    groupKey_namespace: &Option<Option<String>>,
+    groupKey_id: &Option<String>,
+    groupKey_namespace: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4989,9 +4991,9 @@ pub fn cloudidentity_groups_lookup_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityGroupsLookupArgs {
     /// Query parameter: groupKey_id
-    pub groupKey_id: Option<Option<String>>,
+    pub groupKey_id: Option<String>,
     /// Query parameter: groupKey_namespace
-    pub groupKey_namespace: Option<Option<String>>,
+    pub groupKey_namespace: Option<String>,
 }
 
 /// GET v1/groups:lookup
@@ -5028,7 +5030,7 @@ pub fn cloudidentity_groups_lookup(
 pub fn cloudidentity_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5165,7 +5167,7 @@ pub struct CloudidentityGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/groups/{groupsId}
@@ -5198,10 +5200,10 @@ pub fn cloudidentity_groups_patch(
 
 pub fn cloudidentity_groups_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5347,13 +5349,13 @@ pub fn cloudidentity_groups_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityGroupsSearchArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/groups:search
@@ -5395,7 +5397,7 @@ pub fn cloudidentity_groups_search(
 pub fn cloudidentity_groups_update_security_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5535,7 +5537,7 @@ pub struct CloudidentityGroupsUpdateSecuritySettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/groups/{groupsId}/securitySettings
@@ -5573,7 +5575,7 @@ pub fn cloudidentity_groups_update_security_settings(
 pub fn cloudidentity_groups_memberships_check_transitive_membership_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    query: &Option<Option<String>>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5717,7 +5719,7 @@ pub struct CloudidentityGroupsMembershipsCheckTransitiveMembershipArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v1/groups/{groupsId}/memberships:checkTransitiveMembership
@@ -6239,7 +6241,7 @@ pub fn cloudidentity_groups_memberships_get(
 pub fn cloudidentity_groups_memberships_get_membership_graph_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    query: &Option<Option<String>>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6379,7 +6381,7 @@ pub struct CloudidentityGroupsMembershipsGetMembershipGraphArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v1/groups/{groupsId}/memberships:getMembershipGraph
@@ -6417,9 +6419,9 @@ pub fn cloudidentity_groups_memberships_get_membership_graph(
 pub fn cloudidentity_groups_memberships_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6567,11 +6569,11 @@ pub struct CloudidentityGroupsMembershipsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/groups/{groupsId}/memberships
@@ -6613,8 +6615,8 @@ pub fn cloudidentity_groups_memberships_list(
 pub fn cloudidentity_groups_memberships_lookup_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    memberKey_id: &Option<Option<String>>,
-    memberKey_namespace: &Option<Option<String>>,
+    memberKey_id: &Option<String>,
+    memberKey_namespace: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6761,9 +6763,9 @@ pub struct CloudidentityGroupsMembershipsLookupArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: memberKey_id
-    pub memberKey_id: Option<Option<String>>,
+    pub memberKey_id: Option<String>,
     /// Query parameter: memberKey_namespace
-    pub memberKey_namespace: Option<Option<String>>,
+    pub memberKey_namespace: Option<String>,
 }
 
 /// GET v1/groups/{groupsId}/memberships:lookup
@@ -6975,10 +6977,10 @@ pub fn cloudidentity_groups_memberships_modify_membership_roles(
 pub fn cloudidentity_groups_memberships_search_direct_groups_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7131,13 +7133,13 @@ pub struct CloudidentityGroupsMembershipsSearchDirectGroupsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v1/groups/{groupsId}/memberships:searchDirectGroups
@@ -7182,9 +7184,9 @@ pub fn cloudidentity_groups_memberships_search_direct_groups(
 pub fn cloudidentity_groups_memberships_search_transitive_groups_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7334,11 +7336,11 @@ pub struct CloudidentityGroupsMembershipsSearchTransitiveGroupsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v1/groups/{groupsId}/memberships:searchTransitiveGroups
@@ -7382,8 +7384,8 @@ pub fn cloudidentity_groups_memberships_search_transitive_groups(
 pub fn cloudidentity_groups_memberships_search_transitive_memberships_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7530,9 +7532,9 @@ pub struct CloudidentityGroupsMembershipsSearchTransitiveMembershipsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/groups/{groupsId}/memberships:searchTransitiveMemberships
@@ -8046,9 +8048,9 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_get(
 
 pub fn cloudidentity_inbound_oidc_sso_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8193,11 +8195,11 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityInboundOidcSsoProfilesListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/inboundOidcSsoProfiles
@@ -8240,7 +8242,7 @@ pub fn cloudidentity_inbound_oidc_sso_profiles_list(
 pub fn cloudidentity_inbound_oidc_sso_profiles_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8380,7 +8382,7 @@ pub struct CloudidentityInboundOidcSsoProfilesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/inboundOidcSsoProfiles/{inboundOidcSsoProfilesId}
@@ -8889,9 +8891,9 @@ pub fn cloudidentity_inbound_saml_sso_profiles_get(
 
 pub fn cloudidentity_inbound_saml_sso_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9036,11 +9038,11 @@ pub fn cloudidentity_inbound_saml_sso_profiles_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityInboundSamlSsoProfilesListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/inboundSamlSsoProfiles
@@ -9083,7 +9085,7 @@ pub fn cloudidentity_inbound_saml_sso_profiles_list(
 pub fn cloudidentity_inbound_saml_sso_profiles_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9223,7 +9225,7 @@ pub struct CloudidentityInboundSamlSsoProfilesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}
@@ -9748,8 +9750,8 @@ pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_get(
 pub fn cloudidentity_inbound_saml_sso_profiles_idp_credentials_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9896,9 +9898,9 @@ pub struct CloudidentityInboundSamlSsoProfilesIdpCredentialsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/inboundSamlSsoProfiles/{inboundSamlSsoProfilesId}/idpCredentials
@@ -10412,9 +10414,9 @@ pub fn cloudidentity_inbound_sso_assignments_get(
 
 pub fn cloudidentity_inbound_sso_assignments_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10559,11 +10561,11 @@ pub fn cloudidentity_inbound_sso_assignments_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityInboundSsoAssignmentsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/inboundSsoAssignments
@@ -10606,7 +10608,7 @@ pub fn cloudidentity_inbound_sso_assignments_list(
 pub fn cloudidentity_inbound_sso_assignments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10746,7 +10748,7 @@ pub struct CloudidentityInboundSsoAssignmentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/inboundSsoAssignments/{inboundSsoAssignmentsId}
@@ -10937,9 +10939,9 @@ pub fn cloudidentity_policies_get(
 
 pub fn cloudidentity_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11082,11 +11084,11 @@ pub fn cloudidentity_policies_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudidentityPoliciesListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/policies
@@ -12197,32 +12199,6 @@ impl ResourceIdentifier<CloudidentityGroupsMembershipsSearchTransitiveMembership
 // ResourceIdentifier implementation for Operation
 // =============================================================================
 
-/// ResourceIdentifier implementation for Operation with CloudidentityInboundOidcSsoProfilesCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CloudidentityInboundOidcSsoProfilesCreateArgs> for Operation {
-    fn generate_resource_id(
-        &self,
-        input: &CloudidentityInboundOidcSsoProfilesCreateArgs,
-    ) -> String {
-        "gcp::cloudidentity::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::cloudidentity::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
 /// ResourceIdentifier implementation for Operation with CloudidentityInboundOidcSsoProfilesDeleteArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -12305,32 +12281,6 @@ impl ResourceIdentifier<CloudidentityInboundOidcSsoProfilesListArgs>
 impl ResourceIdentifier<CloudidentityInboundOidcSsoProfilesPatchArgs> for Operation {
     fn generate_resource_id(&self, input: &CloudidentityInboundOidcSsoProfilesPatchArgs) -> String {
         format!("gcp::cloudidentity::Operation/{}", input.name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::cloudidentity::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Operation with CloudidentityInboundSamlSsoProfilesCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesCreateArgs> for Operation {
-    fn generate_resource_id(
-        &self,
-        input: &CloudidentityInboundSamlSsoProfilesCreateArgs,
-    ) -> String {
-        "gcp::cloudidentity::Operation".to_string()
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -12543,29 +12493,6 @@ impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesIdpCredentialsListArg
 
     fn resource_kind(&self) -> &'static str {
         "gcp::cloudidentity::ListIdpCredentialsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Operation with CloudidentityInboundSsoAssignmentsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CloudidentityInboundSsoAssignmentsCreateArgs> for Operation {
-    fn generate_resource_id(&self, input: &CloudidentityInboundSsoAssignmentsCreateArgs) -> String {
-        "gcp::cloudidentity::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::cloudidentity::Operation"
     }
 
     fn provider(&self) -> &'static str {

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn workstations_projects_locations_get(
 pub fn workstations_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct WorkstationsProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -881,10 +883,10 @@ pub fn workstations_projects_locations_operations_get(
 pub fn workstations_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1035,13 +1037,13 @@ pub struct WorkstationsProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -1084,8 +1086,8 @@ pub fn workstations_projects_locations_operations_list(
 pub fn workstations_projects_locations_workstation_clusters_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    validateOnly: &Option<Option<String>>,
-    workstationClusterId: &Option<Option<String>>,
+    validateOnly: &Option<String>,
+    workstationClusterId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1228,9 +1230,9 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
     /// Query parameter: workstationClusterId
-    pub workstationClusterId: Option<Option<String>>,
+    pub workstationClusterId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters
@@ -1269,9 +1271,9 @@ pub fn workstations_projects_locations_workstation_clusters_create(
 pub fn workstations_projects_locations_workstation_clusters_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    force: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1417,11 +1419,11 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}
@@ -1626,9 +1628,9 @@ pub fn workstations_projects_locations_workstation_clusters_get(
 pub fn workstations_projects_locations_workstation_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1778,11 +1780,11 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters
@@ -1826,9 +1828,9 @@ pub fn workstations_projects_locations_workstation_clusters_list(
 pub fn workstations_projects_locations_workstation_clusters_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1974,11 +1976,11 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}
@@ -2018,8 +2020,8 @@ pub fn workstations_projects_locations_workstation_clusters_patch(
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    validateOnly: &Option<Option<String>>,
-    workstationConfigId: &Option<Option<String>>,
+    validateOnly: &Option<String>,
+    workstationConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2165,9 +2167,9 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsCre
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
     /// Query parameter: workstationConfigId
-    pub workstationConfigId: Option<Option<String>>,
+    pub workstationConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs
@@ -2207,9 +2209,9 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    force: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2358,11 +2360,11 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsDel
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}
@@ -2573,7 +2575,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 >(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2713,7 +2715,7 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsGet
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}:getIamPolicy
@@ -2749,9 +2751,9 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2903,11 +2905,11 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsLis
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs
@@ -2954,8 +2956,8 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3105,9 +3107,9 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsLis
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs:listUsable
@@ -3147,9 +3149,9 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3297,11 +3299,11 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsPat
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}
@@ -3679,8 +3681,8 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    validateOnly: &Option<Option<String>>,
-    workstationId: &Option<Option<String>>,
+    validateOnly: &Option<String>,
+    workstationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3824,9 +3826,9 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWor
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
     /// Query parameter: workstationId
-    pub workstationId: Option<Option<String>>,
+    pub workstationId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations
@@ -3862,8 +3864,8 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4007,9 +4009,9 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWor
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}
@@ -4378,7 +4380,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 >(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4519,7 +4521,7 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWor
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:getIamPolicy
@@ -4555,9 +4557,9 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4705,11 +4707,11 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWor
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations
@@ -4747,8 +4749,8 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4896,9 +4898,9 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWor
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations:listUsable
@@ -4938,9 +4940,9 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5086,11 +5088,11 @@ pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWor
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}

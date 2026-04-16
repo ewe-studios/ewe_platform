@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn parametermanager_projects_locations_get(
 pub fn parametermanager_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct ParametermanagerProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,8 +395,8 @@ pub fn parametermanager_projects_locations_list(
 pub fn parametermanager_projects_locations_parameters_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    parameterId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    parameterId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -537,9 +539,9 @@ pub struct ParametermanagerProjectsLocationsParametersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: parameterId
-    pub parameterId: Option<Option<String>>,
+    pub parameterId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/parameters
@@ -578,7 +580,7 @@ pub fn parametermanager_projects_locations_parameters_create(
 pub fn parametermanager_projects_locations_parameters_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -718,7 +720,7 @@ pub struct ParametermanagerProjectsLocationsParametersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}
@@ -916,10 +918,10 @@ pub fn parametermanager_projects_locations_parameters_get(
 pub fn parametermanager_projects_locations_parameters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1070,13 +1072,13 @@ pub struct ParametermanagerProjectsLocationsParametersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters
@@ -1119,8 +1121,8 @@ pub fn parametermanager_projects_locations_parameters_list(
 pub fn parametermanager_projects_locations_parameters_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1263,9 +1265,9 @@ pub struct ParametermanagerProjectsLocationsParametersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}
@@ -1304,8 +1306,8 @@ pub fn parametermanager_projects_locations_parameters_patch(
 pub fn parametermanager_projects_locations_parameters_versions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    parameterVersionId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    parameterVersionId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1450,9 +1452,9 @@ pub struct ParametermanagerProjectsLocationsParametersVersionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: parameterVersionId
-    pub parameterVersionId: Option<Option<String>>,
+    pub parameterVersionId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}/versions
@@ -1493,7 +1495,7 @@ pub fn parametermanager_projects_locations_parameters_versions_create(
 pub fn parametermanager_projects_locations_parameters_versions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1633,7 +1635,7 @@ pub struct ParametermanagerProjectsLocationsParametersVersionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}/versions/{versionsId}
@@ -1671,7 +1673,7 @@ pub fn parametermanager_projects_locations_parameters_versions_delete(
 pub fn parametermanager_projects_locations_parameters_versions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1813,7 +1815,7 @@ pub struct ParametermanagerProjectsLocationsParametersVersionsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}/versions/{versionsId}
@@ -1851,10 +1853,10 @@ pub fn parametermanager_projects_locations_parameters_versions_get(
 pub fn parametermanager_projects_locations_parameters_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2007,13 +2009,13 @@ pub struct ParametermanagerProjectsLocationsParametersVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}/versions
@@ -2058,8 +2060,8 @@ pub fn parametermanager_projects_locations_parameters_versions_list(
 pub fn parametermanager_projects_locations_parameters_versions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2204,9 +2206,9 @@ pub struct ParametermanagerProjectsLocationsParametersVersionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}/versions/{versionsId}

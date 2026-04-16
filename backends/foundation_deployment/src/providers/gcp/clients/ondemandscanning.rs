@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -512,10 +514,10 @@ pub fn ondemandscanning_projects_locations_operations_get(
 pub fn ondemandscanning_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -666,13 +668,13 @@ pub struct OndemandscanningProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -715,7 +717,7 @@ pub fn ondemandscanning_projects_locations_operations_list(
 pub fn ondemandscanning_projects_locations_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -855,7 +857,7 @@ pub struct OndemandscanningProjectsLocationsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:wait
@@ -1054,8 +1056,8 @@ pub fn ondemandscanning_projects_locations_scans_analyze_packages(
 pub fn ondemandscanning_projects_locations_scans_vulnerabilities_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1202,9 +1204,9 @@ pub struct OndemandscanningProjectsLocationsScansVulnerabilitiesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/scans/{scansId}/vulnerabilities

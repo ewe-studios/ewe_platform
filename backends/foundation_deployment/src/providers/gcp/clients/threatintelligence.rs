@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -510,7 +512,7 @@ pub fn threatintelligence_projects_alerts_duplicate(
 pub fn threatintelligence_projects_alerts_enumerate_facets_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -654,7 +656,7 @@ pub struct ThreatintelligenceProjectsAlertsEnumerateFacetsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
 }
 
 /// GET v1beta/projects/{projectsId}/alerts:enumerateFacets
@@ -1176,10 +1178,10 @@ pub fn threatintelligence_projects_alerts_get(
 pub fn threatintelligence_projects_alerts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1330,13 +1332,13 @@ pub struct ThreatintelligenceProjectsAlertsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta/projects/{projectsId}/alerts
@@ -2507,10 +2509,10 @@ pub fn threatintelligence_projects_configurations_get(
 pub fn threatintelligence_projects_configurations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2663,13 +2665,13 @@ pub struct ThreatintelligenceProjectsConfigurationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta/projects/{projectsId}/configurations
@@ -2714,7 +2716,7 @@ pub fn threatintelligence_projects_configurations_list(
 pub fn threatintelligence_projects_configurations_upsert_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    publishTime: &Option<Option<String>>,
+    publishTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2858,7 +2860,7 @@ pub struct ThreatintelligenceProjectsConfigurationsUpsertArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: publishTime
-    pub publishTime: Option<Option<String>>,
+    pub publishTime: Option<String>,
 }
 
 /// POST v1beta/projects/{projectsId}/configurations:upsert
@@ -2900,10 +2902,10 @@ pub fn threatintelligence_projects_configurations_upsert(
 pub fn threatintelligence_projects_configurations_revisions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3056,13 +3058,13 @@ pub struct ThreatintelligenceProjectsConfigurationsRevisionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta/projects/{projectsId}/configurations/{configurationsId}/revisions
@@ -3267,10 +3269,10 @@ pub fn threatintelligence_projects_findings_get(
 pub fn threatintelligence_projects_findings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3421,13 +3423,13 @@ pub struct ThreatintelligenceProjectsFindingsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta/projects/{projectsId}/findings
@@ -3470,10 +3472,10 @@ pub fn threatintelligence_projects_findings_list(
 pub fn threatintelligence_projects_findings_search_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3624,13 +3626,13 @@ pub struct ThreatintelligenceProjectsFindingsSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v1beta/projects/{projectsId}/findings:search

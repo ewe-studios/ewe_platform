@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,13 +31,13 @@ use serde::Serialize;
 
 pub fn pagespeedonline_pagespeedapi_runpagespeed_builder<R>(
     client: &SimpleHttpClient<R>,
-    captchaToken: &Option<Option<String>>,
-    category: &Option<Option<String>>,
-    locale: &Option<Option<String>>,
-    strategy: &Option<Option<String>>,
-    url: &Option<Option<String>>,
-    utm_campaign: &Option<Option<String>>,
-    utm_source: &Option<Option<String>>,
+    captchaToken: &Option<String>,
+    category: &Option<String>,
+    locale: &Option<String>,
+    strategy: &Option<String>,
+    url: &Option<String>,
+    utm_campaign: &Option<String>,
+    utm_source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -193,19 +195,19 @@ pub fn pagespeedonline_pagespeedapi_runpagespeed_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PagespeedonlinePagespeedapiRunpagespeedArgs {
     /// Query parameter: captchaToken
-    pub captchaToken: Option<Option<String>>,
+    pub captchaToken: Option<String>,
     /// Query parameter: category
-    pub category: Option<Option<String>>,
+    pub category: Option<String>,
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: strategy
-    pub strategy: Option<Option<String>>,
+    pub strategy: Option<String>,
     /// Query parameter: url
-    pub url: Option<Option<String>>,
+    pub url: Option<String>,
     /// Query parameter: utm_campaign
-    pub utm_campaign: Option<Option<String>>,
+    pub utm_campaign: Option<String>,
     /// Query parameter: utm_source
-    pub utm_source: Option<Option<String>>,
+    pub utm_source: Option<String>,
 }
 
 /// GET pagespeedonline/v5/runPagespeed

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,7 +31,7 @@ use serde::Serialize;
 
 pub fn apikeys_keys_lookup_key_builder<R>(
     client: &SimpleHttpClient<R>,
-    keyString: &Option<Option<String>>,
+    keyString: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -166,7 +168,7 @@ pub fn apikeys_keys_lookup_key_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApikeysKeysLookupKeyArgs {
     /// Query parameter: keyString
-    pub keyString: Option<Option<String>>,
+    pub keyString: Option<String>,
 }
 
 /// GET v2/keys:lookupKey
@@ -359,7 +361,7 @@ pub fn apikeys_operations_get(
 pub fn apikeys_projects_locations_keys_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    keyId: &Option<Option<String>>,
+    keyId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -499,7 +501,7 @@ pub struct ApikeysProjectsLocationsKeysCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: keyId
-    pub keyId: Option<Option<String>>,
+    pub keyId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/keys
@@ -534,7 +536,7 @@ pub fn apikeys_projects_locations_keys_create(
 pub fn apikeys_projects_locations_keys_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -674,7 +676,7 @@ pub struct ApikeysProjectsLocationsKeysDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}
@@ -1032,9 +1034,9 @@ pub fn apikeys_projects_locations_keys_get_key_string(
 pub fn apikeys_projects_locations_keys_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1182,11 +1184,11 @@ pub struct ApikeysProjectsLocationsKeysListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys
@@ -1228,7 +1230,7 @@ pub fn apikeys_projects_locations_keys_list(
 pub fn apikeys_projects_locations_keys_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1368,7 +1370,7 @@ pub struct ApikeysProjectsLocationsKeysPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}

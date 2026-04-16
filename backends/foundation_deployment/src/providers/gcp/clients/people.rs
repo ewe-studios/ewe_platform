@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,9 +31,9 @@ use serde::Serialize;
 
 pub fn people_contact_groups_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    groupFields: &Option<Option<String>>,
-    maxMembers: &Option<Option<String>>,
-    resourceNames: &Option<Option<String>>,
+    groupFields: &Option<String>,
+    maxMembers: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -176,11 +178,11 @@ pub fn people_contact_groups_batch_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeopleContactGroupsBatchGetArgs {
     /// Query parameter: groupFields
-    pub groupFields: Option<Option<String>>,
+    pub groupFields: Option<String>,
     /// Query parameter: maxMembers
-    pub maxMembers: Option<Option<String>>,
+    pub maxMembers: Option<String>,
     /// Query parameter: resourceNames
-    pub resourceNames: Option<Option<String>>,
+    pub resourceNames: Option<String>,
 }
 
 /// GET v1/contactGroups:batchGet
@@ -375,7 +377,7 @@ pub fn people_contact_groups_create(
 pub fn people_contact_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     resourceName: &String,
-    deleteContacts: &Option<Option<String>>,
+    deleteContacts: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -515,7 +517,7 @@ pub struct PeopleContactGroupsDeleteArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
     /// Query parameter: deleteContacts
-    pub deleteContacts: Option<Option<String>>,
+    pub deleteContacts: Option<String>,
 }
 
 /// DELETE v1/contactGroups/{contactGroupsId}
@@ -550,8 +552,8 @@ pub fn people_contact_groups_delete(
 pub fn people_contact_groups_get_builder<R>(
     client: &SimpleHttpClient<R>,
     resourceName: &String,
-    groupFields: &Option<Option<String>>,
-    maxMembers: &Option<Option<String>>,
+    groupFields: &Option<String>,
+    maxMembers: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -696,9 +698,9 @@ pub struct PeopleContactGroupsGetArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
     /// Query parameter: groupFields
-    pub groupFields: Option<Option<String>>,
+    pub groupFields: Option<String>,
     /// Query parameter: maxMembers
-    pub maxMembers: Option<Option<String>>,
+    pub maxMembers: Option<String>,
 }
 
 /// GET v1/contactGroups/{contactGroupsId}
@@ -738,10 +740,10 @@ pub fn people_contact_groups_get(
 
 pub fn people_contact_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    groupFields: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    syncToken: &Option<Option<String>>,
+    groupFields: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -887,13 +889,13 @@ pub fn people_contact_groups_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeopleContactGroupsListArgs {
     /// Query parameter: groupFields
-    pub groupFields: Option<Option<String>>,
+    pub groupFields: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: syncToken
-    pub syncToken: Option<Option<String>>,
+    pub syncToken: Option<String>,
 }
 
 /// GET v1/contactGroups
@@ -1429,12 +1431,12 @@ pub fn people_other_contacts_copy_other_contact_to_my_contacts_group(
 
 pub fn people_other_contacts_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
-    requestSyncToken: &Option<Option<String>>,
-    sources: &Option<Option<String>>,
-    syncToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
+    requestSyncToken: &Option<String>,
+    sources: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1586,17 +1588,17 @@ pub fn people_other_contacts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeopleOtherContactsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
     /// Query parameter: requestSyncToken
-    pub requestSyncToken: Option<Option<String>>,
+    pub requestSyncToken: Option<String>,
     /// Query parameter: sources
-    pub sources: Option<Option<String>>,
+    pub sources: Option<String>,
     /// Query parameter: syncToken
-    pub syncToken: Option<Option<String>>,
+    pub syncToken: Option<String>,
 }
 
 /// GET v1/otherContacts
@@ -1639,9 +1641,9 @@ pub fn people_other_contacts_list(
 
 pub fn people_other_contacts_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    query: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1784,11 +1786,11 @@ pub fn people_other_contacts_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeopleOtherContactsSearchArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/otherContacts:search
@@ -2284,8 +2286,8 @@ pub fn people_people_batch_update_contacts(
 
 pub fn people_people_create_contact_builder<R>(
     client: &SimpleHttpClient<R>,
-    personFields: &Option<Option<String>>,
-    sources: &Option<Option<String>>,
+    personFields: &Option<String>,
+    sources: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2423,9 +2425,9 @@ pub fn people_people_create_contact_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeoplePeopleCreateContactArgs {
     /// Query parameter: personFields
-    pub personFields: Option<Option<String>>,
+    pub personFields: Option<String>,
     /// Query parameter: sources
-    pub sources: Option<Option<String>>,
+    pub sources: Option<String>,
 }
 
 /// POST v1/people:createContact
@@ -2619,8 +2621,8 @@ pub fn people_people_delete_contact(
 pub fn people_people_delete_contact_photo_builder<R>(
     client: &SimpleHttpClient<R>,
     resourceName: &String,
-    personFields: &Option<Option<String>>,
-    sources: &Option<Option<String>>,
+    personFields: &Option<String>,
+    sources: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2767,9 +2769,9 @@ pub struct PeoplePeopleDeleteContactPhotoArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
     /// Query parameter: personFields
-    pub personFields: Option<Option<String>>,
+    pub personFields: Option<String>,
     /// Query parameter: sources
-    pub sources: Option<Option<String>>,
+    pub sources: Option<String>,
 }
 
 /// DELETE v1/people/{peopleId}:deleteContactPhoto
@@ -2812,9 +2814,9 @@ pub fn people_people_delete_contact_photo(
 pub fn people_people_get_builder<R>(
     client: &SimpleHttpClient<R>,
     resourceName: &String,
-    personFields: &Option<Option<String>>,
-    requestMask_includeField: &Option<Option<String>>,
-    sources: &Option<Option<String>>,
+    personFields: &Option<String>,
+    requestMask_includeField: &Option<String>,
+    sources: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2957,11 +2959,11 @@ pub struct PeoplePeopleGetArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
     /// Query parameter: personFields
-    pub personFields: Option<Option<String>>,
+    pub personFields: Option<String>,
     /// Query parameter: requestMask_includeField
-    pub requestMask_includeField: Option<Option<String>>,
+    pub requestMask_includeField: Option<String>,
     /// Query parameter: sources
-    pub sources: Option<Option<String>>,
+    pub sources: Option<String>,
 }
 
 /// GET v1/people/{peopleId}
@@ -3000,10 +3002,10 @@ pub fn people_people_get(
 
 pub fn people_people_get_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    personFields: &Option<Option<String>>,
-    requestMask_includeField: &Option<Option<String>>,
-    resourceNames: &Option<Option<String>>,
-    sources: &Option<Option<String>>,
+    personFields: &Option<String>,
+    requestMask_includeField: &Option<String>,
+    resourceNames: &Option<String>,
+    sources: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3149,13 +3151,13 @@ pub fn people_people_get_batch_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeoplePeopleGetBatchGetArgs {
     /// Query parameter: personFields
-    pub personFields: Option<Option<String>>,
+    pub personFields: Option<String>,
     /// Query parameter: requestMask_includeField
-    pub requestMask_includeField: Option<Option<String>>,
+    pub requestMask_includeField: Option<String>,
     /// Query parameter: resourceNames
-    pub resourceNames: Option<Option<String>>,
+    pub resourceNames: Option<String>,
     /// Query parameter: sources
-    pub sources: Option<Option<String>>,
+    pub sources: Option<String>,
 }
 
 /// GET v1/people:batchGet
@@ -3196,13 +3198,13 @@ pub fn people_people_get_batch_get(
 
 pub fn people_people_list_directory_people_builder<R>(
     client: &SimpleHttpClient<R>,
-    mergeSources: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
-    requestSyncToken: &Option<Option<String>>,
-    sources: &Option<Option<String>>,
-    syncToken: &Option<Option<String>>,
+    mergeSources: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
+    requestSyncToken: &Option<String>,
+    sources: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3359,19 +3361,19 @@ pub fn people_people_list_directory_people_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeoplePeopleListDirectoryPeopleArgs {
     /// Query parameter: mergeSources
-    pub mergeSources: Option<Option<String>>,
+    pub mergeSources: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
     /// Query parameter: requestSyncToken
-    pub requestSyncToken: Option<Option<String>>,
+    pub requestSyncToken: Option<String>,
     /// Query parameter: sources
-    pub sources: Option<Option<String>>,
+    pub sources: Option<String>,
     /// Query parameter: syncToken
-    pub syncToken: Option<Option<String>>,
+    pub syncToken: Option<String>,
 }
 
 /// GET v1/people:listDirectoryPeople
@@ -3417,10 +3419,10 @@ pub fn people_people_list_directory_people(
 
 pub fn people_people_search_contacts_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
-    sources: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    query: &Option<String>,
+    readMask: &Option<String>,
+    sources: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3566,13 +3568,13 @@ pub fn people_people_search_contacts_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeoplePeopleSearchContactsArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
     /// Query parameter: sources
-    pub sources: Option<Option<String>>,
+    pub sources: Option<String>,
 }
 
 /// GET v1/people:searchContacts
@@ -3613,12 +3615,12 @@ pub fn people_people_search_contacts(
 
 pub fn people_people_search_directory_people_builder<R>(
     client: &SimpleHttpClient<R>,
-    mergeSources: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
-    sources: &Option<Option<String>>,
+    mergeSources: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    readMask: &Option<String>,
+    sources: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3772,17 +3774,17 @@ pub fn people_people_search_directory_people_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PeoplePeopleSearchDirectoryPeopleArgs {
     /// Query parameter: mergeSources
-    pub mergeSources: Option<Option<String>>,
+    pub mergeSources: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
     /// Query parameter: sources
-    pub sources: Option<Option<String>>,
+    pub sources: Option<String>,
 }
 
 /// GET v1/people:searchDirectoryPeople
@@ -3828,9 +3830,9 @@ pub fn people_people_search_directory_people(
 pub fn people_people_update_contact_builder<R>(
     client: &SimpleHttpClient<R>,
     resourceName: &String,
-    personFields: &Option<Option<String>>,
-    sources: &Option<Option<String>>,
-    updatePersonFields: &Option<Option<String>>,
+    personFields: &Option<String>,
+    sources: &Option<String>,
+    updatePersonFields: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3976,11 +3978,11 @@ pub struct PeoplePeopleUpdateContactArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
     /// Query parameter: personFields
-    pub personFields: Option<Option<String>>,
+    pub personFields: Option<String>,
     /// Query parameter: sources
-    pub sources: Option<Option<String>>,
+    pub sources: Option<String>,
     /// Query parameter: updatePersonFields
-    pub updatePersonFields: Option<Option<String>>,
+    pub updatePersonFields: Option<String>,
 }
 
 /// PATCH v1/people/{peopleId}:updateContact
@@ -4188,14 +4190,14 @@ pub fn people_people_update_contact_photo(
 pub fn people_people_connections_list_builder<R>(
     client: &SimpleHttpClient<R>,
     resourceName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    personFields: &Option<Option<String>>,
-    requestMask_includeField: &Option<Option<String>>,
-    requestSyncToken: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
-    sources: &Option<Option<String>>,
-    syncToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    personFields: &Option<String>,
+    requestMask_includeField: &Option<String>,
+    requestSyncToken: &Option<String>,
+    sortOrder: &Option<String>,
+    sources: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4358,21 +4360,21 @@ pub struct PeoplePeopleConnectionsListArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: personFields
-    pub personFields: Option<Option<String>>,
+    pub personFields: Option<String>,
     /// Query parameter: requestMask_includeField
-    pub requestMask_includeField: Option<Option<String>>,
+    pub requestMask_includeField: Option<String>,
     /// Query parameter: requestSyncToken
-    pub requestSyncToken: Option<Option<String>>,
+    pub requestSyncToken: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
     /// Query parameter: sources
-    pub sources: Option<Option<String>>,
+    pub sources: Option<String>,
     /// Query parameter: syncToken
-    pub syncToken: Option<Option<String>>,
+    pub syncToken: Option<String>,
 }
 
 /// GET v1/people/{peopleId}/connections
@@ -4426,29 +4428,6 @@ impl ResourceIdentifier<PeopleContactGroupsBatchGetArgs> for BatchGetContactGrou
 
     fn resource_kind(&self) -> &'static str {
         "gcp::people::BatchGetContactGroupsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ContactGroup
-// =============================================================================
-
-/// ResourceIdentifier implementation for ContactGroup with PeopleContactGroupsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PeopleContactGroupsCreateArgs> for ContactGroup {
-    fn generate_resource_id(&self, input: &PeopleContactGroupsCreateArgs) -> String {
-        "gcp::people::ContactGroup".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::people::ContactGroup"
     }
 
     fn provider(&self) -> &'static str {
@@ -4641,75 +4620,6 @@ impl ResourceIdentifier<PeopleOtherContactsSearchArgs> for SearchResponse {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::people::SearchResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BatchCreateContactsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for BatchCreateContactsResponse with PeoplePeopleBatchCreateContactsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PeoplePeopleBatchCreateContactsArgs> for BatchCreateContactsResponse {
-    fn generate_resource_id(&self, input: &PeoplePeopleBatchCreateContactsArgs) -> String {
-        "gcp::people::BatchCreateContactsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::people::BatchCreateContactsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Empty
-// =============================================================================
-
-/// ResourceIdentifier implementation for Empty with PeoplePeopleBatchDeleteContactsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PeoplePeopleBatchDeleteContactsArgs> for Empty {
-    fn generate_resource_id(&self, input: &PeoplePeopleBatchDeleteContactsArgs) -> String {
-        "gcp::people::Empty".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::people::Empty"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BatchUpdateContactsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for BatchUpdateContactsResponse with PeoplePeopleBatchUpdateContactsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PeoplePeopleBatchUpdateContactsArgs> for BatchUpdateContactsResponse {
-    fn generate_resource_id(&self, input: &PeoplePeopleBatchUpdateContactsArgs) -> String {
-        "gcp::people::BatchUpdateContactsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::people::BatchUpdateContactsResponse"
     }
 
     fn provider(&self) -> &'static str {

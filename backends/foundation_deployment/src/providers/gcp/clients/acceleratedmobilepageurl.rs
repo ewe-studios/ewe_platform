@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -172,27 +174,4 @@ pub fn acceleratedmobilepageurl_amp_urls_batch_get(
 > {
     let builder = acceleratedmobilepageurl_amp_urls_batch_get_builder(client)?;
     acceleratedmobilepageurl_amp_urls_batch_get_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BatchGetAmpUrlsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for BatchGetAmpUrlsResponse with AcceleratedmobilepageurlAmpUrlsBatchGetArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AcceleratedmobilepageurlAmpUrlsBatchGetArgs> for BatchGetAmpUrlsResponse {
-    fn generate_resource_id(&self, input: &AcceleratedmobilepageurlAmpUrlsBatchGetArgs) -> String {
-        "gcp::acceleratedmobilepageurl::BatchGetAmpUrlsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::acceleratedmobilepageurl::BatchGetAmpUrlsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }

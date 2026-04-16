@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -337,10 +339,10 @@ pub fn mybusinessaccountmanagement_accounts_get(
 
 pub fn mybusinessaccountmanagement_accounts_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parentAccount: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parentAccount: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -486,13 +488,13 @@ pub fn mybusinessaccountmanagement_accounts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MybusinessaccountmanagementAccountsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parentAccount
-    pub parentAccount: Option<Option<String>>,
+    pub parentAccount: Option<String>,
 }
 
 /// GET v1/accounts
@@ -534,8 +536,8 @@ pub fn mybusinessaccountmanagement_accounts_list(
 pub fn mybusinessaccountmanagement_accounts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -678,9 +680,9 @@ pub struct MybusinessaccountmanagementAccountsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/accounts/{accountsId}
@@ -1203,7 +1205,7 @@ pub fn mybusinessaccountmanagement_accounts_admins_list(
 pub fn mybusinessaccountmanagement_accounts_admins_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1343,7 +1345,7 @@ pub struct MybusinessaccountmanagementAccountsAdminsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/accounts/{accountsId}/admins/{adminsId}
@@ -1703,7 +1705,7 @@ pub fn mybusinessaccountmanagement_accounts_invitations_decline(
 pub fn mybusinessaccountmanagement_accounts_invitations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1845,7 +1847,7 @@ pub struct MybusinessaccountmanagementAccountsInvitationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/invitations
@@ -2534,7 +2536,7 @@ pub fn mybusinessaccountmanagement_locations_admins_list(
 pub fn mybusinessaccountmanagement_locations_admins_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2674,7 +2676,7 @@ pub struct MybusinessaccountmanagementLocationsAdminsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/locations/{locationsId}/admins/{adminsId}
@@ -2701,32 +2703,6 @@ pub fn mybusinessaccountmanagement_locations_admins_patch(
         &args.updateMask,
     )?;
     mybusinessaccountmanagement_locations_admins_patch_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Account
-// =============================================================================
-
-/// ResourceIdentifier implementation for Account with MybusinessaccountmanagementAccountsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<MybusinessaccountmanagementAccountsCreateArgs> for Account {
-    fn generate_resource_id(
-        &self,
-        input: &MybusinessaccountmanagementAccountsCreateArgs,
-    ) -> String {
-        "gcp::mybusinessaccountmanagement::Account".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::mybusinessaccountmanagement::Account"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,7 +31,7 @@ use serde::Serialize;
 
 pub fn youtube_abuse_reports_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    part: &Option<Option<String>>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -164,7 +166,7 @@ pub fn youtube_abuse_reports_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeAbuseReportsInsertArgs {
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/abuseReports
@@ -197,15 +199,15 @@ pub fn youtube_abuse_reports_insert(
 
 pub fn youtube_activities_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    channelId: &Option<Option<String>>,
-    home: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    mine: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    publishedAfter: &Option<Option<String>>,
-    publishedBefore: &Option<Option<String>>,
-    regionCode: &Option<Option<String>>,
+    channelId: &Option<String>,
+    home: &Option<String>,
+    maxResults: &Option<String>,
+    mine: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
+    publishedAfter: &Option<String>,
+    publishedBefore: &Option<String>,
+    regionCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -366,23 +368,23 @@ pub fn youtube_activities_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeActivitiesListArgs {
     /// Query parameter: channelId
-    pub channelId: Option<Option<String>>,
+    pub channelId: Option<String>,
     /// Query parameter: home
-    pub home: Option<Option<String>>,
+    pub home: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: mine
-    pub mine: Option<Option<String>>,
+    pub mine: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: publishedAfter
-    pub publishedAfter: Option<Option<String>>,
+    pub publishedAfter: Option<String>,
     /// Query parameter: publishedBefore
-    pub publishedBefore: Option<Option<String>>,
+    pub publishedBefore: Option<String>,
     /// Query parameter: regionCode
-    pub regionCode: Option<Option<String>>,
+    pub regionCode: Option<String>,
 }
 
 /// GET youtube/v3/activities
@@ -428,9 +430,9 @@ pub fn youtube_activities_list(
 
 pub fn youtube_captions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOf: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOf: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -568,11 +570,11 @@ pub fn youtube_captions_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeCaptionsDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOf
-    pub onBehalfOf: Option<Option<String>>,
+    pub onBehalfOf: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// DELETE youtube/v3/captions
@@ -611,10 +613,10 @@ pub fn youtube_captions_delete(
 pub fn youtube_captions_download_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    onBehalfOf: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    tfmt: &Option<Option<String>>,
-    tlang: &Option<Option<String>>,
+    onBehalfOf: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    tfmt: &Option<String>,
+    tlang: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -757,13 +759,13 @@ pub struct YoutubeCaptionsDownloadArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: onBehalfOf
-    pub onBehalfOf: Option<Option<String>>,
+    pub onBehalfOf: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: tfmt
-    pub tfmt: Option<Option<String>>,
+    pub tfmt: Option<String>,
     /// Query parameter: tlang
-    pub tlang: Option<Option<String>>,
+    pub tlang: Option<String>,
 }
 
 /// GET youtube/v3/captions/{id}
@@ -803,10 +805,10 @@ pub fn youtube_captions_download(
 
 pub fn youtube_captions_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOf: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    sync: &Option<Option<String>>,
+    onBehalfOf: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    part: &Option<String>,
+    sync: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -950,13 +952,13 @@ pub fn youtube_captions_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeCaptionsInsertArgs {
     /// Query parameter: onBehalfOf
-    pub onBehalfOf: Option<Option<String>>,
+    pub onBehalfOf: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: sync
-    pub sync: Option<Option<String>>,
+    pub sync: Option<String>,
 }
 
 /// POST youtube/v3/captions
@@ -995,11 +997,11 @@ pub fn youtube_captions_insert(
 
 pub fn youtube_captions_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOf: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    videoId: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOf: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    part: &Option<String>,
+    videoId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1148,15 +1150,15 @@ pub fn youtube_captions_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeCaptionsListArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOf
-    pub onBehalfOf: Option<Option<String>>,
+    pub onBehalfOf: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: videoId
-    pub videoId: Option<Option<String>>,
+    pub videoId: Option<String>,
 }
 
 /// GET youtube/v3/captions
@@ -1198,10 +1200,10 @@ pub fn youtube_captions_list(
 
 pub fn youtube_captions_update_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOf: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    sync: &Option<Option<String>>,
+    onBehalfOf: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    part: &Option<String>,
+    sync: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1345,13 +1347,13 @@ pub fn youtube_captions_update_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeCaptionsUpdateArgs {
     /// Query parameter: onBehalfOf
-    pub onBehalfOf: Option<Option<String>>,
+    pub onBehalfOf: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: sync
-    pub sync: Option<Option<String>>,
+    pub sync: Option<String>,
 }
 
 /// PUT youtube/v3/captions
@@ -1390,9 +1392,9 @@ pub fn youtube_captions_update(
 
 pub fn youtube_channel_banners_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    channelId: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    channelId: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1535,11 +1537,11 @@ pub fn youtube_channel_banners_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeChannelBannersInsertArgs {
     /// Query parameter: channelId
-    pub channelId: Option<Option<String>>,
+    pub channelId: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
 }
 
 /// POST youtube/v3/channelBanners/insert
@@ -1579,8 +1581,8 @@ pub fn youtube_channel_banners_insert(
 
 pub fn youtube_channel_sections_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1715,9 +1717,9 @@ pub fn youtube_channel_sections_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeChannelSectionsDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// DELETE youtube/v3/channelSections
@@ -1751,9 +1753,9 @@ pub fn youtube_channel_sections_delete(
 
 pub fn youtube_channel_sections_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1896,11 +1898,11 @@ pub fn youtube_channel_sections_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeChannelSectionsInsertArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/channelSections
@@ -1940,12 +1942,12 @@ pub fn youtube_channel_sections_insert(
 
 pub fn youtube_channel_sections_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    channelId: &Option<Option<String>>,
-    hl: &Option<Option<String>>,
-    id: &Option<Option<String>>,
-    mine: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    channelId: &Option<String>,
+    hl: &Option<String>,
+    id: &Option<String>,
+    mine: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2099,17 +2101,17 @@ pub fn youtube_channel_sections_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeChannelSectionsListArgs {
     /// Query parameter: channelId
-    pub channelId: Option<Option<String>>,
+    pub channelId: Option<String>,
     /// Query parameter: hl
-    pub hl: Option<Option<String>>,
+    pub hl: Option<String>,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: mine
-    pub mine: Option<Option<String>>,
+    pub mine: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/channelSections
@@ -2154,8 +2156,8 @@ pub fn youtube_channel_sections_list(
 
 pub fn youtube_channel_sections_update_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2295,9 +2297,9 @@ pub fn youtube_channel_sections_update_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeChannelSectionsUpdateArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// PUT youtube/v3/channelSections
@@ -2333,18 +2335,18 @@ pub fn youtube_channel_sections_update(
 
 pub fn youtube_channels_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    categoryId: &Option<Option<String>>,
-    forHandle: &Option<Option<String>>,
-    forUsername: &Option<Option<String>>,
-    hl: &Option<Option<String>>,
-    id: &Option<Option<String>>,
-    managedByMe: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    mine: &Option<Option<String>>,
-    mySubscribers: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    categoryId: &Option<String>,
+    forHandle: &Option<String>,
+    forUsername: &Option<String>,
+    hl: &Option<String>,
+    id: &Option<String>,
+    managedByMe: &Option<String>,
+    maxResults: &Option<String>,
+    mine: &Option<String>,
+    mySubscribers: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2514,29 +2516,29 @@ pub fn youtube_channels_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeChannelsListArgs {
     /// Query parameter: categoryId
-    pub categoryId: Option<Option<String>>,
+    pub categoryId: Option<String>,
     /// Query parameter: forHandle
-    pub forHandle: Option<Option<String>>,
+    pub forHandle: Option<String>,
     /// Query parameter: forUsername
-    pub forUsername: Option<Option<String>>,
+    pub forUsername: Option<String>,
     /// Query parameter: hl
-    pub hl: Option<Option<String>>,
+    pub hl: Option<String>,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: managedByMe
-    pub managedByMe: Option<Option<String>>,
+    pub managedByMe: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: mine
-    pub mine: Option<Option<String>>,
+    pub mine: Option<String>,
     /// Query parameter: mySubscribers
-    pub mySubscribers: Option<Option<String>>,
+    pub mySubscribers: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/channels
@@ -2585,8 +2587,8 @@ pub fn youtube_channels_list(
 
 pub fn youtube_channels_update_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2724,9 +2726,9 @@ pub fn youtube_channels_update_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeChannelsUpdateArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// PUT youtube/v3/channels
@@ -2760,7 +2762,7 @@ pub fn youtube_channels_update(
 
 pub fn youtube_comment_threads_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    part: &Option<Option<String>>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2897,7 +2899,7 @@ pub fn youtube_comment_threads_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeCommentThreadsInsertArgs {
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/commentThreads
@@ -2932,18 +2934,18 @@ pub fn youtube_comment_threads_insert(
 
 pub fn youtube_comment_threads_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    allThreadsRelatedToChannelId: &Option<Option<String>>,
-    channelId: &Option<Option<String>>,
-    id: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    moderationStatus: &Option<Option<String>>,
-    order: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    postId: &Option<Option<String>>,
-    searchTerms: &Option<Option<String>>,
-    textFormat: &Option<Option<String>>,
-    videoId: &Option<Option<String>>,
+    allThreadsRelatedToChannelId: &Option<String>,
+    channelId: &Option<String>,
+    id: &Option<String>,
+    maxResults: &Option<String>,
+    moderationStatus: &Option<String>,
+    order: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
+    postId: &Option<String>,
+    searchTerms: &Option<String>,
+    textFormat: &Option<String>,
+    videoId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3113,29 +3115,29 @@ pub fn youtube_comment_threads_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeCommentThreadsListArgs {
     /// Query parameter: allThreadsRelatedToChannelId
-    pub allThreadsRelatedToChannelId: Option<Option<String>>,
+    pub allThreadsRelatedToChannelId: Option<String>,
     /// Query parameter: channelId
-    pub channelId: Option<Option<String>>,
+    pub channelId: Option<String>,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: moderationStatus
-    pub moderationStatus: Option<Option<String>>,
+    pub moderationStatus: Option<String>,
     /// Query parameter: order
-    pub order: Option<Option<String>>,
+    pub order: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
     /// Query parameter: searchTerms
-    pub searchTerms: Option<Option<String>>,
+    pub searchTerms: Option<String>,
     /// Query parameter: textFormat
-    pub textFormat: Option<Option<String>>,
+    pub textFormat: Option<String>,
     /// Query parameter: videoId
-    pub videoId: Option<Option<String>>,
+    pub videoId: Option<String>,
 }
 
 /// GET youtube/v3/commentThreads
@@ -3184,7 +3186,7 @@ pub fn youtube_comment_threads_list(
 
 pub fn youtube_comments_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3316,7 +3318,7 @@ pub fn youtube_comments_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeCommentsDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// DELETE youtube/v3/comments
@@ -3349,7 +3351,7 @@ pub fn youtube_comments_delete(
 
 pub fn youtube_comments_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    part: &Option<Option<String>>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3484,7 +3486,7 @@ pub fn youtube_comments_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeCommentsInsertArgs {
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/comments
@@ -3517,12 +3519,12 @@ pub fn youtube_comments_insert(
 
 pub fn youtube_comments_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parentId: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    textFormat: &Option<Option<String>>,
+    id: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    parentId: &Option<String>,
+    part: &Option<String>,
+    textFormat: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3674,17 +3676,17 @@ pub fn youtube_comments_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeCommentsListArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parentId
-    pub parentId: Option<Option<String>>,
+    pub parentId: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: textFormat
-    pub textFormat: Option<Option<String>>,
+    pub textFormat: Option<String>,
 }
 
 /// GET youtube/v3/comments
@@ -3727,7 +3729,7 @@ pub fn youtube_comments_list(
 
 pub fn youtube_comments_mark_as_spam_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3859,7 +3861,7 @@ pub fn youtube_comments_mark_as_spam_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeCommentsMarkAsSpamArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// POST youtube/v3/comments/markAsSpam
@@ -3892,9 +3894,9 @@ pub fn youtube_comments_mark_as_spam(
 
 pub fn youtube_comments_set_moderation_status_builder<R>(
     client: &SimpleHttpClient<R>,
-    banAuthor: &Option<Option<String>>,
-    id: &Option<Option<String>>,
-    moderationStatus: &Option<Option<String>>,
+    banAuthor: &Option<String>,
+    id: &Option<String>,
+    moderationStatus: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4033,11 +4035,11 @@ pub fn youtube_comments_set_moderation_status_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeCommentsSetModerationStatusArgs {
     /// Query parameter: banAuthor
-    pub banAuthor: Option<Option<String>>,
+    pub banAuthor: Option<String>,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: moderationStatus
-    pub moderationStatus: Option<Option<String>>,
+    pub moderationStatus: Option<String>,
 }
 
 /// POST youtube/v3/comments/setModerationStatus
@@ -4075,7 +4077,7 @@ pub fn youtube_comments_set_moderation_status(
 
 pub fn youtube_comments_update_builder<R>(
     client: &SimpleHttpClient<R>,
-    part: &Option<Option<String>>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4210,7 +4212,7 @@ pub fn youtube_comments_update_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeCommentsUpdateArgs {
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// PUT youtube/v3/comments
@@ -4243,8 +4245,8 @@ pub fn youtube_comments_update(
 
 pub fn youtube_i18n_languages_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    hl: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    hl: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4384,9 +4386,9 @@ pub fn youtube_i18n_languages_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeI18NLanguagesListArgs {
     /// Query parameter: hl
-    pub hl: Option<Option<String>>,
+    pub hl: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/i18nLanguages
@@ -4421,8 +4423,8 @@ pub fn youtube_i18n_languages_list(
 
 pub fn youtube_i18n_regions_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    hl: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    hl: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4562,9 +4564,9 @@ pub fn youtube_i18n_regions_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeI18NRegionsListArgs {
     /// Query parameter: hl
-    pub hl: Option<Option<String>>,
+    pub hl: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/i18nRegions
@@ -4599,11 +4601,11 @@ pub fn youtube_i18n_regions_list(
 
 pub fn youtube_live_broadcasts_bind_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    streamId: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    part: &Option<String>,
+    streamId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4752,15 +4754,15 @@ pub fn youtube_live_broadcasts_bind_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveBroadcastsBindArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: streamId
-    pub streamId: Option<Option<String>>,
+    pub streamId: Option<String>,
 }
 
 /// POST youtube/v3/liveBroadcasts/bind
@@ -4802,9 +4804,9 @@ pub fn youtube_live_broadcasts_bind(
 
 pub fn youtube_live_broadcasts_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4942,11 +4944,11 @@ pub fn youtube_live_broadcasts_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveBroadcastsDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
 }
 
 /// DELETE youtube/v3/liveBroadcasts
@@ -4984,9 +4986,9 @@ pub fn youtube_live_broadcasts_delete(
 
 pub fn youtube_live_broadcasts_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5129,11 +5131,11 @@ pub fn youtube_live_broadcasts_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveBroadcastsInsertArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/liveBroadcasts
@@ -5173,10 +5175,10 @@ pub fn youtube_live_broadcasts_insert(
 
 pub fn youtube_live_broadcasts_insert_cuepoint_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5321,13 +5323,13 @@ pub fn youtube_live_broadcasts_insert_cuepoint_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveBroadcastsInsertCuepointArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/liveBroadcasts/cuepoint
@@ -5366,15 +5368,15 @@ pub fn youtube_live_broadcasts_insert_cuepoint(
 
 pub fn youtube_live_broadcasts_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    broadcastStatus: &Option<Option<String>>,
-    broadcastType: &Option<Option<String>>,
-    id: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    mine: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    broadcastStatus: &Option<String>,
+    broadcastType: &Option<String>,
+    id: &Option<String>,
+    maxResults: &Option<String>,
+    mine: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5535,23 +5537,23 @@ pub fn youtube_live_broadcasts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveBroadcastsListArgs {
     /// Query parameter: broadcastStatus
-    pub broadcastStatus: Option<Option<String>>,
+    pub broadcastStatus: Option<String>,
     /// Query parameter: broadcastType
-    pub broadcastType: Option<Option<String>>,
+    pub broadcastType: Option<String>,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: mine
-    pub mine: Option<Option<String>>,
+    pub mine: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/liveBroadcasts
@@ -5597,11 +5599,11 @@ pub fn youtube_live_broadcasts_list(
 
 pub fn youtube_live_broadcasts_transition_builder<R>(
     client: &SimpleHttpClient<R>,
-    broadcastStatus: &Option<Option<String>>,
-    id: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    broadcastStatus: &Option<String>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5751,15 +5753,15 @@ pub fn youtube_live_broadcasts_transition_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveBroadcastsTransitionArgs {
     /// Query parameter: broadcastStatus
-    pub broadcastStatus: Option<Option<String>>,
+    pub broadcastStatus: Option<String>,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/liveBroadcasts/transition
@@ -5801,9 +5803,9 @@ pub fn youtube_live_broadcasts_transition(
 
 pub fn youtube_live_broadcasts_update_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5946,11 +5948,11 @@ pub fn youtube_live_broadcasts_update_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveBroadcastsUpdateArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// PUT youtube/v3/liveBroadcasts
@@ -5990,7 +5992,7 @@ pub fn youtube_live_broadcasts_update(
 
 pub fn youtube_live_chat_bans_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6122,7 +6124,7 @@ pub fn youtube_live_chat_bans_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveChatBansDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// DELETE youtube/v3/liveChat/bans
@@ -6155,7 +6157,7 @@ pub fn youtube_live_chat_bans_delete(
 
 pub fn youtube_live_chat_bans_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    part: &Option<Option<String>>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6290,7 +6292,7 @@ pub fn youtube_live_chat_bans_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveChatBansInsertArgs {
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/liveChat/bans
@@ -6323,7 +6325,7 @@ pub fn youtube_live_chat_bans_insert(
 
 pub fn youtube_live_chat_messages_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6455,7 +6457,7 @@ pub fn youtube_live_chat_messages_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveChatMessagesDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// DELETE youtube/v3/liveChat/messages
@@ -6488,7 +6490,7 @@ pub fn youtube_live_chat_messages_delete(
 
 pub fn youtube_live_chat_messages_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    part: &Option<Option<String>>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6625,7 +6627,7 @@ pub fn youtube_live_chat_messages_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveChatMessagesInsertArgs {
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/liveChat/messages
@@ -6660,12 +6662,12 @@ pub fn youtube_live_chat_messages_insert(
 
 pub fn youtube_live_chat_messages_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    hl: &Option<Option<String>>,
-    liveChatId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    profileImageSize: &Option<Option<String>>,
+    hl: &Option<String>,
+    liveChatId: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
+    profileImageSize: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6819,17 +6821,17 @@ pub fn youtube_live_chat_messages_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveChatMessagesListArgs {
     /// Query parameter: hl
-    pub hl: Option<Option<String>>,
+    pub hl: Option<String>,
     /// Query parameter: liveChatId
-    pub liveChatId: Option<Option<String>>,
+    pub liveChatId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: profileImageSize
-    pub profileImageSize: Option<Option<String>>,
+    pub profileImageSize: Option<String>,
 }
 
 /// GET youtube/v3/liveChat/messages
@@ -6874,8 +6876,8 @@ pub fn youtube_live_chat_messages_list(
 
 pub fn youtube_live_chat_messages_transition_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    id: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7016,9 +7018,9 @@ pub fn youtube_live_chat_messages_transition_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveChatMessagesTransitionArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// POST youtube/v3/liveChat/messages/transition
@@ -7053,7 +7055,7 @@ pub fn youtube_live_chat_messages_transition(
 
 pub fn youtube_live_chat_moderators_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7185,7 +7187,7 @@ pub fn youtube_live_chat_moderators_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveChatModeratorsDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// DELETE youtube/v3/liveChat/moderators
@@ -7218,7 +7220,7 @@ pub fn youtube_live_chat_moderators_delete(
 
 pub fn youtube_live_chat_moderators_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    part: &Option<Option<String>>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7355,7 +7357,7 @@ pub fn youtube_live_chat_moderators_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveChatModeratorsInsertArgs {
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/liveChat/moderators
@@ -7390,10 +7392,10 @@ pub fn youtube_live_chat_moderators_insert(
 
 pub fn youtube_live_chat_moderators_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    liveChatId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    liveChatId: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7541,13 +7543,13 @@ pub fn youtube_live_chat_moderators_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveChatModeratorsListArgs {
     /// Query parameter: liveChatId
-    pub liveChatId: Option<Option<String>>,
+    pub liveChatId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/liveChat/moderators
@@ -7590,9 +7592,9 @@ pub fn youtube_live_chat_moderators_list(
 
 pub fn youtube_live_streams_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7730,11 +7732,11 @@ pub fn youtube_live_streams_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveStreamsDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
 }
 
 /// DELETE youtube/v3/liveStreams
@@ -7772,9 +7774,9 @@ pub fn youtube_live_streams_delete(
 
 pub fn youtube_live_streams_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7915,11 +7917,11 @@ pub fn youtube_live_streams_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveStreamsInsertArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/liveStreams
@@ -7957,13 +7959,13 @@ pub fn youtube_live_streams_insert(
 
 pub fn youtube_live_streams_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    mine: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    id: &Option<String>,
+    maxResults: &Option<String>,
+    mine: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8118,19 +8120,19 @@ pub fn youtube_live_streams_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveStreamsListArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: mine
-    pub mine: Option<Option<String>>,
+    pub mine: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/liveStreams
@@ -8174,9 +8176,9 @@ pub fn youtube_live_streams_list(
 
 pub fn youtube_live_streams_update_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8317,11 +8319,11 @@ pub fn youtube_live_streams_update_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveStreamsUpdateArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// PUT youtube/v3/liveStreams
@@ -8359,12 +8361,12 @@ pub fn youtube_live_streams_update(
 
 pub fn youtube_members_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filterByMemberChannelId: &Option<Option<String>>,
-    hasAccessToLevel: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    mode: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    filterByMemberChannelId: &Option<String>,
+    hasAccessToLevel: &Option<String>,
+    maxResults: &Option<String>,
+    mode: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8516,17 +8518,17 @@ pub fn youtube_members_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeMembersListArgs {
     /// Query parameter: filterByMemberChannelId
-    pub filterByMemberChannelId: Option<Option<String>>,
+    pub filterByMemberChannelId: Option<String>,
     /// Query parameter: hasAccessToLevel
-    pub hasAccessToLevel: Option<Option<String>>,
+    pub hasAccessToLevel: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: mode
-    pub mode: Option<Option<String>>,
+    pub mode: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/members
@@ -8569,7 +8571,7 @@ pub fn youtube_members_list(
 
 pub fn youtube_memberships_levels_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    part: &Option<Option<String>>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8708,7 +8710,7 @@ pub fn youtube_memberships_levels_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeMembershipsLevelsListArgs {
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/membershipsLevels
@@ -8745,8 +8747,8 @@ pub fn youtube_memberships_levels_list(
 
 pub fn youtube_playlist_images_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8881,9 +8883,9 @@ pub fn youtube_playlist_images_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubePlaylistImagesDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// DELETE youtube/v3/playlistImages
@@ -8917,9 +8919,9 @@ pub fn youtube_playlist_images_delete(
 
 pub fn youtube_playlist_images_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9062,11 +9064,11 @@ pub fn youtube_playlist_images_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubePlaylistImagesInsertArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/playlistImages
@@ -9106,12 +9108,12 @@ pub fn youtube_playlist_images_insert(
 
 pub fn youtube_playlist_images_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    maxResults: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9263,17 +9265,17 @@ pub fn youtube_playlist_images_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubePlaylistImagesListArgs {
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/playlistImages
@@ -9316,8 +9318,8 @@ pub fn youtube_playlist_images_list(
 
 pub fn youtube_playlist_images_update_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9457,9 +9459,9 @@ pub fn youtube_playlist_images_update_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubePlaylistImagesUpdateArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// PUT youtube/v3/playlistImages
@@ -9495,8 +9497,8 @@ pub fn youtube_playlist_images_update(
 
 pub fn youtube_playlist_items_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9631,9 +9633,9 @@ pub fn youtube_playlist_items_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubePlaylistItemsDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// DELETE youtube/v3/playlistItems
@@ -9667,8 +9669,8 @@ pub fn youtube_playlist_items_delete(
 
 pub fn youtube_playlist_items_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9808,9 +9810,9 @@ pub fn youtube_playlist_items_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubePlaylistItemsInsertArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/playlistItems
@@ -9846,13 +9848,13 @@ pub fn youtube_playlist_items_insert(
 
 pub fn youtube_playlist_items_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    playlistId: &Option<Option<String>>,
-    videoId: &Option<Option<String>>,
+    id: &Option<String>,
+    maxResults: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
+    playlistId: &Option<String>,
+    videoId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10007,19 +10009,19 @@ pub fn youtube_playlist_items_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubePlaylistItemsListArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: playlistId
-    pub playlistId: Option<Option<String>>,
+    pub playlistId: Option<String>,
     /// Query parameter: videoId
-    pub videoId: Option<Option<String>>,
+    pub videoId: Option<String>,
 }
 
 /// GET youtube/v3/playlistItems
@@ -10063,8 +10065,8 @@ pub fn youtube_playlist_items_list(
 
 pub fn youtube_playlist_items_update_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10204,9 +10206,9 @@ pub fn youtube_playlist_items_update_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubePlaylistItemsUpdateArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// PUT youtube/v3/playlistItems
@@ -10242,8 +10244,8 @@ pub fn youtube_playlist_items_update(
 
 pub fn youtube_playlists_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10378,9 +10380,9 @@ pub fn youtube_playlists_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubePlaylistsDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// DELETE youtube/v3/playlists
@@ -10413,9 +10415,9 @@ pub fn youtube_playlists_delete(
 
 pub fn youtube_playlists_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10556,11 +10558,11 @@ pub fn youtube_playlists_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubePlaylistsInsertArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/playlists
@@ -10598,15 +10600,15 @@ pub fn youtube_playlists_insert(
 
 pub fn youtube_playlists_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    channelId: &Option<Option<String>>,
-    hl: &Option<Option<String>>,
-    id: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    mine: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    channelId: &Option<String>,
+    hl: &Option<String>,
+    id: &Option<String>,
+    maxResults: &Option<String>,
+    mine: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10767,23 +10769,23 @@ pub fn youtube_playlists_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubePlaylistsListArgs {
     /// Query parameter: channelId
-    pub channelId: Option<Option<String>>,
+    pub channelId: Option<String>,
     /// Query parameter: hl
-    pub hl: Option<Option<String>>,
+    pub hl: Option<String>,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: mine
-    pub mine: Option<Option<String>>,
+    pub mine: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/playlists
@@ -10829,8 +10831,8 @@ pub fn youtube_playlists_list(
 
 pub fn youtube_playlists_update_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10968,9 +10970,9 @@ pub fn youtube_playlists_update_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubePlaylistsUpdateArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// PUT youtube/v3/playlists
@@ -11004,37 +11006,37 @@ pub fn youtube_playlists_update(
 
 pub fn youtube_search_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    channelId: &Option<Option<String>>,
-    channelType: &Option<Option<String>>,
-    eventType: &Option<Option<String>>,
-    forContentOwner: &Option<Option<String>>,
-    forDeveloper: &Option<Option<String>>,
-    forMine: &Option<Option<String>>,
-    location: &Option<Option<String>>,
-    locationRadius: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    order: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    publishedAfter: &Option<Option<String>>,
-    publishedBefore: &Option<Option<String>>,
-    q: &Option<Option<String>>,
-    regionCode: &Option<Option<String>>,
-    relevanceLanguage: &Option<Option<String>>,
-    safeSearch: &Option<Option<String>>,
-    topicId: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
-    videoCaption: &Option<Option<String>>,
-    videoCategoryId: &Option<Option<String>>,
-    videoDefinition: &Option<Option<String>>,
-    videoDimension: &Option<Option<String>>,
-    videoDuration: &Option<Option<String>>,
-    videoEmbeddable: &Option<Option<String>>,
-    videoLicense: &Option<Option<String>>,
-    videoPaidProductPlacement: &Option<Option<String>>,
-    videoSyndicated: &Option<Option<String>>,
-    videoType: &Option<Option<String>>,
+    channelId: &Option<String>,
+    channelType: &Option<String>,
+    eventType: &Option<String>,
+    forContentOwner: &Option<String>,
+    forDeveloper: &Option<String>,
+    forMine: &Option<String>,
+    location: &Option<String>,
+    locationRadius: &Option<String>,
+    maxResults: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    order: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
+    publishedAfter: &Option<String>,
+    publishedBefore: &Option<String>,
+    q: &Option<String>,
+    regionCode: &Option<String>,
+    relevanceLanguage: &Option<String>,
+    safeSearch: &Option<String>,
+    topicId: &Option<String>,
+    type_rs: &Option<String>,
+    videoCaption: &Option<String>,
+    videoCategoryId: &Option<String>,
+    videoDefinition: &Option<String>,
+    videoDimension: &Option<String>,
+    videoDuration: &Option<String>,
+    videoEmbeddable: &Option<String>,
+    videoLicense: &Option<String>,
+    videoPaidProductPlacement: &Option<String>,
+    videoSyndicated: &Option<String>,
+    videoType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11261,67 +11263,67 @@ pub fn youtube_search_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeSearchListArgs {
     /// Query parameter: channelId
-    pub channelId: Option<Option<String>>,
+    pub channelId: Option<String>,
     /// Query parameter: channelType
-    pub channelType: Option<Option<String>>,
+    pub channelType: Option<String>,
     /// Query parameter: eventType
-    pub eventType: Option<Option<String>>,
+    pub eventType: Option<String>,
     /// Query parameter: forContentOwner
-    pub forContentOwner: Option<Option<String>>,
+    pub forContentOwner: Option<String>,
     /// Query parameter: forDeveloper
-    pub forDeveloper: Option<Option<String>>,
+    pub forDeveloper: Option<String>,
     /// Query parameter: forMine
-    pub forMine: Option<Option<String>>,
+    pub forMine: Option<String>,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: locationRadius
-    pub locationRadius: Option<Option<String>>,
+    pub locationRadius: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: order
-    pub order: Option<Option<String>>,
+    pub order: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: publishedAfter
-    pub publishedAfter: Option<Option<String>>,
+    pub publishedAfter: Option<String>,
     /// Query parameter: publishedBefore
-    pub publishedBefore: Option<Option<String>>,
+    pub publishedBefore: Option<String>,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
     /// Query parameter: regionCode
-    pub regionCode: Option<Option<String>>,
+    pub regionCode: Option<String>,
     /// Query parameter: relevanceLanguage
-    pub relevanceLanguage: Option<Option<String>>,
+    pub relevanceLanguage: Option<String>,
     /// Query parameter: safeSearch
-    pub safeSearch: Option<Option<String>>,
+    pub safeSearch: Option<String>,
     /// Query parameter: topicId
-    pub topicId: Option<Option<String>>,
+    pub topicId: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
     /// Query parameter: videoCaption
-    pub videoCaption: Option<Option<String>>,
+    pub videoCaption: Option<String>,
     /// Query parameter: videoCategoryId
-    pub videoCategoryId: Option<Option<String>>,
+    pub videoCategoryId: Option<String>,
     /// Query parameter: videoDefinition
-    pub videoDefinition: Option<Option<String>>,
+    pub videoDefinition: Option<String>,
     /// Query parameter: videoDimension
-    pub videoDimension: Option<Option<String>>,
+    pub videoDimension: Option<String>,
     /// Query parameter: videoDuration
-    pub videoDuration: Option<Option<String>>,
+    pub videoDuration: Option<String>,
     /// Query parameter: videoEmbeddable
-    pub videoEmbeddable: Option<Option<String>>,
+    pub videoEmbeddable: Option<String>,
     /// Query parameter: videoLicense
-    pub videoLicense: Option<Option<String>>,
+    pub videoLicense: Option<String>,
     /// Query parameter: videoPaidProductPlacement
-    pub videoPaidProductPlacement: Option<Option<String>>,
+    pub videoPaidProductPlacement: Option<String>,
     /// Query parameter: videoSyndicated
-    pub videoSyndicated: Option<Option<String>>,
+    pub videoSyndicated: Option<String>,
     /// Query parameter: videoType
-    pub videoType: Option<Option<String>>,
+    pub videoType: Option<String>,
 }
 
 /// GET youtube/v3/search
@@ -11389,7 +11391,7 @@ pub fn youtube_search_list(
 
 pub fn youtube_subscriptions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11521,7 +11523,7 @@ pub fn youtube_subscriptions_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeSubscriptionsDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// DELETE youtube/v3/subscriptions
@@ -11554,7 +11556,7 @@ pub fn youtube_subscriptions_delete(
 
 pub fn youtube_subscriptions_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    part: &Option<Option<String>>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11691,7 +11693,7 @@ pub fn youtube_subscriptions_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeSubscriptionsInsertArgs {
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/subscriptions
@@ -11726,18 +11728,18 @@ pub fn youtube_subscriptions_insert(
 
 pub fn youtube_subscriptions_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    channelId: &Option<Option<String>>,
-    forChannelId: &Option<Option<String>>,
-    id: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    mine: &Option<Option<String>>,
-    myRecentSubscribers: &Option<Option<String>>,
-    mySubscribers: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    order: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    channelId: &Option<String>,
+    forChannelId: &Option<String>,
+    id: &Option<String>,
+    maxResults: &Option<String>,
+    mine: &Option<String>,
+    myRecentSubscribers: &Option<String>,
+    mySubscribers: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    order: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11907,29 +11909,29 @@ pub fn youtube_subscriptions_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeSubscriptionsListArgs {
     /// Query parameter: channelId
-    pub channelId: Option<Option<String>>,
+    pub channelId: Option<String>,
     /// Query parameter: forChannelId
-    pub forChannelId: Option<Option<String>>,
+    pub forChannelId: Option<String>,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: mine
-    pub mine: Option<Option<String>>,
+    pub mine: Option<String>,
     /// Query parameter: myRecentSubscribers
-    pub myRecentSubscribers: Option<Option<String>>,
+    pub myRecentSubscribers: Option<String>,
     /// Query parameter: mySubscribers
-    pub mySubscribers: Option<Option<String>>,
+    pub mySubscribers: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: order
-    pub order: Option<Option<String>>,
+    pub order: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/subscriptions
@@ -11978,10 +11980,10 @@ pub fn youtube_subscriptions_list(
 
 pub fn youtube_super_chat_events_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    hl: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    hl: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12129,13 +12131,13 @@ pub fn youtube_super_chat_events_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeSuperChatEventsListArgs {
     /// Query parameter: hl
-    pub hl: Option<Option<String>>,
+    pub hl: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/superChatEvents
@@ -12178,9 +12180,9 @@ pub fn youtube_super_chat_events_list(
 
 pub fn youtube_tests_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    externalChannelId: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    externalChannelId: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12321,11 +12323,11 @@ pub fn youtube_tests_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeTestsInsertArgs {
     /// Query parameter: externalChannelId
-    pub externalChannelId: Option<Option<String>>,
+    pub externalChannelId: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/tests
@@ -12363,10 +12365,10 @@ pub fn youtube_tests_insert(
 
 pub fn youtube_third_party_links_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    externalChannelId: &Option<Option<String>>,
-    linkingToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    externalChannelId: &Option<String>,
+    linkingToken: &Option<String>,
+    part: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12507,13 +12509,13 @@ pub fn youtube_third_party_links_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeThirdPartyLinksDeleteArgs {
     /// Query parameter: externalChannelId
-    pub externalChannelId: Option<Option<String>>,
+    pub externalChannelId: Option<String>,
     /// Query parameter: linkingToken
-    pub linkingToken: Option<Option<String>>,
+    pub linkingToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// DELETE youtube/v3/thirdPartyLinks
@@ -12552,8 +12554,8 @@ pub fn youtube_third_party_links_delete(
 
 pub fn youtube_third_party_links_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    externalChannelId: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    externalChannelId: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12693,9 +12695,9 @@ pub fn youtube_third_party_links_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeThirdPartyLinksInsertArgs {
     /// Query parameter: externalChannelId
-    pub externalChannelId: Option<Option<String>>,
+    pub externalChannelId: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// POST youtube/v3/thirdPartyLinks
@@ -12731,10 +12733,10 @@ pub fn youtube_third_party_links_insert(
 
 pub fn youtube_third_party_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    externalChannelId: &Option<Option<String>>,
-    linkingToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    externalChannelId: &Option<String>,
+    linkingToken: &Option<String>,
+    part: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12882,13 +12884,13 @@ pub fn youtube_third_party_links_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeThirdPartyLinksListArgs {
     /// Query parameter: externalChannelId
-    pub externalChannelId: Option<Option<String>>,
+    pub externalChannelId: Option<String>,
     /// Query parameter: linkingToken
-    pub linkingToken: Option<Option<String>>,
+    pub linkingToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET youtube/v3/thirdPartyLinks
@@ -12931,8 +12933,8 @@ pub fn youtube_third_party_links_list(
 
 pub fn youtube_third_party_links_update_builder<R>(
     client: &SimpleHttpClient<R>,
-    externalChannelId: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    externalChannelId: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13072,9 +13074,9 @@ pub fn youtube_third_party_links_update_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeThirdPartyLinksUpdateArgs {
     /// Query parameter: externalChannelId
-    pub externalChannelId: Option<Option<String>>,
+    pub externalChannelId: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// PUT youtube/v3/thirdPartyLinks
@@ -13110,8 +13112,8 @@ pub fn youtube_third_party_links_update(
 
 pub fn youtube_thumbnails_set_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    videoId: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    videoId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13251,9 +13253,9 @@ pub fn youtube_thumbnails_set_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeThumbnailsSetArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: videoId
-    pub videoId: Option<Option<String>>,
+    pub videoId: Option<String>,
 }
 
 /// POST youtube/v3/thumbnails/set
@@ -13289,8 +13291,8 @@ pub fn youtube_thumbnails_set(
 
 pub fn youtube_video_abuse_report_reasons_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    hl: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    hl: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13433,9 +13435,9 @@ pub fn youtube_video_abuse_report_reasons_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeVideoAbuseReportReasonsListArgs {
     /// Query parameter: hl
-    pub hl: Option<Option<String>>,
+    pub hl: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// GET youtube/v3/videoAbuseReportReasons
@@ -13472,10 +13474,10 @@ pub fn youtube_video_abuse_report_reasons_list(
 
 pub fn youtube_video_categories_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    hl: &Option<Option<String>>,
-    id: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    regionCode: &Option<Option<String>>,
+    hl: &Option<String>,
+    id: &Option<String>,
+    part: &Option<String>,
+    regionCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13621,13 +13623,13 @@ pub fn youtube_video_categories_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeVideoCategoriesListArgs {
     /// Query parameter: hl
-    pub hl: Option<Option<String>>,
+    pub hl: Option<String>,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: regionCode
-    pub regionCode: Option<Option<String>>,
+    pub regionCode: Option<String>,
 }
 
 /// GET youtube/v3/videoCategories
@@ -13668,7 +13670,7 @@ pub fn youtube_video_categories_list(
 
 pub fn youtube_video_trainability_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13805,7 +13807,7 @@ pub fn youtube_video_trainability_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeVideoTrainabilityGetArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// GET youtube/v3/videoTrainability
@@ -13840,8 +13842,8 @@ pub fn youtube_video_trainability_get(
 
 pub fn youtube_videos_delete_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13976,9 +13978,9 @@ pub fn youtube_videos_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeVideosDeleteArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// DELETE youtube/v3/videos
@@ -14011,8 +14013,8 @@ pub fn youtube_videos_delete(
 
 pub fn youtube_videos_get_rating_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    id: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14152,9 +14154,9 @@ pub fn youtube_videos_get_rating_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeVideosGetRatingArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// GET youtube/v3/videos/getRating
@@ -14190,12 +14192,12 @@ pub fn youtube_videos_get_rating(
 
 pub fn youtube_videos_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    autoLevels: &Option<Option<String>>,
-    notifySubscribers: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    stabilize: &Option<Option<String>>,
+    autoLevels: &Option<String>,
+    notifySubscribers: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwnerChannel: &Option<String>,
+    part: &Option<String>,
+    stabilize: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14345,17 +14347,17 @@ pub fn youtube_videos_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeVideosInsertArgs {
     /// Query parameter: autoLevels
-    pub autoLevels: Option<Option<String>>,
+    pub autoLevels: Option<String>,
     /// Query parameter: notifySubscribers
-    pub notifySubscribers: Option<Option<String>>,
+    pub notifySubscribers: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    pub onBehalfOfContentOwnerChannel: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: stabilize
-    pub stabilize: Option<Option<String>>,
+    pub stabilize: Option<String>,
 }
 
 /// POST youtube/v3/videos
@@ -14396,19 +14398,19 @@ pub fn youtube_videos_insert(
 
 pub fn youtube_videos_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    chart: &Option<Option<String>>,
-    hl: &Option<Option<String>>,
-    id: &Option<Option<String>>,
-    locale: &Option<Option<String>>,
-    maxHeight: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    maxWidth: &Option<Option<String>>,
-    myRating: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    regionCode: &Option<Option<String>>,
-    videoCategoryId: &Option<Option<String>>,
+    chart: &Option<String>,
+    hl: &Option<String>,
+    id: &Option<String>,
+    locale: &Option<String>,
+    maxHeight: &Option<String>,
+    maxResults: &Option<String>,
+    maxWidth: &Option<String>,
+    myRating: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
+    regionCode: &Option<String>,
+    videoCategoryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14581,31 +14583,31 @@ pub fn youtube_videos_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeVideosListArgs {
     /// Query parameter: chart
-    pub chart: Option<Option<String>>,
+    pub chart: Option<String>,
     /// Query parameter: hl
-    pub hl: Option<Option<String>>,
+    pub hl: Option<String>,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: maxHeight
-    pub maxHeight: Option<Option<String>>,
+    pub maxHeight: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: maxWidth
-    pub maxWidth: Option<Option<String>>,
+    pub maxWidth: Option<String>,
     /// Query parameter: myRating
-    pub myRating: Option<Option<String>>,
+    pub myRating: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: regionCode
-    pub regionCode: Option<Option<String>>,
+    pub regionCode: Option<String>,
     /// Query parameter: videoCategoryId
-    pub videoCategoryId: Option<Option<String>>,
+    pub videoCategoryId: Option<String>,
 }
 
 /// GET youtube/v3/videos
@@ -14655,8 +14657,8 @@ pub fn youtube_videos_list(
 
 pub fn youtube_videos_rate_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
-    rating: &Option<Option<String>>,
+    id: &Option<String>,
+    rating: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14791,9 +14793,9 @@ pub fn youtube_videos_rate_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeVideosRateArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: rating
-    pub rating: Option<Option<String>>,
+    pub rating: Option<String>,
 }
 
 /// POST youtube/v3/videos/rate
@@ -14826,7 +14828,7 @@ pub fn youtube_videos_rate(
 
 pub fn youtube_videos_report_abuse_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14958,7 +14960,7 @@ pub fn youtube_videos_report_abuse_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeVideosReportAbuseArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// POST youtube/v3/videos/reportAbuse
@@ -14991,8 +14993,8 @@ pub fn youtube_videos_report_abuse(
 
 pub fn youtube_videos_update_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    part: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15130,9 +15132,9 @@ pub fn youtube_videos_update_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeVideosUpdateArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// PUT youtube/v3/videos
@@ -15165,8 +15167,8 @@ pub fn youtube_videos_update(
 
 pub fn youtube_watermarks_set_builder<R>(
     client: &SimpleHttpClient<R>,
-    channelId: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    channelId: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15301,9 +15303,9 @@ pub fn youtube_watermarks_set_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeWatermarksSetArgs {
     /// Query parameter: channelId
-    pub channelId: Option<Option<String>>,
+    pub channelId: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// POST youtube/v3/watermarks/set
@@ -15337,8 +15339,8 @@ pub fn youtube_watermarks_set(
 
 pub fn youtube_watermarks_unset_builder<R>(
     client: &SimpleHttpClient<R>,
-    channelId: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    channelId: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15473,9 +15475,9 @@ pub fn youtube_watermarks_unset_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeWatermarksUnsetArgs {
     /// Query parameter: channelId
-    pub channelId: Option<Option<String>>,
+    pub channelId: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// POST youtube/v3/watermarks/unset
@@ -15509,7 +15511,7 @@ pub fn youtube_watermarks_unset(
 
 pub fn youtube_youtube_v3_update_comment_threads_builder<R>(
     client: &SimpleHttpClient<R>,
-    part: &Option<Option<String>>,
+    part: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15646,7 +15648,7 @@ pub fn youtube_youtube_v3_update_comment_threads_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeYoutubeV3UpdateCommentThreadsArgs {
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
 }
 
 /// PUT youtube/v3/commentThreads
@@ -15681,12 +15683,12 @@ pub fn youtube_youtube_v3_update_comment_threads(
 
 pub fn youtube_youtube_v3_live_chat_messages_stream_builder<R>(
     client: &SimpleHttpClient<R>,
-    hl: &Option<Option<String>>,
-    liveChatId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    part: &Option<Option<String>>,
-    profileImageSize: &Option<Option<String>>,
+    hl: &Option<String>,
+    liveChatId: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    part: &Option<String>,
+    profileImageSize: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15841,17 +15843,17 @@ pub fn youtube_youtube_v3_live_chat_messages_stream_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeYoutubeV3LiveChatMessagesStreamArgs {
     /// Query parameter: hl
-    pub hl: Option<Option<String>>,
+    pub hl: Option<String>,
     /// Query parameter: liveChatId
-    pub liveChatId: Option<Option<String>>,
+    pub liveChatId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: part
-    pub part: Option<Option<String>>,
+    pub part: Option<String>,
     /// Query parameter: profileImageSize
-    pub profileImageSize: Option<Option<String>>,
+    pub profileImageSize: Option<String>,
 }
 
 /// GET youtube/v3/liveChat/messages/stream

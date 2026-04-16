@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -350,10 +352,10 @@ pub fn cloudtasks_projects_locations_get_cmek_config(
 pub fn cloudtasks_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -504,13 +506,13 @@ pub struct CloudtasksProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations
@@ -553,7 +555,7 @@ pub fn cloudtasks_projects_locations_list(
 pub fn cloudtasks_projects_locations_update_cmek_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -693,7 +695,7 @@ pub struct CloudtasksProjectsLocationsUpdateCmekConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/cmekConfig
@@ -1372,9 +1374,9 @@ pub fn cloudtasks_projects_locations_queues_get_iam_policy(
 pub fn cloudtasks_projects_locations_queues_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1522,11 +1524,11 @@ pub struct CloudtasksProjectsLocationsQueuesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues
@@ -1568,7 +1570,7 @@ pub fn cloudtasks_projects_locations_queues_list(
 pub fn cloudtasks_projects_locations_queues_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1708,7 +1710,7 @@ pub struct CloudtasksProjectsLocationsQueuesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}
@@ -3045,7 +3047,7 @@ pub fn cloudtasks_projects_locations_queues_tasks_delete(
 pub fn cloudtasks_projects_locations_queues_tasks_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    responseView: &Option<Option<String>>,
+    responseView: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3185,7 +3187,7 @@ pub struct CloudtasksProjectsLocationsQueuesTasksGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: responseView
-    pub responseView: Option<Option<String>>,
+    pub responseView: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks/{tasksId}
@@ -3223,9 +3225,9 @@ pub fn cloudtasks_projects_locations_queues_tasks_get(
 pub fn cloudtasks_projects_locations_queues_tasks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    responseView: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    responseView: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3373,11 +3375,11 @@ pub struct CloudtasksProjectsLocationsQueuesTasksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: responseView
-    pub responseView: Option<Option<String>>,
+    pub responseView: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queues/{queuesId}/tasks

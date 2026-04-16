@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -198,10 +200,10 @@ pub fn saasservicemgmt_projects_locations_get(
 pub fn saasservicemgmt_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -352,13 +354,13 @@ pub struct SaasservicemgmtProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -401,9 +403,9 @@ pub fn saasservicemgmt_projects_locations_list(
 pub fn saasservicemgmt_projects_locations_releases_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    releaseId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    releaseId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -549,11 +551,11 @@ pub struct SaasservicemgmtProjectsLocationsReleasesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: releaseId
-    pub releaseId: Option<Option<String>>,
+    pub releaseId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/releases
@@ -593,9 +595,9 @@ pub fn saasservicemgmt_projects_locations_releases_create(
 pub fn saasservicemgmt_projects_locations_releases_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -741,11 +743,11 @@ pub struct SaasservicemgmtProjectsLocationsReleasesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
@@ -945,10 +947,10 @@ pub fn saasservicemgmt_projects_locations_releases_get(
 pub fn saasservicemgmt_projects_locations_releases_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1099,13 +1101,13 @@ pub struct SaasservicemgmtProjectsLocationsReleasesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/releases
@@ -1148,9 +1150,9 @@ pub fn saasservicemgmt_projects_locations_releases_list(
 pub fn saasservicemgmt_projects_locations_releases_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1296,11 +1298,11 @@ pub struct SaasservicemgmtProjectsLocationsReleasesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/releases/{releasesId}
@@ -1340,9 +1342,9 @@ pub fn saasservicemgmt_projects_locations_releases_patch(
 pub fn saasservicemgmt_projects_locations_rollout_kinds_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    rolloutKindId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    rolloutKindId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1488,11 +1490,11 @@ pub struct SaasservicemgmtProjectsLocationsRolloutKindsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: rolloutKindId
-    pub rolloutKindId: Option<Option<String>>,
+    pub rolloutKindId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds
@@ -1532,9 +1534,9 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_create(
 pub fn saasservicemgmt_projects_locations_rollout_kinds_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1680,11 +1682,11 @@ pub struct SaasservicemgmtProjectsLocationsRolloutKindsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
@@ -1884,10 +1886,10 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_get(
 pub fn saasservicemgmt_projects_locations_rollout_kinds_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2038,13 +2040,13 @@ pub struct SaasservicemgmtProjectsLocationsRolloutKindsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds
@@ -2087,9 +2089,9 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_list(
 pub fn saasservicemgmt_projects_locations_rollout_kinds_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2235,11 +2237,11 @@ pub struct SaasservicemgmtProjectsLocationsRolloutKindsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/rolloutKinds/{rolloutKindsId}
@@ -2279,9 +2281,9 @@ pub fn saasservicemgmt_projects_locations_rollout_kinds_patch(
 pub fn saasservicemgmt_projects_locations_rollouts_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    rolloutId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    rolloutId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2427,11 +2429,11 @@ pub struct SaasservicemgmtProjectsLocationsRolloutsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: rolloutId
-    pub rolloutId: Option<Option<String>>,
+    pub rolloutId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/rollouts
@@ -2471,9 +2473,9 @@ pub fn saasservicemgmt_projects_locations_rollouts_create(
 pub fn saasservicemgmt_projects_locations_rollouts_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2619,11 +2621,11 @@ pub struct SaasservicemgmtProjectsLocationsRolloutsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
@@ -2823,10 +2825,10 @@ pub fn saasservicemgmt_projects_locations_rollouts_get(
 pub fn saasservicemgmt_projects_locations_rollouts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2977,13 +2979,13 @@ pub struct SaasservicemgmtProjectsLocationsRolloutsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rollouts
@@ -3026,9 +3028,9 @@ pub fn saasservicemgmt_projects_locations_rollouts_list(
 pub fn saasservicemgmt_projects_locations_rollouts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3174,11 +3176,11 @@ pub struct SaasservicemgmtProjectsLocationsRolloutsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/rollouts/{rolloutsId}
@@ -3218,9 +3220,9 @@ pub fn saasservicemgmt_projects_locations_rollouts_patch(
 pub fn saasservicemgmt_projects_locations_saas_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    saasId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    saasId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3366,11 +3368,11 @@ pub struct SaasservicemgmtProjectsLocationsSaasCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: saasId
-    pub saasId: Option<Option<String>>,
+    pub saasId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/saas
@@ -3410,9 +3412,9 @@ pub fn saasservicemgmt_projects_locations_saas_create(
 pub fn saasservicemgmt_projects_locations_saas_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3558,11 +3560,11 @@ pub struct SaasservicemgmtProjectsLocationsSaasDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
@@ -3762,10 +3764,10 @@ pub fn saasservicemgmt_projects_locations_saas_get(
 pub fn saasservicemgmt_projects_locations_saas_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3916,13 +3918,13 @@ pub struct SaasservicemgmtProjectsLocationsSaasListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/saas
@@ -3965,9 +3967,9 @@ pub fn saasservicemgmt_projects_locations_saas_list(
 pub fn saasservicemgmt_projects_locations_saas_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4113,11 +4115,11 @@ pub struct SaasservicemgmtProjectsLocationsSaasPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/saas/{saasId}
@@ -4157,9 +4159,9 @@ pub fn saasservicemgmt_projects_locations_saas_patch(
 pub fn saasservicemgmt_projects_locations_tenants_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    tenantId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    tenantId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4305,11 +4307,11 @@ pub struct SaasservicemgmtProjectsLocationsTenantsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: tenantId
-    pub tenantId: Option<Option<String>>,
+    pub tenantId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tenants
@@ -4349,9 +4351,9 @@ pub fn saasservicemgmt_projects_locations_tenants_create(
 pub fn saasservicemgmt_projects_locations_tenants_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4497,11 +4499,11 @@ pub struct SaasservicemgmtProjectsLocationsTenantsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
@@ -4701,10 +4703,10 @@ pub fn saasservicemgmt_projects_locations_tenants_get(
 pub fn saasservicemgmt_projects_locations_tenants_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4855,13 +4857,13 @@ pub struct SaasservicemgmtProjectsLocationsTenantsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tenants
@@ -4904,9 +4906,9 @@ pub fn saasservicemgmt_projects_locations_tenants_list(
 pub fn saasservicemgmt_projects_locations_tenants_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5052,11 +5054,11 @@ pub struct SaasservicemgmtProjectsLocationsTenantsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tenants/{tenantsId}
@@ -5096,9 +5098,9 @@ pub fn saasservicemgmt_projects_locations_tenants_patch(
 pub fn saasservicemgmt_projects_locations_unit_kinds_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    unitKindId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    unitKindId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5244,11 +5246,11 @@ pub struct SaasservicemgmtProjectsLocationsUnitKindsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: unitKindId
-    pub unitKindId: Option<Option<String>>,
+    pub unitKindId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/unitKinds
@@ -5288,9 +5290,9 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_create(
 pub fn saasservicemgmt_projects_locations_unit_kinds_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5436,11 +5438,11 @@ pub struct SaasservicemgmtProjectsLocationsUnitKindsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
@@ -5640,10 +5642,10 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_get(
 pub fn saasservicemgmt_projects_locations_unit_kinds_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5794,13 +5796,13 @@ pub struct SaasservicemgmtProjectsLocationsUnitKindsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/unitKinds
@@ -5843,9 +5845,9 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_list(
 pub fn saasservicemgmt_projects_locations_unit_kinds_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5991,11 +5993,11 @@ pub struct SaasservicemgmtProjectsLocationsUnitKindsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/unitKinds/{unitKindsId}
@@ -6035,9 +6037,9 @@ pub fn saasservicemgmt_projects_locations_unit_kinds_patch(
 pub fn saasservicemgmt_projects_locations_unit_operations_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    unitOperationId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    unitOperationId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6185,11 +6187,11 @@ pub struct SaasservicemgmtProjectsLocationsUnitOperationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: unitOperationId
-    pub unitOperationId: Option<Option<String>>,
+    pub unitOperationId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/unitOperations
@@ -6231,9 +6233,9 @@ pub fn saasservicemgmt_projects_locations_unit_operations_create(
 pub fn saasservicemgmt_projects_locations_unit_operations_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6379,11 +6381,11 @@ pub struct SaasservicemgmtProjectsLocationsUnitOperationsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
@@ -6588,10 +6590,10 @@ pub fn saasservicemgmt_projects_locations_unit_operations_get(
 pub fn saasservicemgmt_projects_locations_unit_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6744,13 +6746,13 @@ pub struct SaasservicemgmtProjectsLocationsUnitOperationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/unitOperations
@@ -6795,9 +6797,9 @@ pub fn saasservicemgmt_projects_locations_unit_operations_list(
 pub fn saasservicemgmt_projects_locations_unit_operations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6945,11 +6947,11 @@ pub struct SaasservicemgmtProjectsLocationsUnitOperationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/unitOperations/{unitOperationsId}
@@ -6991,9 +6993,9 @@ pub fn saasservicemgmt_projects_locations_unit_operations_patch(
 pub fn saasservicemgmt_projects_locations_units_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    unitId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    unitId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7139,11 +7141,11 @@ pub struct SaasservicemgmtProjectsLocationsUnitsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: unitId
-    pub unitId: Option<Option<String>>,
+    pub unitId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/units
@@ -7183,9 +7185,9 @@ pub fn saasservicemgmt_projects_locations_units_create(
 pub fn saasservicemgmt_projects_locations_units_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7331,11 +7333,11 @@ pub struct SaasservicemgmtProjectsLocationsUnitsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}
@@ -7535,10 +7537,10 @@ pub fn saasservicemgmt_projects_locations_units_get(
 pub fn saasservicemgmt_projects_locations_units_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7689,13 +7691,13 @@ pub struct SaasservicemgmtProjectsLocationsUnitsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/units
@@ -7738,9 +7740,9 @@ pub fn saasservicemgmt_projects_locations_units_list(
 pub fn saasservicemgmt_projects_locations_units_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7886,11 +7888,11 @@ pub struct SaasservicemgmtProjectsLocationsUnitsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/units/{unitsId}

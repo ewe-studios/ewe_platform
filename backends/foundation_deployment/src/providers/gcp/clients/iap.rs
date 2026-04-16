@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -998,8 +1000,8 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_get(
 pub fn iap_projects_brands_identity_aware_proxy_clients_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1146,9 +1148,9 @@ pub struct IapProjectsBrandsIdentityAwareProxyClientsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients
@@ -1356,7 +1358,7 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_reset_secret(
 pub fn iap_projects_iap_tunnel_locations_dest_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    tunnelDestGroupId: &Option<Option<String>>,
+    tunnelDestGroupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1498,7 +1500,7 @@ pub struct IapProjectsIapTunnelLocationsDestGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: tunnelDestGroupId
-    pub tunnelDestGroupId: Option<Option<String>>,
+    pub tunnelDestGroupId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups
@@ -1862,8 +1864,8 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_get(
 pub fn iap_projects_iap_tunnel_locations_dest_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2010,9 +2012,9 @@ pub struct IapProjectsIapTunnelLocationsDestGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups
@@ -2055,7 +2057,7 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_list(
 pub fn iap_projects_iap_tunnel_locations_dest_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2197,7 +2199,7 @@ pub struct IapProjectsIapTunnelLocationsDestGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
@@ -2876,7 +2878,7 @@ pub fn iap_test_iam_permissions(
 pub fn iap_update_iap_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3013,7 +3015,7 @@ pub struct IapUpdateIapSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/{v1Id}:iapSettings
@@ -3047,7 +3049,7 @@ pub fn iap_update_iap_settings(
 pub fn iap_validate_attribute_expression_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    expression: &Option<Option<String>>,
+    expression: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3191,7 +3193,7 @@ pub struct IapValidateAttributeExpressionArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: expression
-    pub expression: Option<Option<String>>,
+    pub expression: Option<String>,
 }
 
 /// POST v1/{v1Id}:validateAttributeExpression

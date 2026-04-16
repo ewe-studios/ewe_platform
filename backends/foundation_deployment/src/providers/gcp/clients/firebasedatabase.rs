@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,8 +32,8 @@ use serde::Serialize;
 pub fn firebasedatabase_projects_locations_instances_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    databaseId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    databaseId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -176,9 +178,9 @@ pub struct FirebasedatabaseProjectsLocationsInstancesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: databaseId
-    pub databaseId: Option<Option<String>>,
+    pub databaseId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1beta/projects/{projectsId}/locations/{locationsId}/instances
@@ -712,9 +714,9 @@ pub fn firebasedatabase_projects_locations_instances_get(
 pub fn firebasedatabase_projects_locations_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -864,11 +866,11 @@ pub struct FirebasedatabaseProjectsLocationsInstancesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v1beta/projects/{projectsId}/locations/{locationsId}/instances

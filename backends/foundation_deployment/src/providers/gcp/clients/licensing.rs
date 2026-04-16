@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -544,9 +546,9 @@ pub fn licensing_license_assignments_insert(
 pub fn licensing_license_assignments_list_for_product_builder<R>(
     client: &SimpleHttpClient<R>,
     productId: &String,
-    customerId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    customerId: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -694,11 +696,11 @@ pub struct LicensingLicenseAssignmentsListForProductArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET apps/licensing/v1/product/{productId}/users
@@ -741,9 +743,9 @@ pub fn licensing_license_assignments_list_for_product_and_sku_builder<R>(
     client: &SimpleHttpClient<R>,
     productId: &String,
     skuId: &String,
-    customerId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    customerId: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -893,11 +895,11 @@ pub struct LicensingLicenseAssignmentsListForProductAndSkuArgs {
     /// Path parameter: skuId
     pub skuId: String,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET apps/licensing/v1/product/{productId}/sku/{skuId}/users

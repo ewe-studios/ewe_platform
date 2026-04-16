@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,8 +32,8 @@ use serde::Serialize;
 pub fn datamigration_projects_locations_fetch_static_ips_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -176,9 +178,9 @@ pub struct DatamigrationProjectsLocationsFetchStaticIpsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:fetchStaticIps
@@ -379,10 +381,10 @@ pub fn datamigration_projects_locations_get(
 pub fn datamigration_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -533,13 +535,13 @@ pub struct DatamigrationProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -582,10 +584,10 @@ pub fn datamigration_projects_locations_list(
 pub fn datamigration_projects_locations_connection_profiles_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    connectionProfileId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    skipValidation: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    connectionProfileId: &Option<String>,
+    requestId: &Option<String>,
+    skipValidation: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -734,13 +736,13 @@ pub struct DatamigrationProjectsLocationsConnectionProfilesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: connectionProfileId
-    pub connectionProfileId: Option<Option<String>>,
+    pub connectionProfileId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: skipValidation
-    pub skipValidation: Option<Option<String>>,
+    pub skipValidation: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles
@@ -781,8 +783,8 @@ pub fn datamigration_projects_locations_connection_profiles_create(
 pub fn datamigration_projects_locations_connection_profiles_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    force: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -925,9 +927,9 @@ pub struct DatamigrationProjectsLocationsConnectionProfilesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}
@@ -1131,7 +1133,7 @@ pub fn datamigration_projects_locations_connection_profiles_get(
 pub fn datamigration_projects_locations_connection_profiles_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1271,7 +1273,7 @@ pub struct DatamigrationProjectsLocationsConnectionProfilesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}:getIamPolicy
@@ -1309,10 +1311,10 @@ pub fn datamigration_projects_locations_connection_profiles_get_iam_policy(
 pub fn datamigration_projects_locations_connection_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1465,13 +1467,13 @@ pub struct DatamigrationProjectsLocationsConnectionProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles
@@ -1516,10 +1518,10 @@ pub fn datamigration_projects_locations_connection_profiles_list(
 pub fn datamigration_projects_locations_connection_profiles_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    skipValidation: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    skipValidation: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1668,13 +1670,13 @@ pub struct DatamigrationProjectsLocationsConnectionProfilesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: skipValidation
-    pub skipValidation: Option<Option<String>>,
+    pub skipValidation: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}
@@ -2534,8 +2536,8 @@ pub fn datamigration_projects_locations_conversion_workspaces_convert(
 pub fn datamigration_projects_locations_conversion_workspaces_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    conversionWorkspaceId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    conversionWorkspaceId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2678,9 +2680,9 @@ pub struct DatamigrationProjectsLocationsConversionWorkspacesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: conversionWorkspaceId
-    pub conversionWorkspaceId: Option<Option<String>>,
+    pub conversionWorkspaceId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces
@@ -2719,8 +2721,8 @@ pub fn datamigration_projects_locations_conversion_workspaces_create(
 pub fn datamigration_projects_locations_conversion_workspaces_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    force: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2863,9 +2865,9 @@ pub struct DatamigrationProjectsLocationsConversionWorkspacesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}
@@ -2906,7 +2908,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_describe_conversio
 >(
     client: &SimpleHttpClient<R>,
     conversionWorkspace: &String,
-    commitId: &Option<Option<String>>,
+    commitId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3052,7 +3054,7 @@ pub struct DatamigrationProjectsLocationsConversionWorkspacesDescribeConversionW
     /// Path parameter: conversionWorkspace
     pub conversionWorkspace: String,
     /// Query parameter: commitId
-    pub commitId: Option<Option<String>>,
+    pub commitId: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:describeConversionWorkspaceRevisions
@@ -3092,13 +3094,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_describe_database_
 >(
     client: &SimpleHttpClient<R>,
     conversionWorkspace: &String,
-    commitId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    tree: &Option<Option<String>>,
-    uncommitted: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    commitId: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    tree: &Option<String>,
+    uncommitted: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3263,19 +3265,19 @@ pub struct DatamigrationProjectsLocationsConversionWorkspacesDescribeDatabaseEnt
     /// Path parameter: conversionWorkspace
     pub conversionWorkspace: String,
     /// Query parameter: commitId
-    pub commitId: Option<Option<String>>,
+    pub commitId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: tree
-    pub tree: Option<Option<String>>,
+    pub tree: Option<String>,
     /// Query parameter: uncommitted
-    pub uncommitted: Option<Option<String>>,
+    pub uncommitted: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:describeDatabaseEntities
@@ -3491,7 +3493,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_get(
 pub fn datamigration_projects_locations_conversion_workspaces_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3631,7 +3633,7 @@ pub struct DatamigrationProjectsLocationsConversionWorkspacesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:getIamPolicy
@@ -3669,9 +3671,9 @@ pub fn datamigration_projects_locations_conversion_workspaces_get_iam_policy(
 pub fn datamigration_projects_locations_conversion_workspaces_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3821,11 +3823,11 @@ pub struct DatamigrationProjectsLocationsConversionWorkspacesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces
@@ -3869,8 +3871,8 @@ pub fn datamigration_projects_locations_conversion_workspaces_list(
 pub fn datamigration_projects_locations_conversion_workspaces_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4013,9 +4015,9 @@ pub struct DatamigrationProjectsLocationsConversionWorkspacesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}
@@ -4216,9 +4218,9 @@ pub fn datamigration_projects_locations_conversion_workspaces_rollback(
 pub fn datamigration_projects_locations_conversion_workspaces_search_background_jobs_builder<R>(
     client: &SimpleHttpClient<R>,
     conversionWorkspace: &String,
-    completedUntilTime: &Option<Option<String>>,
-    maxSize: &Option<Option<String>>,
-    returnMostRecentPerJobType: &Option<Option<String>>,
+    completedUntilTime: &Option<String>,
+    maxSize: &Option<String>,
+    returnMostRecentPerJobType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4370,11 +4372,11 @@ pub struct DatamigrationProjectsLocationsConversionWorkspacesSearchBackgroundJob
     /// Path parameter: conversionWorkspace
     pub conversionWorkspace: String,
     /// Query parameter: completedUntilTime
-    pub completedUntilTime: Option<Option<String>>,
+    pub completedUntilTime: Option<String>,
     /// Query parameter: maxSize
-    pub maxSize: Option<Option<String>>,
+    pub maxSize: Option<String>,
     /// Query parameter: returnMostRecentPerJobType
-    pub returnMostRecentPerJobType: Option<Option<String>>,
+    pub returnMostRecentPerJobType: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:searchBackgroundJobs
@@ -4916,8 +4918,8 @@ pub fn datamigration_projects_locations_conversion_workspaces_test_iam_permissio
 pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    mappingRuleId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    mappingRuleId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5061,9 +5063,9 @@ pub struct DatamigrationProjectsLocationsConversionWorkspacesMappingRulesCreateA
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: mappingRuleId
-    pub mappingRuleId: Option<Option<String>>,
+    pub mappingRuleId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}/mappingRules
@@ -5103,7 +5105,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_crea
 pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5244,7 +5246,7 @@ pub struct DatamigrationProjectsLocationsConversionWorkspacesMappingRulesDeleteA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}/mappingRules/{mappingRulesId}
@@ -5611,8 +5613,8 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_impo
 pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5758,9 +5760,9 @@ pub struct DatamigrationProjectsLocationsConversionWorkspacesMappingRulesListArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}/mappingRules
@@ -5802,8 +5804,8 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_list
 pub fn datamigration_projects_locations_migration_jobs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    migrationJobId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    migrationJobId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5946,9 +5948,9 @@ pub struct DatamigrationProjectsLocationsMigrationJobsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: migrationJobId
-    pub migrationJobId: Option<Option<String>>,
+    pub migrationJobId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/migrationJobs
@@ -5987,8 +5989,8 @@ pub fn datamigration_projects_locations_migration_jobs_create(
 pub fn datamigration_projects_locations_migration_jobs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    force: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6131,9 +6133,9 @@ pub struct DatamigrationProjectsLocationsMigrationJobsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}
@@ -6992,7 +6994,7 @@ pub fn datamigration_projects_locations_migration_jobs_get(
 pub fn datamigration_projects_locations_migration_jobs_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7132,7 +7134,7 @@ pub struct DatamigrationProjectsLocationsMigrationJobsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:getIamPolicy
@@ -7170,10 +7172,10 @@ pub fn datamigration_projects_locations_migration_jobs_get_iam_policy(
 pub fn datamigration_projects_locations_migration_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7324,13 +7326,13 @@ pub struct DatamigrationProjectsLocationsMigrationJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs
@@ -7373,8 +7375,8 @@ pub fn datamigration_projects_locations_migration_jobs_list(
 pub fn datamigration_projects_locations_migration_jobs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7517,9 +7519,9 @@ pub struct DatamigrationProjectsLocationsMigrationJobsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}
@@ -9022,7 +9024,7 @@ pub fn datamigration_projects_locations_migration_jobs_objects_get(
 pub fn datamigration_projects_locations_migration_jobs_objects_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9163,7 +9165,7 @@ pub struct DatamigrationProjectsLocationsMigrationJobsObjectsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects/{objectsId}:getIamPolicy
@@ -9201,8 +9203,8 @@ pub fn datamigration_projects_locations_migration_jobs_objects_get_iam_policy(
 pub fn datamigration_projects_locations_migration_jobs_objects_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9349,9 +9351,9 @@ pub struct DatamigrationProjectsLocationsMigrationJobsObjectsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects
@@ -10378,10 +10380,10 @@ pub fn datamigration_projects_locations_operations_get(
 pub fn datamigration_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10532,13 +10534,13 @@ pub struct DatamigrationProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -10581,10 +10583,10 @@ pub fn datamigration_projects_locations_operations_list(
 pub fn datamigration_projects_locations_private_connections_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    privateConnectionId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    skipValidation: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    privateConnectionId: &Option<String>,
+    requestId: &Option<String>,
+    skipValidation: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10733,13 +10735,13 @@ pub struct DatamigrationProjectsLocationsPrivateConnectionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: privateConnectionId
-    pub privateConnectionId: Option<Option<String>>,
+    pub privateConnectionId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: skipValidation
-    pub skipValidation: Option<Option<String>>,
+    pub skipValidation: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/privateConnections
@@ -10780,7 +10782,7 @@ pub fn datamigration_projects_locations_private_connections_create(
 pub fn datamigration_projects_locations_private_connections_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10920,7 +10922,7 @@ pub struct DatamigrationProjectsLocationsPrivateConnectionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
@@ -11123,7 +11125,7 @@ pub fn datamigration_projects_locations_private_connections_get(
 pub fn datamigration_projects_locations_private_connections_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11263,7 +11265,7 @@ pub struct DatamigrationProjectsLocationsPrivateConnectionsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}:getIamPolicy
@@ -11301,10 +11303,10 @@ pub fn datamigration_projects_locations_private_connections_get_iam_policy(
 pub fn datamigration_projects_locations_private_connections_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11457,13 +11459,13 @@ pub struct DatamigrationProjectsLocationsPrivateConnectionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections

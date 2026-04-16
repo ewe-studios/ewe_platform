@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -353,7 +355,7 @@ pub fn calendar_acl_get(
 pub fn calendar_acl_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
-    sendNotifications: &Option<Option<String>>,
+    sendNotifications: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -493,7 +495,7 @@ pub struct CalendarAclInsertArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: sendNotifications
-    pub sendNotifications: Option<Option<String>>,
+    pub sendNotifications: Option<String>,
 }
 
 /// POST calendars/{calendarId}/acl
@@ -527,10 +529,10 @@ pub fn calendar_acl_insert(
 pub fn calendar_acl_list_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
-    syncToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -679,13 +681,13 @@ pub struct CalendarAclListArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
     /// Query parameter: syncToken
-    pub syncToken: Option<Option<String>>,
+    pub syncToken: Option<String>,
 }
 
 /// GET calendars/{calendarId}/acl
@@ -727,7 +729,7 @@ pub fn calendar_acl_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
     ruleId: &String,
-    sendNotifications: &Option<Option<String>>,
+    sendNotifications: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -869,7 +871,7 @@ pub struct CalendarAclPatchArgs {
     /// Path parameter: ruleId
     pub ruleId: String,
     /// Query parameter: sendNotifications
-    pub sendNotifications: Option<Option<String>>,
+    pub sendNotifications: Option<String>,
 }
 
 /// PATCH calendars/{calendarId}/acl/{ruleId}
@@ -909,7 +911,7 @@ pub fn calendar_acl_update_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
     ruleId: &String,
-    sendNotifications: &Option<Option<String>>,
+    sendNotifications: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1051,7 +1053,7 @@ pub struct CalendarAclUpdateArgs {
     /// Path parameter: ruleId
     pub ruleId: String,
     /// Query parameter: sendNotifications
-    pub sendNotifications: Option<Option<String>>,
+    pub sendNotifications: Option<String>,
 }
 
 /// PUT calendars/{calendarId}/acl/{ruleId}
@@ -1090,10 +1092,10 @@ pub fn calendar_acl_update(
 pub fn calendar_acl_watch_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
-    syncToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1242,13 +1244,13 @@ pub struct CalendarAclWatchArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
     /// Query parameter: syncToken
-    pub syncToken: Option<Option<String>>,
+    pub syncToken: Option<String>,
 }
 
 /// POST calendars/{calendarId}/acl/watch
@@ -1609,7 +1611,7 @@ pub fn calendar_calendar_list_get(
 
 pub fn calendar_calendar_list_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    colorRgbFormat: &Option<Option<String>>,
+    colorRgbFormat: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1746,7 +1748,7 @@ pub fn calendar_calendar_list_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CalendarCalendarListInsertArgs {
     /// Query parameter: colorRgbFormat
-    pub colorRgbFormat: Option<Option<String>>,
+    pub colorRgbFormat: Option<String>,
 }
 
 /// POST users/me/calendarList
@@ -1781,12 +1783,12 @@ pub fn calendar_calendar_list_insert(
 
 pub fn calendar_calendar_list_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    maxResults: &Option<Option<String>>,
-    minAccessRole: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
-    showHidden: &Option<Option<String>>,
-    syncToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    minAccessRole: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
+    showHidden: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1938,17 +1940,17 @@ pub fn calendar_calendar_list_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CalendarCalendarListListArgs {
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: minAccessRole
-    pub minAccessRole: Option<Option<String>>,
+    pub minAccessRole: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
     /// Query parameter: showHidden
-    pub showHidden: Option<Option<String>>,
+    pub showHidden: Option<String>,
     /// Query parameter: syncToken
-    pub syncToken: Option<Option<String>>,
+    pub syncToken: Option<String>,
 }
 
 /// GET users/me/calendarList
@@ -1992,7 +1994,7 @@ pub fn calendar_calendar_list_list(
 pub fn calendar_calendar_list_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
-    colorRgbFormat: &Option<Option<String>>,
+    colorRgbFormat: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2134,7 +2136,7 @@ pub struct CalendarCalendarListPatchArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: colorRgbFormat
-    pub colorRgbFormat: Option<Option<String>>,
+    pub colorRgbFormat: Option<String>,
 }
 
 /// PATCH users/me/calendarList/{calendarId}
@@ -2171,7 +2173,7 @@ pub fn calendar_calendar_list_patch(
 pub fn calendar_calendar_list_update_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
-    colorRgbFormat: &Option<Option<String>>,
+    colorRgbFormat: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2313,7 +2315,7 @@ pub struct CalendarCalendarListUpdateArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: colorRgbFormat
-    pub colorRgbFormat: Option<Option<String>>,
+    pub colorRgbFormat: Option<String>,
 }
 
 /// PUT users/me/calendarList/{calendarId}
@@ -2349,12 +2351,12 @@ pub fn calendar_calendar_list_update(
 
 pub fn calendar_calendar_list_watch_builder<R>(
     client: &SimpleHttpClient<R>,
-    maxResults: &Option<Option<String>>,
-    minAccessRole: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
-    showHidden: &Option<Option<String>>,
-    syncToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    minAccessRole: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
+    showHidden: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2505,17 +2507,17 @@ pub fn calendar_calendar_list_watch_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CalendarCalendarListWatchArgs {
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: minAccessRole
-    pub minAccessRole: Option<Option<String>>,
+    pub minAccessRole: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
     /// Query parameter: showHidden
-    pub showHidden: Option<Option<String>>,
+    pub showHidden: Option<String>,
     /// Query parameter: syncToken
-    pub syncToken: Option<Option<String>>,
+    pub syncToken: Option<String>,
 }
 
 /// POST users/me/calendarList/watch
@@ -3793,8 +3795,8 @@ pub fn calendar_events_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
     eventId: &String,
-    sendNotifications: &Option<Option<String>>,
-    sendUpdates: &Option<Option<String>>,
+    sendNotifications: &Option<String>,
+    sendUpdates: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3936,9 +3938,9 @@ pub struct CalendarEventsDeleteArgs {
     /// Path parameter: eventId
     pub eventId: String,
     /// Query parameter: sendNotifications
-    pub sendNotifications: Option<Option<String>>,
+    pub sendNotifications: Option<String>,
     /// Query parameter: sendUpdates
-    pub sendUpdates: Option<Option<String>>,
+    pub sendUpdates: Option<String>,
 }
 
 /// DELETE calendars/{calendarId}/events/{eventId}
@@ -3979,9 +3981,9 @@ pub fn calendar_events_get_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
     eventId: &String,
-    alwaysIncludeEmail: &Option<Option<String>>,
-    maxAttendees: &Option<Option<String>>,
-    timeZone: &Option<Option<String>>,
+    alwaysIncludeEmail: &Option<String>,
+    maxAttendees: &Option<String>,
+    timeZone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4129,11 +4131,11 @@ pub struct CalendarEventsGetArgs {
     /// Path parameter: eventId
     pub eventId: String,
     /// Query parameter: alwaysIncludeEmail
-    pub alwaysIncludeEmail: Option<Option<String>>,
+    pub alwaysIncludeEmail: Option<String>,
     /// Query parameter: maxAttendees
-    pub maxAttendees: Option<Option<String>>,
+    pub maxAttendees: Option<String>,
     /// Query parameter: timeZone
-    pub timeZone: Option<Option<String>>,
+    pub timeZone: Option<String>,
 }
 
 /// GET calendars/{calendarId}/events/{eventId}
@@ -4174,8 +4176,8 @@ pub fn calendar_events_get(
 pub fn calendar_events_import_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
-    conferenceDataVersion: &Option<Option<String>>,
-    supportsAttachments: &Option<Option<String>>,
+    conferenceDataVersion: &Option<String>,
+    supportsAttachments: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4318,9 +4320,9 @@ pub struct CalendarEventsImportArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: conferenceDataVersion
-    pub conferenceDataVersion: Option<Option<String>>,
+    pub conferenceDataVersion: Option<String>,
     /// Query parameter: supportsAttachments
-    pub supportsAttachments: Option<Option<String>>,
+    pub supportsAttachments: Option<String>,
 }
 
 /// POST calendars/{calendarId}/events/import
@@ -4359,11 +4361,11 @@ pub fn calendar_events_import(
 pub fn calendar_events_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
-    conferenceDataVersion: &Option<Option<String>>,
-    maxAttendees: &Option<Option<String>>,
-    sendNotifications: &Option<Option<String>>,
-    sendUpdates: &Option<Option<String>>,
-    supportsAttachments: &Option<Option<String>>,
+    conferenceDataVersion: &Option<String>,
+    maxAttendees: &Option<String>,
+    sendNotifications: &Option<String>,
+    sendUpdates: &Option<String>,
+    supportsAttachments: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4515,15 +4517,15 @@ pub struct CalendarEventsInsertArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: conferenceDataVersion
-    pub conferenceDataVersion: Option<Option<String>>,
+    pub conferenceDataVersion: Option<String>,
     /// Query parameter: maxAttendees
-    pub maxAttendees: Option<Option<String>>,
+    pub maxAttendees: Option<String>,
     /// Query parameter: sendNotifications
-    pub sendNotifications: Option<Option<String>>,
+    pub sendNotifications: Option<String>,
     /// Query parameter: sendUpdates
-    pub sendUpdates: Option<Option<String>>,
+    pub sendUpdates: Option<String>,
     /// Query parameter: supportsAttachments
-    pub supportsAttachments: Option<Option<String>>,
+    pub supportsAttachments: Option<String>,
 }
 
 /// POST calendars/{calendarId}/events
@@ -4566,15 +4568,15 @@ pub fn calendar_events_instances_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
     eventId: &String,
-    alwaysIncludeEmail: &Option<Option<String>>,
-    maxAttendees: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    originalStart: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
-    timeMax: &Option<Option<String>>,
-    timeMin: &Option<Option<String>>,
-    timeZone: &Option<Option<String>>,
+    alwaysIncludeEmail: &Option<String>,
+    maxAttendees: &Option<String>,
+    maxResults: &Option<String>,
+    originalStart: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
+    timeMax: &Option<String>,
+    timeMin: &Option<String>,
+    timeZone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4740,23 +4742,23 @@ pub struct CalendarEventsInstancesArgs {
     /// Path parameter: eventId
     pub eventId: String,
     /// Query parameter: alwaysIncludeEmail
-    pub alwaysIncludeEmail: Option<Option<String>>,
+    pub alwaysIncludeEmail: Option<String>,
     /// Query parameter: maxAttendees
-    pub maxAttendees: Option<Option<String>>,
+    pub maxAttendees: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: originalStart
-    pub originalStart: Option<Option<String>>,
+    pub originalStart: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
     /// Query parameter: timeMax
-    pub timeMax: Option<Option<String>>,
+    pub timeMax: Option<String>,
     /// Query parameter: timeMin
-    pub timeMin: Option<Option<String>>,
+    pub timeMin: Option<String>,
     /// Query parameter: timeZone
-    pub timeZone: Option<Option<String>>,
+    pub timeZone: Option<String>,
 }
 
 /// GET calendars/{calendarId}/events/{eventId}/instances
@@ -4803,24 +4805,24 @@ pub fn calendar_events_instances(
 pub fn calendar_events_list_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
-    alwaysIncludeEmail: &Option<Option<String>>,
-    eventTypes: &Option<Option<String>>,
-    iCalUID: &Option<Option<String>>,
-    maxAttendees: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    privateExtendedProperty: &Option<Option<String>>,
-    q: &Option<Option<String>>,
-    sharedExtendedProperty: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
-    showHiddenInvitations: &Option<Option<String>>,
-    singleEvents: &Option<Option<String>>,
-    syncToken: &Option<Option<String>>,
-    timeMax: &Option<Option<String>>,
-    timeMin: &Option<Option<String>>,
-    timeZone: &Option<Option<String>>,
-    updatedMin: &Option<Option<String>>,
+    alwaysIncludeEmail: &Option<String>,
+    eventTypes: &Option<String>,
+    iCalUID: &Option<String>,
+    maxAttendees: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    privateExtendedProperty: &Option<String>,
+    q: &Option<String>,
+    sharedExtendedProperty: &Option<String>,
+    showDeleted: &Option<String>,
+    showHiddenInvitations: &Option<String>,
+    singleEvents: &Option<String>,
+    syncToken: &Option<String>,
+    timeMax: &Option<String>,
+    timeMin: &Option<String>,
+    timeZone: &Option<String>,
+    updatedMin: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5011,41 +5013,41 @@ pub struct CalendarEventsListArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: alwaysIncludeEmail
-    pub alwaysIncludeEmail: Option<Option<String>>,
+    pub alwaysIncludeEmail: Option<String>,
     /// Query parameter: eventTypes
-    pub eventTypes: Option<Option<String>>,
+    pub eventTypes: Option<String>,
     /// Query parameter: iCalUID
-    pub iCalUID: Option<Option<String>>,
+    pub iCalUID: Option<String>,
     /// Query parameter: maxAttendees
-    pub maxAttendees: Option<Option<String>>,
+    pub maxAttendees: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: privateExtendedProperty
-    pub privateExtendedProperty: Option<Option<String>>,
+    pub privateExtendedProperty: Option<String>,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
     /// Query parameter: sharedExtendedProperty
-    pub sharedExtendedProperty: Option<Option<String>>,
+    pub sharedExtendedProperty: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
     /// Query parameter: showHiddenInvitations
-    pub showHiddenInvitations: Option<Option<String>>,
+    pub showHiddenInvitations: Option<String>,
     /// Query parameter: singleEvents
-    pub singleEvents: Option<Option<String>>,
+    pub singleEvents: Option<String>,
     /// Query parameter: syncToken
-    pub syncToken: Option<Option<String>>,
+    pub syncToken: Option<String>,
     /// Query parameter: timeMax
-    pub timeMax: Option<Option<String>>,
+    pub timeMax: Option<String>,
     /// Query parameter: timeMin
-    pub timeMin: Option<Option<String>>,
+    pub timeMin: Option<String>,
     /// Query parameter: timeZone
-    pub timeZone: Option<Option<String>>,
+    pub timeZone: Option<String>,
     /// Query parameter: updatedMin
-    pub updatedMin: Option<Option<String>>,
+    pub updatedMin: Option<String>,
 }
 
 /// GET calendars/{calendarId}/events
@@ -5101,9 +5103,9 @@ pub fn calendar_events_move_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
     eventId: &String,
-    destination: &Option<Option<String>>,
-    sendNotifications: &Option<Option<String>>,
-    sendUpdates: &Option<Option<String>>,
+    destination: &Option<String>,
+    sendNotifications: &Option<String>,
+    sendUpdates: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5251,11 +5253,11 @@ pub struct CalendarEventsMoveArgs {
     /// Path parameter: eventId
     pub eventId: String,
     /// Query parameter: destination
-    pub destination: Option<Option<String>>,
+    pub destination: Option<String>,
     /// Query parameter: sendNotifications
-    pub sendNotifications: Option<Option<String>>,
+    pub sendNotifications: Option<String>,
     /// Query parameter: sendUpdates
-    pub sendUpdates: Option<Option<String>>,
+    pub sendUpdates: Option<String>,
 }
 
 /// POST calendars/{calendarId}/events/{eventId}/move
@@ -5297,12 +5299,12 @@ pub fn calendar_events_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
     eventId: &String,
-    alwaysIncludeEmail: &Option<Option<String>>,
-    conferenceDataVersion: &Option<Option<String>>,
-    maxAttendees: &Option<Option<String>>,
-    sendNotifications: &Option<Option<String>>,
-    sendUpdates: &Option<Option<String>>,
-    supportsAttachments: &Option<Option<String>>,
+    alwaysIncludeEmail: &Option<String>,
+    conferenceDataVersion: &Option<String>,
+    maxAttendees: &Option<String>,
+    sendNotifications: &Option<String>,
+    sendUpdates: &Option<String>,
+    supportsAttachments: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5459,17 +5461,17 @@ pub struct CalendarEventsPatchArgs {
     /// Path parameter: eventId
     pub eventId: String,
     /// Query parameter: alwaysIncludeEmail
-    pub alwaysIncludeEmail: Option<Option<String>>,
+    pub alwaysIncludeEmail: Option<String>,
     /// Query parameter: conferenceDataVersion
-    pub conferenceDataVersion: Option<Option<String>>,
+    pub conferenceDataVersion: Option<String>,
     /// Query parameter: maxAttendees
-    pub maxAttendees: Option<Option<String>>,
+    pub maxAttendees: Option<String>,
     /// Query parameter: sendNotifications
-    pub sendNotifications: Option<Option<String>>,
+    pub sendNotifications: Option<String>,
     /// Query parameter: sendUpdates
-    pub sendUpdates: Option<Option<String>>,
+    pub sendUpdates: Option<String>,
     /// Query parameter: supportsAttachments
-    pub supportsAttachments: Option<Option<String>>,
+    pub supportsAttachments: Option<String>,
 }
 
 /// PATCH calendars/{calendarId}/events/{eventId}
@@ -5513,9 +5515,9 @@ pub fn calendar_events_patch(
 pub fn calendar_events_quick_add_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
-    sendNotifications: &Option<Option<String>>,
-    sendUpdates: &Option<Option<String>>,
-    text: &Option<Option<String>>,
+    sendNotifications: &Option<String>,
+    sendUpdates: &Option<String>,
+    text: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5661,11 +5663,11 @@ pub struct CalendarEventsQuickAddArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: sendNotifications
-    pub sendNotifications: Option<Option<String>>,
+    pub sendNotifications: Option<String>,
     /// Query parameter: sendUpdates
-    pub sendUpdates: Option<Option<String>>,
+    pub sendUpdates: Option<String>,
     /// Query parameter: text
-    pub text: Option<Option<String>>,
+    pub text: Option<String>,
 }
 
 /// POST calendars/{calendarId}/events/quickAdd
@@ -5706,12 +5708,12 @@ pub fn calendar_events_update_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
     eventId: &String,
-    alwaysIncludeEmail: &Option<Option<String>>,
-    conferenceDataVersion: &Option<Option<String>>,
-    maxAttendees: &Option<Option<String>>,
-    sendNotifications: &Option<Option<String>>,
-    sendUpdates: &Option<Option<String>>,
-    supportsAttachments: &Option<Option<String>>,
+    alwaysIncludeEmail: &Option<String>,
+    conferenceDataVersion: &Option<String>,
+    maxAttendees: &Option<String>,
+    sendNotifications: &Option<String>,
+    sendUpdates: &Option<String>,
+    supportsAttachments: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5868,17 +5870,17 @@ pub struct CalendarEventsUpdateArgs {
     /// Path parameter: eventId
     pub eventId: String,
     /// Query parameter: alwaysIncludeEmail
-    pub alwaysIncludeEmail: Option<Option<String>>,
+    pub alwaysIncludeEmail: Option<String>,
     /// Query parameter: conferenceDataVersion
-    pub conferenceDataVersion: Option<Option<String>>,
+    pub conferenceDataVersion: Option<String>,
     /// Query parameter: maxAttendees
-    pub maxAttendees: Option<Option<String>>,
+    pub maxAttendees: Option<String>,
     /// Query parameter: sendNotifications
-    pub sendNotifications: Option<Option<String>>,
+    pub sendNotifications: Option<String>,
     /// Query parameter: sendUpdates
-    pub sendUpdates: Option<Option<String>>,
+    pub sendUpdates: Option<String>,
     /// Query parameter: supportsAttachments
-    pub supportsAttachments: Option<Option<String>>,
+    pub supportsAttachments: Option<String>,
 }
 
 /// PUT calendars/{calendarId}/events/{eventId}
@@ -5922,24 +5924,24 @@ pub fn calendar_events_update(
 pub fn calendar_events_watch_builder<R>(
     client: &SimpleHttpClient<R>,
     calendarId: &String,
-    alwaysIncludeEmail: &Option<Option<String>>,
-    eventTypes: &Option<Option<String>>,
-    iCalUID: &Option<Option<String>>,
-    maxAttendees: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    privateExtendedProperty: &Option<Option<String>>,
-    q: &Option<Option<String>>,
-    sharedExtendedProperty: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
-    showHiddenInvitations: &Option<Option<String>>,
-    singleEvents: &Option<Option<String>>,
-    syncToken: &Option<Option<String>>,
-    timeMax: &Option<Option<String>>,
-    timeMin: &Option<Option<String>>,
-    timeZone: &Option<Option<String>>,
-    updatedMin: &Option<Option<String>>,
+    alwaysIncludeEmail: &Option<String>,
+    eventTypes: &Option<String>,
+    iCalUID: &Option<String>,
+    maxAttendees: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    privateExtendedProperty: &Option<String>,
+    q: &Option<String>,
+    sharedExtendedProperty: &Option<String>,
+    showDeleted: &Option<String>,
+    showHiddenInvitations: &Option<String>,
+    singleEvents: &Option<String>,
+    syncToken: &Option<String>,
+    timeMax: &Option<String>,
+    timeMin: &Option<String>,
+    timeZone: &Option<String>,
+    updatedMin: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6130,41 +6132,41 @@ pub struct CalendarEventsWatchArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: alwaysIncludeEmail
-    pub alwaysIncludeEmail: Option<Option<String>>,
+    pub alwaysIncludeEmail: Option<String>,
     /// Query parameter: eventTypes
-    pub eventTypes: Option<Option<String>>,
+    pub eventTypes: Option<String>,
     /// Query parameter: iCalUID
-    pub iCalUID: Option<Option<String>>,
+    pub iCalUID: Option<String>,
     /// Query parameter: maxAttendees
-    pub maxAttendees: Option<Option<String>>,
+    pub maxAttendees: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: privateExtendedProperty
-    pub privateExtendedProperty: Option<Option<String>>,
+    pub privateExtendedProperty: Option<String>,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
     /// Query parameter: sharedExtendedProperty
-    pub sharedExtendedProperty: Option<Option<String>>,
+    pub sharedExtendedProperty: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
     /// Query parameter: showHiddenInvitations
-    pub showHiddenInvitations: Option<Option<String>>,
+    pub showHiddenInvitations: Option<String>,
     /// Query parameter: singleEvents
-    pub singleEvents: Option<Option<String>>,
+    pub singleEvents: Option<String>,
     /// Query parameter: syncToken
-    pub syncToken: Option<Option<String>>,
+    pub syncToken: Option<String>,
     /// Query parameter: timeMax
-    pub timeMax: Option<Option<String>>,
+    pub timeMax: Option<String>,
     /// Query parameter: timeMin
-    pub timeMin: Option<Option<String>>,
+    pub timeMin: Option<String>,
     /// Query parameter: timeZone
-    pub timeZone: Option<Option<String>>,
+    pub timeZone: Option<String>,
     /// Query parameter: updatedMin
-    pub updatedMin: Option<Option<String>>,
+    pub updatedMin: Option<String>,
 }
 
 /// POST calendars/{calendarId}/events/watch
@@ -6530,9 +6532,9 @@ pub fn calendar_settings_get(
 
 pub fn calendar_settings_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    syncToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6673,11 +6675,11 @@ pub fn calendar_settings_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CalendarSettingsListArgs {
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: syncToken
-    pub syncToken: Option<Option<String>>,
+    pub syncToken: Option<String>,
 }
 
 /// GET users/me/settings
@@ -6711,9 +6713,9 @@ pub fn calendar_settings_list(
 
 pub fn calendar_settings_watch_builder<R>(
     client: &SimpleHttpClient<R>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    syncToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    syncToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6854,11 +6856,11 @@ pub fn calendar_settings_watch_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CalendarSettingsWatchArgs {
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: syncToken
-    pub syncToken: Option<Option<String>>,
+    pub syncToken: Option<String>,
 }
 
 /// POST users/me/settings/watch
@@ -7200,29 +7202,6 @@ impl ResourceIdentifier<CalendarCalendarsGetArgs> for Calendar {
 // ResourceIdentifier implementation for Calendar
 // =============================================================================
 
-/// ResourceIdentifier implementation for Calendar with CalendarCalendarsInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CalendarCalendarsInsertArgs> for Calendar {
-    fn generate_resource_id(&self, input: &CalendarCalendarsInsertArgs) -> String {
-        "gcp::calendar::Calendar".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::calendar::Calendar"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Calendar
-// =============================================================================
-
 /// ResourceIdentifier implementation for Calendar with CalendarCalendarsPatchArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -7258,29 +7237,6 @@ impl ResourceIdentifier<CalendarCalendarsUpdateArgs> for Calendar {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::calendar::Calendar"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Colors
-// =============================================================================
-
-/// ResourceIdentifier implementation for Colors with CalendarColorsGetArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CalendarColorsGetArgs> for Colors {
-    fn generate_resource_id(&self, input: &CalendarColorsGetArgs) -> String {
-        "gcp::calendar::Colors".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::calendar::Colors"
     }
 
     fn provider(&self) -> &'static str {
@@ -7526,29 +7482,6 @@ impl ResourceIdentifier<CalendarEventsWatchArgs> for Channel {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::calendar::Channel"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for FreeBusyResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for FreeBusyResponse with CalendarFreebusyQueryArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CalendarFreebusyQueryArgs> for FreeBusyResponse {
-    fn generate_resource_id(&self, input: &CalendarFreebusyQueryArgs) -> String {
-        "gcp::calendar::FreeBusyResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::calendar::FreeBusyResponse"
     }
 
     fn provider(&self) -> &'static str {

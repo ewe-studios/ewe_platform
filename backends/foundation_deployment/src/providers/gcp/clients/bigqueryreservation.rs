@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -195,9 +197,9 @@ pub fn bigqueryreservation_projects_locations_get_bi_reservation(
 pub fn bigqueryreservation_projects_locations_search_all_assignments_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -347,11 +349,11 @@ pub struct BigqueryreservationProjectsLocationsSearchAllAssignmentsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchAllAssignments
@@ -395,9 +397,9 @@ pub fn bigqueryreservation_projects_locations_search_all_assignments(
 pub fn bigqueryreservation_projects_locations_search_assignments_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -545,11 +547,11 @@ pub struct BigqueryreservationProjectsLocationsSearchAssignmentsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchAssignments
@@ -591,7 +593,7 @@ pub fn bigqueryreservation_projects_locations_search_assignments(
 pub fn bigqueryreservation_projects_locations_update_bi_reservation_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -733,7 +735,7 @@ pub struct BigqueryreservationProjectsLocationsUpdateBiReservationArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/biReservation
@@ -773,8 +775,8 @@ pub fn bigqueryreservation_projects_locations_update_bi_reservation(
 pub fn bigqueryreservation_projects_locations_capacity_commitments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    capacityCommitmentId: &Option<Option<String>>,
-    enforceSingleAdminProjectPerOrg: &Option<Option<String>>,
+    capacityCommitmentId: &Option<String>,
+    enforceSingleAdminProjectPerOrg: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -919,9 +921,9 @@ pub struct BigqueryreservationProjectsLocationsCapacityCommitmentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: capacityCommitmentId
-    pub capacityCommitmentId: Option<Option<String>>,
+    pub capacityCommitmentId: Option<String>,
     /// Query parameter: enforceSingleAdminProjectPerOrg
-    pub enforceSingleAdminProjectPerOrg: Option<Option<String>>,
+    pub enforceSingleAdminProjectPerOrg: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/capacityCommitments
@@ -962,7 +964,7 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_create(
 pub fn bigqueryreservation_projects_locations_capacity_commitments_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1102,7 +1104,7 @@ pub struct BigqueryreservationProjectsLocationsCapacityCommitmentsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/capacityCommitments/{capacityCommitmentsId}
@@ -1306,8 +1308,8 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_get(
 pub fn bigqueryreservation_projects_locations_capacity_commitments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1454,9 +1456,9 @@ pub struct BigqueryreservationProjectsLocationsCapacityCommitmentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/capacityCommitments
@@ -1666,7 +1668,7 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_merge(
 pub fn bigqueryreservation_projects_locations_capacity_commitments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1808,7 +1810,7 @@ pub struct BigqueryreservationProjectsLocationsCapacityCommitmentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/capacityCommitments/{capacityCommitmentsId}
@@ -2018,7 +2020,7 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_split(
 pub fn bigqueryreservation_projects_locations_reservation_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    reservationGroupId: &Option<Option<String>>,
+    reservationGroupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2160,7 +2162,7 @@ pub struct BigqueryreservationProjectsLocationsReservationGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: reservationGroupId
-    pub reservationGroupId: Option<Option<String>>,
+    pub reservationGroupId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservationGroups
@@ -2527,8 +2529,8 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_get(
 pub fn bigqueryreservation_projects_locations_reservation_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2675,9 +2677,9 @@ pub struct BigqueryreservationProjectsLocationsReservationGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservationGroups
@@ -2720,7 +2722,7 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_list(
 pub fn bigqueryreservation_projects_locations_reservations_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    reservationId: &Option<Option<String>>,
+    reservationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2860,7 +2862,7 @@ pub struct BigqueryreservationProjectsLocationsReservationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: reservationId
-    pub reservationId: Option<Option<String>>,
+    pub reservationId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations
@@ -3383,7 +3385,7 @@ pub fn bigqueryreservation_projects_locations_reservations_get(
 pub fn bigqueryreservation_projects_locations_reservations_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3523,7 +3525,7 @@ pub struct BigqueryreservationProjectsLocationsReservationsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}:getIamPolicy
@@ -3561,8 +3563,8 @@ pub fn bigqueryreservation_projects_locations_reservations_get_iam_policy(
 pub fn bigqueryreservation_projects_locations_reservations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3707,9 +3709,9 @@ pub struct BigqueryreservationProjectsLocationsReservationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations
@@ -3750,7 +3752,7 @@ pub fn bigqueryreservation_projects_locations_reservations_list(
 pub fn bigqueryreservation_projects_locations_reservations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3890,7 +3892,7 @@ pub struct BigqueryreservationProjectsLocationsReservationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}
@@ -4263,7 +4265,7 @@ pub fn bigqueryreservation_projects_locations_reservations_test_iam_permissions(
 pub fn bigqueryreservation_projects_locations_reservations_assignments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    assignmentId: &Option<Option<String>>,
+    assignmentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4404,7 +4406,7 @@ pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsCreateArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: assignmentId
-    pub assignmentId: Option<Option<String>>,
+    pub assignmentId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments
@@ -4605,7 +4607,7 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_delete(
 pub fn bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4747,7 +4749,7 @@ pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsGetIamPoli
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:getIamPolicy
@@ -4786,8 +4788,8 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_get_iam_p
 pub fn bigqueryreservation_projects_locations_reservations_assignments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4932,9 +4934,9 @@ pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments
@@ -5137,7 +5139,7 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_move(
 pub fn bigqueryreservation_projects_locations_reservations_assignments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5277,7 +5279,7 @@ pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsPatchArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}

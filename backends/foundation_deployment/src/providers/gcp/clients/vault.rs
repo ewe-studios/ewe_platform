@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -817,7 +819,7 @@ pub fn vault_matters_delete(
 pub fn vault_matters_get_builder<R>(
     client: &SimpleHttpClient<R>,
     matterId: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -954,7 +956,7 @@ pub struct VaultMattersGetArgs {
     /// Path parameter: matterId
     pub matterId: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/matters/{matterId}
@@ -987,10 +989,10 @@ pub fn vault_matters_get(
 
 pub fn vault_matters_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    state: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    state: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1136,13 +1138,13 @@ pub fn vault_matters_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VaultMattersListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: state
-    pub state: Option<Option<String>>,
+    pub state: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/matters
@@ -2311,8 +2313,8 @@ pub fn vault_matters_exports_get(
 pub fn vault_matters_exports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     matterId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2457,9 +2459,9 @@ pub struct VaultMattersExportsListArgs {
     /// Path parameter: matterId
     pub matterId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/matters/{matterId}/exports
@@ -2989,7 +2991,7 @@ pub fn vault_matters_holds_get_builder<R>(
     client: &SimpleHttpClient<R>,
     matterId: &String,
     holdId: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3131,7 +3133,7 @@ pub struct VaultMattersHoldsGetArgs {
     /// Path parameter: holdId
     pub holdId: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/matters/{matterId}/holds/{holdId}
@@ -3166,9 +3168,9 @@ pub fn vault_matters_holds_get(
 pub fn vault_matters_holds_list_builder<R>(
     client: &SimpleHttpClient<R>,
     matterId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3313,11 +3315,11 @@ pub struct VaultMattersHoldsListArgs {
     /// Path parameter: matterId
     pub matterId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/matters/{matterId}/holds
@@ -4684,8 +4686,8 @@ pub fn vault_matters_saved_queries_get(
 pub fn vault_matters_saved_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     matterId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4830,9 +4832,9 @@ pub struct VaultMattersSavedQueriesListArgs {
     /// Path parameter: matterId
     pub matterId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/matters/{matterId}/savedQueries
@@ -5343,10 +5345,10 @@ pub fn vault_operations_get(
 
 pub fn vault_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5492,13 +5494,13 @@ pub fn vault_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VaultOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/operations
@@ -5593,29 +5595,6 @@ impl ResourceIdentifier<VaultMattersCountArgs> for Operation {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::vault::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Matter
-// =============================================================================
-
-/// ResourceIdentifier implementation for Matter with VaultMattersCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<VaultMattersCreateArgs> for Matter {
-    fn generate_resource_id(&self, input: &VaultMattersCreateArgs) -> String {
-        "gcp::vault::Matter".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::vault::Matter"
     }
 
     fn provider(&self) -> &'static str {

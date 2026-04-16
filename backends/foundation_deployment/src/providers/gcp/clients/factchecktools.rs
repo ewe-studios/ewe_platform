@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,11 +31,11 @@ use serde::Serialize;
 
 pub fn factchecktools_claims_image_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    imageUri: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    offset: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    imageUri: &Option<String>,
+    languageCode: &Option<String>,
+    offset: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -190,15 +192,15 @@ pub fn factchecktools_claims_image_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FactchecktoolsClaimsImageSearchArgs {
     /// Query parameter: imageUri
-    pub imageUri: Option<Option<String>>,
+    pub imageUri: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: offset
-    pub offset: Option<Option<String>>,
+    pub offset: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/claims:imageSearch
@@ -247,13 +249,13 @@ pub fn factchecktools_claims_image_search(
 
 pub fn factchecktools_claims_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    languageCode: &Option<Option<String>>,
-    maxAgeDays: &Option<Option<String>>,
-    offset: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    reviewPublisherSiteFilter: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    maxAgeDays: &Option<String>,
+    offset: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    reviewPublisherSiteFilter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -416,19 +418,19 @@ pub fn factchecktools_claims_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FactchecktoolsClaimsSearchArgs {
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: maxAgeDays
-    pub maxAgeDays: Option<Option<String>>,
+    pub maxAgeDays: Option<String>,
     /// Query parameter: offset
-    pub offset: Option<Option<String>>,
+    pub offset: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: reviewPublisherSiteFilter
-    pub reviewPublisherSiteFilter: Option<Option<String>>,
+    pub reviewPublisherSiteFilter: Option<String>,
 }
 
 /// GET v1alpha1/claims:search
@@ -985,11 +987,11 @@ pub fn factchecktools_pages_get(
 
 pub fn factchecktools_pages_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    offset: &Option<Option<String>>,
-    organization: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    url: &Option<Option<String>>,
+    offset: &Option<String>,
+    organization: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    url: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1145,15 +1147,15 @@ pub fn factchecktools_pages_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FactchecktoolsPagesListArgs {
     /// Query parameter: offset
-    pub offset: Option<Option<String>>,
+    pub offset: Option<String>,
     /// Query parameter: organization
-    pub organization: Option<Option<String>>,
+    pub organization: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: url
-    pub url: Option<Option<String>>,
+    pub url: Option<String>,
 }
 
 /// GET v1alpha1/pages
@@ -1415,32 +1417,6 @@ impl ResourceIdentifier<FactchecktoolsClaimsSearchArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::factchecktools::GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimSearchResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage with FactchecktoolsPagesCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<FactchecktoolsPagesCreateArgs>
-    for GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage
-{
-    fn generate_resource_id(&self, input: &FactchecktoolsPagesCreateArgs) -> String {
-        "gcp::factchecktools::GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage"
-            .to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::factchecktools::GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage"
     }
 
     fn provider(&self) -> &'static str {

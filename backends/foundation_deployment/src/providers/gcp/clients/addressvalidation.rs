@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -346,58 +348,4 @@ pub fn addressvalidation_validate_address(
 > {
     let builder = addressvalidation_validate_address_builder(client)?;
     addressvalidation_validate_address_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse with AddressvalidationProvideValidationFeedbackArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AddressvalidationProvideValidationFeedbackArgs>
-    for GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &AddressvalidationProvideValidationFeedbackArgs,
-    ) -> String {
-        "gcp::addressvalidation::GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse"
-            .to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::addressvalidation::GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleMapsAddressvalidationV1ValidateAddressResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleMapsAddressvalidationV1ValidateAddressResponse with AddressvalidationValidateAddressArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AddressvalidationValidateAddressArgs>
-    for GoogleMapsAddressvalidationV1ValidateAddressResponse
-{
-    fn generate_resource_id(&self, input: &AddressvalidationValidateAddressArgs) -> String {
-        "gcp::addressvalidation::GoogleMapsAddressvalidationV1ValidateAddressResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::addressvalidation::GoogleMapsAddressvalidationV1ValidateAddressResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }

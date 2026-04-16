@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -354,7 +356,7 @@ pub fn merchantapi_accounts_merchant_reviews_get(
 pub fn merchantapi_accounts_merchant_reviews_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataSource: &Option<Option<String>>,
+    dataSource: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -496,7 +498,7 @@ pub struct MerchantapiAccountsMerchantReviewsInsertArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataSource
-    pub dataSource: Option<Option<String>>,
+    pub dataSource: Option<String>,
 }
 
 /// POST reviews/v1beta/accounts/{accountsId}/merchantReviews:insert
@@ -536,8 +538,8 @@ pub fn merchantapi_accounts_merchant_reviews_insert(
 pub fn merchantapi_accounts_merchant_reviews_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -684,9 +686,9 @@ pub struct MerchantapiAccountsMerchantReviewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET reviews/v1beta/accounts/{accountsId}/merchantReviews
@@ -1053,7 +1055,7 @@ pub fn merchantapi_accounts_product_reviews_get(
 pub fn merchantapi_accounts_product_reviews_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataSource: &Option<Option<String>>,
+    dataSource: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1195,7 +1197,7 @@ pub struct MerchantapiAccountsProductReviewsInsertArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataSource
-    pub dataSource: Option<Option<String>>,
+    pub dataSource: Option<String>,
 }
 
 /// POST reviews/v1beta/accounts/{accountsId}/productReviews:insert
@@ -1235,8 +1237,8 @@ pub fn merchantapi_accounts_product_reviews_insert(
 pub fn merchantapi_accounts_product_reviews_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1383,9 +1385,9 @@ pub struct MerchantapiAccountsProductReviewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET reviews/v1beta/accounts/{accountsId}/productReviews

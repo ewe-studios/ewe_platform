@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,19 +31,19 @@ use serde::Serialize;
 
 pub fn analytics_data_ga_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    dimensions: &Option<Option<String>>,
-    end_date: &Option<Option<String>>,
-    filters: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    include_empty_rows: &Option<Option<String>>,
-    max_results: &Option<Option<String>>,
-    metrics: &Option<Option<String>>,
-    output: &Option<Option<String>>,
-    samplingLevel: &Option<Option<String>>,
-    segment: &Option<Option<String>>,
-    sort: &Option<Option<String>>,
-    start_date: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    dimensions: &Option<String>,
+    end_date: &Option<String>,
+    filters: &Option<String>,
+    ids: &Option<String>,
+    include_empty_rows: &Option<String>,
+    max_results: &Option<String>,
+    metrics: &Option<String>,
+    output: &Option<String>,
+    samplingLevel: &Option<String>,
+    segment: &Option<String>,
+    sort: &Option<String>,
+    start_date: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -212,31 +214,31 @@ pub fn analytics_data_ga_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AnalyticsDataGaGetArgs {
     /// Query parameter: dimensions
-    pub dimensions: Option<Option<String>>,
+    pub dimensions: Option<String>,
     /// Query parameter: end_date
-    pub end_date: Option<Option<String>>,
+    pub end_date: Option<String>,
     /// Query parameter: filters
-    pub filters: Option<Option<String>>,
+    pub filters: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: include_empty_rows
-    pub include_empty_rows: Option<Option<String>>,
+    pub include_empty_rows: Option<String>,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: metrics
-    pub metrics: Option<Option<String>>,
+    pub metrics: Option<String>,
     /// Query parameter: output
-    pub output: Option<Option<String>>,
+    pub output: Option<String>,
     /// Query parameter: samplingLevel
-    pub samplingLevel: Option<Option<String>>,
+    pub samplingLevel: Option<String>,
     /// Query parameter: segment
-    pub segment: Option<Option<String>>,
+    pub segment: Option<String>,
     /// Query parameter: sort
-    pub sort: Option<Option<String>>,
+    pub sort: Option<String>,
     /// Query parameter: start_date
-    pub start_date: Option<Option<String>>,
+    pub start_date: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET data/ga
@@ -284,16 +286,16 @@ pub fn analytics_data_ga_get(
 
 pub fn analytics_data_mcf_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    dimensions: &Option<Option<String>>,
-    end_date: &Option<Option<String>>,
-    filters: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    max_results: &Option<Option<String>>,
-    metrics: &Option<Option<String>>,
-    samplingLevel: &Option<Option<String>>,
-    sort: &Option<Option<String>>,
-    start_date: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    dimensions: &Option<String>,
+    end_date: &Option<String>,
+    filters: &Option<String>,
+    ids: &Option<String>,
+    max_results: &Option<String>,
+    metrics: &Option<String>,
+    samplingLevel: &Option<String>,
+    sort: &Option<String>,
+    start_date: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -455,25 +457,25 @@ pub fn analytics_data_mcf_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AnalyticsDataMcfGetArgs {
     /// Query parameter: dimensions
-    pub dimensions: Option<Option<String>>,
+    pub dimensions: Option<String>,
     /// Query parameter: end_date
-    pub end_date: Option<Option<String>>,
+    pub end_date: Option<String>,
     /// Query parameter: filters
-    pub filters: Option<Option<String>>,
+    pub filters: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: metrics
-    pub metrics: Option<Option<String>>,
+    pub metrics: Option<String>,
     /// Query parameter: samplingLevel
-    pub samplingLevel: Option<Option<String>>,
+    pub samplingLevel: Option<String>,
     /// Query parameter: sort
-    pub sort: Option<Option<String>>,
+    pub sort: Option<String>,
     /// Query parameter: start_date
-    pub start_date: Option<Option<String>>,
+    pub start_date: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET data/mcf
@@ -518,12 +520,12 @@ pub fn analytics_data_mcf_get(
 
 pub fn analytics_data_realtime_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    dimensions: &Option<Option<String>>,
-    filters: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    max_results: &Option<Option<String>>,
-    metrics: &Option<Option<String>>,
-    sort: &Option<Option<String>>,
+    dimensions: &Option<String>,
+    filters: &Option<String>,
+    ids: &Option<String>,
+    max_results: &Option<String>,
+    metrics: &Option<String>,
+    sort: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -675,17 +677,17 @@ pub fn analytics_data_realtime_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AnalyticsDataRealtimeGetArgs {
     /// Query parameter: dimensions
-    pub dimensions: Option<Option<String>>,
+    pub dimensions: Option<String>,
     /// Query parameter: filters
-    pub filters: Option<Option<String>>,
+    pub filters: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: metrics
-    pub metrics: Option<Option<String>>,
+    pub metrics: Option<String>,
     /// Query parameter: sort
-    pub sort: Option<Option<String>>,
+    pub sort: Option<String>,
 }
 
 /// GET data/realtime
@@ -728,8 +730,8 @@ pub fn analytics_data_realtime_get(
 
 pub fn analytics_management_account_summaries_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -870,9 +872,9 @@ pub fn analytics_management_account_summaries_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AnalyticsManagementAccountSummariesListArgs {
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accountSummaries
@@ -1240,8 +1242,8 @@ pub fn analytics_management_account_user_links_insert(
 pub fn analytics_management_account_user_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1386,9 +1388,9 @@ pub struct AnalyticsManagementAccountUserLinksListArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/entityUserLinks
@@ -1599,8 +1601,8 @@ pub fn analytics_management_account_user_links_update(
 
 pub fn analytics_management_accounts_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1738,9 +1740,9 @@ pub fn analytics_management_accounts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AnalyticsManagementAccountsListArgs {
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts
@@ -1929,8 +1931,8 @@ pub fn analytics_management_custom_data_sources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
     webPropertyId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2078,9 +2080,9 @@ pub struct AnalyticsManagementCustomDataSourcesListArgs {
     /// Path parameter: webPropertyId
     pub webPropertyId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources
@@ -2472,8 +2474,8 @@ pub fn analytics_management_custom_dimensions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
     webPropertyId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2621,9 +2623,9 @@ pub struct AnalyticsManagementCustomDimensionsListArgs {
     /// Path parameter: webPropertyId
     pub webPropertyId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions
@@ -2667,7 +2669,7 @@ pub fn analytics_management_custom_dimensions_patch_builder<R>(
     accountId: &String,
     webPropertyId: &String,
     customDimensionId: &String,
-    ignoreCustomDataSourceLinks: &Option<Option<String>>,
+    ignoreCustomDataSourceLinks: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2815,7 +2817,7 @@ pub struct AnalyticsManagementCustomDimensionsPatchArgs {
     /// Path parameter: customDimensionId
     pub customDimensionId: String,
     /// Query parameter: ignoreCustomDataSourceLinks
-    pub ignoreCustomDataSourceLinks: Option<Option<String>>,
+    pub ignoreCustomDataSourceLinks: Option<String>,
 }
 
 /// PATCH management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}
@@ -2859,7 +2861,7 @@ pub fn analytics_management_custom_dimensions_update_builder<R>(
     accountId: &String,
     webPropertyId: &String,
     customDimensionId: &String,
-    ignoreCustomDataSourceLinks: &Option<Option<String>>,
+    ignoreCustomDataSourceLinks: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3007,7 +3009,7 @@ pub struct AnalyticsManagementCustomDimensionsUpdateArgs {
     /// Path parameter: customDimensionId
     pub customDimensionId: String,
     /// Query parameter: ignoreCustomDataSourceLinks
-    pub ignoreCustomDataSourceLinks: Option<Option<String>>,
+    pub ignoreCustomDataSourceLinks: Option<String>,
 }
 
 /// PUT management/accounts/{accountId}/webproperties/{webPropertyId}/customDimensions/{customDimensionId}
@@ -3399,8 +3401,8 @@ pub fn analytics_management_custom_metrics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
     webPropertyId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3548,9 +3550,9 @@ pub struct AnalyticsManagementCustomMetricsListArgs {
     /// Path parameter: webPropertyId
     pub webPropertyId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics
@@ -3594,7 +3596,7 @@ pub fn analytics_management_custom_metrics_patch_builder<R>(
     accountId: &String,
     webPropertyId: &String,
     customMetricId: &String,
-    ignoreCustomDataSourceLinks: &Option<Option<String>>,
+    ignoreCustomDataSourceLinks: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3742,7 +3744,7 @@ pub struct AnalyticsManagementCustomMetricsPatchArgs {
     /// Path parameter: customMetricId
     pub customMetricId: String,
     /// Query parameter: ignoreCustomDataSourceLinks
-    pub ignoreCustomDataSourceLinks: Option<Option<String>>,
+    pub ignoreCustomDataSourceLinks: Option<String>,
 }
 
 /// PATCH management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
@@ -3786,7 +3788,7 @@ pub fn analytics_management_custom_metrics_update_builder<R>(
     accountId: &String,
     webPropertyId: &String,
     customMetricId: &String,
-    ignoreCustomDataSourceLinks: &Option<Option<String>>,
+    ignoreCustomDataSourceLinks: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3934,7 +3936,7 @@ pub struct AnalyticsManagementCustomMetricsUpdateArgs {
     /// Path parameter: customMetricId
     pub customMetricId: String,
     /// Query parameter: ignoreCustomDataSourceLinks
-    pub ignoreCustomDataSourceLinks: Option<Option<String>>,
+    pub ignoreCustomDataSourceLinks: Option<String>,
 }
 
 /// PUT management/accounts/{accountId}/webproperties/{webPropertyId}/customMetrics/{customMetricId}
@@ -4504,8 +4506,8 @@ pub fn analytics_management_experiments_list_builder<R>(
     accountId: &String,
     webPropertyId: &String,
     profileId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4654,9 +4656,9 @@ pub struct AnalyticsManagementExperimentsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/experiments
@@ -5541,8 +5543,8 @@ pub fn analytics_management_filters_insert(
 pub fn analytics_management_filters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5685,9 +5687,9 @@ pub struct AnalyticsManagementFiltersListArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/filters
@@ -6407,8 +6409,8 @@ pub fn analytics_management_goals_list_builder<R>(
     accountId: &String,
     webPropertyId: &String,
     profileId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6557,9 +6559,9 @@ pub struct AnalyticsManagementGoalsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/goals
@@ -7492,8 +7494,8 @@ pub fn analytics_management_profile_filter_links_list_builder<R>(
     accountId: &String,
     webPropertyId: &String,
     profileId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7644,9 +7646,9 @@ pub struct AnalyticsManagementProfileFilterLinksListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/profileFilterLinks
@@ -8407,8 +8409,8 @@ pub fn analytics_management_profile_user_links_list_builder<R>(
     accountId: &String,
     webPropertyId: &String,
     profileId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8559,9 +8561,9 @@ pub struct AnalyticsManagementProfileUserLinksListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/entityUserLinks
@@ -9294,8 +9296,8 @@ pub fn analytics_management_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
     webPropertyId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9440,9 +9442,9 @@ pub struct AnalyticsManagementProfilesListArgs {
     /// Path parameter: webPropertyId
     pub webPropertyId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles
@@ -10348,9 +10350,9 @@ pub fn analytics_management_remarketing_audience_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
     webPropertyId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10501,11 +10503,11 @@ pub struct AnalyticsManagementRemarketingAudienceListArgs {
     /// Path parameter: webPropertyId
     pub webPropertyId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/remarketingAudiences
@@ -10901,8 +10903,8 @@ pub fn analytics_management_remarketing_audience_update(
 
 pub fn analytics_management_segments_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11040,9 +11042,9 @@ pub fn analytics_management_segments_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AnalyticsManagementSegmentsListArgs {
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/segments
@@ -11613,8 +11615,8 @@ pub fn analytics_management_unsampled_reports_list_builder<R>(
     accountId: &String,
     webPropertyId: &String,
     profileId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11765,9 +11767,9 @@ pub struct AnalyticsManagementUnsampledReportsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/profiles/{profileId}/unsampledReports
@@ -12160,8 +12162,8 @@ pub fn analytics_management_uploads_list_builder<R>(
     accountId: &String,
     webPropertyId: &String,
     customDataSourceId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12310,9 +12312,9 @@ pub struct AnalyticsManagementUploadsListArgs {
     /// Path parameter: customDataSourceId
     pub customDataSourceId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/customDataSources/{customDataSourceId}/uploads
@@ -13046,8 +13048,8 @@ pub fn analytics_management_web_property_ad_words_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
     webPropertyId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13195,9 +13197,9 @@ pub struct AnalyticsManagementWebPropertyAdWordsLinksListArgs {
     /// Path parameter: webPropertyId
     pub webPropertyId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityAdWordsLinks
@@ -13920,8 +13922,8 @@ pub fn analytics_management_webproperties_insert(
 pub fn analytics_management_webproperties_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14066,9 +14068,9 @@ pub struct AnalyticsManagementWebpropertiesListArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties
@@ -14786,8 +14788,8 @@ pub fn analytics_management_webproperty_user_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
     webPropertyId: &String,
-    max_results: &Option<Option<String>>,
-    start_index: &Option<Option<String>>,
+    max_results: &Option<String>,
+    start_index: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14935,9 +14937,9 @@ pub struct AnalyticsManagementWebpropertyUserLinksListArgs {
     /// Path parameter: webPropertyId
     pub webPropertyId: String,
     /// Query parameter: max_results
-    pub max_results: Option<Option<String>>,
+    pub max_results: Option<String>,
     /// Query parameter: start_index
-    pub start_index: Option<Option<String>>,
+    pub start_index: Option<String>,
 }
 
 /// GET management/accounts/{accountId}/webproperties/{webPropertyId}/entityUserLinks
@@ -15953,29 +15955,6 @@ impl ResourceIdentifier<AnalyticsManagementAccountsListArgs> for Accounts {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::analytics::Accounts"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for HashClientIdResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for HashClientIdResponse with AnalyticsManagementClientIdHashClientIdArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AnalyticsManagementClientIdHashClientIdArgs> for HashClientIdResponse {
-    fn generate_resource_id(&self, input: &AnalyticsManagementClientIdHashClientIdArgs) -> String {
-        "gcp::analytics::HashClientIdResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::analytics::HashClientIdResponse"
     }
 
     fn provider(&self) -> &'static str {
@@ -17744,80 +17723,6 @@ impl ResourceIdentifier<AnalyticsMetadataColumnsListArgs> for Columns {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::analytics::Columns"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for AccountTicket
-// =============================================================================
-
-/// ResourceIdentifier implementation for AccountTicket with AnalyticsProvisioningCreateAccountTicketArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AnalyticsProvisioningCreateAccountTicketArgs> for AccountTicket {
-    fn generate_resource_id(&self, input: &AnalyticsProvisioningCreateAccountTicketArgs) -> String {
-        "gcp::analytics::AccountTicket".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::analytics::AccountTicket"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for AccountTreeResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for AccountTreeResponse with AnalyticsProvisioningCreateAccountTreeArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AnalyticsProvisioningCreateAccountTreeArgs> for AccountTreeResponse {
-    fn generate_resource_id(&self, input: &AnalyticsProvisioningCreateAccountTreeArgs) -> String {
-        "gcp::analytics::AccountTreeResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::analytics::AccountTreeResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for UserDeletionRequest
-// =============================================================================
-
-/// ResourceIdentifier implementation for UserDeletionRequest with AnalyticsUserDeletionUserDeletionRequestUpsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AnalyticsUserDeletionUserDeletionRequestUpsertArgs>
-    for UserDeletionRequest
-{
-    fn generate_resource_id(
-        &self,
-        input: &AnalyticsUserDeletionUserDeletionRequestUpsertArgs,
-    ) -> String {
-        "gcp::analytics::UserDeletionRequest".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::analytics::UserDeletionRequest"
     }
 
     fn provider(&self) -> &'static str {

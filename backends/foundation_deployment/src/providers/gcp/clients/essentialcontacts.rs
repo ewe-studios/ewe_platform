@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,9 +32,9 @@ use serde::Serialize;
 pub fn essentialcontacts_folders_contacts_compute_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    notificationCategories: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    notificationCategories: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -189,11 +191,11 @@ pub struct EssentialcontactsFoldersContactsComputeArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: notificationCategories
-    pub notificationCategories: Option<Option<String>>,
+    pub notificationCategories: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/contacts:compute
@@ -740,8 +742,8 @@ pub fn essentialcontacts_folders_contacts_get(
 pub fn essentialcontacts_folders_contacts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -892,9 +894,9 @@ pub struct EssentialcontactsFoldersContactsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/folders/{foldersId}/contacts
@@ -937,7 +939,7 @@ pub fn essentialcontacts_folders_contacts_list(
 pub fn essentialcontacts_folders_contacts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1081,7 +1083,7 @@ pub struct EssentialcontactsFoldersContactsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/folders/{foldersId}/contacts/{contactsId}
@@ -1285,9 +1287,9 @@ pub fn essentialcontacts_folders_contacts_send_test_message(
 pub fn essentialcontacts_organizations_contacts_compute_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    notificationCategories: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    notificationCategories: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1444,11 +1446,11 @@ pub struct EssentialcontactsOrganizationsContactsComputeArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: notificationCategories
-    pub notificationCategories: Option<Option<String>>,
+    pub notificationCategories: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/contacts:compute
@@ -1995,8 +1997,8 @@ pub fn essentialcontacts_organizations_contacts_get(
 pub fn essentialcontacts_organizations_contacts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2147,9 +2149,9 @@ pub struct EssentialcontactsOrganizationsContactsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/contacts
@@ -2192,7 +2194,7 @@ pub fn essentialcontacts_organizations_contacts_list(
 pub fn essentialcontacts_organizations_contacts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2336,7 +2338,7 @@ pub struct EssentialcontactsOrganizationsContactsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/contacts/{contactsId}
@@ -2543,9 +2545,9 @@ pub fn essentialcontacts_organizations_contacts_send_test_message(
 pub fn essentialcontacts_projects_contacts_compute_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    notificationCategories: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    notificationCategories: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2702,11 +2704,11 @@ pub struct EssentialcontactsProjectsContactsComputeArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: notificationCategories
-    pub notificationCategories: Option<Option<String>>,
+    pub notificationCategories: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/contacts:compute
@@ -3253,8 +3255,8 @@ pub fn essentialcontacts_projects_contacts_get(
 pub fn essentialcontacts_projects_contacts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3405,9 +3407,9 @@ pub struct EssentialcontactsProjectsContactsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/contacts
@@ -3450,7 +3452,7 @@ pub fn essentialcontacts_projects_contacts_list(
 pub fn essentialcontacts_projects_contacts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3594,7 +3596,7 @@ pub struct EssentialcontactsProjectsContactsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/contacts/{contactsId}

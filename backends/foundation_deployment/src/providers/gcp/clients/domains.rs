@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn domains_projects_locations_get(
 pub fn domains_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct DomainsProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -553,10 +555,10 @@ pub fn domains_projects_locations_operations_get(
 pub fn domains_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -707,13 +709,13 @@ pub struct DomainsProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -1730,7 +1732,7 @@ pub fn domains_projects_locations_registrations_get(
 pub fn domains_projects_locations_registrations_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1870,7 +1872,7 @@ pub struct DomainsProjectsLocationsRegistrationsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:getIamPolicy
@@ -2231,9 +2233,9 @@ pub fn domains_projects_locations_registrations_initiate_push_transfer(
 pub fn domains_projects_locations_registrations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2381,11 +2383,11 @@ pub struct DomainsProjectsLocationsRegistrationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations
@@ -2427,7 +2429,7 @@ pub fn domains_projects_locations_registrations_list(
 pub fn domains_projects_locations_registrations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2567,7 +2569,7 @@ pub struct DomainsProjectsLocationsRegistrationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
@@ -3260,8 +3262,8 @@ pub fn domains_projects_locations_registrations_retrieve_authorization_code(
 pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_records_builder<R>(
     client: &SimpleHttpClient<R>,
     registration: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3410,9 +3412,9 @@ pub struct DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsDnsRecordsA
     /// Path parameter: registration
     pub registration: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsDnsRecords
@@ -3636,8 +3638,8 @@ pub fn domains_projects_locations_registrations_retrieve_google_domains_forwardi
 pub fn domains_projects_locations_registrations_retrieve_importable_domains_builder<R>(
     client: &SimpleHttpClient<R>,
     location: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3784,9 +3786,9 @@ pub struct DomainsProjectsLocationsRegistrationsRetrieveImportableDomainsArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveImportableDomains
@@ -3829,7 +3831,7 @@ pub fn domains_projects_locations_registrations_retrieve_importable_domains(
 pub fn domains_projects_locations_registrations_retrieve_register_parameters_builder<R>(
     client: &SimpleHttpClient<R>,
     location: &String,
-    domainName: &Option<Option<String>>,
+    domainName: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3973,7 +3975,7 @@ pub struct DomainsProjectsLocationsRegistrationsRetrieveRegisterParametersArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: domainName
-    pub domainName: Option<Option<String>>,
+    pub domainName: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveRegisterParameters
@@ -4015,7 +4017,7 @@ pub fn domains_projects_locations_registrations_retrieve_register_parameters(
 pub fn domains_projects_locations_registrations_retrieve_transfer_parameters_builder<R>(
     client: &SimpleHttpClient<R>,
     location: &String,
-    domainName: &Option<Option<String>>,
+    domainName: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4159,7 +4161,7 @@ pub struct DomainsProjectsLocationsRegistrationsRetrieveTransferParametersArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: domainName
-    pub domainName: Option<Option<String>>,
+    pub domainName: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveTransferParameters
@@ -4201,7 +4203,7 @@ pub fn domains_projects_locations_registrations_retrieve_transfer_parameters(
 pub fn domains_projects_locations_registrations_search_domains_builder<R>(
     client: &SimpleHttpClient<R>,
     location: &String,
-    query: &Option<Option<String>>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4343,7 +4345,7 @@ pub struct DomainsProjectsLocationsRegistrationsSearchDomainsArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:searchDomains

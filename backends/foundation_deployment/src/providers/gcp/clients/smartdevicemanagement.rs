@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -377,7 +379,7 @@ pub fn smartdevicemanagement_enterprises_devices_get(
 pub fn smartdevicemanagement_enterprises_devices_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -522,7 +524,7 @@ pub struct SmartdevicemanagementEnterprisesDevicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
 }
 
 /// GET v1/enterprises/{enterprisesId}/devices
@@ -729,7 +731,7 @@ pub fn smartdevicemanagement_enterprises_structures_get(
 pub fn smartdevicemanagement_enterprises_structures_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -874,7 +876,7 @@ pub struct SmartdevicemanagementEnterprisesStructuresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
 }
 
 /// GET v1/enterprises/{enterprisesId}/structures

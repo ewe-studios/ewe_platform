@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -674,7 +676,7 @@ pub fn firebaserules_projects_releases_get(
 pub fn firebaserules_projects_releases_get_executable_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    executableVersion: &Option<Option<String>>,
+    executableVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -818,7 +820,7 @@ pub struct FirebaserulesProjectsReleasesGetExecutableArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: executableVersion
-    pub executableVersion: Option<Option<String>>,
+    pub executableVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/releases/{releasesId}:getExecutable
@@ -860,9 +862,9 @@ pub fn firebaserules_projects_releases_get_executable(
 pub fn firebaserules_projects_releases_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1010,11 +1012,11 @@ pub struct FirebaserulesProjectsReleasesListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/releases
@@ -1696,9 +1698,9 @@ pub fn firebaserules_projects_rulesets_get(
 pub fn firebaserules_projects_rulesets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1846,11 +1848,11 @@ pub struct FirebaserulesProjectsRulesetsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/rulesets

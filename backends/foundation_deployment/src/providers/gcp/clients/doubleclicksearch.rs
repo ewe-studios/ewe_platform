@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -32,15 +34,15 @@ pub fn doubleclicksearch_conversion_get_builder<R>(
     agencyId: &String,
     advertiserId: &String,
     engineAccountId: &String,
-    adGroupId: &Option<Option<String>>,
-    adId: &Option<Option<String>>,
-    campaignId: &Option<Option<String>>,
-    criterionId: &Option<Option<String>>,
-    customerId: &Option<Option<String>>,
-    endDate: &Option<Option<String>>,
-    rowCount: &Option<Option<String>>,
-    startDate: &Option<Option<String>>,
-    startRow: &Option<Option<String>>,
+    adGroupId: &Option<String>,
+    adId: &Option<String>,
+    campaignId: &Option<String>,
+    criterionId: &Option<String>,
+    customerId: &Option<String>,
+    endDate: &Option<String>,
+    rowCount: &Option<String>,
+    startDate: &Option<String>,
+    startRow: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -212,23 +214,23 @@ pub struct DoubleclicksearchConversionGetArgs {
     /// Path parameter: engineAccountId
     pub engineAccountId: String,
     /// Query parameter: adGroupId
-    pub adGroupId: Option<Option<String>>,
+    pub adGroupId: Option<String>,
     /// Query parameter: adId
-    pub adId: Option<Option<String>>,
+    pub adId: Option<String>,
     /// Query parameter: campaignId
-    pub campaignId: Option<Option<String>>,
+    pub campaignId: Option<String>,
     /// Query parameter: criterionId
-    pub criterionId: Option<Option<String>>,
+    pub criterionId: Option<String>,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
     /// Query parameter: endDate
-    pub endDate: Option<Option<String>>,
+    pub endDate: Option<String>,
     /// Query parameter: rowCount
-    pub rowCount: Option<Option<String>>,
+    pub rowCount: Option<String>,
     /// Query parameter: startDate
-    pub startDate: Option<Option<String>>,
+    pub startDate: Option<String>,
     /// Query parameter: startRow
-    pub startRow: Option<Option<String>>,
+    pub startRow: Option<String>,
 }
 
 /// GET doubleclicksearch/v2/agency/{agencyId}/advertiser/{advertiserId}/engine/{engineAccountId}/conversion
@@ -278,17 +280,17 @@ pub fn doubleclicksearch_conversion_get(
 pub fn doubleclicksearch_conversion_get_by_customer_id_builder<R>(
     client: &SimpleHttpClient<R>,
     customerId: &String,
-    adGroupId: &Option<Option<String>>,
-    adId: &Option<Option<String>>,
-    advertiserId: &Option<Option<String>>,
-    agencyId: &Option<Option<String>>,
-    campaignId: &Option<Option<String>>,
-    criterionId: &Option<Option<String>>,
-    endDate: &Option<Option<String>>,
-    engineAccountId: &Option<Option<String>>,
-    rowCount: &Option<Option<String>>,
-    startDate: &Option<Option<String>>,
-    startRow: &Option<Option<String>>,
+    adGroupId: &Option<String>,
+    adId: &Option<String>,
+    advertiserId: &Option<String>,
+    agencyId: &Option<String>,
+    campaignId: &Option<String>,
+    criterionId: &Option<String>,
+    endDate: &Option<String>,
+    engineAccountId: &Option<String>,
+    rowCount: &Option<String>,
+    startDate: &Option<String>,
+    startRow: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -460,27 +462,27 @@ pub struct DoubleclicksearchConversionGetByCustomerIdArgs {
     /// Path parameter: customerId
     pub customerId: String,
     /// Query parameter: adGroupId
-    pub adGroupId: Option<Option<String>>,
+    pub adGroupId: Option<String>,
     /// Query parameter: adId
-    pub adId: Option<Option<String>>,
+    pub adId: Option<String>,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: agencyId
-    pub agencyId: Option<Option<String>>,
+    pub agencyId: Option<String>,
     /// Query parameter: campaignId
-    pub campaignId: Option<Option<String>>,
+    pub campaignId: Option<String>,
     /// Query parameter: criterionId
-    pub criterionId: Option<Option<String>>,
+    pub criterionId: Option<String>,
     /// Query parameter: endDate
-    pub endDate: Option<Option<String>>,
+    pub endDate: Option<String>,
     /// Query parameter: engineAccountId
-    pub engineAccountId: Option<Option<String>>,
+    pub engineAccountId: Option<String>,
     /// Query parameter: rowCount
-    pub rowCount: Option<Option<String>>,
+    pub rowCount: Option<String>,
     /// Query parameter: startDate
-    pub startDate: Option<Option<String>>,
+    pub startDate: Option<String>,
     /// Query parameter: startRow
-    pub startRow: Option<Option<String>>,
+    pub startRow: Option<String>,
 }
 
 /// GET doubleclicksearch/v2/customer/{customerId}/conversion
@@ -2001,103 +2003,6 @@ impl ResourceIdentifier<DoubleclicksearchConversionGetByCustomerIdArgs> for Conv
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for ConversionList
-// =============================================================================
-
-/// ResourceIdentifier implementation for ConversionList with DoubleclicksearchConversionInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DoubleclicksearchConversionInsertArgs> for ConversionList {
-    fn generate_resource_id(&self, input: &DoubleclicksearchConversionInsertArgs) -> String {
-        "gcp::doubleclicksearch::ConversionList".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::doubleclicksearch::ConversionList"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ConversionList
-// =============================================================================
-
-/// ResourceIdentifier implementation for ConversionList with DoubleclicksearchConversionUpdateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DoubleclicksearchConversionUpdateArgs> for ConversionList {
-    fn generate_resource_id(&self, input: &DoubleclicksearchConversionUpdateArgs) -> String {
-        "gcp::doubleclicksearch::ConversionList".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::doubleclicksearch::ConversionList"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for UpdateAvailabilityResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for UpdateAvailabilityResponse with DoubleclicksearchConversionUpdateAvailabilityArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DoubleclicksearchConversionUpdateAvailabilityArgs>
-    for UpdateAvailabilityResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &DoubleclicksearchConversionUpdateAvailabilityArgs,
-    ) -> String {
-        "gcp::doubleclicksearch::UpdateAvailabilityResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::doubleclicksearch::UpdateAvailabilityResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Report
-// =============================================================================
-
-/// ResourceIdentifier implementation for Report with DoubleclicksearchReportsGenerateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DoubleclicksearchReportsGenerateArgs> for Report {
-    fn generate_resource_id(&self, input: &DoubleclicksearchReportsGenerateArgs) -> String {
-        "gcp::doubleclicksearch::Report".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::doubleclicksearch::Report"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for Report
 // =============================================================================
 
@@ -2139,29 +2044,6 @@ impl ResourceIdentifier<DoubleclicksearchReportsGetIdMappingFileArgs> for IdMapp
 
     fn resource_kind(&self) -> &'static str {
         "gcp::doubleclicksearch::IdMappingFile"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Report
-// =============================================================================
-
-/// ResourceIdentifier implementation for Report with DoubleclicksearchReportsRequestArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DoubleclicksearchReportsRequestArgs> for Report {
-    fn generate_resource_id(&self, input: &DoubleclicksearchReportsRequestArgs) -> String {
-        "gcp::doubleclicksearch::Report".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::doubleclicksearch::Report"
     }
 
     fn provider(&self) -> &'static str {

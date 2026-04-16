@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,10 +32,10 @@ use serde::Serialize;
 pub fn cloudfunctions_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -184,13 +186,13 @@ pub struct CloudfunctionsProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations
@@ -721,7 +723,7 @@ pub fn cloudfunctions_projects_locations_functions_commit_function_upgrade_as_ge
 pub fn cloudfunctions_projects_locations_functions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    functionId: &Option<Option<String>>,
+    functionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -861,7 +863,7 @@ pub struct CloudfunctionsProjectsLocationsFunctionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: functionId
-    pub functionId: Option<Option<String>>,
+    pub functionId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/functions
@@ -1557,7 +1559,7 @@ pub fn cloudfunctions_projects_locations_functions_generate_upload_url(
 pub fn cloudfunctions_projects_locations_functions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    revision: &Option<Option<String>>,
+    revision: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1697,7 +1699,7 @@ pub struct CloudfunctionsProjectsLocationsFunctionsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: revision
-    pub revision: Option<Option<String>>,
+    pub revision: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}
@@ -1735,7 +1737,7 @@ pub fn cloudfunctions_projects_locations_functions_get(
 pub fn cloudfunctions_projects_locations_functions_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1875,7 +1877,7 @@ pub struct CloudfunctionsProjectsLocationsFunctionsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}:getIamPolicy
@@ -1913,10 +1915,10 @@ pub fn cloudfunctions_projects_locations_functions_get_iam_policy(
 pub fn cloudfunctions_projects_locations_functions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2067,13 +2069,13 @@ pub struct CloudfunctionsProjectsLocationsFunctionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions
@@ -2116,7 +2118,7 @@ pub fn cloudfunctions_projects_locations_functions_list(
 pub fn cloudfunctions_projects_locations_functions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2256,7 +2258,7 @@ pub struct CloudfunctionsProjectsLocationsFunctionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}
@@ -3280,10 +3282,10 @@ pub fn cloudfunctions_projects_locations_operations_get(
 pub fn cloudfunctions_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3434,13 +3436,13 @@ pub struct CloudfunctionsProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
@@ -3483,7 +3485,7 @@ pub fn cloudfunctions_projects_locations_operations_list(
 pub fn cloudfunctions_projects_locations_runtimes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3625,7 +3627,7 @@ pub struct CloudfunctionsProjectsLocationsRuntimesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/runtimes

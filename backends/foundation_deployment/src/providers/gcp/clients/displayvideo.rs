@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,7 +32,7 @@ use serde::Serialize;
 pub fn displayvideo_advertisers_audit_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -172,7 +174,7 @@ pub struct DisplayvideoAdvertisersAuditArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}:audit
@@ -851,11 +853,11 @@ pub fn displayvideo_advertisers_get(
 
 pub fn displayvideo_advertisers_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1004,15 +1006,15 @@ pub fn displayvideo_advertisers_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoAdvertisersListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/advertisers
@@ -1055,10 +1057,10 @@ pub fn displayvideo_advertisers_list(
 pub fn displayvideo_advertisers_list_assigned_targeting_options_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1215,13 +1217,13 @@ pub struct DisplayvideoAdvertisersListAssignedTargetingOptionsArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}:listAssignedTargetingOptions
@@ -1266,7 +1268,7 @@ pub fn displayvideo_advertisers_list_assigned_targeting_options(
 pub fn displayvideo_advertisers_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1406,7 +1408,7 @@ pub struct DisplayvideoAdvertisersPatchArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/advertisers/{advertisersId}
@@ -1937,10 +1939,10 @@ pub fn displayvideo_advertisers_ad_assets_get(
 pub fn displayvideo_advertisers_ad_assets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2091,13 +2093,13 @@ pub struct DisplayvideoAdvertisersAdAssetsListArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/adAssets
@@ -2798,10 +2800,10 @@ pub fn displayvideo_advertisers_ad_group_ads_get(
 pub fn displayvideo_advertisers_ad_group_ads_list_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2952,13 +2954,13 @@ pub struct DisplayvideoAdvertisersAdGroupAdsListArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/adGroupAds
@@ -3002,7 +3004,7 @@ pub fn displayvideo_advertisers_ad_group_ads_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupAdId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3144,7 +3146,7 @@ pub struct DisplayvideoAdvertisersAdGroupAdsPatchArgs {
     /// Path parameter: adGroupAdId
     pub adGroupAdId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
@@ -3356,11 +3358,11 @@ pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options(
 pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    adGroupIds: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    adGroupIds: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3518,15 +3520,15 @@ pub struct DisplayvideoAdvertisersAdGroupsBulkListAssignedTargetingOptionsArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: adGroupIds
-    pub adGroupIds: Option<Option<String>>,
+    pub adGroupIds: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/adGroups:bulkListAssignedTargetingOptions
@@ -4066,10 +4068,10 @@ pub fn displayvideo_advertisers_ad_groups_get(
 pub fn displayvideo_advertisers_ad_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4220,13 +4222,13 @@ pub struct DisplayvideoAdvertisersAdGroupsListArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/adGroups
@@ -4270,7 +4272,7 @@ pub fn displayvideo_advertisers_ad_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     adGroupId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4412,7 +4414,7 @@ pub struct DisplayvideoAdvertisersAdGroupsPatchArgs {
     /// Path parameter: adGroupId
     pub adGroupId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
@@ -5003,10 +5005,10 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
     advertiserId: &String,
     adGroupId: &String,
     targetingType: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5169,13 +5171,13 @@ pub struct DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptions
     /// Path parameter: targetingType
     pub targetingType: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
@@ -5229,7 +5231,7 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
     advertiserId: &String,
     adGroupId: &String,
     youtubeAssetType: &String,
-    linkedEntity_lineItemId: &Option<Option<String>>,
+    linkedEntity_lineItemId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5377,7 +5379,7 @@ pub struct DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociati
     /// Path parameter: youtubeAssetType
     pub youtubeAssetType: String,
     /// Query parameter: linkedEntity_lineItemId
-    pub linkedEntity_lineItemId: Option<Option<String>>,
+    pub linkedEntity_lineItemId: Option<String>,
 }
 
 /// POST v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
@@ -5420,7 +5422,7 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
     adGroupId: &String,
     youtubeAssetType: &String,
     youtubeAssetAssociationId: &String,
-    linkedEntity_lineItemId: &Option<Option<String>>,
+    linkedEntity_lineItemId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5569,7 +5571,7 @@ pub struct DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociati
     /// Path parameter: youtubeAssetAssociationId
     pub youtubeAssetAssociationId: String,
     /// Query parameter: linkedEntity_lineItemId
-    pub linkedEntity_lineItemId: Option<Option<String>>,
+    pub linkedEntity_lineItemId: Option<String>,
 }
 
 /// DELETE v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
@@ -5609,10 +5611,10 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
     advertiserId: &String,
     adGroupId: &String,
     youtubeAssetType: &String,
-    linkedEntity_lineItemId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    linkedEntity_lineItemId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5771,13 +5773,13 @@ pub struct DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociati
     /// Path parameter: youtubeAssetType
     pub youtubeAssetType: String,
     /// Query parameter: linkedEntity_lineItemId
-    pub linkedEntity_lineItemId: Option<Option<String>>,
+    pub linkedEntity_lineItemId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
@@ -6475,10 +6477,10 @@ pub fn displayvideo_advertisers_campaigns_get(
 pub fn displayvideo_advertisers_campaigns_list_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6629,13 +6631,13 @@ pub struct DisplayvideoAdvertisersCampaignsListArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/campaigns
@@ -6679,7 +6681,7 @@ pub fn displayvideo_advertisers_campaigns_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     campaignId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6821,7 +6823,7 @@ pub struct DisplayvideoAdvertisersCampaignsPatchArgs {
     /// Path parameter: campaignId
     pub campaignId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/advertisers/{advertisersId}/campaigns/{campaignsId}
@@ -6860,7 +6862,7 @@ pub fn displayvideo_advertisers_campaigns_patch(
 pub fn displayvideo_advertisers_channels_create_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    partnerId: &Option<Option<String>>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7000,7 +7002,7 @@ pub struct DisplayvideoAdvertisersChannelsCreateArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// POST v4/advertisers/{advertisersId}/channels
@@ -7039,7 +7041,7 @@ pub fn displayvideo_advertisers_channels_get_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     channelId: &String,
-    partnerId: &Option<Option<String>>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7181,7 +7183,7 @@ pub struct DisplayvideoAdvertisersChannelsGetArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/channels/{channelsId}
@@ -7220,11 +7222,11 @@ pub fn displayvideo_advertisers_channels_get(
 pub fn displayvideo_advertisers_channels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7378,15 +7380,15 @@ pub struct DisplayvideoAdvertisersChannelsListArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/channels
@@ -7431,8 +7433,8 @@ pub fn displayvideo_advertisers_channels_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     channelId: &String,
-    partnerId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    partnerId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7577,9 +7579,9 @@ pub struct DisplayvideoAdvertisersChannelsPatchArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/advertisers/{advertisersId}/channels/{channelId}
@@ -7791,7 +7793,7 @@ pub fn displayvideo_advertisers_channels_sites_create_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     channelId: &String,
-    partnerId: &Option<Option<String>>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7933,7 +7935,7 @@ pub struct DisplayvideoAdvertisersChannelsSitesCreateArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// POST v4/advertisers/{advertiserId}/channels/{channelsId}/sites
@@ -7974,7 +7976,7 @@ pub fn displayvideo_advertisers_channels_sites_delete_builder<R>(
     advertiserId: &String,
     channelId: &String,
     urlOrAppId: &String,
-    partnerId: &Option<Option<String>>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8118,7 +8120,7 @@ pub struct DisplayvideoAdvertisersChannelsSitesDeleteArgs {
     /// Path parameter: urlOrAppId
     pub urlOrAppId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// DELETE v4/advertisers/{advertiserId}/channels/{channelsId}/sites/{sitesId}
@@ -8159,11 +8161,11 @@ pub fn displayvideo_advertisers_channels_sites_list_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     channelId: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8319,15 +8321,15 @@ pub struct DisplayvideoAdvertisersChannelsSitesListArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/channels/{channelsId}/sites
@@ -9037,10 +9039,10 @@ pub fn displayvideo_advertisers_creatives_get(
 pub fn displayvideo_advertisers_creatives_list_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9191,13 +9193,13 @@ pub struct DisplayvideoAdvertisersCreativesListArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/creatives
@@ -9241,7 +9243,7 @@ pub fn displayvideo_advertisers_creatives_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     creativeId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9383,7 +9385,7 @@ pub struct DisplayvideoAdvertisersCreativesPatchArgs {
     /// Path parameter: creativeId
     pub creativeId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/advertisers/{advertisersId}/creatives/{creativesId}
@@ -9925,10 +9927,10 @@ pub fn displayvideo_advertisers_insertion_orders_get(
 pub fn displayvideo_advertisers_insertion_orders_list_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10081,13 +10083,13 @@ pub struct DisplayvideoAdvertisersInsertionOrdersListArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/insertionOrders
@@ -10133,7 +10135,7 @@ pub fn displayvideo_advertisers_insertion_orders_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     insertionOrderId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10277,7 +10279,7 @@ pub struct DisplayvideoAdvertisersInsertionOrdersPatchArgs {
     /// Path parameter: insertionOrderId
     pub insertionOrderId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
@@ -10318,10 +10320,10 @@ pub fn displayvideo_advertisers_insertion_orders_patch(
 pub fn displayvideo_advertisers_invoices_list_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    issueMonth: &Option<Option<String>>,
-    loiSapinInvoiceType: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    issueMonth: &Option<String>,
+    loiSapinInvoiceType: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10472,13 +10474,13 @@ pub struct DisplayvideoAdvertisersInvoicesListArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: issueMonth
-    pub issueMonth: Option<Option<String>>,
+    pub issueMonth: Option<String>,
     /// Query parameter: loiSapinInvoiceType
-    pub loiSapinInvoiceType: Option<Option<String>>,
+    pub loiSapinInvoiceType: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/invoices
@@ -10521,7 +10523,7 @@ pub fn displayvideo_advertisers_invoices_list(
 pub fn displayvideo_advertisers_invoices_lookup_invoice_currency_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    invoiceMonth: &Option<Option<String>>,
+    invoiceMonth: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10665,7 +10667,7 @@ pub struct DisplayvideoAdvertisersInvoicesLookupInvoiceCurrencyArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: invoiceMonth
-    pub invoiceMonth: Option<Option<String>>,
+    pub invoiceMonth: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/invoices:lookupInvoiceCurrency
@@ -10879,11 +10881,11 @@ pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options(
 pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    filter: &Option<Option<String>>,
-    lineItemIds: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    lineItemIds: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11040,15 +11042,15 @@ pub struct DisplayvideoAdvertisersLineItemsBulkListAssignedTargetingOptionsArgs 
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: lineItemIds
-    pub lineItemIds: Option<Option<String>>,
+    pub lineItemIds: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/lineItems:bulkListAssignedTargetingOptions
@@ -11928,10 +11930,10 @@ pub fn displayvideo_advertisers_line_items_get(
 pub fn displayvideo_advertisers_line_items_list_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12082,13 +12084,13 @@ pub struct DisplayvideoAdvertisersLineItemsListArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/lineItems
@@ -12132,7 +12134,7 @@ pub fn displayvideo_advertisers_line_items_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     lineItemId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12274,7 +12276,7 @@ pub struct DisplayvideoAdvertisersLineItemsPatchArgs {
     /// Path parameter: lineItemId
     pub lineItemId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
@@ -12865,10 +12867,10 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
     advertiserId: &String,
     lineItemId: &String,
     targetingType: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13031,13 +13033,13 @@ pub struct DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOption
     /// Path parameter: targetingType
     pub targetingType: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
@@ -13081,7 +13083,7 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
     advertiserId: &String,
     lineItemId: &String,
     youtubeAssetType: &String,
-    linkedEntity_adGroupId: &Option<Option<String>>,
+    linkedEntity_adGroupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13229,7 +13231,7 @@ pub struct DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociat
     /// Path parameter: youtubeAssetType
     pub youtubeAssetType: String,
     /// Query parameter: linkedEntity_adGroupId
-    pub linkedEntity_adGroupId: Option<Option<String>>,
+    pub linkedEntity_adGroupId: Option<String>,
 }
 
 /// POST v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
@@ -13270,7 +13272,7 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
     lineItemId: &String,
     youtubeAssetType: &String,
     youtubeAssetAssociationId: &String,
-    linkedEntity_adGroupId: &Option<Option<String>>,
+    linkedEntity_adGroupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13419,7 +13421,7 @@ pub struct DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociat
     /// Path parameter: youtubeAssetAssociationId
     pub youtubeAssetAssociationId: String,
     /// Query parameter: linkedEntity_adGroupId
-    pub linkedEntity_adGroupId: Option<Option<String>>,
+    pub linkedEntity_adGroupId: Option<String>,
 }
 
 /// DELETE v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
@@ -13457,10 +13459,10 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
     advertiserId: &String,
     lineItemId: &String,
     youtubeAssetType: &String,
-    linkedEntity_adGroupId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    linkedEntity_adGroupId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13619,13 +13621,13 @@ pub struct DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociat
     /// Path parameter: youtubeAssetType
     pub youtubeAssetType: String,
     /// Query parameter: linkedEntity_adGroupId
-    pub linkedEntity_adGroupId: Option<Option<String>>,
+    pub linkedEntity_adGroupId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
@@ -14001,10 +14003,10 @@ pub fn displayvideo_advertisers_location_lists_get(
 pub fn displayvideo_advertisers_location_lists_list_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14155,13 +14157,13 @@ pub struct DisplayvideoAdvertisersLocationListsListArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/locationLists
@@ -14205,7 +14207,7 @@ pub fn displayvideo_advertisers_location_lists_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     locationListId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14349,7 +14351,7 @@ pub struct DisplayvideoAdvertisersLocationListsPatchArgs {
     /// Path parameter: locationListId
     pub locationListId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/advertisers/{advertisersId}/locationLists/{locationListId}
@@ -14911,10 +14913,10 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_list_builder<R
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     locationListId: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15069,13 +15071,13 @@ pub struct DisplayvideoAdvertisersLocationListsAssignedLocationsListArgs {
     /// Path parameter: locationListId
     pub locationListId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
@@ -15624,8 +15626,8 @@ pub fn displayvideo_advertisers_negative_keyword_lists_get(
 pub fn displayvideo_advertisers_negative_keyword_lists_list_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15772,9 +15774,9 @@ pub struct DisplayvideoAdvertisersNegativeKeywordListsListArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/negativeKeywordLists
@@ -15818,7 +15820,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     negativeKeywordListId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15962,7 +15964,7 @@ pub struct DisplayvideoAdvertisersNegativeKeywordListsPatchArgs {
     /// Path parameter: negativeKeywordListId
     pub negativeKeywordListId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListId}
@@ -16529,10 +16531,10 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_bu
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     negativeKeywordListId: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16689,13 +16691,13 @@ pub struct DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsListArgs {
     /// Path parameter: negativeKeywordListId
     pub negativeKeywordListId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords
@@ -17447,10 +17449,10 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_list_
     client: &SimpleHttpClient<R>,
     advertiserId: &String,
     targetingType: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17608,13 +17610,13 @@ pub struct DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsListArgs
     /// Path parameter: targetingType
     pub targetingType: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
@@ -17660,8 +17662,8 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_list(
 pub fn displayvideo_combined_audiences_get_builder<R>(
     client: &SimpleHttpClient<R>,
     combinedAudienceId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17806,9 +17808,9 @@ pub struct DisplayvideoCombinedAudiencesGetArgs {
     /// Path parameter: combinedAudienceId
     pub combinedAudienceId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/combinedAudiences/{combinedAudiencesId}
@@ -17848,12 +17850,12 @@ pub fn displayvideo_combined_audiences_get(
 
 pub fn displayvideo_combined_audiences_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    advertiserId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18007,17 +18009,17 @@ pub fn displayvideo_combined_audiences_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoCombinedAudiencesListArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/combinedAudiences
@@ -18215,8 +18217,8 @@ pub fn displayvideo_custom_bidding_algorithms_create(
 pub fn displayvideo_custom_bidding_algorithms_get_builder<R>(
     client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18361,9 +18363,9 @@ pub struct DisplayvideoCustomBiddingAlgorithmsGetArgs {
     /// Path parameter: customBiddingAlgorithmId
     pub customBiddingAlgorithmId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}
@@ -18403,12 +18405,12 @@ pub fn displayvideo_custom_bidding_algorithms_get(
 
 pub fn displayvideo_custom_bidding_algorithms_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    advertiserId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18562,17 +18564,17 @@ pub fn displayvideo_custom_bidding_algorithms_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoCustomBiddingAlgorithmsListArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/customBiddingAlgorithms
@@ -18618,7 +18620,7 @@ pub fn displayvideo_custom_bidding_algorithms_list(
 pub fn displayvideo_custom_bidding_algorithms_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18760,7 +18762,7 @@ pub struct DisplayvideoCustomBiddingAlgorithmsPatchArgs {
     /// Path parameter: customBiddingAlgorithmId
     pub customBiddingAlgorithmId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}
@@ -18800,8 +18802,8 @@ pub fn displayvideo_custom_bidding_algorithms_patch(
 pub fn displayvideo_custom_bidding_algorithms_upload_rules_builder<R>(
     client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18948,9 +18950,9 @@ pub struct DisplayvideoCustomBiddingAlgorithmsUploadRulesArgs {
     /// Path parameter: customBiddingAlgorithmId
     pub customBiddingAlgorithmId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}:uploadRules
@@ -18993,8 +18995,8 @@ pub fn displayvideo_custom_bidding_algorithms_upload_rules(
 pub fn displayvideo_custom_bidding_algorithms_upload_script_builder<R>(
     client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19139,9 +19141,9 @@ pub struct DisplayvideoCustomBiddingAlgorithmsUploadScriptArgs {
     /// Path parameter: customBiddingAlgorithmId
     pub customBiddingAlgorithmId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}:uploadScript
@@ -19182,8 +19184,8 @@ pub fn displayvideo_custom_bidding_algorithms_upload_script(
 pub fn displayvideo_custom_bidding_algorithms_rules_create_builder<R>(
     client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19330,9 +19332,9 @@ pub struct DisplayvideoCustomBiddingAlgorithmsRulesCreateArgs {
     /// Path parameter: customBiddingAlgorithmId
     pub customBiddingAlgorithmId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// POST v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
@@ -19376,8 +19378,8 @@ pub fn displayvideo_custom_bidding_algorithms_rules_get_builder<R>(
     client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
     customBiddingAlgorithmRulesId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19526,9 +19528,9 @@ pub struct DisplayvideoCustomBiddingAlgorithmsRulesGetArgs {
     /// Path parameter: customBiddingAlgorithmRulesId
     pub customBiddingAlgorithmRulesId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules/{rulesId}
@@ -19572,11 +19574,11 @@ pub fn displayvideo_custom_bidding_algorithms_rules_get(
 pub fn displayvideo_custom_bidding_algorithms_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
-    advertiserId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19733,15 +19735,15 @@ pub struct DisplayvideoCustomBiddingAlgorithmsRulesListArgs {
     /// Path parameter: customBiddingAlgorithmId
     pub customBiddingAlgorithmId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
@@ -19787,8 +19789,8 @@ pub fn displayvideo_custom_bidding_algorithms_rules_list(
 pub fn displayvideo_custom_bidding_algorithms_scripts_create_builder<R>(
     client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19933,9 +19935,9 @@ pub struct DisplayvideoCustomBiddingAlgorithmsScriptsCreateArgs {
     /// Path parameter: customBiddingAlgorithmId
     pub customBiddingAlgorithmId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// POST v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
@@ -19977,8 +19979,8 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_get_builder<R>(
     client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
     customBiddingScriptId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20125,9 +20127,9 @@ pub struct DisplayvideoCustomBiddingAlgorithmsScriptsGetArgs {
     /// Path parameter: customBiddingScriptId
     pub customBiddingScriptId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts/{scriptsId}
@@ -20169,11 +20171,11 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_get(
 pub fn displayvideo_custom_bidding_algorithms_scripts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     customBiddingAlgorithmId: &String,
-    advertiserId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20329,15 +20331,15 @@ pub struct DisplayvideoCustomBiddingAlgorithmsScriptsListArgs {
     /// Path parameter: customBiddingAlgorithmId
     pub customBiddingAlgorithmId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
@@ -20383,7 +20385,7 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_list(
 pub fn displayvideo_custom_lists_get_builder<R>(
     client: &SimpleHttpClient<R>,
     customListId: &String,
-    advertiserId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20523,7 +20525,7 @@ pub struct DisplayvideoCustomListsGetArgs {
     /// Path parameter: customListId
     pub customListId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
 }
 
 /// GET v4/customLists/{customListsId}
@@ -20557,11 +20559,11 @@ pub fn displayvideo_custom_lists_get(
 
 pub fn displayvideo_custom_lists_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    advertiserId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20710,15 +20712,15 @@ pub fn displayvideo_custom_lists_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoCustomListsListArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/customLists
@@ -20760,7 +20762,7 @@ pub fn displayvideo_custom_lists_list(
 
 pub fn displayvideo_first_party_and_partner_audiences_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    advertiserId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20900,7 +20902,7 @@ pub fn displayvideo_first_party_and_partner_audiences_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoFirstPartyAndPartnerAudiencesCreateArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
 }
 
 /// POST v4/firstPartyAndPartnerAudiences
@@ -21112,8 +21114,8 @@ pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_member
 pub fn displayvideo_first_party_and_partner_audiences_get_builder<R>(
     client: &SimpleHttpClient<R>,
     firstPartyAndPartnerAudienceId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21260,9 +21262,9 @@ pub struct DisplayvideoFirstPartyAndPartnerAudiencesGetArgs {
     /// Path parameter: firstPartyAndPartnerAudienceId
     pub firstPartyAndPartnerAudienceId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}
@@ -21304,12 +21306,12 @@ pub fn displayvideo_first_party_and_partner_audiences_get(
 
 pub fn displayvideo_first_party_and_partner_audiences_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    advertiserId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21464,17 +21466,17 @@ pub fn displayvideo_first_party_and_partner_audiences_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoFirstPartyAndPartnerAudiencesListArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/firstPartyAndPartnerAudiences
@@ -21520,8 +21522,8 @@ pub fn displayvideo_first_party_and_partner_audiences_list(
 pub fn displayvideo_first_party_and_partner_audiences_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     firstPartyAndPartnerAudienceId: &String,
-    advertiserId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21668,9 +21670,9 @@ pub struct DisplayvideoFirstPartyAndPartnerAudiencesPatchArgs {
     /// Path parameter: firstPartyAndPartnerAudienceId
     pub firstPartyAndPartnerAudienceId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}
@@ -21713,7 +21715,7 @@ pub fn displayvideo_first_party_and_partner_audiences_patch(
 pub fn displayvideo_floodlight_groups_get_builder<R>(
     client: &SimpleHttpClient<R>,
     floodlightGroupId: &String,
-    partnerId: &Option<Option<String>>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21855,7 +21857,7 @@ pub struct DisplayvideoFloodlightGroupsGetArgs {
     /// Path parameter: floodlightGroupId
     pub floodlightGroupId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/floodlightGroups/{floodlightGroupsId}
@@ -21895,8 +21897,8 @@ pub fn displayvideo_floodlight_groups_get(
 pub fn displayvideo_floodlight_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     floodlightGroupId: &String,
-    partnerId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    partnerId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22041,9 +22043,9 @@ pub struct DisplayvideoFloodlightGroupsPatchArgs {
     /// Path parameter: floodlightGroupId
     pub floodlightGroupId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/floodlightGroups/{floodlightGroupId}
@@ -22085,7 +22087,7 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_get_builder<R>(
     client: &SimpleHttpClient<R>,
     floodlightGroupId: &String,
     floodlightActivityId: &String,
-    partnerId: &Option<Option<String>>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22229,7 +22231,7 @@ pub struct DisplayvideoFloodlightGroupsFloodlightActivitiesGetArgs {
     /// Path parameter: floodlightActivityId
     pub floodlightActivityId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/floodlightGroups/{floodlightGroupsId}/floodlightActivities/{floodlightActivitiesId}
@@ -22270,10 +22272,10 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_get(
 pub fn displayvideo_floodlight_groups_floodlight_activities_list_builder<R>(
     client: &SimpleHttpClient<R>,
     floodlightGroupId: &String,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22426,13 +22428,13 @@ pub struct DisplayvideoFloodlightGroupsFloodlightActivitiesListArgs {
     /// Path parameter: floodlightGroupId
     pub floodlightGroupId: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/floodlightGroups/{floodlightGroupsId}/floodlightActivities
@@ -22477,8 +22479,8 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_list(
 pub fn displayvideo_google_audiences_get_builder<R>(
     client: &SimpleHttpClient<R>,
     googleAudienceId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22623,9 +22625,9 @@ pub struct DisplayvideoGoogleAudiencesGetArgs {
     /// Path parameter: googleAudienceId
     pub googleAudienceId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/googleAudiences/{googleAudiencesId}
@@ -22665,12 +22667,12 @@ pub fn displayvideo_google_audiences_get(
 
 pub fn displayvideo_google_audiences_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    advertiserId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22824,17 +22826,17 @@ pub fn displayvideo_google_audiences_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoGoogleAudiencesListArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/googleAudiences
@@ -22879,8 +22881,8 @@ pub fn displayvideo_google_audiences_list(
 
 pub fn displayvideo_guaranteed_orders_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23020,9 +23022,9 @@ pub fn displayvideo_guaranteed_orders_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoGuaranteedOrdersCreateArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// POST v4/guaranteedOrders
@@ -23230,8 +23232,8 @@ pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors(
 pub fn displayvideo_guaranteed_orders_get_builder<R>(
     client: &SimpleHttpClient<R>,
     guaranteedOrderId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23376,9 +23378,9 @@ pub struct DisplayvideoGuaranteedOrdersGetArgs {
     /// Path parameter: guaranteedOrderId
     pub guaranteedOrderId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/guaranteedOrders/{guaranteedOrdersId}
@@ -23418,12 +23420,12 @@ pub fn displayvideo_guaranteed_orders_get(
 
 pub fn displayvideo_guaranteed_orders_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    advertiserId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23577,17 +23579,17 @@ pub fn displayvideo_guaranteed_orders_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoGuaranteedOrdersListArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/guaranteedOrders
@@ -23633,9 +23635,9 @@ pub fn displayvideo_guaranteed_orders_list(
 pub fn displayvideo_guaranteed_orders_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     guaranteedOrderId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23783,11 +23785,11 @@ pub struct DisplayvideoGuaranteedOrdersPatchArgs {
     /// Path parameter: guaranteedOrderId
     pub guaranteedOrderId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/guaranteedOrders/{guaranteedOrdersId}
@@ -23828,8 +23830,8 @@ pub fn displayvideo_guaranteed_orders_patch(
 
 pub fn displayvideo_inventory_source_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23969,9 +23971,9 @@ pub fn displayvideo_inventory_source_groups_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoInventorySourceGroupsCreateArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// POST v4/inventorySourceGroups
@@ -24011,8 +24013,8 @@ pub fn displayvideo_inventory_source_groups_create(
 pub fn displayvideo_inventory_source_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     inventorySourceGroupId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24155,9 +24157,9 @@ pub struct DisplayvideoInventorySourceGroupsDeleteArgs {
     /// Path parameter: inventorySourceGroupId
     pub inventorySourceGroupId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// DELETE v4/inventorySourceGroups/{inventorySourceGroupsId}
@@ -24196,8 +24198,8 @@ pub fn displayvideo_inventory_source_groups_delete(
 pub fn displayvideo_inventory_source_groups_get_builder<R>(
     client: &SimpleHttpClient<R>,
     inventorySourceGroupId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24342,9 +24344,9 @@ pub struct DisplayvideoInventorySourceGroupsGetArgs {
     /// Path parameter: inventorySourceGroupId
     pub inventorySourceGroupId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/inventorySourceGroups/{inventorySourceGroupsId}
@@ -24384,12 +24386,12 @@ pub fn displayvideo_inventory_source_groups_get(
 
 pub fn displayvideo_inventory_source_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    advertiserId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24543,17 +24545,17 @@ pub fn displayvideo_inventory_source_groups_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoInventorySourceGroupsListArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/inventorySourceGroups
@@ -24599,9 +24601,9 @@ pub fn displayvideo_inventory_source_groups_list(
 pub fn displayvideo_inventory_source_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     inventorySourceGroupId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24749,11 +24751,11 @@ pub struct DisplayvideoInventorySourceGroupsPatchArgs {
     /// Path parameter: inventorySourceGroupId
     pub inventorySourceGroupId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/inventorySourceGroups/{inventorySourceGroupId}
@@ -24968,8 +24970,8 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit
 pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create_builder<R>(
     client: &SimpleHttpClient<R>,
     inventorySourceGroupId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25115,9 +25117,9 @@ pub struct DisplayvideoInventorySourceGroupsAssignedInventorySourcesCreateArgs {
     /// Path parameter: inventorySourceGroupId
     pub inventorySourceGroupId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// POST v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
@@ -25159,8 +25161,8 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete_bu
     client: &SimpleHttpClient<R>,
     inventorySourceGroupId: &String,
     assignedInventorySourceId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25307,9 +25309,9 @@ pub struct DisplayvideoInventorySourceGroupsAssignedInventorySourcesDeleteArgs {
     /// Path parameter: assignedInventorySourceId
     pub assignedInventorySourceId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// DELETE v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources/{assignedInventorySourcesId}
@@ -25349,12 +25351,12 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete(
 pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     inventorySourceGroupId: &String,
-    advertiserId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25513,17 +25515,17 @@ pub struct DisplayvideoInventorySourceGroupsAssignedInventorySourcesListArgs {
     /// Path parameter: inventorySourceGroupId
     pub inventorySourceGroupId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
@@ -25569,8 +25571,8 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list(
 
 pub fn displayvideo_inventory_sources_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25710,9 +25712,9 @@ pub fn displayvideo_inventory_sources_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoInventorySourcesCreateArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// POST v4/inventorySources
@@ -25918,8 +25920,8 @@ pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors
 pub fn displayvideo_inventory_sources_get_builder<R>(
     client: &SimpleHttpClient<R>,
     inventorySourceId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26064,9 +26066,9 @@ pub struct DisplayvideoInventorySourcesGetArgs {
     /// Path parameter: inventorySourceId
     pub inventorySourceId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/inventorySources/{inventorySourcesId}
@@ -26106,12 +26108,12 @@ pub fn displayvideo_inventory_sources_get(
 
 pub fn displayvideo_inventory_sources_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    advertiserId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    partnerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26265,17 +26267,17 @@ pub fn displayvideo_inventory_sources_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoInventorySourcesListArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
 }
 
 /// GET v4/inventorySources
@@ -26321,9 +26323,9 @@ pub fn displayvideo_inventory_sources_list(
 pub fn displayvideo_inventory_sources_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     inventorySourceId: &String,
-    advertiserId: &Option<Option<String>>,
-    partnerId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    partnerId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26471,11 +26473,11 @@ pub struct DisplayvideoInventorySourcesPatchArgs {
     /// Path parameter: inventorySourceId
     pub inventorySourceId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: partnerId
-    pub partnerId: Option<Option<String>>,
+    pub partnerId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/inventorySources/{inventorySourcesId}
@@ -27171,10 +27173,10 @@ pub fn displayvideo_partners_get(
 
 pub fn displayvideo_partners_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27320,13 +27322,13 @@ pub fn displayvideo_partners_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoPartnersListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/partners
@@ -27368,7 +27370,7 @@ pub fn displayvideo_partners_list(
 pub fn displayvideo_partners_channels_create_builder<R>(
     client: &SimpleHttpClient<R>,
     partnerId: &String,
-    advertiserId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27508,7 +27510,7 @@ pub struct DisplayvideoPartnersChannelsCreateArgs {
     /// Path parameter: partnerId
     pub partnerId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
 }
 
 /// POST v4/partners/{partnersId}/channels
@@ -27544,7 +27546,7 @@ pub fn displayvideo_partners_channels_get_builder<R>(
     client: &SimpleHttpClient<R>,
     partnerId: &String,
     channelId: &String,
-    advertiserId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27686,7 +27688,7 @@ pub struct DisplayvideoPartnersChannelsGetArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
 }
 
 /// GET v4/partners/{partnersId}/channels/{channelsId}
@@ -27725,11 +27727,11 @@ pub fn displayvideo_partners_channels_get(
 pub fn displayvideo_partners_channels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     partnerId: &String,
-    advertiserId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27883,15 +27885,15 @@ pub struct DisplayvideoPartnersChannelsListArgs {
     /// Path parameter: partnerId
     pub partnerId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/partners/{partnersId}/channels
@@ -27936,8 +27938,8 @@ pub fn displayvideo_partners_channels_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     partnerId: &String,
     channelId: &String,
-    advertiserId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28082,9 +28084,9 @@ pub struct DisplayvideoPartnersChannelsPatchArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/partners/{partnersId}/channels/{channelId}
@@ -28296,7 +28298,7 @@ pub fn displayvideo_partners_channels_sites_create_builder<R>(
     client: &SimpleHttpClient<R>,
     partnerId: &String,
     channelId: &String,
-    advertiserId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28438,7 +28440,7 @@ pub struct DisplayvideoPartnersChannelsSitesCreateArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
 }
 
 /// POST v4/partners/{partnerId}/channels/{channelsId}/sites
@@ -28479,7 +28481,7 @@ pub fn displayvideo_partners_channels_sites_delete_builder<R>(
     partnerId: &String,
     channelId: &String,
     urlOrAppId: &String,
-    advertiserId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28623,7 +28625,7 @@ pub struct DisplayvideoPartnersChannelsSitesDeleteArgs {
     /// Path parameter: urlOrAppId
     pub urlOrAppId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
 }
 
 /// DELETE v4/partners/{partnerId}/channels/{channelsId}/sites/{sitesId}
@@ -28664,11 +28666,11 @@ pub fn displayvideo_partners_channels_sites_list_builder<R>(
     client: &SimpleHttpClient<R>,
     partnerId: &String,
     channelId: &String,
-    advertiserId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28824,15 +28826,15 @@ pub struct DisplayvideoPartnersChannelsSitesListArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/partners/{partnersId}/channels/{channelsId}/sites
@@ -29573,10 +29575,10 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_list_bui
     client: &SimpleHttpClient<R>,
     partnerId: &String,
     targetingType: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29733,13 +29735,13 @@ pub struct DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsListArgs {
     /// Path parameter: targetingType
     pub targetingType: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
@@ -30254,7 +30256,7 @@ pub fn displayvideo_targeting_types_targeting_options_get_builder<R>(
     client: &SimpleHttpClient<R>,
     targetingType: &String,
     targetingOptionId: &String,
-    advertiserId: &Option<Option<String>>,
+    advertiserId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30398,7 +30400,7 @@ pub struct DisplayvideoTargetingTypesTargetingOptionsGetArgs {
     /// Path parameter: targetingOptionId
     pub targetingOptionId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
 }
 
 /// GET v4/targetingTypes/{targetingTypesId}/targetingOptions/{targetingOptionsId}
@@ -30439,11 +30441,11 @@ pub fn displayvideo_targeting_types_targeting_options_get(
 pub fn displayvideo_targeting_types_targeting_options_list_builder<R>(
     client: &SimpleHttpClient<R>,
     targetingType: &String,
-    advertiserId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30599,15 +30601,15 @@ pub struct DisplayvideoTargetingTypesTargetingOptionsListArgs {
     /// Path parameter: targetingType
     pub targetingType: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/targetingTypes/{targetingTypesId}/targetingOptions
@@ -31451,10 +31453,10 @@ pub fn displayvideo_users_get(
 
 pub fn displayvideo_users_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31600,13 +31602,13 @@ pub fn displayvideo_users_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoUsersListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/users
@@ -31648,7 +31650,7 @@ pub fn displayvideo_users_list(
 pub fn displayvideo_users_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31785,7 +31787,7 @@ pub struct DisplayvideoUsersPatchArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/users/{usersId}
@@ -31829,29 +31831,6 @@ impl ResourceIdentifier<DisplayvideoAdvertisersAuditArgs> for AuditAdvertiserRes
 
     fn resource_kind(&self) -> &'static str {
         "gcp::displayvideo::AuditAdvertiserResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Advertiser
-// =============================================================================
-
-/// ResourceIdentifier implementation for Advertiser with DisplayvideoAdvertisersCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DisplayvideoAdvertisersCreateArgs> for Advertiser {
-    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCreateArgs) -> String {
-        "gcp::displayvideo::Advertiser".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::displayvideo::Advertiser"
     }
 
     fn provider(&self) -> &'static str {
@@ -34633,32 +34612,6 @@ impl ResourceIdentifier<DisplayvideoCombinedAudiencesListArgs> for ListCombinedA
 // ResourceIdentifier implementation for CustomBiddingAlgorithm
 // =============================================================================
 
-/// ResourceIdentifier implementation for CustomBiddingAlgorithm with DisplayvideoCustomBiddingAlgorithmsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsCreateArgs> for CustomBiddingAlgorithm {
-    fn generate_resource_id(
-        &self,
-        input: &DisplayvideoCustomBiddingAlgorithmsCreateArgs,
-    ) -> String {
-        "gcp::displayvideo::CustomBiddingAlgorithm".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::displayvideo::CustomBiddingAlgorithm"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for CustomBiddingAlgorithm
-// =============================================================================
-
 /// ResourceIdentifier implementation for CustomBiddingAlgorithm with DisplayvideoCustomBiddingAlgorithmsGetArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -36332,29 +36285,6 @@ impl ResourceIdentifier<DisplayvideoPartnersTargetingTypesAssignedTargetingOptio
 // ResourceIdentifier implementation for Operation
 // =============================================================================
 
-/// ResourceIdentifier implementation for Operation with DisplayvideoSdfdownloadtasksCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DisplayvideoSdfdownloadtasksCreateArgs> for Operation {
-    fn generate_resource_id(&self, input: &DisplayvideoSdfdownloadtasksCreateArgs) -> String {
-        "gcp::displayvideo::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::displayvideo::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
 /// ResourceIdentifier implementation for Operation with DisplayvideoSdfdownloadtasksOperationsGetArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -36515,29 +36445,6 @@ impl ResourceIdentifier<DisplayvideoUsersBulkEditAssignedUserRolesArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::displayvideo::BulkEditAssignedUserRolesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for User
-// =============================================================================
-
-/// ResourceIdentifier implementation for User with DisplayvideoUsersCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DisplayvideoUsersCreateArgs> for User {
-    fn generate_resource_id(&self, input: &DisplayvideoUsersCreateArgs) -> String {
-        "gcp::displayvideo::User".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::displayvideo::User"
     }
 
     fn provider(&self) -> &'static str {

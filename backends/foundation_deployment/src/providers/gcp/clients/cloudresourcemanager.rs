@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,9 +31,9 @@ use serde::Serialize;
 
 pub fn cloudresourcemanager_effective_tags_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -174,11 +176,11 @@ pub fn cloudresourcemanager_effective_tags_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerEffectiveTagsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v3/effectiveTags
@@ -846,10 +848,10 @@ pub fn cloudresourcemanager_folders_get_iam_policy(
 
 pub fn cloudresourcemanager_folders_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -995,13 +997,13 @@ pub fn cloudresourcemanager_folders_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerFoldersListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v3/folders
@@ -1203,7 +1205,7 @@ pub fn cloudresourcemanager_folders_move(
 pub fn cloudresourcemanager_folders_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1343,7 +1345,7 @@ pub struct CloudresourcemanagerFoldersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/folders/{foldersId}
@@ -1376,9 +1378,9 @@ pub fn cloudresourcemanager_folders_patch(
 
 pub fn cloudresourcemanager_folders_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1521,11 +1523,11 @@ pub fn cloudresourcemanager_folders_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerFoldersSearchArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v3/folders:search
@@ -2215,7 +2217,7 @@ pub fn cloudresourcemanager_folders_capabilities_get(
 pub fn cloudresourcemanager_folders_capabilities_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2355,7 +2357,7 @@ pub struct CloudresourcemanagerFoldersCapabilitiesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/folders/{foldersId}/capabilities/{capabilitiesId}
@@ -2860,9 +2862,9 @@ pub fn cloudresourcemanager_liens_get(
 
 pub fn cloudresourcemanager_liens_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3005,11 +3007,11 @@ pub fn cloudresourcemanager_liens_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerLiensListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v3/liens
@@ -3385,7 +3387,7 @@ pub fn cloudresourcemanager_locations_tag_binding_collections_get(
 pub fn cloudresourcemanager_locations_tag_binding_collections_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3525,7 +3527,7 @@ pub struct CloudresourcemanagerLocationsTagBindingCollectionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/locations/{locationsId}/tagBindingCollections/{tagBindingCollectionsId}
@@ -4047,9 +4049,9 @@ pub fn cloudresourcemanager_organizations_get_iam_policy(
 
 pub fn cloudresourcemanager_organizations_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4195,11 +4197,11 @@ pub fn cloudresourcemanager_organizations_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerOrganizationsSearchArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v3/organizations:search
@@ -5199,10 +5201,10 @@ pub fn cloudresourcemanager_projects_get_iam_policy(
 
 pub fn cloudresourcemanager_projects_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5348,13 +5350,13 @@ pub fn cloudresourcemanager_projects_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerProjectsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v3/projects
@@ -5556,7 +5558,7 @@ pub fn cloudresourcemanager_projects_move(
 pub fn cloudresourcemanager_projects_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5696,7 +5698,7 @@ pub struct CloudresourcemanagerProjectsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}
@@ -5730,9 +5732,9 @@ pub fn cloudresourcemanager_projects_patch(
 
 pub fn cloudresourcemanager_projects_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5875,11 +5877,11 @@ pub fn cloudresourcemanager_projects_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerProjectsSearchArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v3/projects:search
@@ -6408,7 +6410,7 @@ pub fn cloudresourcemanager_projects_undelete(
 
 pub fn cloudresourcemanager_tag_bindings_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6543,7 +6545,7 @@ pub fn cloudresourcemanager_tag_bindings_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerTagBindingsCreateArgs {
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v3/tagBindings
@@ -6736,9 +6738,9 @@ pub fn cloudresourcemanager_tag_bindings_delete(
 
 pub fn cloudresourcemanager_tag_bindings_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6881,11 +6883,11 @@ pub fn cloudresourcemanager_tag_bindings_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerTagBindingsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v3/tagBindings
@@ -6925,7 +6927,7 @@ pub fn cloudresourcemanager_tag_bindings_list(
 
 pub fn cloudresourcemanager_tag_keys_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7060,7 +7062,7 @@ pub fn cloudresourcemanager_tag_keys_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerTagKeysCreateArgs {
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v3/tagKeys
@@ -7094,8 +7096,8 @@ pub fn cloudresourcemanager_tag_keys_create(
 pub fn cloudresourcemanager_tag_keys_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7238,9 +7240,9 @@ pub struct CloudresourcemanagerTagKeysDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v3/tagKeys/{tagKeysId}
@@ -7598,7 +7600,7 @@ pub fn cloudresourcemanager_tag_keys_get_iam_policy(
 
 pub fn cloudresourcemanager_tag_keys_get_namespaced_builder<R>(
     client: &SimpleHttpClient<R>,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7734,7 +7736,7 @@ pub fn cloudresourcemanager_tag_keys_get_namespaced_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerTagKeysGetNamespacedArgs {
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// GET v3/tagKeys/namespaced
@@ -7767,9 +7769,9 @@ pub fn cloudresourcemanager_tag_keys_get_namespaced(
 
 pub fn cloudresourcemanager_tag_keys_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7912,11 +7914,11 @@ pub fn cloudresourcemanager_tag_keys_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerTagKeysListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v3/tagKeys
@@ -7957,8 +7959,8 @@ pub fn cloudresourcemanager_tag_keys_list(
 pub fn cloudresourcemanager_tag_keys_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8101,9 +8103,9 @@ pub struct CloudresourcemanagerTagKeysPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v3/tagKeys/{tagKeysId}
@@ -8470,7 +8472,7 @@ pub fn cloudresourcemanager_tag_keys_test_iam_permissions(
 
 pub fn cloudresourcemanager_tag_values_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8605,7 +8607,7 @@ pub fn cloudresourcemanager_tag_values_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerTagValuesCreateArgs {
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v3/tagValues
@@ -8639,8 +8641,8 @@ pub fn cloudresourcemanager_tag_values_create(
 pub fn cloudresourcemanager_tag_values_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8783,9 +8785,9 @@ pub struct CloudresourcemanagerTagValuesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v3/tagValues/{tagValuesId}
@@ -9143,7 +9145,7 @@ pub fn cloudresourcemanager_tag_values_get_iam_policy(
 
 pub fn cloudresourcemanager_tag_values_get_namespaced_builder<R>(
     client: &SimpleHttpClient<R>,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9279,7 +9281,7 @@ pub fn cloudresourcemanager_tag_values_get_namespaced_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerTagValuesGetNamespacedArgs {
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// GET v3/tagValues/namespaced
@@ -9312,9 +9314,9 @@ pub fn cloudresourcemanager_tag_values_get_namespaced(
 
 pub fn cloudresourcemanager_tag_values_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9457,11 +9459,11 @@ pub fn cloudresourcemanager_tag_values_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerTagValuesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v3/tagValues
@@ -9502,8 +9504,8 @@ pub fn cloudresourcemanager_tag_values_list(
 pub fn cloudresourcemanager_tag_values_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9646,9 +9648,9 @@ pub struct CloudresourcemanagerTagValuesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v3/tagValues/{tagValuesId}
@@ -10016,7 +10018,7 @@ pub fn cloudresourcemanager_tag_values_test_iam_permissions(
 pub fn cloudresourcemanager_tag_values_tag_holds_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10156,7 +10158,7 @@ pub struct CloudresourcemanagerTagValuesTagHoldsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v3/tagValues/{tagValuesId}/tagHolds
@@ -10194,7 +10196,7 @@ pub fn cloudresourcemanager_tag_values_tag_holds_create(
 pub fn cloudresourcemanager_tag_values_tag_holds_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10334,7 +10336,7 @@ pub struct CloudresourcemanagerTagValuesTagHoldsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v3/tagValues/{tagValuesId}/tagHolds/{tagHoldsId}
@@ -10372,9 +10374,9 @@ pub fn cloudresourcemanager_tag_values_tag_holds_delete(
 pub fn cloudresourcemanager_tag_values_tag_holds_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10522,11 +10524,11 @@ pub struct CloudresourcemanagerTagValuesTagHoldsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/tagValues/{tagValuesId}/tagHolds
@@ -10575,29 +10577,6 @@ impl ResourceIdentifier<CloudresourcemanagerEffectiveTagsListArgs> for ListEffec
 
     fn resource_kind(&self) -> &'static str {
         "gcp::cloudresourcemanager::ListEffectiveTagsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Operation with CloudresourcemanagerFoldersCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CloudresourcemanagerFoldersCreateArgs> for Operation {
-    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersCreateArgs) -> String {
-        "gcp::cloudresourcemanager::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::cloudresourcemanager::Operation"
     }
 
     fn provider(&self) -> &'static str {
@@ -10888,29 +10867,6 @@ impl ResourceIdentifier<CloudresourcemanagerFoldersCapabilitiesPatchArgs> for Op
 
     fn resource_kind(&self) -> &'static str {
         "gcp::cloudresourcemanager::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Lien
-// =============================================================================
-
-/// ResourceIdentifier implementation for Lien with CloudresourcemanagerLiensCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CloudresourcemanagerLiensCreateArgs> for Lien {
-    fn generate_resource_id(&self, input: &CloudresourcemanagerLiensCreateArgs) -> String {
-        "gcp::cloudresourcemanager::Lien".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::cloudresourcemanager::Lien"
     }
 
     fn provider(&self) -> &'static str {
@@ -11222,29 +11178,6 @@ impl ResourceIdentifier<CloudresourcemanagerOrganizationsTestIamPermissionsArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::cloudresourcemanager::TestIamPermissionsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Operation with CloudresourcemanagerProjectsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CloudresourcemanagerProjectsCreateArgs> for Operation {
-    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsCreateArgs) -> String {
-        "gcp::cloudresourcemanager::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::cloudresourcemanager::Operation"
     }
 
     fn provider(&self) -> &'static str {

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -350,10 +352,10 @@ pub fn apim_projects_locations_get_entitlement(
 pub fn apim_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -504,13 +506,13 @@ pub struct ApimProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha/projects/{projectsId}/locations
@@ -553,8 +555,8 @@ pub fn apim_projects_locations_list(
 pub fn apim_projects_locations_list_api_observation_tags_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -701,9 +703,9 @@ pub struct ApimProjectsLocationsListApiObservationTagsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}:listApiObservationTags
@@ -746,8 +748,8 @@ pub fn apim_projects_locations_list_api_observation_tags(
 pub fn apim_projects_locations_observation_jobs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    observationJobId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    observationJobId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -890,9 +892,9 @@ pub struct ApimProjectsLocationsObservationJobsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: observationJobId
-    pub observationJobId: Option<Option<String>>,
+    pub observationJobId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs
@@ -1575,8 +1577,8 @@ pub fn apim_projects_locations_observation_jobs_get(
 pub fn apim_projects_locations_observation_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1723,9 +1725,9 @@ pub struct ApimProjectsLocationsObservationJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs
@@ -2106,8 +2108,8 @@ pub fn apim_projects_locations_observation_jobs_api_observations_get(
 pub fn apim_projects_locations_observation_jobs_api_observations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2254,9 +2256,9 @@ pub struct ApimProjectsLocationsObservationJobsApiObservationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs/{observationJobsId}/apiObservations
@@ -2467,8 +2469,8 @@ pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_
 pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2615,9 +2617,9 @@ pub struct ApimProjectsLocationsObservationJobsApiObservationsApiOperationsListA
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs/{observationJobsId}/apiObservations/{apiObservationsId}/apiOperations
@@ -2659,8 +2661,8 @@ pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_
 pub fn apim_projects_locations_observation_sources_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    observationSourceId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    observationSourceId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2803,9 +2805,9 @@ pub struct ApimProjectsLocationsObservationSourcesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: observationSourceId
-    pub observationSourceId: Option<Option<String>>,
+    pub observationSourceId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1alpha/projects/{projectsId}/locations/{locationsId}/observationSources
@@ -3168,8 +3170,8 @@ pub fn apim_projects_locations_observation_sources_get(
 pub fn apim_projects_locations_observation_sources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3316,9 +3318,9 @@ pub struct ApimProjectsLocationsObservationSourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationSources
@@ -3841,10 +3843,10 @@ pub fn apim_projects_locations_operations_get(
 pub fn apim_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3995,13 +3997,13 @@ pub struct ApimProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/operations

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn privateca_projects_locations_get(
 pub fn privateca_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct PrivatecaProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,8 +395,8 @@ pub fn privateca_projects_locations_list(
 pub fn privateca_projects_locations_ca_pools_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    caPoolId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    caPoolId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -537,9 +539,9 @@ pub struct PrivatecaProjectsLocationsCaPoolsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: caPoolId
-    pub caPoolId: Option<Option<String>>,
+    pub caPoolId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/caPools
@@ -578,8 +580,8 @@ pub fn privateca_projects_locations_ca_pools_create(
 pub fn privateca_projects_locations_ca_pools_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    ignoreDependentResources: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    ignoreDependentResources: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -722,9 +724,9 @@ pub struct PrivatecaProjectsLocationsCaPoolsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: ignoreDependentResources
-    pub ignoreDependentResources: Option<Option<String>>,
+    pub ignoreDependentResources: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}
@@ -1088,7 +1090,7 @@ pub fn privateca_projects_locations_ca_pools_get(
 pub fn privateca_projects_locations_ca_pools_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1228,7 +1230,7 @@ pub struct PrivatecaProjectsLocationsCaPoolsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}:getIamPolicy
@@ -1266,10 +1268,10 @@ pub fn privateca_projects_locations_ca_pools_get_iam_policy(
 pub fn privateca_projects_locations_ca_pools_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1420,13 +1422,13 @@ pub struct PrivatecaProjectsLocationsCaPoolsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools
@@ -1469,8 +1471,8 @@ pub fn privateca_projects_locations_ca_pools_list(
 pub fn privateca_projects_locations_ca_pools_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1613,9 +1615,9 @@ pub struct PrivatecaProjectsLocationsCaPoolsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}
@@ -2147,8 +2149,8 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_activate(
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    certificateAuthorityId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    certificateAuthorityId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2291,9 +2293,9 @@ pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: certificateAuthorityId
-    pub certificateAuthorityId: Option<Option<String>>,
+    pub certificateAuthorityId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities
@@ -2332,10 +2334,10 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_create(
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    ignoreActiveCertificates: &Option<Option<String>>,
-    ignoreDependentResources: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    skipGracePeriod: &Option<Option<String>>,
+    ignoreActiveCertificates: &Option<String>,
+    ignoreDependentResources: &Option<String>,
+    requestId: &Option<String>,
+    skipGracePeriod: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2484,13 +2486,13 @@ pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: ignoreActiveCertificates
-    pub ignoreActiveCertificates: Option<Option<String>>,
+    pub ignoreActiveCertificates: Option<String>,
     /// Query parameter: ignoreDependentResources
-    pub ignoreDependentResources: Option<Option<String>>,
+    pub ignoreDependentResources: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: skipGracePeriod
-    pub skipGracePeriod: Option<Option<String>>,
+    pub skipGracePeriod: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}
@@ -3191,10 +3193,10 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_get(
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3347,13 +3349,13 @@ pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities
@@ -3398,8 +3400,8 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_list(
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3542,9 +3544,9 @@ pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}
@@ -3915,7 +3917,7 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 >(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4056,7 +4058,7 @@ pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRev
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists/{certificateRevocationListsId}:getIamPolicy
@@ -4092,10 +4094,10 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4249,13 +4251,13 @@ pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRev
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists
@@ -4295,8 +4297,8 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4440,9 +4442,9 @@ pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRev
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists/{certificateRevocationListsId}
@@ -4810,10 +4812,10 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 pub fn privateca_projects_locations_ca_pools_certificates_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    certificateId: &Option<Option<String>>,
-    issuingCertificateAuthorityId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    certificateId: &Option<String>,
+    issuingCertificateAuthorityId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4962,13 +4964,13 @@ pub struct PrivatecaProjectsLocationsCaPoolsCertificatesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: certificateId
-    pub certificateId: Option<Option<String>>,
+    pub certificateId: Option<String>,
     /// Query parameter: issuingCertificateAuthorityId
-    pub issuingCertificateAuthorityId: Option<Option<String>>,
+    pub issuingCertificateAuthorityId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificates
@@ -5170,10 +5172,10 @@ pub fn privateca_projects_locations_ca_pools_certificates_get(
 pub fn privateca_projects_locations_ca_pools_certificates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5324,13 +5326,13 @@ pub struct PrivatecaProjectsLocationsCaPoolsCertificatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificates
@@ -5373,8 +5375,8 @@ pub fn privateca_projects_locations_ca_pools_certificates_list(
 pub fn privateca_projects_locations_ca_pools_certificates_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5517,9 +5519,9 @@ pub struct PrivatecaProjectsLocationsCaPoolsCertificatesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificates/{certificatesId}
@@ -5719,8 +5721,8 @@ pub fn privateca_projects_locations_ca_pools_certificates_revoke(
 pub fn privateca_projects_locations_certificate_templates_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    certificateTemplateId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    certificateTemplateId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5863,9 +5865,9 @@ pub struct PrivatecaProjectsLocationsCertificateTemplatesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: certificateTemplateId
-    pub certificateTemplateId: Option<Option<String>>,
+    pub certificateTemplateId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/certificateTemplates
@@ -5904,7 +5906,7 @@ pub fn privateca_projects_locations_certificate_templates_create(
 pub fn privateca_projects_locations_certificate_templates_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6044,7 +6046,7 @@ pub struct PrivatecaProjectsLocationsCertificateTemplatesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}
@@ -6247,7 +6249,7 @@ pub fn privateca_projects_locations_certificate_templates_get(
 pub fn privateca_projects_locations_certificate_templates_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6387,7 +6389,7 @@ pub struct PrivatecaProjectsLocationsCertificateTemplatesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}:getIamPolicy
@@ -6425,10 +6427,10 @@ pub fn privateca_projects_locations_certificate_templates_get_iam_policy(
 pub fn privateca_projects_locations_certificate_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6581,13 +6583,13 @@ pub struct PrivatecaProjectsLocationsCertificateTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateTemplates
@@ -6632,8 +6634,8 @@ pub fn privateca_projects_locations_certificate_templates_list(
 pub fn privateca_projects_locations_certificate_templates_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6776,9 +6778,9 @@ pub struct PrivatecaProjectsLocationsCertificateTemplatesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}
@@ -7632,10 +7634,10 @@ pub fn privateca_projects_locations_operations_get(
 pub fn privateca_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7786,13 +7788,13 @@ pub struct PrivatecaProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations

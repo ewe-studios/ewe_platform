@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,7 +32,7 @@ use serde::Serialize;
 pub fn iam_policies_create_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    policyId: &Option<Option<String>>,
+    policyId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -174,7 +176,7 @@ pub struct IamPoliciesCreatePolicyArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: policyId
-    pub policyId: Option<Option<String>>,
+    pub policyId: Option<String>,
 }
 
 /// POST v2/policies/{policiesId}/{policiesId1}
@@ -212,7 +214,7 @@ pub fn iam_policies_create_policy(
 pub fn iam_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -356,7 +358,7 @@ pub struct IamPoliciesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v2/policies/{policiesId}/{policiesId1}/{policiesId2}
@@ -558,8 +560,8 @@ pub fn iam_policies_get(
 pub fn iam_policies_list_policies_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -706,9 +708,9 @@ pub struct IamPoliciesListPoliciesArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/policies/{policiesId}/{policiesId1}

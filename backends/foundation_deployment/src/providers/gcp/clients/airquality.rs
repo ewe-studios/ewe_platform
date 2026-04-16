@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -654,75 +656,6 @@ pub fn airquality_map_types_heatmap_tiles_lookup_heatmap_tile(
         &args.y,
     )?;
     airquality_map_types_heatmap_tiles_lookup_heatmap_tile_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for LookupCurrentConditionsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for LookupCurrentConditionsResponse with AirqualityCurrentConditionsLookupArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AirqualityCurrentConditionsLookupArgs> for LookupCurrentConditionsResponse {
-    fn generate_resource_id(&self, input: &AirqualityCurrentConditionsLookupArgs) -> String {
-        "gcp::airquality::LookupCurrentConditionsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::airquality::LookupCurrentConditionsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for LookupForecastResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for LookupForecastResponse with AirqualityForecastLookupArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AirqualityForecastLookupArgs> for LookupForecastResponse {
-    fn generate_resource_id(&self, input: &AirqualityForecastLookupArgs) -> String {
-        "gcp::airquality::LookupForecastResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::airquality::LookupForecastResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for LookupHistoryResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for LookupHistoryResponse with AirqualityHistoryLookupArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AirqualityHistoryLookupArgs> for LookupHistoryResponse {
-    fn generate_resource_id(&self, input: &AirqualityHistoryLookupArgs) -> String {
-        "gcp::airquality::LookupHistoryResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::airquality::LookupHistoryResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================

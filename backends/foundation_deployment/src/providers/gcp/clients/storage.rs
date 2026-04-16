@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -533,8 +535,8 @@ pub fn storage_anywhere_caches_insert(
 pub fn storage_anywhere_caches_list_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -679,9 +681,9 @@ pub struct StorageAnywhereCachesListArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET b/{bucket}/anywhereCaches
@@ -1231,7 +1233,7 @@ pub fn storage_bucket_access_controls_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1370,7 +1372,7 @@ pub struct StorageBucketAccessControlsDeleteArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// DELETE b/{bucket}/acl/{entity}
@@ -1410,7 +1412,7 @@ pub fn storage_bucket_access_controls_get_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1554,7 +1556,7 @@ pub struct StorageBucketAccessControlsGetArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/acl/{entity}
@@ -1595,7 +1597,7 @@ pub fn storage_bucket_access_controls_get(
 pub fn storage_bucket_access_controls_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1734,7 +1736,7 @@ pub struct StorageBucketAccessControlsInsertArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST b/{bucket}/acl
@@ -1771,7 +1773,7 @@ pub fn storage_bucket_access_controls_insert(
 pub fn storage_bucket_access_controls_list_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1910,7 +1912,7 @@ pub struct StorageBucketAccessControlsListArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/acl
@@ -1948,7 +1950,7 @@ pub fn storage_bucket_access_controls_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2092,7 +2094,7 @@ pub struct StorageBucketAccessControlsPatchArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PATCH b/{bucket}/acl/{entity}
@@ -2134,7 +2136,7 @@ pub fn storage_bucket_access_controls_update_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2278,7 +2280,7 @@ pub struct StorageBucketAccessControlsUpdateArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PUT b/{bucket}/acl/{entity}
@@ -2319,9 +2321,9 @@ pub fn storage_bucket_access_controls_update(
 pub fn storage_buckets_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2461,11 +2463,11 @@ pub struct StorageBucketsDeleteArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// DELETE b/{bucket}
@@ -2505,12 +2507,12 @@ pub fn storage_buckets_delete(
 pub fn storage_buckets_get_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    generation: &Option<Option<String>>,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    softDeleted: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    projection: &Option<String>,
+    softDeleted: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2662,17 +2664,17 @@ pub struct StorageBucketsGetArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: softDeleted
-    pub softDeleted: Option<Option<String>>,
+    pub softDeleted: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}
@@ -2715,8 +2717,8 @@ pub fn storage_buckets_get(
 pub fn storage_buckets_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2856,9 +2858,9 @@ pub struct StorageBucketsGetIamPolicyArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/iam
@@ -2897,7 +2899,7 @@ pub fn storage_buckets_get_iam_policy(
 pub fn storage_buckets_get_storage_layout_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    prefix: &Option<Option<String>>,
+    prefix: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3039,7 +3041,7 @@ pub struct StorageBucketsGetStorageLayoutArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: prefix
-    pub prefix: Option<Option<String>>,
+    pub prefix: Option<String>,
 }
 
 /// GET b/{bucket}/storageLayout
@@ -3074,12 +3076,12 @@ pub fn storage_buckets_get_storage_layout(
 
 pub fn storage_buckets_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    enableObjectRetention: &Option<Option<String>>,
-    predefinedAcl: &Option<Option<String>>,
-    predefinedDefaultObjectAcl: &Option<Option<String>>,
-    project: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    enableObjectRetention: &Option<String>,
+    predefinedAcl: &Option<String>,
+    predefinedDefaultObjectAcl: &Option<String>,
+    project: &Option<String>,
+    projection: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3229,17 +3231,17 @@ pub fn storage_buckets_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StorageBucketsInsertArgs {
     /// Query parameter: enableObjectRetention
-    pub enableObjectRetention: Option<Option<String>>,
+    pub enableObjectRetention: Option<String>,
     /// Query parameter: predefinedAcl
-    pub predefinedAcl: Option<Option<String>>,
+    pub predefinedAcl: Option<String>,
     /// Query parameter: predefinedDefaultObjectAcl
-    pub predefinedDefaultObjectAcl: Option<Option<String>>,
+    pub predefinedDefaultObjectAcl: Option<String>,
     /// Query parameter: project
-    pub project: Option<Option<String>>,
+    pub project: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST b
@@ -3280,14 +3282,14 @@ pub fn storage_buckets_insert(
 
 pub fn storage_buckets_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    prefix: &Option<Option<String>>,
-    project: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    softDeleted: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    prefix: &Option<String>,
+    project: &Option<String>,
+    projection: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    softDeleted: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3443,21 +3445,21 @@ pub fn storage_buckets_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StorageBucketsListArgs {
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: prefix
-    pub prefix: Option<Option<String>>,
+    pub prefix: Option<String>,
     /// Query parameter: project
-    pub project: Option<Option<String>>,
+    pub project: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: softDeleted
-    pub softDeleted: Option<Option<String>>,
+    pub softDeleted: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b
@@ -3501,8 +3503,8 @@ pub fn storage_buckets_list(
 pub fn storage_buckets_lock_retention_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3645,9 +3647,9 @@ pub struct StorageBucketsLockRetentionPolicyArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST b/{bucket}/lockRetentionPolicy
@@ -3686,12 +3688,12 @@ pub fn storage_buckets_lock_retention_policy(
 pub fn storage_buckets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    predefinedAcl: &Option<Option<String>>,
-    predefinedDefaultObjectAcl: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    predefinedAcl: &Option<String>,
+    predefinedDefaultObjectAcl: &Option<String>,
+    projection: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3843,17 +3845,17 @@ pub struct StorageBucketsPatchArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: predefinedAcl
-    pub predefinedAcl: Option<Option<String>>,
+    pub predefinedAcl: Option<String>,
     /// Query parameter: predefinedDefaultObjectAcl
-    pub predefinedDefaultObjectAcl: Option<Option<String>>,
+    pub predefinedDefaultObjectAcl: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PATCH b/{bucket}
@@ -4064,9 +4066,9 @@ pub fn storage_buckets_relocate(
 pub fn storage_buckets_restore_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    generation: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    projection: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4212,11 +4214,11 @@ pub struct StorageBucketsRestoreArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST b/{bucket}/restore
@@ -4256,7 +4258,7 @@ pub fn storage_buckets_restore(
 pub fn storage_buckets_set_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4393,7 +4395,7 @@ pub struct StorageBucketsSetIamPolicyArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PUT b/{bucket}/iam
@@ -4427,8 +4429,8 @@ pub fn storage_buckets_set_iam_policy(
 pub fn storage_buckets_test_iam_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    permissions: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    permissions: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4575,9 +4577,9 @@ pub struct StorageBucketsTestIamPermissionsArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: permissions
-    pub permissions: Option<Option<String>>,
+    pub permissions: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/iam/testPermissions
@@ -4620,12 +4622,12 @@ pub fn storage_buckets_test_iam_permissions(
 pub fn storage_buckets_update_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    predefinedAcl: &Option<Option<String>>,
-    predefinedDefaultObjectAcl: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    predefinedAcl: &Option<String>,
+    predefinedDefaultObjectAcl: &Option<String>,
+    projection: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4777,17 +4779,17 @@ pub struct StorageBucketsUpdateArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: predefinedAcl
-    pub predefinedAcl: Option<Option<String>>,
+    pub predefinedAcl: Option<String>,
     /// Query parameter: predefinedDefaultObjectAcl
-    pub predefinedDefaultObjectAcl: Option<Option<String>>,
+    pub predefinedDefaultObjectAcl: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PUT b/{bucket}
@@ -4976,7 +4978,7 @@ pub fn storage_default_object_access_controls_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5115,7 +5117,7 @@ pub struct StorageDefaultObjectAccessControlsDeleteArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// DELETE b/{bucket}/defaultObjectAcl/{entity}
@@ -5155,7 +5157,7 @@ pub fn storage_default_object_access_controls_get_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5299,7 +5301,7 @@ pub struct StorageDefaultObjectAccessControlsGetArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/defaultObjectAcl/{entity}
@@ -5340,7 +5342,7 @@ pub fn storage_default_object_access_controls_get(
 pub fn storage_default_object_access_controls_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5482,7 +5484,7 @@ pub struct StorageDefaultObjectAccessControlsInsertArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST b/{bucket}/defaultObjectAcl
@@ -5522,9 +5524,9 @@ pub fn storage_default_object_access_controls_insert(
 pub fn storage_default_object_access_controls_list_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5672,11 +5674,11 @@ pub struct StorageDefaultObjectAccessControlsListArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/defaultObjectAcl
@@ -5719,7 +5721,7 @@ pub fn storage_default_object_access_controls_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5863,7 +5865,7 @@ pub struct StorageDefaultObjectAccessControlsPatchArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PATCH b/{bucket}/defaultObjectAcl/{entity}
@@ -5905,7 +5907,7 @@ pub fn storage_default_object_access_controls_update_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     entity: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6049,7 +6051,7 @@ pub struct StorageDefaultObjectAccessControlsUpdateArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PUT b/{bucket}/defaultObjectAcl/{entity}
@@ -6091,8 +6093,8 @@ pub fn storage_folders_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     folder: &String,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6234,9 +6236,9 @@ pub struct StorageFoldersDeleteArgs {
     /// Path parameter: folder
     pub folder: String,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
 }
 
 /// DELETE b/{bucket}/folders/{folder}
@@ -6277,8 +6279,8 @@ pub fn storage_folders_delete_recursive_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     folder: &String,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6427,9 +6429,9 @@ pub struct StorageFoldersDeleteRecursiveArgs {
     /// Path parameter: folder
     pub folder: String,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
 }
 
 /// POST b/{bucket}/folders/{folder}/deleteRecursive
@@ -6474,8 +6476,8 @@ pub fn storage_folders_get_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     folder: &String,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6620,9 +6622,9 @@ pub struct StorageFoldersGetArgs {
     /// Path parameter: folder
     pub folder: String,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
 }
 
 /// GET b/{bucket}/folders/{folder}
@@ -6662,7 +6664,7 @@ pub fn storage_folders_get(
 pub fn storage_folders_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    recursive: &Option<Option<String>>,
+    recursive: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6802,7 +6804,7 @@ pub struct StorageFoldersInsertArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: recursive
-    pub recursive: Option<Option<String>>,
+    pub recursive: Option<String>,
 }
 
 /// POST b/{bucket}/folders
@@ -6836,12 +6838,12 @@ pub fn storage_folders_insert(
 pub fn storage_folders_list_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    delimiter: &Option<Option<String>>,
-    endOffset: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    prefix: &Option<Option<String>>,
-    startOffset: &Option<Option<String>>,
+    delimiter: &Option<String>,
+    endOffset: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    prefix: &Option<String>,
+    startOffset: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6996,17 +6998,17 @@ pub struct StorageFoldersListArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: delimiter
-    pub delimiter: Option<Option<String>>,
+    pub delimiter: Option<String>,
     /// Query parameter: endOffset
-    pub endOffset: Option<Option<String>>,
+    pub endOffset: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: prefix
-    pub prefix: Option<Option<String>>,
+    pub prefix: Option<String>,
     /// Query parameter: startOffset
-    pub startOffset: Option<Option<String>>,
+    pub startOffset: Option<String>,
 }
 
 /// GET b/{bucket}/folders
@@ -7051,8 +7053,8 @@ pub fn storage_folders_rename_builder<R>(
     bucket: &String,
     sourceFolder: &String,
     destinationFolder: &String,
-    ifSourceMetagenerationMatch: &Option<Option<String>>,
-    ifSourceMetagenerationNotMatch: &Option<Option<String>>,
+    ifSourceMetagenerationMatch: &Option<String>,
+    ifSourceMetagenerationNotMatch: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7203,9 +7205,9 @@ pub struct StorageFoldersRenameArgs {
     /// Path parameter: destinationFolder
     pub destinationFolder: String,
     /// Query parameter: ifSourceMetagenerationMatch
-    pub ifSourceMetagenerationMatch: Option<Option<String>>,
+    pub ifSourceMetagenerationMatch: Option<String>,
     /// Query parameter: ifSourceMetagenerationNotMatch
-    pub ifSourceMetagenerationNotMatch: Option<Option<String>>,
+    pub ifSourceMetagenerationNotMatch: Option<String>,
 }
 
 /// POST b/{bucket}/folders/{sourceFolder}/renameTo/folders/{destinationFolder}
@@ -7251,9 +7253,9 @@ pub fn storage_managed_folders_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     managedFolder: &String,
-    allowNonEmpty: &Option<Option<String>>,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
+    allowNonEmpty: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7398,11 +7400,11 @@ pub struct StorageManagedFoldersDeleteArgs {
     /// Path parameter: managedFolder
     pub managedFolder: String,
     /// Query parameter: allowNonEmpty
-    pub allowNonEmpty: Option<Option<String>>,
+    pub allowNonEmpty: Option<String>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
 }
 
 /// DELETE b/{bucket}/managedFolders/{managedFolder}
@@ -7444,8 +7446,8 @@ pub fn storage_managed_folders_get_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     managedFolder: &String,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7592,9 +7594,9 @@ pub struct StorageManagedFoldersGetArgs {
     /// Path parameter: managedFolder
     pub managedFolder: String,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
 }
 
 /// GET b/{bucket}/managedFolders/{managedFolder}
@@ -7637,8 +7639,8 @@ pub fn storage_managed_folders_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     managedFolder: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7783,9 +7785,9 @@ pub struct StorageManagedFoldersGetIamPolicyArgs {
     /// Path parameter: managedFolder
     pub managedFolder: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/managedFolders/{managedFolder}/iam
@@ -7989,9 +7991,9 @@ pub fn storage_managed_folders_insert(
 pub fn storage_managed_folders_list_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    prefix: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    prefix: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8139,11 +8141,11 @@ pub struct StorageManagedFoldersListArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: prefix
-    pub prefix: Option<Option<String>>,
+    pub prefix: Option<String>,
 }
 
 /// GET b/{bucket}/managedFolders
@@ -8186,7 +8188,7 @@ pub fn storage_managed_folders_set_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     managedFolder: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8328,7 +8330,7 @@ pub struct StorageManagedFoldersSetIamPolicyArgs {
     /// Path parameter: managedFolder
     pub managedFolder: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PUT b/{bucket}/managedFolders/{managedFolder}/iam
@@ -8368,8 +8370,8 @@ pub fn storage_managed_folders_test_iam_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     managedFolder: &String,
-    permissions: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    permissions: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8518,9 +8520,9 @@ pub struct StorageManagedFoldersTestIamPermissionsArgs {
     /// Path parameter: managedFolder
     pub managedFolder: String,
     /// Query parameter: permissions
-    pub permissions: Option<Option<String>>,
+    pub permissions: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/managedFolders/{managedFolder}/iam/testPermissions
@@ -8565,7 +8567,7 @@ pub fn storage_notifications_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     notification: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8704,7 +8706,7 @@ pub struct StorageNotificationsDeleteArgs {
     /// Path parameter: notification
     pub notification: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// DELETE b/{bucket}/notificationConfigs/{notification}
@@ -8744,7 +8746,7 @@ pub fn storage_notifications_get_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     notification: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8888,7 +8890,7 @@ pub struct StorageNotificationsGetArgs {
     /// Path parameter: notification
     pub notification: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/notificationConfigs/{notification}
@@ -8929,7 +8931,7 @@ pub fn storage_notifications_get(
 pub fn storage_notifications_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9071,7 +9073,7 @@ pub struct StorageNotificationsInsertArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST b/{bucket}/notificationConfigs
@@ -9107,7 +9109,7 @@ pub fn storage_notifications_insert(
 pub fn storage_notifications_list_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9249,7 +9251,7 @@ pub struct StorageNotificationsListArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/notificationConfigs
@@ -9287,8 +9289,8 @@ pub fn storage_object_access_controls_delete_builder<R>(
     bucket: &String,
     object: &String,
     entity: &String,
-    generation: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9432,9 +9434,9 @@ pub struct StorageObjectAccessControlsDeleteArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// DELETE b/{bucket}/o/{object}/acl/{entity}
@@ -9477,8 +9479,8 @@ pub fn storage_object_access_controls_get_builder<R>(
     bucket: &String,
     object: &String,
     entity: &String,
-    generation: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9627,9 +9629,9 @@ pub struct StorageObjectAccessControlsGetArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/o/{object}/acl/{entity}
@@ -9673,8 +9675,8 @@ pub fn storage_object_access_controls_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
-    generation: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9821,9 +9823,9 @@ pub struct StorageObjectAccessControlsInsertArgs {
     /// Path parameter: object
     pub object: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST b/{bucket}/o/{object}/acl
@@ -9866,8 +9868,8 @@ pub fn storage_object_access_controls_list_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
-    generation: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10014,9 +10016,9 @@ pub struct StorageObjectAccessControlsListArgs {
     /// Path parameter: object
     pub object: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/o/{object}/acl
@@ -10060,8 +10062,8 @@ pub fn storage_object_access_controls_patch_builder<R>(
     bucket: &String,
     object: &String,
     entity: &String,
-    generation: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10210,9 +10212,9 @@ pub struct StorageObjectAccessControlsPatchArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PATCH b/{bucket}/o/{object}/acl/{entity}
@@ -10257,8 +10259,8 @@ pub fn storage_object_access_controls_update_builder<R>(
     bucket: &String,
     object: &String,
     entity: &String,
-    generation: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10407,9 +10409,9 @@ pub struct StorageObjectAccessControlsUpdateArgs {
     /// Path parameter: entity
     pub entity: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PUT b/{bucket}/o/{object}/acl/{entity}
@@ -10621,12 +10623,12 @@ pub fn storage_objects_compose_builder<R>(
     client: &SimpleHttpClient<R>,
     destinationBucket: &String,
     destinationObject: &String,
-    destinationPredefinedAcl: &Option<Option<String>>,
-    dropContextGroups: &Option<Option<String>>,
-    ifGenerationMatch: &Option<Option<String>>,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    kmsKeyName: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    destinationPredefinedAcl: &Option<String>,
+    dropContextGroups: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    kmsKeyName: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10783,17 +10785,17 @@ pub struct StorageObjectsComposeArgs {
     /// Path parameter: destinationObject
     pub destinationObject: String,
     /// Query parameter: destinationPredefinedAcl
-    pub destinationPredefinedAcl: Option<Option<String>>,
+    pub destinationPredefinedAcl: Option<String>,
     /// Query parameter: dropContextGroups
-    pub dropContextGroups: Option<Option<String>>,
+    pub dropContextGroups: Option<String>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<Option<String>>,
+    pub ifGenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: kmsKeyName
-    pub kmsKeyName: Option<Option<String>>,
+    pub kmsKeyName: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST b/{destinationBucket}/o/{destinationObject}/compose
@@ -10840,19 +10842,19 @@ pub fn storage_objects_copy_builder<R>(
     sourceObject: &String,
     destinationBucket: &String,
     destinationObject: &String,
-    destinationKmsKeyName: &Option<Option<String>>,
-    destinationPredefinedAcl: &Option<Option<String>>,
-    ifGenerationMatch: &Option<Option<String>>,
-    ifGenerationNotMatch: &Option<Option<String>>,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    ifSourceGenerationMatch: &Option<Option<String>>,
-    ifSourceGenerationNotMatch: &Option<Option<String>>,
-    ifSourceMetagenerationMatch: &Option<Option<String>>,
-    ifSourceMetagenerationNotMatch: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    sourceGeneration: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    destinationKmsKeyName: &Option<String>,
+    destinationPredefinedAcl: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    ifSourceGenerationMatch: &Option<String>,
+    ifSourceGenerationNotMatch: &Option<String>,
+    ifSourceMetagenerationMatch: &Option<String>,
+    ifSourceMetagenerationNotMatch: &Option<String>,
+    projection: &Option<String>,
+    sourceGeneration: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11034,31 +11036,31 @@ pub struct StorageObjectsCopyArgs {
     /// Path parameter: destinationObject
     pub destinationObject: String,
     /// Query parameter: destinationKmsKeyName
-    pub destinationKmsKeyName: Option<Option<String>>,
+    pub destinationKmsKeyName: Option<String>,
     /// Query parameter: destinationPredefinedAcl
-    pub destinationPredefinedAcl: Option<Option<String>>,
+    pub destinationPredefinedAcl: Option<String>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<Option<String>>,
+    pub ifGenerationMatch: Option<String>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<Option<String>>,
+    pub ifGenerationNotMatch: Option<String>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: ifSourceGenerationMatch
-    pub ifSourceGenerationMatch: Option<Option<String>>,
+    pub ifSourceGenerationMatch: Option<String>,
     /// Query parameter: ifSourceGenerationNotMatch
-    pub ifSourceGenerationNotMatch: Option<Option<String>>,
+    pub ifSourceGenerationNotMatch: Option<String>,
     /// Query parameter: ifSourceMetagenerationMatch
-    pub ifSourceMetagenerationMatch: Option<Option<String>>,
+    pub ifSourceMetagenerationMatch: Option<String>,
     /// Query parameter: ifSourceMetagenerationNotMatch
-    pub ifSourceMetagenerationNotMatch: Option<Option<String>>,
+    pub ifSourceMetagenerationNotMatch: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: sourceGeneration
-    pub sourceGeneration: Option<Option<String>>,
+    pub sourceGeneration: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST b/{sourceBucket}/o/{sourceObject}/copyTo/b/{destinationBucket}/o/{destinationObject}
@@ -11112,12 +11114,12 @@ pub fn storage_objects_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
-    generation: &Option<Option<String>>,
-    ifGenerationMatch: &Option<Option<String>>,
-    ifGenerationNotMatch: &Option<Option<String>>,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11271,17 +11273,17 @@ pub struct StorageObjectsDeleteArgs {
     /// Path parameter: object
     pub object: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<Option<String>>,
+    pub ifGenerationMatch: Option<String>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<Option<String>>,
+    pub ifGenerationNotMatch: Option<String>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// DELETE b/{bucket}/o/{object}
@@ -11326,15 +11328,15 @@ pub fn storage_objects_get_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
-    generation: &Option<Option<String>>,
-    ifGenerationMatch: &Option<Option<String>>,
-    ifGenerationNotMatch: &Option<Option<String>>,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    restoreToken: &Option<Option<String>>,
-    softDeleted: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    projection: &Option<String>,
+    restoreToken: &Option<String>,
+    softDeleted: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11500,23 +11502,23 @@ pub struct StorageObjectsGetArgs {
     /// Path parameter: object
     pub object: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<Option<String>>,
+    pub ifGenerationMatch: Option<String>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<Option<String>>,
+    pub ifGenerationNotMatch: Option<String>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: restoreToken
-    pub restoreToken: Option<Option<String>>,
+    pub restoreToken: Option<String>,
     /// Query parameter: softDeleted
-    pub softDeleted: Option<Option<String>>,
+    pub softDeleted: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/o/{object}
@@ -11564,8 +11566,8 @@ pub fn storage_objects_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
-    generation: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11710,9 +11712,9 @@ pub struct StorageObjectsGetIamPolicyArgs {
     /// Path parameter: object
     pub object: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/o/{object}/iam
@@ -11752,16 +11754,16 @@ pub fn storage_objects_get_iam_policy(
 pub fn storage_objects_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    contentEncoding: &Option<Option<String>>,
-    ifGenerationMatch: &Option<Option<String>>,
-    ifGenerationNotMatch: &Option<Option<String>>,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    kmsKeyName: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    predefinedAcl: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    contentEncoding: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    kmsKeyName: &Option<String>,
+    name: &Option<String>,
+    predefinedAcl: &Option<String>,
+    projection: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11925,25 +11927,25 @@ pub struct StorageObjectsInsertArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: contentEncoding
-    pub contentEncoding: Option<Option<String>>,
+    pub contentEncoding: Option<String>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<Option<String>>,
+    pub ifGenerationMatch: Option<String>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<Option<String>>,
+    pub ifGenerationNotMatch: Option<String>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: kmsKeyName
-    pub kmsKeyName: Option<Option<String>>,
+    pub kmsKeyName: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: predefinedAcl
-    pub predefinedAcl: Option<Option<String>>,
+    pub predefinedAcl: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST b/{bucket}/o
@@ -11990,20 +11992,20 @@ pub fn storage_objects_insert(
 pub fn storage_objects_list_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    delimiter: &Option<Option<String>>,
-    endOffset: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    includeFoldersAsPrefixes: &Option<Option<String>>,
-    includeTrailingDelimiter: &Option<Option<String>>,
-    matchGlob: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    prefix: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    softDeleted: &Option<Option<String>>,
-    startOffset: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
-    versions: &Option<Option<String>>,
+    delimiter: &Option<String>,
+    endOffset: &Option<String>,
+    filter: &Option<String>,
+    includeFoldersAsPrefixes: &Option<String>,
+    includeTrailingDelimiter: &Option<String>,
+    matchGlob: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    prefix: &Option<String>,
+    projection: &Option<String>,
+    softDeleted: &Option<String>,
+    startOffset: &Option<String>,
+    userProject: &Option<String>,
+    versions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12179,33 +12181,33 @@ pub struct StorageObjectsListArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: delimiter
-    pub delimiter: Option<Option<String>>,
+    pub delimiter: Option<String>,
     /// Query parameter: endOffset
-    pub endOffset: Option<Option<String>>,
+    pub endOffset: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeFoldersAsPrefixes
-    pub includeFoldersAsPrefixes: Option<Option<String>>,
+    pub includeFoldersAsPrefixes: Option<String>,
     /// Query parameter: includeTrailingDelimiter
-    pub includeTrailingDelimiter: Option<Option<String>>,
+    pub includeTrailingDelimiter: Option<String>,
     /// Query parameter: matchGlob
-    pub matchGlob: Option<Option<String>>,
+    pub matchGlob: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: prefix
-    pub prefix: Option<Option<String>>,
+    pub prefix: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: softDeleted
-    pub softDeleted: Option<Option<String>>,
+    pub softDeleted: Option<String>,
     /// Query parameter: startOffset
-    pub startOffset: Option<Option<String>>,
+    pub startOffset: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
     /// Query parameter: versions
-    pub versions: Option<Option<String>>,
+    pub versions: Option<String>,
 }
 
 /// GET b/{bucket}/o
@@ -12258,16 +12260,16 @@ pub fn storage_objects_move_builder<R>(
     bucket: &String,
     sourceObject: &String,
     destinationObject: &String,
-    ifGenerationMatch: &Option<Option<String>>,
-    ifGenerationNotMatch: &Option<Option<String>>,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    ifSourceGenerationMatch: &Option<Option<String>>,
-    ifSourceGenerationNotMatch: &Option<Option<String>>,
-    ifSourceMetagenerationMatch: &Option<Option<String>>,
-    ifSourceMetagenerationNotMatch: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    ifSourceGenerationMatch: &Option<String>,
+    ifSourceGenerationNotMatch: &Option<String>,
+    ifSourceMetagenerationMatch: &Option<String>,
+    ifSourceMetagenerationNotMatch: &Option<String>,
+    projection: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12438,25 +12440,25 @@ pub struct StorageObjectsMoveArgs {
     /// Path parameter: destinationObject
     pub destinationObject: String,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<Option<String>>,
+    pub ifGenerationMatch: Option<String>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<Option<String>>,
+    pub ifGenerationNotMatch: Option<String>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: ifSourceGenerationMatch
-    pub ifSourceGenerationMatch: Option<Option<String>>,
+    pub ifSourceGenerationMatch: Option<String>,
     /// Query parameter: ifSourceGenerationNotMatch
-    pub ifSourceGenerationNotMatch: Option<Option<String>>,
+    pub ifSourceGenerationNotMatch: Option<String>,
     /// Query parameter: ifSourceMetagenerationMatch
-    pub ifSourceMetagenerationMatch: Option<Option<String>>,
+    pub ifSourceMetagenerationMatch: Option<String>,
     /// Query parameter: ifSourceMetagenerationNotMatch
-    pub ifSourceMetagenerationNotMatch: Option<Option<String>>,
+    pub ifSourceMetagenerationNotMatch: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST b/{bucket}/o/{sourceObject}/moveTo/o/{destinationObject}
@@ -12506,15 +12508,15 @@ pub fn storage_objects_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
-    generation: &Option<Option<String>>,
-    ifGenerationMatch: &Option<Option<String>>,
-    ifGenerationNotMatch: &Option<Option<String>>,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    overrideUnlockedRetention: &Option<Option<String>>,
-    predefinedAcl: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    overrideUnlockedRetention: &Option<String>,
+    predefinedAcl: &Option<String>,
+    projection: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12680,23 +12682,23 @@ pub struct StorageObjectsPatchArgs {
     /// Path parameter: object
     pub object: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<Option<String>>,
+    pub ifGenerationMatch: Option<String>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<Option<String>>,
+    pub ifGenerationNotMatch: Option<String>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: overrideUnlockedRetention
-    pub overrideUnlockedRetention: Option<Option<String>>,
+    pub overrideUnlockedRetention: Option<String>,
     /// Query parameter: predefinedAcl
-    pub predefinedAcl: Option<Option<String>>,
+    pub predefinedAcl: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PATCH b/{bucket}/o/{object}
@@ -12744,15 +12746,15 @@ pub fn storage_objects_restore_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
-    copySourceAcl: &Option<Option<String>>,
-    generation: &Option<Option<String>>,
-    ifGenerationMatch: &Option<Option<String>>,
-    ifGenerationNotMatch: &Option<Option<String>>,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    restoreToken: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    copySourceAcl: &Option<String>,
+    generation: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    projection: &Option<String>,
+    restoreToken: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12918,23 +12920,23 @@ pub struct StorageObjectsRestoreArgs {
     /// Path parameter: object
     pub object: String,
     /// Query parameter: copySourceAcl
-    pub copySourceAcl: Option<Option<String>>,
+    pub copySourceAcl: Option<String>,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<Option<String>>,
+    pub ifGenerationMatch: Option<String>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<Option<String>>,
+    pub ifGenerationNotMatch: Option<String>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: restoreToken
-    pub restoreToken: Option<Option<String>>,
+    pub restoreToken: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST b/{bucket}/o/{object}/restore
@@ -12984,22 +12986,22 @@ pub fn storage_objects_rewrite_builder<R>(
     sourceObject: &String,
     destinationBucket: &String,
     destinationObject: &String,
-    destinationKmsKeyName: &Option<Option<String>>,
-    destinationPredefinedAcl: &Option<Option<String>>,
-    dropContextGroups: &Option<Option<String>>,
-    ifGenerationMatch: &Option<Option<String>>,
-    ifGenerationNotMatch: &Option<Option<String>>,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    ifSourceGenerationMatch: &Option<Option<String>>,
-    ifSourceGenerationNotMatch: &Option<Option<String>>,
-    ifSourceMetagenerationMatch: &Option<Option<String>>,
-    ifSourceMetagenerationNotMatch: &Option<Option<String>>,
-    maxBytesRewrittenPerCall: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    rewriteToken: &Option<Option<String>>,
-    sourceGeneration: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    destinationKmsKeyName: &Option<String>,
+    destinationPredefinedAcl: &Option<String>,
+    dropContextGroups: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    ifSourceGenerationMatch: &Option<String>,
+    ifSourceGenerationNotMatch: &Option<String>,
+    ifSourceMetagenerationMatch: &Option<String>,
+    ifSourceMetagenerationNotMatch: &Option<String>,
+    maxBytesRewrittenPerCall: &Option<String>,
+    projection: &Option<String>,
+    rewriteToken: &Option<String>,
+    sourceGeneration: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13192,37 +13194,37 @@ pub struct StorageObjectsRewriteArgs {
     /// Path parameter: destinationObject
     pub destinationObject: String,
     /// Query parameter: destinationKmsKeyName
-    pub destinationKmsKeyName: Option<Option<String>>,
+    pub destinationKmsKeyName: Option<String>,
     /// Query parameter: destinationPredefinedAcl
-    pub destinationPredefinedAcl: Option<Option<String>>,
+    pub destinationPredefinedAcl: Option<String>,
     /// Query parameter: dropContextGroups
-    pub dropContextGroups: Option<Option<String>>,
+    pub dropContextGroups: Option<String>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<Option<String>>,
+    pub ifGenerationMatch: Option<String>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<Option<String>>,
+    pub ifGenerationNotMatch: Option<String>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: ifSourceGenerationMatch
-    pub ifSourceGenerationMatch: Option<Option<String>>,
+    pub ifSourceGenerationMatch: Option<String>,
     /// Query parameter: ifSourceGenerationNotMatch
-    pub ifSourceGenerationNotMatch: Option<Option<String>>,
+    pub ifSourceGenerationNotMatch: Option<String>,
     /// Query parameter: ifSourceMetagenerationMatch
-    pub ifSourceMetagenerationMatch: Option<Option<String>>,
+    pub ifSourceMetagenerationMatch: Option<String>,
     /// Query parameter: ifSourceMetagenerationNotMatch
-    pub ifSourceMetagenerationNotMatch: Option<Option<String>>,
+    pub ifSourceMetagenerationNotMatch: Option<String>,
     /// Query parameter: maxBytesRewrittenPerCall
-    pub maxBytesRewrittenPerCall: Option<Option<String>>,
+    pub maxBytesRewrittenPerCall: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: rewriteToken
-    pub rewriteToken: Option<Option<String>>,
+    pub rewriteToken: Option<String>,
     /// Query parameter: sourceGeneration
-    pub sourceGeneration: Option<Option<String>>,
+    pub sourceGeneration: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST b/{sourceBucket}/o/{sourceObject}/rewriteTo/b/{destinationBucket}/o/{destinationObject}
@@ -13281,8 +13283,8 @@ pub fn storage_objects_set_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
-    generation: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13427,9 +13429,9 @@ pub struct StorageObjectsSetIamPolicyArgs {
     /// Path parameter: object
     pub object: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PUT b/{bucket}/o/{object}/iam
@@ -13470,9 +13472,9 @@ pub fn storage_objects_test_iam_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
-    generation: &Option<Option<String>>,
-    permissions: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    permissions: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13624,11 +13626,11 @@ pub struct StorageObjectsTestIamPermissionsArgs {
     /// Path parameter: object
     pub object: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: permissions
-    pub permissions: Option<Option<String>>,
+    pub permissions: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET b/{bucket}/o/{object}/iam/testPermissions
@@ -13674,15 +13676,15 @@ pub fn storage_objects_update_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
     object: &String,
-    generation: &Option<Option<String>>,
-    ifGenerationMatch: &Option<Option<String>>,
-    ifGenerationNotMatch: &Option<Option<String>>,
-    ifMetagenerationMatch: &Option<Option<String>>,
-    ifMetagenerationNotMatch: &Option<Option<String>>,
-    overrideUnlockedRetention: &Option<Option<String>>,
-    predefinedAcl: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    generation: &Option<String>,
+    ifGenerationMatch: &Option<String>,
+    ifGenerationNotMatch: &Option<String>,
+    ifMetagenerationMatch: &Option<String>,
+    ifMetagenerationNotMatch: &Option<String>,
+    overrideUnlockedRetention: &Option<String>,
+    predefinedAcl: &Option<String>,
+    projection: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13848,23 +13850,23 @@ pub struct StorageObjectsUpdateArgs {
     /// Path parameter: object
     pub object: String,
     /// Query parameter: generation
-    pub generation: Option<Option<String>>,
+    pub generation: Option<String>,
     /// Query parameter: ifGenerationMatch
-    pub ifGenerationMatch: Option<Option<String>>,
+    pub ifGenerationMatch: Option<String>,
     /// Query parameter: ifGenerationNotMatch
-    pub ifGenerationNotMatch: Option<Option<String>>,
+    pub ifGenerationNotMatch: Option<String>,
     /// Query parameter: ifMetagenerationMatch
-    pub ifMetagenerationMatch: Option<Option<String>>,
+    pub ifMetagenerationMatch: Option<String>,
     /// Query parameter: ifMetagenerationNotMatch
-    pub ifMetagenerationNotMatch: Option<Option<String>>,
+    pub ifMetagenerationNotMatch: Option<String>,
     /// Query parameter: overrideUnlockedRetention
-    pub overrideUnlockedRetention: Option<Option<String>>,
+    pub overrideUnlockedRetention: Option<String>,
     /// Query parameter: predefinedAcl
-    pub predefinedAcl: Option<Option<String>>,
+    pub predefinedAcl: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PUT b/{bucket}/o/{object}
@@ -13911,16 +13913,16 @@ pub fn storage_objects_update(
 pub fn storage_objects_watch_all_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    delimiter: &Option<Option<String>>,
-    endOffset: &Option<Option<String>>,
-    includeTrailingDelimiter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    prefix: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    startOffset: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
-    versions: &Option<Option<String>>,
+    delimiter: &Option<String>,
+    endOffset: &Option<String>,
+    includeTrailingDelimiter: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    prefix: &Option<String>,
+    projection: &Option<String>,
+    startOffset: &Option<String>,
+    userProject: &Option<String>,
+    versions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14087,25 +14089,25 @@ pub struct StorageObjectsWatchAllArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: delimiter
-    pub delimiter: Option<Option<String>>,
+    pub delimiter: Option<String>,
     /// Query parameter: endOffset
-    pub endOffset: Option<Option<String>>,
+    pub endOffset: Option<String>,
     /// Query parameter: includeTrailingDelimiter
-    pub includeTrailingDelimiter: Option<Option<String>>,
+    pub includeTrailingDelimiter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: prefix
-    pub prefix: Option<Option<String>>,
+    pub prefix: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: startOffset
-    pub startOffset: Option<Option<String>>,
+    pub startOffset: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
     /// Query parameter: versions
-    pub versions: Option<Option<String>>,
+    pub versions: Option<String>,
 }
 
 /// POST b/{bucket}/o/watch
@@ -14648,9 +14650,9 @@ pub fn storage_buckets_operations_get(
 pub fn storage_buckets_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     bucket: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14801,11 +14803,11 @@ pub struct StorageBucketsOperationsListArgs {
     /// Path parameter: bucket
     pub bucket: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET b/{bucket}/operations
@@ -14849,8 +14851,8 @@ pub fn storage_buckets_operations_list(
 pub fn storage_projects_hmac_keys_create_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    serviceAccountEmail: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    serviceAccountEmail: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14993,9 +14995,9 @@ pub struct StorageProjectsHmacKeysCreateArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: serviceAccountEmail
-    pub serviceAccountEmail: Option<Option<String>>,
+    pub serviceAccountEmail: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// POST projects/{projectId}/hmacKeys
@@ -15035,7 +15037,7 @@ pub fn storage_projects_hmac_keys_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     accessId: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15174,7 +15176,7 @@ pub struct StorageProjectsHmacKeysDeleteArgs {
     /// Path parameter: accessId
     pub accessId: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// DELETE projects/{projectId}/hmacKeys/{accessId}
@@ -15214,7 +15216,7 @@ pub fn storage_projects_hmac_keys_get_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     accessId: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15358,7 +15360,7 @@ pub struct StorageProjectsHmacKeysGetArgs {
     /// Path parameter: accessId
     pub accessId: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET projects/{projectId}/hmacKeys/{accessId}
@@ -15399,11 +15401,11 @@ pub fn storage_projects_hmac_keys_get(
 pub fn storage_projects_hmac_keys_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    serviceAccountEmail: &Option<Option<String>>,
-    showDeletedKeys: &Option<Option<String>>,
-    userProject: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    serviceAccountEmail: &Option<String>,
+    showDeletedKeys: &Option<String>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15557,15 +15559,15 @@ pub struct StorageProjectsHmacKeysListArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: serviceAccountEmail
-    pub serviceAccountEmail: Option<Option<String>>,
+    pub serviceAccountEmail: Option<String>,
     /// Query parameter: showDeletedKeys
-    pub showDeletedKeys: Option<Option<String>>,
+    pub showDeletedKeys: Option<String>,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET projects/{projectId}/hmacKeys
@@ -15610,7 +15612,7 @@ pub fn storage_projects_hmac_keys_update_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     accessId: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15754,7 +15756,7 @@ pub struct StorageProjectsHmacKeysUpdateArgs {
     /// Path parameter: accessId
     pub accessId: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// PUT projects/{projectId}/hmacKeys/{accessId}
@@ -15795,7 +15797,7 @@ pub fn storage_projects_hmac_keys_update(
 pub fn storage_projects_service_account_get_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    userProject: &Option<Option<String>>,
+    userProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15937,7 +15939,7 @@ pub struct StorageProjectsServiceAccountGetArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: userProject
-    pub userProject: Option<Option<String>>,
+    pub userProject: Option<String>,
 }
 
 /// GET projects/{projectId}/serviceAccount

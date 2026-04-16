@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -195,7 +197,7 @@ pub fn connectors_projects_locations_connections_check_readiness(
 pub fn connectors_projects_locations_connections_check_status_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    executionConfig_headers: &Option<Option<String>>,
+    executionConfig_headers: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -337,7 +339,7 @@ pub struct ConnectorsProjectsLocationsConnectionsCheckStatusArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:checkStatus
@@ -1551,8 +1553,8 @@ pub fn connectors_projects_locations_connections_actions_execute(
 pub fn connectors_projects_locations_connections_actions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    executionConfig_headers: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    executionConfig_headers: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1695,9 +1697,9 @@ pub struct ConnectorsProjectsLocationsConnectionsActionsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/actions/{actionsId}
@@ -1736,10 +1738,10 @@ pub fn connectors_projects_locations_connections_actions_get(
 pub fn connectors_projects_locations_connections_actions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    executionConfig_headers: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    executionConfig_headers: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1890,13 +1892,13 @@ pub struct ConnectorsProjectsLocationsConnectionsActionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/actions
@@ -1939,9 +1941,9 @@ pub fn connectors_projects_locations_connections_actions_list(
 pub fn connectors_projects_locations_connections_entity_types_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    contextMetadata: &Option<Option<String>>,
-    executionConfig_headers: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    contextMetadata: &Option<String>,
+    executionConfig_headers: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2087,11 +2089,11 @@ pub struct ConnectorsProjectsLocationsConnectionsEntityTypesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: contextMetadata
-    pub contextMetadata: Option<Option<String>>,
+    pub contextMetadata: Option<String>,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}
@@ -2131,10 +2133,10 @@ pub fn connectors_projects_locations_connections_entity_types_get(
 pub fn connectors_projects_locations_connections_entity_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    executionConfig_headers: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    executionConfig_headers: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2285,13 +2287,13 @@ pub struct ConnectorsProjectsLocationsConnectionsEntityTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes
@@ -2334,7 +2336,7 @@ pub fn connectors_projects_locations_connections_entity_types_list(
 pub fn connectors_projects_locations_connections_entity_types_entities_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    executionConfig_headers: &Option<Option<String>>,
+    executionConfig_headers: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2475,7 +2477,7 @@ pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities
@@ -2513,7 +2515,7 @@ pub fn connectors_projects_locations_connections_entity_types_entities_create(
 pub fn connectors_projects_locations_connections_entity_types_entities_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    executionConfig_headers: &Option<Option<String>>,
+    executionConfig_headers: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2654,7 +2656,7 @@ pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
 }
 
 /// DELETE v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities/{entitiesId}
@@ -2694,8 +2696,8 @@ pub fn connectors_projects_locations_connections_entity_types_entities_delete_en
 >(
     client: &SimpleHttpClient<R>,
     entityType: &String,
-    conditions: &Option<Option<String>>,
-    executionConfig_headers: &Option<Option<String>>,
+    conditions: &Option<String>,
+    executionConfig_headers: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2839,9 +2841,9 @@ pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesDeleteEntiti
     /// Path parameter: entityType
     pub entityType: String,
     /// Query parameter: conditions
-    pub conditions: Option<Option<String>>,
+    pub conditions: Option<String>,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities:deleteEntitiesWithConditions
@@ -2875,7 +2877,7 @@ pub fn connectors_projects_locations_connections_entity_types_entities_delete_en
 pub fn connectors_projects_locations_connections_entity_types_entities_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    executionConfig_headers: &Option<Option<String>>,
+    executionConfig_headers: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3015,7 +3017,7 @@ pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities/{entitiesId}
@@ -3053,12 +3055,12 @@ pub fn connectors_projects_locations_connections_entity_types_entities_get(
 pub fn connectors_projects_locations_connections_entity_types_entities_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    conditions: &Option<Option<String>>,
-    executionConfig_headers: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    sortBy: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    conditions: &Option<String>,
+    executionConfig_headers: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    sortBy: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3215,17 +3217,17 @@ pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: conditions
-    pub conditions: Option<Option<String>>,
+    pub conditions: Option<String>,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: sortBy
-    pub sortBy: Option<Option<String>>,
+    pub sortBy: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities
@@ -3270,7 +3272,7 @@ pub fn connectors_projects_locations_connections_entity_types_entities_list(
 pub fn connectors_projects_locations_connections_entity_types_entities_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    executionConfig_headers: &Option<Option<String>>,
+    executionConfig_headers: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3410,7 +3412,7 @@ pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities/{entitiesId}
@@ -3450,8 +3452,8 @@ pub fn connectors_projects_locations_connections_entity_types_entities_update_en
 >(
     client: &SimpleHttpClient<R>,
     entityType: &String,
-    conditions: &Option<Option<String>>,
-    executionConfig_headers: &Option<Option<String>>,
+    conditions: &Option<String>,
+    executionConfig_headers: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3599,9 +3601,9 @@ pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesUpdateEntiti
     /// Path parameter: entityType
     pub entityType: String,
     /// Query parameter: conditions
-    pub conditions: Option<Option<String>>,
+    pub conditions: Option<String>,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities:updateEntitiesWithConditions
@@ -3639,7 +3641,7 @@ pub fn connectors_projects_locations_connections_entity_types_entities_update_en
 pub fn connectors_projects_locations_connections_resources_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    executionConfig_headers: &Option<Option<String>>,
+    executionConfig_headers: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3781,7 +3783,7 @@ pub struct ConnectorsProjectsLocationsConnectionsResourcesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/resources/{resourcesId}
@@ -3987,9 +3989,9 @@ pub fn connectors_projects_locations_connections_resources_get_resource_post(
 pub fn connectors_projects_locations_connections_resources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    executionConfig_headers: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    executionConfig_headers: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4137,11 +4139,11 @@ pub struct ConnectorsProjectsLocationsConnectionsResourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/resources
@@ -4183,9 +4185,9 @@ pub fn connectors_projects_locations_connections_resources_list(
 pub fn connectors_projects_locations_connections_tools_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    executionConfig_headers: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    executionConfig_headers: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4333,11 +4335,11 @@ pub struct ConnectorsProjectsLocationsConnectionsToolsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: executionConfig_headers
-    pub executionConfig_headers: Option<Option<String>>,
+    pub executionConfig_headers: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/tools

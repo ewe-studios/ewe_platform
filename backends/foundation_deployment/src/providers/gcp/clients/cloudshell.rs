@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -503,10 +505,10 @@ pub fn cloudshell_operations_get(
 
 pub fn cloudshell_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -652,13 +654,13 @@ pub fn cloudshell_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudshellOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/operations
@@ -1020,8 +1022,8 @@ pub fn cloudshell_users_environments_authorize(
 pub fn cloudshell_users_environments_generate_access_token_builder<R>(
     client: &SimpleHttpClient<R>,
     environment: &String,
-    expireTime: &Option<Option<String>>,
-    ttl: &Option<Option<String>>,
+    expireTime: &Option<String>,
+    ttl: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1168,9 +1170,9 @@ pub struct CloudshellUsersEnvironmentsGenerateAccessTokenArgs {
     /// Path parameter: environment
     pub environment: String,
     /// Query parameter: expireTime
-    pub expireTime: Option<Option<String>>,
+    pub expireTime: Option<String>,
     /// Query parameter: ttl
-    pub ttl: Option<Option<String>>,
+    pub ttl: Option<String>,
 }
 
 /// GET v1/users/{usersId}/environments/{environmentsId}:generateAccessToken

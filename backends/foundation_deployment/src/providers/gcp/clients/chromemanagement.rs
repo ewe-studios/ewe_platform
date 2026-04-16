@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,10 +32,10 @@ use serde::Serialize;
 pub fn chromemanagement_customers_apps_count_chrome_app_requests_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    orderBy: &Option<Option<String>>,
-    orgUnitId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    orgUnitId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -193,13 +195,13 @@ pub struct ChromemanagementCustomersAppsCountChromeAppRequestsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<Option<String>>,
+    pub orgUnitId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/apps:countChromeAppRequests
@@ -247,10 +249,10 @@ pub fn chromemanagement_customers_apps_count_chrome_app_requests(
 pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    extensionId: &Option<Option<String>>,
-    orgUnitId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extensionId: &Option<String>,
+    orgUnitId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -410,13 +412,13 @@ pub struct ChromemanagementCustomersAppsFetchDevicesRequestingExtensionArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: extensionId
-    pub extensionId: Option<Option<String>>,
+    pub extensionId: Option<String>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<Option<String>>,
+    pub orgUnitId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/apps:fetchDevicesRequestingExtension
@@ -464,10 +466,10 @@ pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension(
 pub fn chromemanagement_customers_apps_fetch_users_requesting_extension_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    extensionId: &Option<Option<String>>,
-    orgUnitId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extensionId: &Option<String>,
+    orgUnitId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -627,13 +629,13 @@ pub struct ChromemanagementCustomersAppsFetchUsersRequestingExtensionArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: extensionId
-    pub extensionId: Option<Option<String>>,
+    pub extensionId: Option<String>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<Option<String>>,
+    pub orgUnitId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/apps:fetchUsersRequestingExtension
@@ -2586,10 +2588,10 @@ pub fn chromemanagement_customers_profiles_get(
 pub fn chromemanagement_customers_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2749,13 +2751,13 @@ pub struct ChromemanagementCustomersProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/profiles
@@ -3160,8 +3162,8 @@ pub fn chromemanagement_customers_profiles_commands_get(
 pub fn chromemanagement_customers_profiles_commands_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3313,9 +3315,9 @@ pub struct ChromemanagementCustomersProfilesCommandsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/profiles/{profilesId}/commands
@@ -3363,9 +3365,9 @@ pub fn chromemanagement_customers_profiles_commands_list(
 pub fn chromemanagement_customers_reports_count_active_devices_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    date_day: &Option<Option<String>>,
-    date_month: &Option<Option<String>>,
-    date_year: &Option<Option<String>>,
+    date_day: &Option<String>,
+    date_month: &Option<String>,
+    date_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3519,11 +3521,11 @@ pub struct ChromemanagementCustomersReportsCountActiveDevicesArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: date_day
-    pub date_day: Option<Option<String>>,
+    pub date_day: Option<String>,
     /// Query parameter: date_month
-    pub date_month: Option<Option<String>>,
+    pub date_month: Option<String>,
     /// Query parameter: date_year
-    pub date_year: Option<Option<String>>,
+    pub date_year: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:countActiveDevices
@@ -3567,7 +3569,7 @@ pub fn chromemanagement_customers_reports_count_active_devices(
 pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attention_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    orgUnitId: &Option<Option<String>>,
+    orgUnitId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3719,7 +3721,7 @@ pub struct ChromemanagementCustomersReportsCountChromeBrowsersNeedingAttentionAr
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<Option<String>>,
+    pub orgUnitId: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:countChromeBrowsersNeedingAttention
@@ -3765,9 +3767,9 @@ pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attentio
 pub fn chromemanagement_customers_reports_count_chrome_crash_events_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    orgUnitId: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    orgUnitId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3924,11 +3926,11 @@ pub struct ChromemanagementCustomersReportsCountChromeCrashEventsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<Option<String>>,
+    pub orgUnitId: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:countChromeCrashEvents
@@ -3977,9 +3979,9 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_exp
 >(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    maxAueDate: &Option<Option<String>>,
-    minAueDate: &Option<Option<String>>,
-    orgUnitId: &Option<Option<String>>,
+    maxAueDate: &Option<String>,
+    minAueDate: &Option<String>,
+    orgUnitId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4137,11 +4139,11 @@ pub struct ChromemanagementCustomersReportsCountChromeDevicesReachingAutoExpirat
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: maxAueDate
-    pub maxAueDate: Option<Option<String>>,
+    pub maxAueDate: Option<String>,
     /// Query parameter: minAueDate
-    pub minAueDate: Option<Option<String>>,
+    pub minAueDate: Option<String>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<Option<String>>,
+    pub orgUnitId: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:countChromeDevicesReachingAutoExpirationDate
@@ -4186,8 +4188,8 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_exp
 pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attention_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    orgUnitId: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    orgUnitId: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4342,9 +4344,9 @@ pub struct ChromemanagementCustomersReportsCountChromeDevicesThatNeedAttentionAr
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<Option<String>>,
+    pub orgUnitId: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:countChromeDevicesThatNeedAttention
@@ -4391,8 +4393,8 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attenti
 pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    orgUnitId: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    orgUnitId: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4547,9 +4549,9 @@ pub struct ChromemanagementCustomersReportsCountChromeHardwareFleetDevicesArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<Option<String>>,
+    pub orgUnitId: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:countChromeHardwareFleetDevices
@@ -4595,10 +4597,10 @@ pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices(
 pub fn chromemanagement_customers_reports_count_chrome_versions_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    filter: &Option<Option<String>>,
-    orgUnitId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orgUnitId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4755,13 +4757,13 @@ pub struct ChromemanagementCustomersReportsCountChromeVersionsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<Option<String>>,
+    pub orgUnitId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:countChromeVersions
@@ -4806,9 +4808,9 @@ pub fn chromemanagement_customers_reports_count_chrome_versions(
 pub fn chromemanagement_customers_reports_count_devices_per_boot_type_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    date_day: &Option<Option<String>>,
-    date_month: &Option<Option<String>>,
-    date_year: &Option<Option<String>>,
+    date_day: &Option<String>,
+    date_month: &Option<String>,
+    date_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4965,11 +4967,11 @@ pub struct ChromemanagementCustomersReportsCountDevicesPerBootTypeArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: date_day
-    pub date_day: Option<Option<String>>,
+    pub date_day: Option<String>,
     /// Query parameter: date_month
-    pub date_month: Option<Option<String>>,
+    pub date_month: Option<String>,
     /// Query parameter: date_year
-    pub date_year: Option<Option<String>>,
+    pub date_year: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:countDevicesPerBootType
@@ -5016,9 +5018,9 @@ pub fn chromemanagement_customers_reports_count_devices_per_boot_type(
 pub fn chromemanagement_customers_reports_count_devices_per_release_channel_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    date_day: &Option<Option<String>>,
-    date_month: &Option<Option<String>>,
-    date_year: &Option<Option<String>>,
+    date_day: &Option<String>,
+    date_month: &Option<String>,
+    date_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5175,11 +5177,11 @@ pub struct ChromemanagementCustomersReportsCountDevicesPerReleaseChannelArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: date_day
-    pub date_day: Option<Option<String>>,
+    pub date_day: Option<String>,
     /// Query parameter: date_month
-    pub date_month: Option<Option<String>>,
+    pub date_month: Option<String>,
     /// Query parameter: date_year
-    pub date_year: Option<Option<String>>,
+    pub date_year: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:countDevicesPerReleaseChannel
@@ -5226,11 +5228,11 @@ pub fn chromemanagement_customers_reports_count_devices_per_release_channel(
 pub fn chromemanagement_customers_reports_count_installed_apps_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    orgUnitId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    orgUnitId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5390,15 +5392,15 @@ pub struct ChromemanagementCustomersReportsCountInstalledAppsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<Option<String>>,
+    pub orgUnitId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:countInstalledApps
@@ -5444,11 +5446,11 @@ pub fn chromemanagement_customers_reports_count_installed_apps(
 pub fn chromemanagement_customers_reports_count_print_jobs_by_printer_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    printerOrgUnitId: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    printerOrgUnitId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5611,15 +5613,15 @@ pub struct ChromemanagementCustomersReportsCountPrintJobsByPrinterArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: printerOrgUnitId
-    pub printerOrgUnitId: Option<Option<String>>,
+    pub printerOrgUnitId: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:countPrintJobsByPrinter
@@ -5668,11 +5670,11 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_printer(
 pub fn chromemanagement_customers_reports_count_print_jobs_by_user_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    printerOrgUnitId: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    printerOrgUnitId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5832,15 +5834,15 @@ pub struct ChromemanagementCustomersReportsCountPrintJobsByUserArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: printerOrgUnitId
-    pub printerOrgUnitId: Option<Option<String>>,
+    pub printerOrgUnitId: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:countPrintJobsByUser
@@ -5886,11 +5888,11 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_user(
 pub fn chromemanagement_customers_reports_enumerate_print_jobs_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    printerOrgUnitId: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    printerOrgUnitId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6050,15 +6052,15 @@ pub struct ChromemanagementCustomersReportsEnumeratePrintJobsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: printerOrgUnitId
-    pub printerOrgUnitId: Option<Option<String>>,
+    pub printerOrgUnitId: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:enumeratePrintJobs
@@ -6104,13 +6106,13 @@ pub fn chromemanagement_customers_reports_enumerate_print_jobs(
 pub fn chromemanagement_customers_reports_find_installed_app_devices_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    appId: &Option<Option<String>>,
-    appType: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    orgUnitId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    appId: &Option<String>,
+    appType: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    orgUnitId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6279,19 +6281,19 @@ pub struct ChromemanagementCustomersReportsFindInstalledAppDevicesArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: appId
-    pub appId: Option<Option<String>>,
+    pub appId: Option<String>,
     /// Query parameter: appType
-    pub appType: Option<Option<String>>,
+    pub appType: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: orgUnitId
-    pub orgUnitId: Option<Option<String>>,
+    pub orgUnitId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/reports:findInstalledAppDevices
@@ -6342,7 +6344,7 @@ pub fn chromemanagement_customers_reports_find_installed_app_devices(
 pub fn chromemanagement_customers_telemetry_devices_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6487,7 +6489,7 @@ pub struct ChromemanagementCustomersTelemetryDevicesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/telemetry/devices/{devicesId}
@@ -6529,10 +6531,10 @@ pub fn chromemanagement_customers_telemetry_devices_get(
 pub fn chromemanagement_customers_telemetry_devices_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6689,13 +6691,13 @@ pub struct ChromemanagementCustomersTelemetryDevicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/telemetry/devices
@@ -6740,10 +6742,10 @@ pub fn chromemanagement_customers_telemetry_devices_list(
 pub fn chromemanagement_customers_telemetry_events_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6900,13 +6902,13 @@ pub struct ChromemanagementCustomersTelemetryEventsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/telemetry/events
@@ -7292,8 +7294,8 @@ pub fn chromemanagement_customers_telemetry_notification_configs_delete(
 pub fn chromemanagement_customers_telemetry_notification_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7447,9 +7449,9 @@ pub struct ChromemanagementCustomersTelemetryNotificationConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/telemetry/notificationConfigs
@@ -7495,7 +7497,7 @@ pub fn chromemanagement_customers_telemetry_notification_configs_list(
 pub fn chromemanagement_customers_telemetry_users_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7639,7 +7641,7 @@ pub struct ChromemanagementCustomersTelemetryUsersGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/telemetry/users/{usersId}
@@ -7678,10 +7680,10 @@ pub fn chromemanagement_customers_telemetry_users_get(
 pub fn chromemanagement_customers_telemetry_users_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7838,13 +7840,13 @@ pub struct ChromemanagementCustomersTelemetryUsersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/telemetry/users
@@ -8395,10 +8397,10 @@ pub fn chromemanagement_operations_delete(
 
 pub fn chromemanagement_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8547,13 +8549,13 @@ pub fn chromemanagement_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ChromemanagementOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/operations

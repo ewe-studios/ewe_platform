@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -494,8 +496,8 @@ pub fn tasks_tasklists_insert(
 
 pub fn tasks_tasklists_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -633,9 +635,9 @@ pub fn tasks_tasklists_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TasksTasklistsListArgs {
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tasks/v1/users/@me/lists
@@ -1469,8 +1471,8 @@ pub fn tasks_tasks_get(
 pub fn tasks_tasks_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     tasklist: &String,
-    parent: &Option<Option<String>>,
-    previous: &Option<Option<String>>,
+    parent: &Option<String>,
+    previous: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1613,9 +1615,9 @@ pub struct TasksTasksInsertArgs {
     /// Path parameter: tasklist
     pub tasklist: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: previous
-    pub previous: Option<Option<String>>,
+    pub previous: Option<String>,
 }
 
 /// POST tasks/v1/lists/{tasklist}/tasks
@@ -1649,17 +1651,17 @@ pub fn tasks_tasks_insert(
 pub fn tasks_tasks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     tasklist: &String,
-    completedMax: &Option<Option<String>>,
-    completedMin: &Option<Option<String>>,
-    dueMax: &Option<Option<String>>,
-    dueMin: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showAssigned: &Option<Option<String>>,
-    showCompleted: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
-    showHidden: &Option<Option<String>>,
-    updatedMin: &Option<Option<String>>,
+    completedMax: &Option<String>,
+    completedMin: &Option<String>,
+    dueMax: &Option<String>,
+    dueMin: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    showAssigned: &Option<String>,
+    showCompleted: &Option<String>,
+    showDeleted: &Option<String>,
+    showHidden: &Option<String>,
+    updatedMin: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1829,27 +1831,27 @@ pub struct TasksTasksListArgs {
     /// Path parameter: tasklist
     pub tasklist: String,
     /// Query parameter: completedMax
-    pub completedMax: Option<Option<String>>,
+    pub completedMax: Option<String>,
     /// Query parameter: completedMin
-    pub completedMin: Option<Option<String>>,
+    pub completedMin: Option<String>,
     /// Query parameter: dueMax
-    pub dueMax: Option<Option<String>>,
+    pub dueMax: Option<String>,
     /// Query parameter: dueMin
-    pub dueMin: Option<Option<String>>,
+    pub dueMin: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showAssigned
-    pub showAssigned: Option<Option<String>>,
+    pub showAssigned: Option<String>,
     /// Query parameter: showCompleted
-    pub showCompleted: Option<Option<String>>,
+    pub showCompleted: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
     /// Query parameter: showHidden
-    pub showHidden: Option<Option<String>>,
+    pub showHidden: Option<String>,
     /// Query parameter: updatedMin
-    pub updatedMin: Option<Option<String>>,
+    pub updatedMin: Option<String>,
 }
 
 /// GET tasks/v1/lists/{tasklist}/tasks
@@ -1898,9 +1900,9 @@ pub fn tasks_tasks_move_builder<R>(
     client: &SimpleHttpClient<R>,
     tasklist: &String,
     task: &String,
-    destinationTasklist: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    previous: &Option<Option<String>>,
+    destinationTasklist: &Option<String>,
+    parent: &Option<String>,
+    previous: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2048,11 +2050,11 @@ pub struct TasksTasksMoveArgs {
     /// Path parameter: task
     pub task: String,
     /// Query parameter: destinationTasklist
-    pub destinationTasklist: Option<Option<String>>,
+    pub destinationTasklist: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: previous
-    pub previous: Option<Option<String>>,
+    pub previous: Option<String>,
 }
 
 /// POST tasks/v1/lists/{tasklist}/tasks/{task}/move
@@ -2422,29 +2424,6 @@ pub fn tasks_tasks_update(
 impl ResourceIdentifier<TasksTasklistsGetArgs> for TaskList {
     fn generate_resource_id(&self, input: &TasksTasklistsGetArgs) -> String {
         format!("gcp::tasks::TaskList/{}", input.tasklist)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::tasks::TaskList"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TaskList
-// =============================================================================
-
-/// ResourceIdentifier implementation for TaskList with TasksTasklistsInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<TasksTasklistsInsertArgs> for TaskList {
-    fn generate_resource_id(&self, input: &TasksTasklistsInsertArgs) -> String {
-        "gcp::tasks::TaskList".to_string()
     }
 
     fn resource_kind(&self) -> &'static str {

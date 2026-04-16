@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -1207,15 +1209,15 @@ pub fn dfareporting_account_user_profiles_insert(
 pub fn dfareporting_account_user_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    active: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
-    subaccountId: &Option<Option<String>>,
-    userRoleId: &Option<Option<String>>,
+    active: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
+    subaccountId: &Option<String>,
+    userRoleId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1383,23 +1385,23 @@ pub struct DfareportingAccountUserProfilesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
     /// Query parameter: subaccountId
-    pub subaccountId: Option<Option<String>>,
+    pub subaccountId: Option<String>,
     /// Query parameter: userRoleId
-    pub userRoleId: Option<Option<String>>,
+    pub userRoleId: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/accountUserProfiles
@@ -1449,7 +1451,7 @@ pub fn dfareporting_account_user_profiles_list(
 pub fn dfareporting_account_user_profiles_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1591,7 +1593,7 @@ pub struct DfareportingAccountUserProfilesPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/accountUserProfiles
@@ -1955,13 +1957,13 @@ pub fn dfareporting_accounts_get(
 pub fn dfareporting_accounts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    active: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    active: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2121,19 +2123,19 @@ pub struct DfareportingAccountsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/accounts
@@ -2179,7 +2181,7 @@ pub fn dfareporting_accounts_list(
 pub fn dfareporting_accounts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2319,7 +2321,7 @@ pub struct DfareportingAccountsPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/accounts
@@ -2836,29 +2838,29 @@ pub fn dfareporting_ads_insert(
 pub fn dfareporting_ads_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    active: &Option<Option<String>>,
-    advertiserId: &Option<Option<String>>,
-    archived: &Option<Option<String>>,
-    audienceSegmentIds: &Option<Option<String>>,
-    campaignIds: &Option<Option<String>>,
-    compatibility: &Option<Option<String>>,
-    creativeIds: &Option<Option<String>>,
-    creativeOptimizationConfigurationIds: &Option<Option<String>>,
-    dynamicClickTracker: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    landingPageIds: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    overriddenEventTagId: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    placementIds: &Option<Option<String>>,
-    remarketingListIds: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sizeIds: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
-    sslCompliant: &Option<Option<String>>,
-    sslRequired: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    active: &Option<String>,
+    advertiserId: &Option<String>,
+    archived: &Option<String>,
+    audienceSegmentIds: &Option<String>,
+    campaignIds: &Option<String>,
+    compatibility: &Option<String>,
+    creativeIds: &Option<String>,
+    creativeOptimizationConfigurationIds: &Option<String>,
+    dynamicClickTracker: &Option<String>,
+    ids: &Option<String>,
+    landingPageIds: &Option<String>,
+    maxResults: &Option<String>,
+    overriddenEventTagId: &Option<String>,
+    pageToken: &Option<String>,
+    placementIds: &Option<String>,
+    remarketingListIds: &Option<String>,
+    searchString: &Option<String>,
+    sizeIds: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
+    sslCompliant: &Option<String>,
+    sslRequired: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3066,51 +3068,51 @@ pub struct DfareportingAdsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: archived
-    pub archived: Option<Option<String>>,
+    pub archived: Option<String>,
     /// Query parameter: audienceSegmentIds
-    pub audienceSegmentIds: Option<Option<String>>,
+    pub audienceSegmentIds: Option<String>,
     /// Query parameter: campaignIds
-    pub campaignIds: Option<Option<String>>,
+    pub campaignIds: Option<String>,
     /// Query parameter: compatibility
-    pub compatibility: Option<Option<String>>,
+    pub compatibility: Option<String>,
     /// Query parameter: creativeIds
-    pub creativeIds: Option<Option<String>>,
+    pub creativeIds: Option<String>,
     /// Query parameter: creativeOptimizationConfigurationIds
-    pub creativeOptimizationConfigurationIds: Option<Option<String>>,
+    pub creativeOptimizationConfigurationIds: Option<String>,
     /// Query parameter: dynamicClickTracker
-    pub dynamicClickTracker: Option<Option<String>>,
+    pub dynamicClickTracker: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: landingPageIds
-    pub landingPageIds: Option<Option<String>>,
+    pub landingPageIds: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: overriddenEventTagId
-    pub overriddenEventTagId: Option<Option<String>>,
+    pub overriddenEventTagId: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: placementIds
-    pub placementIds: Option<Option<String>>,
+    pub placementIds: Option<String>,
     /// Query parameter: remarketingListIds
-    pub remarketingListIds: Option<Option<String>>,
+    pub remarketingListIds: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sizeIds
-    pub sizeIds: Option<Option<String>>,
+    pub sizeIds: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
     /// Query parameter: sslCompliant
-    pub sslCompliant: Option<Option<String>>,
+    pub sslCompliant: Option<String>,
     /// Query parameter: sslRequired
-    pub sslRequired: Option<Option<String>>,
+    pub sslRequired: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/ads
@@ -3172,7 +3174,7 @@ pub fn dfareporting_ads_list(
 pub fn dfareporting_ads_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3312,7 +3314,7 @@ pub struct DfareportingAdsPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/ads
@@ -3997,12 +3999,12 @@ pub fn dfareporting_advertiser_groups_insert(
 pub fn dfareporting_advertiser_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4161,17 +4163,17 @@ pub struct DfareportingAdvertiserGroupsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/advertiserGroups
@@ -4218,7 +4220,7 @@ pub fn dfareporting_advertiser_groups_list(
 pub fn dfareporting_advertiser_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4360,7 +4362,7 @@ pub struct DfareportingAdvertiserGroupsPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/advertiserGroups
@@ -4561,9 +4563,9 @@ pub fn dfareporting_advertiser_invoices_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
     advertiserId: &String,
-    issueMonth: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    issueMonth: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4716,11 +4718,11 @@ pub struct DfareportingAdvertiserInvoicesListArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: issueMonth
-    pub issueMonth: Option<Option<String>>,
+    pub issueMonth: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/advertisers/{advertisersId}/invoices
@@ -5090,16 +5092,16 @@ pub fn dfareporting_advertiser_landing_pages_insert(
 pub fn dfareporting_advertiser_landing_pages_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    advertiserIds: &Option<Option<String>>,
-    archived: &Option<Option<String>>,
-    campaignIds: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
-    subaccountId: &Option<Option<String>>,
+    advertiserIds: &Option<String>,
+    archived: &Option<String>,
+    campaignIds: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
+    subaccountId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5270,25 +5272,25 @@ pub struct DfareportingAdvertiserLandingPagesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: advertiserIds
-    pub advertiserIds: Option<Option<String>>,
+    pub advertiserIds: Option<String>,
     /// Query parameter: archived
-    pub archived: Option<Option<String>>,
+    pub archived: Option<String>,
     /// Query parameter: campaignIds
-    pub campaignIds: Option<Option<String>>,
+    pub campaignIds: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
     /// Query parameter: subaccountId
-    pub subaccountId: Option<Option<String>>,
+    pub subaccountId: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/advertiserLandingPages
@@ -5339,7 +5341,7 @@ pub fn dfareporting_advertiser_landing_pages_list(
 pub fn dfareporting_advertiser_landing_pages_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5479,7 +5481,7 @@ pub struct DfareportingAdvertiserLandingPagesPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/advertiserLandingPages
@@ -5997,18 +5999,18 @@ pub fn dfareporting_advertisers_insert(
 pub fn dfareporting_advertisers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    advertiserGroupIds: &Option<Option<String>>,
-    floodlightConfigurationIds: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    includeAdvertisersWithoutGroupsOnly: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    onlyParent: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    subaccountId: &Option<Option<String>>,
+    advertiserGroupIds: &Option<String>,
+    floodlightConfigurationIds: &Option<String>,
+    ids: &Option<String>,
+    includeAdvertisersWithoutGroupsOnly: &Option<String>,
+    maxResults: &Option<String>,
+    onlyParent: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
+    status: &Option<String>,
+    subaccountId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6183,29 +6185,29 @@ pub struct DfareportingAdvertisersListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: advertiserGroupIds
-    pub advertiserGroupIds: Option<Option<String>>,
+    pub advertiserGroupIds: Option<String>,
     /// Query parameter: floodlightConfigurationIds
-    pub floodlightConfigurationIds: Option<Option<String>>,
+    pub floodlightConfigurationIds: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: includeAdvertisersWithoutGroupsOnly
-    pub includeAdvertisersWithoutGroupsOnly: Option<Option<String>>,
+    pub includeAdvertisersWithoutGroupsOnly: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: onlyParent
-    pub onlyParent: Option<Option<String>>,
+    pub onlyParent: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: subaccountId
-    pub subaccountId: Option<Option<String>>,
+    pub subaccountId: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/advertisers
@@ -6256,7 +6258,7 @@ pub fn dfareporting_advertisers_list(
 pub fn dfareporting_advertisers_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6396,7 +6398,7 @@ pub struct DfareportingAdvertisersPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/advertisers
@@ -7105,16 +7107,16 @@ pub fn dfareporting_billing_profiles_get(
 pub fn dfareporting_billing_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    currency_code: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    onlySuggestion: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    subaccountIds: &Option<Option<String>>,
+    currency_code: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    name: &Option<String>,
+    onlySuggestion: &Option<String>,
+    pageToken: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
+    status: &Option<String>,
+    subaccountIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7285,25 +7287,25 @@ pub struct DfareportingBillingProfilesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: currency_code
-    pub currency_code: Option<Option<String>>,
+    pub currency_code: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: onlySuggestion
-    pub onlySuggestion: Option<Option<String>>,
+    pub onlySuggestion: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: subaccountIds
-    pub subaccountIds: Option<Option<String>>,
+    pub subaccountIds: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/billingProfiles
@@ -8028,9 +8030,9 @@ pub fn dfareporting_campaign_creative_associations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
     campaignId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8183,11 +8185,11 @@ pub struct DfareportingCampaignCreativeAssociationsListArgs {
     /// Path parameter: campaignId
     pub campaignId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/campaigns/{campaignsId}/campaignCreativeAssociations
@@ -8555,19 +8557,19 @@ pub fn dfareporting_campaigns_insert(
 pub fn dfareporting_campaigns_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    advertiserGroupIds: &Option<Option<String>>,
-    advertiserIds: &Option<Option<String>>,
-    archived: &Option<Option<String>>,
-    atLeastOneOptimizationActivity: &Option<Option<String>>,
-    excludedIds: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    overriddenEventTagId: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
-    subaccountId: &Option<Option<String>>,
+    advertiserGroupIds: &Option<String>,
+    advertiserIds: &Option<String>,
+    archived: &Option<String>,
+    atLeastOneOptimizationActivity: &Option<String>,
+    excludedIds: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    overriddenEventTagId: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
+    subaccountId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8745,31 +8747,31 @@ pub struct DfareportingCampaignsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: advertiserGroupIds
-    pub advertiserGroupIds: Option<Option<String>>,
+    pub advertiserGroupIds: Option<String>,
     /// Query parameter: advertiserIds
-    pub advertiserIds: Option<Option<String>>,
+    pub advertiserIds: Option<String>,
     /// Query parameter: archived
-    pub archived: Option<Option<String>>,
+    pub archived: Option<String>,
     /// Query parameter: atLeastOneOptimizationActivity
-    pub atLeastOneOptimizationActivity: Option<Option<String>>,
+    pub atLeastOneOptimizationActivity: Option<String>,
     /// Query parameter: excludedIds
-    pub excludedIds: Option<Option<String>>,
+    pub excludedIds: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: overriddenEventTagId
-    pub overriddenEventTagId: Option<Option<String>>,
+    pub overriddenEventTagId: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
     /// Query parameter: subaccountId
-    pub subaccountId: Option<Option<String>>,
+    pub subaccountId: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/campaigns
@@ -8821,7 +8823,7 @@ pub fn dfareporting_campaigns_list(
 pub fn dfareporting_campaigns_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8961,7 +8963,7 @@ pub struct DfareportingCampaignsPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/campaigns
@@ -9318,16 +9320,16 @@ pub fn dfareporting_change_logs_get(
 pub fn dfareporting_change_logs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    action: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxChangeTime: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    minChangeTime: &Option<Option<String>>,
-    objectIds: &Option<Option<String>>,
-    objectType: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    userProfileIds: &Option<Option<String>>,
+    action: &Option<String>,
+    ids: &Option<String>,
+    maxChangeTime: &Option<String>,
+    maxResults: &Option<String>,
+    minChangeTime: &Option<String>,
+    objectIds: &Option<String>,
+    objectType: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    userProfileIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9496,25 +9498,25 @@ pub struct DfareportingChangeLogsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: action
-    pub action: Option<Option<String>>,
+    pub action: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxChangeTime
-    pub maxChangeTime: Option<Option<String>>,
+    pub maxChangeTime: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: minChangeTime
-    pub minChangeTime: Option<Option<String>>,
+    pub minChangeTime: Option<String>,
     /// Query parameter: objectIds
-    pub objectIds: Option<Option<String>>,
+    pub objectIds: Option<String>,
     /// Query parameter: objectType
-    pub objectType: Option<Option<String>>,
+    pub objectType: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: userProfileIds
-    pub userProfileIds: Option<Option<String>>,
+    pub userProfileIds: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/changeLogs
@@ -9563,10 +9565,10 @@ pub fn dfareporting_change_logs_list(
 pub fn dfareporting_cities_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    countryDartIds: &Option<Option<String>>,
-    dartIds: &Option<Option<String>>,
-    namePrefix: &Option<Option<String>>,
-    regionDartIds: &Option<Option<String>>,
+    countryDartIds: &Option<String>,
+    dartIds: &Option<String>,
+    namePrefix: &Option<String>,
+    regionDartIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9717,13 +9719,13 @@ pub struct DfareportingCitiesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: countryDartIds
-    pub countryDartIds: Option<Option<String>>,
+    pub countryDartIds: Option<String>,
     /// Query parameter: dartIds
-    pub dartIds: Option<Option<String>>,
+    pub dartIds: Option<String>,
     /// Query parameter: namePrefix
-    pub namePrefix: Option<Option<String>>,
+    pub namePrefix: Option<String>,
     /// Query parameter: regionDartIds
-    pub regionDartIds: Option<Option<String>>,
+    pub regionDartIds: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/cities
@@ -10593,12 +10595,12 @@ pub fn dfareporting_content_categories_insert(
 pub fn dfareporting_content_categories_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10757,17 +10759,17 @@ pub struct DfareportingContentCategoriesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/contentCategories
@@ -10814,7 +10816,7 @@ pub fn dfareporting_content_categories_list(
 pub fn dfareporting_content_categories_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10956,7 +10958,7 @@ pub struct DfareportingContentCategoriesPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/contentCategories
@@ -12508,12 +12510,12 @@ pub fn dfareporting_creative_field_values_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
     creativeFieldId: &String,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12675,17 +12677,17 @@ pub struct DfareportingCreativeFieldValuesListArgs {
     /// Path parameter: creativeFieldId
     pub creativeFieldId: String,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
@@ -12734,7 +12736,7 @@ pub fn dfareporting_creative_field_values_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
     creativeFieldId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12879,7 +12881,7 @@ pub struct DfareportingCreativeFieldValuesPatchArgs {
     /// Path parameter: creativeFieldId
     pub creativeFieldId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
@@ -13583,13 +13585,13 @@ pub fn dfareporting_creative_fields_insert(
 pub fn dfareporting_creative_fields_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    advertiserIds: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    advertiserIds: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13751,19 +13753,19 @@ pub struct DfareportingCreativeFieldsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: advertiserIds
-    pub advertiserIds: Option<Option<String>>,
+    pub advertiserIds: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/creativeFields
@@ -13811,7 +13813,7 @@ pub fn dfareporting_creative_fields_list(
 pub fn dfareporting_creative_fields_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13953,7 +13955,7 @@ pub struct DfareportingCreativeFieldsPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/creativeFields
@@ -14484,14 +14486,14 @@ pub fn dfareporting_creative_groups_insert(
 pub fn dfareporting_creative_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    advertiserIds: &Option<Option<String>>,
-    groupNumber: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    advertiserIds: &Option<String>,
+    groupNumber: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14656,21 +14658,21 @@ pub struct DfareportingCreativeGroupsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: advertiserIds
-    pub advertiserIds: Option<Option<String>>,
+    pub advertiserIds: Option<String>,
     /// Query parameter: groupNumber
-    pub groupNumber: Option<Option<String>>,
+    pub groupNumber: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/creativeGroups
@@ -14719,7 +14721,7 @@ pub fn dfareporting_creative_groups_list(
 pub fn dfareporting_creative_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14861,7 +14863,7 @@ pub struct DfareportingCreativeGroupsPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/creativeGroups
@@ -15384,22 +15386,22 @@ pub fn dfareporting_creatives_insert(
 pub fn dfareporting_creatives_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    active: &Option<Option<String>>,
-    advertiserId: &Option<Option<String>>,
-    archived: &Option<Option<String>>,
-    campaignId: &Option<Option<String>>,
-    companionCreativeIds: &Option<Option<String>>,
-    creativeFieldIds: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    renderingIds: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sizeIds: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
-    studioCreativeId: &Option<Option<String>>,
-    types: &Option<Option<String>>,
+    active: &Option<String>,
+    advertiserId: &Option<String>,
+    archived: &Option<String>,
+    campaignId: &Option<String>,
+    companionCreativeIds: &Option<String>,
+    creativeFieldIds: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    renderingIds: &Option<String>,
+    searchString: &Option<String>,
+    sizeIds: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
+    studioCreativeId: &Option<String>,
+    types: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15586,37 +15588,37 @@ pub struct DfareportingCreativesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: archived
-    pub archived: Option<Option<String>>,
+    pub archived: Option<String>,
     /// Query parameter: campaignId
-    pub campaignId: Option<Option<String>>,
+    pub campaignId: Option<String>,
     /// Query parameter: companionCreativeIds
-    pub companionCreativeIds: Option<Option<String>>,
+    pub companionCreativeIds: Option<String>,
     /// Query parameter: creativeFieldIds
-    pub creativeFieldIds: Option<Option<String>>,
+    pub creativeFieldIds: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: renderingIds
-    pub renderingIds: Option<Option<String>>,
+    pub renderingIds: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sizeIds
-    pub sizeIds: Option<Option<String>>,
+    pub sizeIds: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
     /// Query parameter: studioCreativeId
-    pub studioCreativeId: Option<Option<String>>,
+    pub studioCreativeId: Option<String>,
     /// Query parameter: types
-    pub types: Option<Option<String>>,
+    pub types: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/creatives
@@ -15671,7 +15673,7 @@ pub fn dfareporting_creatives_list(
 pub fn dfareporting_creatives_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15811,7 +15813,7 @@ pub struct DfareportingCreativesPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/creatives
@@ -16005,8 +16007,8 @@ pub fn dfareporting_creatives_update(
 pub fn dfareporting_dimension_values_query_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16151,9 +16153,9 @@ pub struct DfareportingDimensionValuesQueryArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// POST userprofiles/{profileId}/dimensionvalues/query
@@ -16525,17 +16527,17 @@ pub fn dfareporting_directory_sites_insert(
 pub fn dfareporting_directory_sites_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    acceptsInStreamVideoPlacements: &Option<Option<String>>,
-    acceptsInterstitialPlacements: &Option<Option<String>>,
-    acceptsPublisherPaidPlacements: &Option<Option<String>>,
-    active: &Option<Option<String>>,
-    dfpNetworkCode: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    acceptsInStreamVideoPlacements: &Option<String>,
+    acceptsInterstitialPlacements: &Option<String>,
+    acceptsPublisherPaidPlacements: &Option<String>,
+    active: &Option<String>,
+    dfpNetworkCode: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16709,27 +16711,27 @@ pub struct DfareportingDirectorySitesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: acceptsInStreamVideoPlacements
-    pub acceptsInStreamVideoPlacements: Option<Option<String>>,
+    pub acceptsInStreamVideoPlacements: Option<String>,
     /// Query parameter: acceptsInterstitialPlacements
-    pub acceptsInterstitialPlacements: Option<Option<String>>,
+    pub acceptsInterstitialPlacements: Option<String>,
     /// Query parameter: acceptsPublisherPaidPlacements
-    pub acceptsPublisherPaidPlacements: Option<Option<String>>,
+    pub acceptsPublisherPaidPlacements: Option<String>,
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: dfpNetworkCode
-    pub dfpNetworkCode: Option<Option<String>>,
+    pub dfpNetworkCode: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/directorySites
@@ -18196,8 +18198,8 @@ pub fn dfareporting_dynamic_targeting_keys_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
     objectId: &String,
-    name: &Option<Option<String>>,
-    objectType: &Option<Option<String>>,
+    name: &Option<String>,
+    objectType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18340,9 +18342,9 @@ pub struct DfareportingDynamicTargetingKeysDeleteArgs {
     /// Path parameter: objectId
     pub objectId: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: objectType
-    pub objectType: Option<Option<String>>,
+    pub objectType: Option<String>,
 }
 
 /// DELETE userprofiles/{userprofilesId}/dynamicTargetingKeys/{dynamicTargetingKeysId}
@@ -18546,10 +18548,10 @@ pub fn dfareporting_dynamic_targeting_keys_insert(
 pub fn dfareporting_dynamic_targeting_keys_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    advertiserId: &Option<Option<String>>,
-    names: &Option<Option<String>>,
-    objectId: &Option<Option<String>>,
-    objectType: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    names: &Option<String>,
+    objectId: &Option<String>,
+    objectType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18702,13 +18704,13 @@ pub struct DfareportingDynamicTargetingKeysListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: names
-    pub names: Option<Option<String>>,
+    pub names: Option<String>,
     /// Query parameter: objectId
-    pub objectId: Option<Option<String>>,
+    pub objectId: Option<String>,
     /// Query parameter: objectType
-    pub objectType: Option<Option<String>>,
+    pub objectType: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/dynamicTargetingKeys
@@ -19236,16 +19238,16 @@ pub fn dfareporting_event_tags_insert(
 pub fn dfareporting_event_tags_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    adId: &Option<Option<String>>,
-    advertiserId: &Option<Option<String>>,
-    campaignId: &Option<Option<String>>,
-    definitionsOnly: &Option<Option<String>>,
-    enabled: &Option<Option<String>>,
-    eventTagTypes: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    adId: &Option<String>,
+    advertiserId: &Option<String>,
+    campaignId: &Option<String>,
+    definitionsOnly: &Option<String>,
+    enabled: &Option<String>,
+    eventTagTypes: &Option<String>,
+    ids: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19414,25 +19416,25 @@ pub struct DfareportingEventTagsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: adId
-    pub adId: Option<Option<String>>,
+    pub adId: Option<String>,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: campaignId
-    pub campaignId: Option<Option<String>>,
+    pub campaignId: Option<String>,
     /// Query parameter: definitionsOnly
-    pub definitionsOnly: Option<Option<String>>,
+    pub definitionsOnly: Option<String>,
     /// Query parameter: enabled
-    pub enabled: Option<Option<String>>,
+    pub enabled: Option<String>,
     /// Query parameter: eventTagTypes
-    pub eventTagTypes: Option<Option<String>>,
+    pub eventTagTypes: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/eventTags
@@ -19481,7 +19483,7 @@ pub fn dfareporting_event_tags_list(
 pub fn dfareporting_event_tags_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19621,7 +19623,7 @@ pub struct DfareportingEventTagsPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/eventTags
@@ -19978,11 +19980,11 @@ pub fn dfareporting_files_get(
 pub fn dfareporting_files_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    scope: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    scope: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20134,15 +20136,15 @@ pub struct DfareportingFilesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: scope
-    pub scope: Option<Option<String>>,
+    pub scope: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{profileId}/files
@@ -20346,7 +20348,7 @@ pub fn dfareporting_floodlight_activities_delete(
 pub fn dfareporting_floodlight_activities_generatetag_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    floodlightActivityId: &Option<Option<String>>,
+    floodlightActivityId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20491,7 +20493,7 @@ pub struct DfareportingFloodlightActivitiesGeneratetagArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: floodlightActivityId
-    pub floodlightActivityId: Option<Option<String>>,
+    pub floodlightActivityId: Option<String>,
 }
 
 /// POST userprofiles/{userprofilesId}/floodlightActivities/generatetag
@@ -20866,19 +20868,19 @@ pub fn dfareporting_floodlight_activities_insert(
 pub fn dfareporting_floodlight_activities_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    advertiserId: &Option<Option<String>>,
-    floodlightActivityGroupIds: &Option<Option<String>>,
-    floodlightActivityGroupName: &Option<Option<String>>,
-    floodlightActivityGroupTagString: &Option<Option<String>>,
-    floodlightActivityGroupType: &Option<Option<String>>,
-    floodlightConfigurationId: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
-    tagString: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    floodlightActivityGroupIds: &Option<String>,
+    floodlightActivityGroupName: &Option<String>,
+    floodlightActivityGroupTagString: &Option<String>,
+    floodlightActivityGroupType: &Option<String>,
+    floodlightConfigurationId: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
+    tagString: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21058,31 +21060,31 @@ pub struct DfareportingFloodlightActivitiesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: floodlightActivityGroupIds
-    pub floodlightActivityGroupIds: Option<Option<String>>,
+    pub floodlightActivityGroupIds: Option<String>,
     /// Query parameter: floodlightActivityGroupName
-    pub floodlightActivityGroupName: Option<Option<String>>,
+    pub floodlightActivityGroupName: Option<String>,
     /// Query parameter: floodlightActivityGroupTagString
-    pub floodlightActivityGroupTagString: Option<Option<String>>,
+    pub floodlightActivityGroupTagString: Option<String>,
     /// Query parameter: floodlightActivityGroupType
-    pub floodlightActivityGroupType: Option<Option<String>>,
+    pub floodlightActivityGroupType: Option<String>,
     /// Query parameter: floodlightConfigurationId
-    pub floodlightConfigurationId: Option<Option<String>>,
+    pub floodlightConfigurationId: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
     /// Query parameter: tagString
-    pub tagString: Option<Option<String>>,
+    pub tagString: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/floodlightActivities
@@ -21136,7 +21138,7 @@ pub fn dfareporting_floodlight_activities_list(
 pub fn dfareporting_floodlight_activities_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21278,7 +21280,7 @@ pub struct DfareportingFloodlightActivitiesPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/floodlightActivities
@@ -21812,15 +21814,15 @@ pub fn dfareporting_floodlight_activity_groups_insert(
 pub fn dfareporting_floodlight_activity_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    advertiserId: &Option<Option<String>>,
-    floodlightConfigurationId: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    floodlightConfigurationId: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21988,23 +21990,23 @@ pub struct DfareportingFloodlightActivityGroupsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: floodlightConfigurationId
-    pub floodlightConfigurationId: Option<Option<String>>,
+    pub floodlightConfigurationId: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/floodlightActivityGroups
@@ -22054,7 +22056,7 @@ pub fn dfareporting_floodlight_activity_groups_list(
 pub fn dfareporting_floodlight_activity_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22196,7 +22198,7 @@ pub struct DfareportingFloodlightActivityGroupsPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/floodlightActivityGroups
@@ -22566,7 +22568,7 @@ pub fn dfareporting_floodlight_configurations_get(
 pub fn dfareporting_floodlight_configurations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    ids: &Option<Option<String>>,
+    ids: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22710,7 +22712,7 @@ pub struct DfareportingFloodlightConfigurationsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/floodlightConfigurations
@@ -22749,7 +22751,7 @@ pub fn dfareporting_floodlight_configurations_list(
 pub fn dfareporting_floodlight_configurations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22891,7 +22893,7 @@ pub struct DfareportingFloodlightConfigurationsPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/floodlightConfigurations
@@ -23583,11 +23585,11 @@ pub fn dfareporting_mobile_apps_get(
 pub fn dfareporting_mobile_apps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    directories: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
+    directories: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23741,15 +23743,15 @@ pub struct DfareportingMobileAppsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: directories
-    pub directories: Option<Option<String>>,
+    pub directories: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/mobileApps
@@ -25132,25 +25134,25 @@ pub fn dfareporting_placement_groups_insert(
 pub fn dfareporting_placement_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    activeStatus: &Option<Option<String>>,
-    advertiserIds: &Option<Option<String>>,
-    campaignIds: &Option<Option<String>>,
-    contentCategoryIds: &Option<Option<String>>,
-    directorySiteIds: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxEndDate: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    maxStartDate: &Option<Option<String>>,
-    minEndDate: &Option<Option<String>>,
-    minStartDate: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    placementGroupType: &Option<Option<String>>,
-    placementStrategyIds: &Option<Option<String>>,
-    pricingTypes: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    siteIds: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    activeStatus: &Option<String>,
+    advertiserIds: &Option<String>,
+    campaignIds: &Option<String>,
+    contentCategoryIds: &Option<String>,
+    directorySiteIds: &Option<String>,
+    ids: &Option<String>,
+    maxEndDate: &Option<String>,
+    maxResults: &Option<String>,
+    maxStartDate: &Option<String>,
+    minEndDate: &Option<String>,
+    minStartDate: &Option<String>,
+    pageToken: &Option<String>,
+    placementGroupType: &Option<String>,
+    placementStrategyIds: &Option<String>,
+    pricingTypes: &Option<String>,
+    searchString: &Option<String>,
+    siteIds: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25348,43 +25350,43 @@ pub struct DfareportingPlacementGroupsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: activeStatus
-    pub activeStatus: Option<Option<String>>,
+    pub activeStatus: Option<String>,
     /// Query parameter: advertiserIds
-    pub advertiserIds: Option<Option<String>>,
+    pub advertiserIds: Option<String>,
     /// Query parameter: campaignIds
-    pub campaignIds: Option<Option<String>>,
+    pub campaignIds: Option<String>,
     /// Query parameter: contentCategoryIds
-    pub contentCategoryIds: Option<Option<String>>,
+    pub contentCategoryIds: Option<String>,
     /// Query parameter: directorySiteIds
-    pub directorySiteIds: Option<Option<String>>,
+    pub directorySiteIds: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxEndDate
-    pub maxEndDate: Option<Option<String>>,
+    pub maxEndDate: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: maxStartDate
-    pub maxStartDate: Option<Option<String>>,
+    pub maxStartDate: Option<String>,
     /// Query parameter: minEndDate
-    pub minEndDate: Option<Option<String>>,
+    pub minEndDate: Option<String>,
     /// Query parameter: minStartDate
-    pub minStartDate: Option<Option<String>>,
+    pub minStartDate: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: placementGroupType
-    pub placementGroupType: Option<Option<String>>,
+    pub placementGroupType: Option<String>,
     /// Query parameter: placementStrategyIds
-    pub placementStrategyIds: Option<Option<String>>,
+    pub placementStrategyIds: Option<String>,
     /// Query parameter: pricingTypes
-    pub pricingTypes: Option<Option<String>>,
+    pub pricingTypes: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: siteIds
-    pub siteIds: Option<Option<String>>,
+    pub siteIds: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/placementGroups
@@ -25444,7 +25446,7 @@ pub fn dfareporting_placement_groups_list(
 pub fn dfareporting_placement_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25586,7 +25588,7 @@ pub struct DfareportingPlacementGroupsPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/placementGroups
@@ -26280,12 +26282,12 @@ pub fn dfareporting_placement_strategies_insert(
 pub fn dfareporting_placement_strategies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26444,17 +26446,17 @@ pub struct DfareportingPlacementStrategiesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/placementStrategies
@@ -26501,7 +26503,7 @@ pub fn dfareporting_placement_strategies_list(
 pub fn dfareporting_placement_strategies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26643,7 +26645,7 @@ pub struct DfareportingPlacementStrategiesPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/placementStrategies
@@ -26844,12 +26846,12 @@ pub fn dfareporting_placement_strategies_update(
 pub fn dfareporting_placements_generatetags_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    campaignId: &Option<Option<String>>,
-    placementIds: &Option<Option<String>>,
-    tagFormats: &Option<Option<String>>,
-    tagProperties_dcDbmMacroIncluded: &Option<Option<String>>,
-    tagProperties_gppMacrosIncluded: &Option<Option<String>>,
-    tagProperties_tcfGdprMacrosIncluded: &Option<Option<String>>,
+    campaignId: &Option<String>,
+    placementIds: &Option<String>,
+    tagFormats: &Option<String>,
+    tagProperties_dcDbmMacroIncluded: &Option<String>,
+    tagProperties_gppMacrosIncluded: &Option<String>,
+    tagProperties_tcfGdprMacrosIncluded: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27008,17 +27010,17 @@ pub struct DfareportingPlacementsGeneratetagsArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: campaignId
-    pub campaignId: Option<Option<String>>,
+    pub campaignId: Option<String>,
     /// Query parameter: placementIds
-    pub placementIds: Option<Option<String>>,
+    pub placementIds: Option<String>,
     /// Query parameter: tagFormats
-    pub tagFormats: Option<Option<String>>,
+    pub tagFormats: Option<String>,
     /// Query parameter: tagProperties_dcDbmMacroIncluded
-    pub tagProperties_dcDbmMacroIncluded: Option<Option<String>>,
+    pub tagProperties_dcDbmMacroIncluded: Option<String>,
     /// Query parameter: tagProperties_gppMacrosIncluded
-    pub tagProperties_gppMacrosIncluded: Option<Option<String>>,
+    pub tagProperties_gppMacrosIncluded: Option<String>,
     /// Query parameter: tagProperties_tcfGdprMacrosIncluded
-    pub tagProperties_tcfGdprMacrosIncluded: Option<Option<String>>,
+    pub tagProperties_tcfGdprMacrosIncluded: Option<String>,
 }
 
 /// POST userprofiles/{userprofilesId}/placements/generatetags
@@ -27388,28 +27390,28 @@ pub fn dfareporting_placements_insert(
 pub fn dfareporting_placements_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    activeStatus: &Option<Option<String>>,
-    advertiserIds: &Option<Option<String>>,
-    campaignIds: &Option<Option<String>>,
-    compatibilities: &Option<Option<String>>,
-    contentCategoryIds: &Option<Option<String>>,
-    directorySiteIds: &Option<Option<String>>,
-    groupIds: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxEndDate: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    maxStartDate: &Option<Option<String>>,
-    minEndDate: &Option<Option<String>>,
-    minStartDate: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    paymentSource: &Option<Option<String>>,
-    placementStrategyIds: &Option<Option<String>>,
-    pricingTypes: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    siteIds: &Option<Option<String>>,
-    sizeIds: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    activeStatus: &Option<String>,
+    advertiserIds: &Option<String>,
+    campaignIds: &Option<String>,
+    compatibilities: &Option<String>,
+    contentCategoryIds: &Option<String>,
+    directorySiteIds: &Option<String>,
+    groupIds: &Option<String>,
+    ids: &Option<String>,
+    maxEndDate: &Option<String>,
+    maxResults: &Option<String>,
+    maxStartDate: &Option<String>,
+    minEndDate: &Option<String>,
+    minStartDate: &Option<String>,
+    pageToken: &Option<String>,
+    paymentSource: &Option<String>,
+    placementStrategyIds: &Option<String>,
+    pricingTypes: &Option<String>,
+    searchString: &Option<String>,
+    siteIds: &Option<String>,
+    sizeIds: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27614,49 +27616,49 @@ pub struct DfareportingPlacementsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: activeStatus
-    pub activeStatus: Option<Option<String>>,
+    pub activeStatus: Option<String>,
     /// Query parameter: advertiserIds
-    pub advertiserIds: Option<Option<String>>,
+    pub advertiserIds: Option<String>,
     /// Query parameter: campaignIds
-    pub campaignIds: Option<Option<String>>,
+    pub campaignIds: Option<String>,
     /// Query parameter: compatibilities
-    pub compatibilities: Option<Option<String>>,
+    pub compatibilities: Option<String>,
     /// Query parameter: contentCategoryIds
-    pub contentCategoryIds: Option<Option<String>>,
+    pub contentCategoryIds: Option<String>,
     /// Query parameter: directorySiteIds
-    pub directorySiteIds: Option<Option<String>>,
+    pub directorySiteIds: Option<String>,
     /// Query parameter: groupIds
-    pub groupIds: Option<Option<String>>,
+    pub groupIds: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxEndDate
-    pub maxEndDate: Option<Option<String>>,
+    pub maxEndDate: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: maxStartDate
-    pub maxStartDate: Option<Option<String>>,
+    pub maxStartDate: Option<String>,
     /// Query parameter: minEndDate
-    pub minEndDate: Option<Option<String>>,
+    pub minEndDate: Option<String>,
     /// Query parameter: minStartDate
-    pub minStartDate: Option<Option<String>>,
+    pub minStartDate: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: paymentSource
-    pub paymentSource: Option<Option<String>>,
+    pub paymentSource: Option<String>,
     /// Query parameter: placementStrategyIds
-    pub placementStrategyIds: Option<Option<String>>,
+    pub placementStrategyIds: Option<String>,
     /// Query parameter: pricingTypes
-    pub pricingTypes: Option<Option<String>>,
+    pub pricingTypes: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: siteIds
-    pub siteIds: Option<Option<String>>,
+    pub siteIds: Option<String>,
     /// Query parameter: sizeIds
-    pub sizeIds: Option<Option<String>>,
+    pub sizeIds: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/placements
@@ -27717,7 +27719,7 @@ pub fn dfareporting_placements_list(
 pub fn dfareporting_placements_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27857,7 +27859,7 @@ pub struct DfareportingPlacementsPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/placements
@@ -29045,7 +29047,7 @@ pub fn dfareporting_remarketing_list_shares_get(
 pub fn dfareporting_remarketing_list_shares_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29187,7 +29189,7 @@ pub struct DfareportingRemarketingListSharesPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/remarketingListShares
@@ -29719,14 +29721,14 @@ pub fn dfareporting_remarketing_lists_insert(
 pub fn dfareporting_remarketing_lists_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    active: &Option<Option<String>>,
-    advertiserId: &Option<Option<String>>,
-    floodlightActivityId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    active: &Option<String>,
+    advertiserId: &Option<String>,
+    floodlightActivityId: &Option<String>,
+    maxResults: &Option<String>,
+    name: &Option<String>,
+    pageToken: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29891,21 +29893,21 @@ pub struct DfareportingRemarketingListsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: floodlightActivityId
-    pub floodlightActivityId: Option<Option<String>>,
+    pub floodlightActivityId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/remarketingLists
@@ -29954,7 +29956,7 @@ pub fn dfareporting_remarketing_lists_list(
 pub fn dfareporting_remarketing_lists_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30096,7 +30098,7 @@ pub struct DfareportingRemarketingListsPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/remarketingLists
@@ -30779,11 +30781,11 @@ pub fn dfareporting_reports_insert(
 pub fn dfareporting_reports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    scope: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    scope: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30935,15 +30937,15 @@ pub struct DfareportingReportsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: scope
-    pub scope: Option<Option<String>>,
+    pub scope: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{profileId}/reports
@@ -30986,7 +30988,7 @@ pub fn dfareporting_reports_run_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
     reportId: &String,
-    synchronous: &Option<Option<String>>,
+    synchronous: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31128,7 +31130,7 @@ pub struct DfareportingReportsRunArgs {
     /// Path parameter: reportId
     pub reportId: String,
     /// Query parameter: synchronous
-    pub synchronous: Option<Option<String>>,
+    pub synchronous: Option<String>,
 }
 
 /// POST userprofiles/{profileId}/reports/{reportId}/run
@@ -31666,10 +31668,10 @@ pub fn dfareporting_reports_files_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
     reportId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31820,13 +31822,13 @@ pub struct DfareportingReportsFilesListArgs {
     /// Path parameter: reportId
     pub reportId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{profileId}/reports/{reportId}/files
@@ -32191,21 +32193,21 @@ pub fn dfareporting_sites_insert(
 pub fn dfareporting_sites_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    acceptsInStreamVideoPlacements: &Option<Option<String>>,
-    acceptsInterstitialPlacements: &Option<Option<String>>,
-    acceptsPublisherPaidPlacements: &Option<Option<String>>,
-    adWordsSite: &Option<Option<String>>,
-    approved: &Option<Option<String>>,
-    campaignIds: &Option<Option<String>>,
-    directorySiteIds: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
-    subaccountId: &Option<Option<String>>,
-    unmappedSite: &Option<Option<String>>,
+    acceptsInStreamVideoPlacements: &Option<String>,
+    acceptsInterstitialPlacements: &Option<String>,
+    acceptsPublisherPaidPlacements: &Option<String>,
+    adWordsSite: &Option<String>,
+    approved: &Option<String>,
+    campaignIds: &Option<String>,
+    directorySiteIds: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
+    subaccountId: &Option<String>,
+    unmappedSite: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32389,35 +32391,35 @@ pub struct DfareportingSitesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: acceptsInStreamVideoPlacements
-    pub acceptsInStreamVideoPlacements: Option<Option<String>>,
+    pub acceptsInStreamVideoPlacements: Option<String>,
     /// Query parameter: acceptsInterstitialPlacements
-    pub acceptsInterstitialPlacements: Option<Option<String>>,
+    pub acceptsInterstitialPlacements: Option<String>,
     /// Query parameter: acceptsPublisherPaidPlacements
-    pub acceptsPublisherPaidPlacements: Option<Option<String>>,
+    pub acceptsPublisherPaidPlacements: Option<String>,
     /// Query parameter: adWordsSite
-    pub adWordsSite: Option<Option<String>>,
+    pub adWordsSite: Option<String>,
     /// Query parameter: approved
-    pub approved: Option<Option<String>>,
+    pub approved: Option<String>,
     /// Query parameter: campaignIds
-    pub campaignIds: Option<Option<String>>,
+    pub campaignIds: Option<String>,
     /// Query parameter: directorySiteIds
-    pub directorySiteIds: Option<Option<String>>,
+    pub directorySiteIds: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
     /// Query parameter: subaccountId
-    pub subaccountId: Option<Option<String>>,
+    pub subaccountId: Option<String>,
     /// Query parameter: unmappedSite
-    pub unmappedSite: Option<Option<String>>,
+    pub unmappedSite: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/sites
@@ -32471,7 +32473,7 @@ pub fn dfareporting_sites_list(
 pub fn dfareporting_sites_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32611,7 +32613,7 @@ pub struct DfareportingSitesPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/sites
@@ -33128,10 +33130,10 @@ pub fn dfareporting_sizes_insert(
 pub fn dfareporting_sizes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    height: &Option<Option<String>>,
-    iabStandard: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    width: &Option<Option<String>>,
+    height: &Option<String>,
+    iabStandard: &Option<String>,
+    ids: &Option<String>,
+    width: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33282,13 +33284,13 @@ pub struct DfareportingSizesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: height
-    pub height: Option<Option<String>>,
+    pub height: Option<String>,
     /// Query parameter: iabStandard
-    pub iabStandard: Option<Option<String>>,
+    pub iabStandard: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: width
-    pub width: Option<Option<String>>,
+    pub width: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/sizes
@@ -34285,12 +34287,12 @@ pub fn dfareporting_subaccounts_insert(
 pub fn dfareporting_subaccounts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34447,17 +34449,17 @@ pub struct DfareportingSubaccountsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/subaccounts
@@ -34502,7 +34504,7 @@ pub fn dfareporting_subaccounts_list(
 pub fn dfareporting_subaccounts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34642,7 +34644,7 @@ pub struct DfareportingSubaccountsPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/subaccounts
@@ -35005,13 +35007,13 @@ pub fn dfareporting_targetable_remarketing_lists_get(
 pub fn dfareporting_targetable_remarketing_lists_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    active: &Option<Option<String>>,
-    advertiserId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    active: &Option<String>,
+    advertiserId: &Option<String>,
+    maxResults: &Option<String>,
+    name: &Option<String>,
+    pageToken: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35173,19 +35175,19 @@ pub struct DfareportingTargetableRemarketingListsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: active
-    pub active: Option<Option<String>>,
+    pub active: Option<String>,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/targetableRemarketingLists
@@ -35564,13 +35566,13 @@ pub fn dfareporting_targeting_templates_insert(
 pub fn dfareporting_targeting_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    advertiserId: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    advertiserId: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35732,19 +35734,19 @@ pub struct DfareportingTargetingTemplatesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<Option<String>>,
+    pub advertiserId: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/targetingTemplates
@@ -35792,7 +35794,7 @@ pub fn dfareporting_targeting_templates_list(
 pub fn dfareporting_targeting_templates_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35934,7 +35936,7 @@ pub struct DfareportingTargetingTemplatesPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/targetingTemplates
@@ -36136,9 +36138,9 @@ pub fn dfareporting_tv_campaign_details_get_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
     id: &String,
-    accountId: &Option<Option<String>>,
-    countryDartId: &Option<Option<String>>,
-    tvDataProvider: &Option<Option<String>>,
+    accountId: &Option<String>,
+    countryDartId: &Option<String>,
+    tvDataProvider: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36288,11 +36290,11 @@ pub struct DfareportingTvCampaignDetailsGetArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: accountId
-    pub accountId: Option<Option<String>>,
+    pub accountId: Option<String>,
     /// Query parameter: countryDartId
-    pub countryDartId: Option<Option<String>>,
+    pub countryDartId: Option<String>,
     /// Query parameter: tvDataProvider
-    pub tvDataProvider: Option<Option<String>>,
+    pub tvDataProvider: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/tvCampaignDetails/{tvCampaignDetailsId}
@@ -36335,10 +36337,10 @@ pub fn dfareporting_tv_campaign_details_get(
 pub fn dfareporting_tv_campaign_summaries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    accountId: &Option<Option<String>>,
-    countryDartId: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    tvDataProvider: &Option<Option<String>>,
+    accountId: &Option<String>,
+    countryDartId: &Option<String>,
+    name: &Option<String>,
+    tvDataProvider: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36491,13 +36493,13 @@ pub struct DfareportingTvCampaignSummariesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: accountId
-    pub accountId: Option<Option<String>>,
+    pub accountId: Option<String>,
     /// Query parameter: countryDartId
-    pub countryDartId: Option<Option<String>>,
+    pub countryDartId: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: tvDataProvider
-    pub tvDataProvider: Option<Option<String>>,
+    pub tvDataProvider: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/tvCampaignSummaries
@@ -37360,7 +37362,7 @@ pub fn dfareporting_user_role_permissions_get(
 pub fn dfareporting_user_role_permissions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    ids: &Option<Option<String>>,
+    ids: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37504,7 +37506,7 @@ pub struct DfareportingUserRolePermissionsListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/userRolePermissions
@@ -38026,14 +38028,14 @@ pub fn dfareporting_user_roles_insert(
 pub fn dfareporting_user_roles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    accountUserRoleOnly: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    searchString: &Option<Option<String>>,
-    sortField: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
-    subaccountId: &Option<Option<String>>,
+    accountUserRoleOnly: &Option<String>,
+    ids: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    searchString: &Option<String>,
+    sortField: &Option<String>,
+    sortOrder: &Option<String>,
+    subaccountId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -38196,21 +38198,21 @@ pub struct DfareportingUserRolesListArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: accountUserRoleOnly
-    pub accountUserRoleOnly: Option<Option<String>>,
+    pub accountUserRoleOnly: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: searchString
-    pub searchString: Option<Option<String>>,
+    pub searchString: Option<String>,
     /// Query parameter: sortField
-    pub sortField: Option<Option<String>>,
+    pub sortField: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
     /// Query parameter: subaccountId
-    pub subaccountId: Option<Option<String>>,
+    pub subaccountId: Option<String>,
 }
 
 /// GET userprofiles/{userprofilesId}/userRoles
@@ -38257,7 +38259,7 @@ pub fn dfareporting_user_roles_list(
 pub fn dfareporting_user_roles_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     profileId: &String,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -38397,7 +38399,7 @@ pub struct DfareportingUserRolesPatchArgs {
     /// Path parameter: profileId
     pub profileId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// PATCH userprofiles/{userprofilesId}/userRoles
@@ -41128,29 +41130,6 @@ impl ResourceIdentifier<DfareportingDynamicFeedsGetArgs> for DynamicFeed {
 // ResourceIdentifier implementation for DynamicFeed
 // =============================================================================
 
-/// ResourceIdentifier implementation for DynamicFeed with DfareportingDynamicFeedsInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DfareportingDynamicFeedsInsertArgs> for DynamicFeed {
-    fn generate_resource_id(&self, input: &DfareportingDynamicFeedsInsertArgs) -> String {
-        "gcp::dfareporting::DynamicFeed".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::dfareporting::DynamicFeed"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for DynamicFeed
-// =============================================================================
-
 /// ResourceIdentifier implementation for DynamicFeed with DfareportingDynamicFeedsRetransformArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -41159,29 +41138,6 @@ impl ResourceIdentifier<DfareportingDynamicFeedsInsertArgs> for DynamicFeed {
 impl ResourceIdentifier<DfareportingDynamicFeedsRetransformArgs> for DynamicFeed {
     fn generate_resource_id(&self, input: &DfareportingDynamicFeedsRetransformArgs) -> String {
         format!("gcp::dfareporting::DynamicFeed/{}", input.dynamicFeedId)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::dfareporting::DynamicFeed"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for DynamicFeed
-// =============================================================================
-
-/// ResourceIdentifier implementation for DynamicFeed with DfareportingDynamicFeedsUpdateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DfareportingDynamicFeedsUpdateArgs> for DynamicFeed {
-    fn generate_resource_id(&self, input: &DfareportingDynamicFeedsUpdateArgs) -> String {
-        "gcp::dfareporting::DynamicFeed".to_string()
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -41236,52 +41192,6 @@ impl ResourceIdentifier<DfareportingDynamicProfilesGetArgs> for DynamicProfile {
             "gcp::dfareporting::DynamicProfile/{}",
             input.dynamicProfileId
         )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::dfareporting::DynamicProfile"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for DynamicProfile
-// =============================================================================
-
-/// ResourceIdentifier implementation for DynamicProfile with DfareportingDynamicProfilesInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DfareportingDynamicProfilesInsertArgs> for DynamicProfile {
-    fn generate_resource_id(&self, input: &DfareportingDynamicProfilesInsertArgs) -> String {
-        "gcp::dfareporting::DynamicProfile".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::dfareporting::DynamicProfile"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for DynamicProfile
-// =============================================================================
-
-/// ResourceIdentifier implementation for DynamicProfile with DfareportingDynamicProfilesUpdateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DfareportingDynamicProfilesUpdateArgs> for DynamicProfile {
-    fn generate_resource_id(&self, input: &DfareportingDynamicProfilesUpdateArgs) -> String {
-        "gcp::dfareporting::DynamicProfile".to_string()
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -43287,31 +43197,6 @@ impl ResourceIdentifier<DfareportingSizesListArgs> for SizesListResponse {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for StudioCreativeAssetsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for StudioCreativeAssetsResponse with DfareportingStudioCreativeAssetsInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DfareportingStudioCreativeAssetsInsertArgs>
-    for StudioCreativeAssetsResponse
-{
-    fn generate_resource_id(&self, input: &DfareportingStudioCreativeAssetsInsertArgs) -> String {
-        "gcp::dfareporting::StudioCreativeAssetsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::dfareporting::StudioCreativeAssetsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for StudioCreative
 // =============================================================================
 
@@ -43326,29 +43211,6 @@ impl ResourceIdentifier<DfareportingStudioCreativesGetArgs> for StudioCreative {
             "gcp::dfareporting::StudioCreative/{}",
             input.studioCreativeId
         )
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::dfareporting::StudioCreative"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for StudioCreative
-// =============================================================================
-
-/// ResourceIdentifier implementation for StudioCreative with DfareportingStudioCreativesInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DfareportingStudioCreativesInsertArgs> for StudioCreative {
-    fn generate_resource_id(&self, input: &DfareportingStudioCreativesInsertArgs) -> String {
-        "gcp::dfareporting::StudioCreative".to_string()
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -43734,29 +43596,6 @@ impl ResourceIdentifier<DfareportingUserProfilesGetArgs> for UserProfile {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::dfareporting::UserProfile"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for UserProfileList
-// =============================================================================
-
-/// ResourceIdentifier implementation for UserProfileList with DfareportingUserProfilesListArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DfareportingUserProfilesListArgs> for UserProfileList {
-    fn generate_resource_id(&self, input: &DfareportingUserProfilesListArgs) -> String {
-        "gcp::dfareporting::UserProfileList".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::dfareporting::UserProfileList"
     }
 
     fn provider(&self) -> &'static str {

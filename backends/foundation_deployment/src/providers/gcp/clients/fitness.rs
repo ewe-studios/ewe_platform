@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -517,7 +519,7 @@ pub fn fitness_users_data_sources_get(
 pub fn fitness_users_data_sources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
-    dataTypeName: &Option<Option<String>>,
+    dataTypeName: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -659,7 +661,7 @@ pub struct FitnessUsersDataSourcesListArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: dataTypeName
-    pub dataTypeName: Option<Option<String>>,
+    pub dataTypeName: Option<String>,
 }
 
 /// GET {userId}/dataSources
@@ -861,8 +863,8 @@ pub fn fitness_users_data_sources_data_point_changes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
     dataSourceId: &String,
-    limit: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    limit: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1011,9 +1013,9 @@ pub struct FitnessUsersDataSourcesDataPointChangesListArgs {
     /// Path parameter: dataSourceId
     pub dataSourceId: String,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {userId}/dataSources/{dataSourceId}/dataPointChanges
@@ -1227,8 +1229,8 @@ pub fn fitness_users_data_sources_datasets_get_builder<R>(
     userId: &String,
     dataSourceId: &String,
     datasetId: &String,
-    limit: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    limit: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1375,9 +1377,9 @@ pub struct FitnessUsersDataSourcesDatasetsGetArgs {
     /// Path parameter: datasetId
     pub datasetId: String,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {userId}/dataSources/{dataSourceId}/datasets/{datasetId}
@@ -1913,11 +1915,11 @@ pub fn fitness_users_sessions_delete(
 pub fn fitness_users_sessions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
-    activityType: &Option<Option<String>>,
-    endTime: &Option<Option<String>>,
-    includeDeleted: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startTime: &Option<Option<String>>,
+    activityType: &Option<String>,
+    endTime: &Option<String>,
+    includeDeleted: &Option<String>,
+    pageToken: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2071,15 +2073,15 @@ pub struct FitnessUsersSessionsListArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: activityType
-    pub activityType: Option<Option<String>>,
+    pub activityType: Option<String>,
     /// Query parameter: endTime
-    pub endTime: Option<Option<String>>,
+    pub endTime: Option<String>,
     /// Query parameter: includeDeleted
-    pub includeDeleted: Option<Option<String>>,
+    pub includeDeleted: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
 }
 
 /// GET {userId}/sessions

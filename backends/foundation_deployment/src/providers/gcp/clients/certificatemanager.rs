@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn certificatemanager_projects_locations_get(
 pub fn certificatemanager_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct CertificatemanagerProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,7 +395,7 @@ pub fn certificatemanager_projects_locations_list(
 pub fn certificatemanager_projects_locations_certificate_issuance_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    certificateIssuanceConfigId: &Option<Option<String>>,
+    certificateIssuanceConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -534,7 +536,7 @@ pub struct CertificatemanagerProjectsLocationsCertificateIssuanceConfigsCreateAr
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: certificateIssuanceConfigId
-    pub certificateIssuanceConfigId: Option<Option<String>>,
+    pub certificateIssuanceConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/certificateIssuanceConfigs
@@ -904,10 +906,10 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_get(
 pub fn certificatemanager_projects_locations_certificate_issuance_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1061,13 +1063,13 @@ pub struct CertificatemanagerProjectsLocationsCertificateIssuanceConfigsListArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateIssuanceConfigs
@@ -1112,7 +1114,7 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_list(
 pub fn certificatemanager_projects_locations_certificate_issuance_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1253,7 +1255,7 @@ pub struct CertificatemanagerProjectsLocationsCertificateIssuanceConfigsPatchArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/certificateIssuanceConfigs/{certificateIssuanceConfigsId}
@@ -1291,7 +1293,7 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_patch(
 pub fn certificatemanager_projects_locations_certificate_maps_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    certificateMapId: &Option<Option<String>>,
+    certificateMapId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1431,7 +1433,7 @@ pub struct CertificatemanagerProjectsLocationsCertificateMapsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: certificateMapId
-    pub certificateMapId: Option<Option<String>>,
+    pub certificateMapId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/certificateMaps
@@ -1795,10 +1797,10 @@ pub fn certificatemanager_projects_locations_certificate_maps_get(
 pub fn certificatemanager_projects_locations_certificate_maps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1951,13 +1953,13 @@ pub struct CertificatemanagerProjectsLocationsCertificateMapsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateMaps
@@ -2002,7 +2004,7 @@ pub fn certificatemanager_projects_locations_certificate_maps_list(
 pub fn certificatemanager_projects_locations_certificate_maps_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2142,7 +2144,7 @@ pub struct CertificatemanagerProjectsLocationsCertificateMapsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/certificateMaps/{certificateMapsId}
@@ -2182,7 +2184,7 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    certificateMapEntryId: &Option<Option<String>>,
+    certificateMapEntryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2325,7 +2327,7 @@ pub struct CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntri
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: certificateMapEntryId
-    pub certificateMapEntryId: Option<Option<String>>,
+    pub certificateMapEntryId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/certificateMaps/{certificateMapsId}/certificateMapEntries
@@ -2704,10 +2706,10 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2863,13 +2865,13 @@ pub struct CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntri
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateMaps/{certificateMapsId}/certificateMapEntries
@@ -2911,7 +2913,7 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3054,7 +3056,7 @@ pub struct CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntri
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/certificateMaps/{certificateMapsId}/certificateMapEntries/{certificateMapEntriesId}
@@ -3090,7 +3092,7 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 pub fn certificatemanager_projects_locations_certificates_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    certificateId: &Option<Option<String>>,
+    certificateId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3230,7 +3232,7 @@ pub struct CertificatemanagerProjectsLocationsCertificatesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: certificateId
-    pub certificateId: Option<Option<String>>,
+    pub certificateId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/certificates
@@ -3590,10 +3592,10 @@ pub fn certificatemanager_projects_locations_certificates_get(
 pub fn certificatemanager_projects_locations_certificates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3744,13 +3746,13 @@ pub struct CertificatemanagerProjectsLocationsCertificatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificates
@@ -3793,7 +3795,7 @@ pub fn certificatemanager_projects_locations_certificates_list(
 pub fn certificatemanager_projects_locations_certificates_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3933,7 +3935,7 @@ pub struct CertificatemanagerProjectsLocationsCertificatesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/certificates/{certificatesId}
@@ -3971,7 +3973,7 @@ pub fn certificatemanager_projects_locations_certificates_patch(
 pub fn certificatemanager_projects_locations_dns_authorizations_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dnsAuthorizationId: &Option<Option<String>>,
+    dnsAuthorizationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4111,7 +4113,7 @@ pub struct CertificatemanagerProjectsLocationsDnsAuthorizationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dnsAuthorizationId
-    pub dnsAuthorizationId: Option<Option<String>>,
+    pub dnsAuthorizationId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dnsAuthorizations
@@ -4476,10 +4478,10 @@ pub fn certificatemanager_projects_locations_dns_authorizations_get(
 pub fn certificatemanager_projects_locations_dns_authorizations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4632,13 +4634,13 @@ pub struct CertificatemanagerProjectsLocationsDnsAuthorizationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsAuthorizations
@@ -4683,7 +4685,7 @@ pub fn certificatemanager_projects_locations_dns_authorizations_list(
 pub fn certificatemanager_projects_locations_dns_authorizations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4823,7 +4825,7 @@ pub struct CertificatemanagerProjectsLocationsDnsAuthorizationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dnsAuthorizations/{dnsAuthorizationsId}
@@ -5343,10 +5345,10 @@ pub fn certificatemanager_projects_locations_operations_get(
 pub fn certificatemanager_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5497,13 +5499,13 @@ pub struct CertificatemanagerProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -5546,7 +5548,7 @@ pub fn certificatemanager_projects_locations_operations_list(
 pub fn certificatemanager_projects_locations_trust_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    trustConfigId: &Option<Option<String>>,
+    trustConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5686,7 +5688,7 @@ pub struct CertificatemanagerProjectsLocationsTrustConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: trustConfigId
-    pub trustConfigId: Option<Option<String>>,
+    pub trustConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/trustConfigs
@@ -5724,7 +5726,7 @@ pub fn certificatemanager_projects_locations_trust_configs_create(
 pub fn certificatemanager_projects_locations_trust_configs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5864,7 +5866,7 @@ pub struct CertificatemanagerProjectsLocationsTrustConfigsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/trustConfigs/{trustConfigsId}
@@ -6061,10 +6063,10 @@ pub fn certificatemanager_projects_locations_trust_configs_get(
 pub fn certificatemanager_projects_locations_trust_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6215,13 +6217,13 @@ pub struct CertificatemanagerProjectsLocationsTrustConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/trustConfigs
@@ -6264,7 +6266,7 @@ pub fn certificatemanager_projects_locations_trust_configs_list(
 pub fn certificatemanager_projects_locations_trust_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6404,7 +6406,7 @@ pub struct CertificatemanagerProjectsLocationsTrustConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/trustConfigs/{trustConfigsId}

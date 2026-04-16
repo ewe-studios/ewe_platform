@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,7 +31,7 @@ use serde::Serialize;
 
 pub fn youtubereporting_jobs_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -164,7 +166,7 @@ pub fn youtubereporting_jobs_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubereportingJobsCreateArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// POST v1/jobs
@@ -198,7 +200,7 @@ pub fn youtubereporting_jobs_create(
 pub fn youtubereporting_jobs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     jobId: &String,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -335,7 +337,7 @@ pub struct YoutubereportingJobsDeleteArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// DELETE v1/jobs/{jobId}
@@ -370,7 +372,7 @@ pub fn youtubereporting_jobs_delete(
 pub fn youtubereporting_jobs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     jobId: &String,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -507,7 +509,7 @@ pub struct YoutubereportingJobsGetArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// GET v1/jobs/{jobId}
@@ -541,10 +543,10 @@ pub fn youtubereporting_jobs_get(
 
 pub fn youtubereporting_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    includeSystemManaged: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    includeSystemManaged: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -690,13 +692,13 @@ pub fn youtubereporting_jobs_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubereportingJobsListArgs {
     /// Query parameter: includeSystemManaged
-    pub includeSystemManaged: Option<Option<String>>,
+    pub includeSystemManaged: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/jobs
@@ -739,7 +741,7 @@ pub fn youtubereporting_jobs_reports_get_builder<R>(
     client: &SimpleHttpClient<R>,
     jobId: &String,
     reportId: &String,
-    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -881,7 +883,7 @@ pub struct YoutubereportingJobsReportsGetArgs {
     /// Path parameter: reportId
     pub reportId: String,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
 }
 
 /// GET v1/jobs/{jobId}/reports/{reportId}
@@ -920,12 +922,12 @@ pub fn youtubereporting_jobs_reports_get(
 pub fn youtubereporting_jobs_reports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     jobId: &String,
-    createdAfter: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startTimeAtOrAfter: &Option<Option<String>>,
-    startTimeBefore: &Option<Option<String>>,
+    createdAfter: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    startTimeAtOrAfter: &Option<String>,
+    startTimeBefore: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1082,17 +1084,17 @@ pub struct YoutubereportingJobsReportsListArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: createdAfter
-    pub createdAfter: Option<Option<String>>,
+    pub createdAfter: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startTimeAtOrAfter
-    pub startTimeAtOrAfter: Option<Option<String>>,
+    pub startTimeAtOrAfter: Option<String>,
     /// Query parameter: startTimeBefore
-    pub startTimeBefore: Option<Option<String>>,
+    pub startTimeBefore: Option<String>,
 }
 
 /// GET v1/jobs/{jobId}/reports
@@ -1296,10 +1298,10 @@ pub fn youtubereporting_media_download(
 
 pub fn youtubereporting_report_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    includeSystemManaged: &Option<Option<String>>,
-    onBehalfOfContentOwner: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    includeSystemManaged: &Option<String>,
+    onBehalfOfContentOwner: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1445,13 +1447,13 @@ pub fn youtubereporting_report_types_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubereportingReportTypesListArgs {
     /// Query parameter: includeSystemManaged
-    pub includeSystemManaged: Option<Option<String>>,
+    pub includeSystemManaged: Option<String>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<Option<String>>,
+    pub onBehalfOfContentOwner: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/reportTypes

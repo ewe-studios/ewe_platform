@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -356,8 +358,8 @@ pub fn networksecurity_organizations_locations_address_groups_clone_items(
 pub fn networksecurity_organizations_locations_address_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    addressGroupId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    addressGroupId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -500,9 +502,9 @@ pub struct NetworksecurityOrganizationsLocationsAddressGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: addressGroupId
-    pub addressGroupId: Option<Option<String>>,
+    pub addressGroupId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups
@@ -541,7 +543,7 @@ pub fn networksecurity_organizations_locations_address_groups_create(
 pub fn networksecurity_organizations_locations_address_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -681,7 +683,7 @@ pub struct NetworksecurityOrganizationsLocationsAddressGroupsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups/{addressGroupsId}
@@ -884,9 +886,9 @@ pub fn networksecurity_organizations_locations_address_groups_get(
 pub fn networksecurity_organizations_locations_address_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1034,11 +1036,11 @@ pub struct NetworksecurityOrganizationsLocationsAddressGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups
@@ -1080,8 +1082,8 @@ pub fn networksecurity_organizations_locations_address_groups_list(
 pub fn networksecurity_organizations_locations_address_groups_list_references_builder<R>(
     client: &SimpleHttpClient<R>,
     addressGroup: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1229,9 +1231,9 @@ pub struct NetworksecurityOrganizationsLocationsAddressGroupsListReferencesArgs 
     /// Path parameter: addressGroup
     pub addressGroup: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:listReferences
@@ -1274,8 +1276,8 @@ pub fn networksecurity_organizations_locations_address_groups_list_references(
 pub fn networksecurity_organizations_locations_address_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1418,9 +1420,9 @@ pub struct NetworksecurityOrganizationsLocationsAddressGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/addressGroups/{addressGroupsId}
@@ -1622,8 +1624,8 @@ pub fn networksecurity_organizations_locations_address_groups_remove_items(
 pub fn networksecurity_organizations_locations_firewall_endpoints_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    firewallEndpointId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    firewallEndpointId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1766,9 +1768,9 @@ pub struct NetworksecurityOrganizationsLocationsFirewallEndpointsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: firewallEndpointId
-    pub firewallEndpointId: Option<Option<String>>,
+    pub firewallEndpointId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/firewallEndpoints
@@ -1807,7 +1809,7 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_create(
 pub fn networksecurity_organizations_locations_firewall_endpoints_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1947,7 +1949,7 @@ pub struct NetworksecurityOrganizationsLocationsFirewallEndpointsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/firewallEndpoints/{firewallEndpointsId}
@@ -2150,10 +2152,10 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_get(
 pub fn networksecurity_organizations_locations_firewall_endpoints_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2306,13 +2308,13 @@ pub struct NetworksecurityOrganizationsLocationsFirewallEndpointsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/firewallEndpoints
@@ -2357,8 +2359,8 @@ pub fn networksecurity_organizations_locations_firewall_endpoints_list(
 pub fn networksecurity_organizations_locations_firewall_endpoints_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2501,9 +2503,9 @@ pub struct NetworksecurityOrganizationsLocationsFirewallEndpointsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/firewallEndpoints/{firewallEndpointsId}
@@ -3025,10 +3027,10 @@ pub fn networksecurity_organizations_locations_operations_get(
 pub fn networksecurity_organizations_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3179,13 +3181,13 @@ pub struct NetworksecurityOrganizationsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
@@ -3228,7 +3230,7 @@ pub fn networksecurity_organizations_locations_operations_list(
 pub fn networksecurity_organizations_locations_security_profile_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    securityProfileGroupId: &Option<Option<String>>,
+    securityProfileGroupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3369,7 +3371,7 @@ pub struct NetworksecurityOrganizationsLocationsSecurityProfileGroupsCreateArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: securityProfileGroupId
-    pub securityProfileGroupId: Option<Option<String>>,
+    pub securityProfileGroupId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/securityProfileGroups
@@ -3407,7 +3409,7 @@ pub fn networksecurity_organizations_locations_security_profile_groups_create(
 pub fn networksecurity_organizations_locations_security_profile_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3548,7 +3550,7 @@ pub struct NetworksecurityOrganizationsLocationsSecurityProfileGroupsDeleteArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/securityProfileGroups/{securityProfileGroupsId}
@@ -3750,8 +3752,8 @@ pub fn networksecurity_organizations_locations_security_profile_groups_get(
 pub fn networksecurity_organizations_locations_security_profile_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3898,9 +3900,9 @@ pub struct NetworksecurityOrganizationsLocationsSecurityProfileGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/securityProfileGroups
@@ -3943,7 +3945,7 @@ pub fn networksecurity_organizations_locations_security_profile_groups_list(
 pub fn networksecurity_organizations_locations_security_profile_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4083,7 +4085,7 @@ pub struct NetworksecurityOrganizationsLocationsSecurityProfileGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/securityProfileGroups/{securityProfileGroupsId}
@@ -4121,7 +4123,7 @@ pub fn networksecurity_organizations_locations_security_profile_groups_patch(
 pub fn networksecurity_organizations_locations_security_profiles_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    securityProfileId: &Option<Option<String>>,
+    securityProfileId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4261,7 +4263,7 @@ pub struct NetworksecurityOrganizationsLocationsSecurityProfilesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: securityProfileId
-    pub securityProfileId: Option<Option<String>>,
+    pub securityProfileId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/securityProfiles
@@ -4299,7 +4301,7 @@ pub fn networksecurity_organizations_locations_security_profiles_create(
 pub fn networksecurity_organizations_locations_security_profiles_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4439,7 +4441,7 @@ pub struct NetworksecurityOrganizationsLocationsSecurityProfilesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/securityProfiles/{securityProfilesId}
@@ -4640,8 +4642,8 @@ pub fn networksecurity_organizations_locations_security_profiles_get(
 pub fn networksecurity_organizations_locations_security_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4788,9 +4790,9 @@ pub struct NetworksecurityOrganizationsLocationsSecurityProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/securityProfiles
@@ -4833,7 +4835,7 @@ pub fn networksecurity_organizations_locations_security_profiles_list(
 pub fn networksecurity_organizations_locations_security_profiles_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4973,7 +4975,7 @@ pub struct NetworksecurityOrganizationsLocationsSecurityProfilesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/securityProfiles/{securityProfilesId}
@@ -5171,10 +5173,10 @@ pub fn networksecurity_projects_locations_get(
 pub fn networksecurity_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5325,13 +5327,13 @@ pub struct NetworksecurityProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -5700,8 +5702,8 @@ pub fn networksecurity_projects_locations_address_groups_clone_items(
 pub fn networksecurity_projects_locations_address_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    addressGroupId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    addressGroupId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5844,9 +5846,9 @@ pub struct NetworksecurityProjectsLocationsAddressGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: addressGroupId
-    pub addressGroupId: Option<Option<String>>,
+    pub addressGroupId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/addressGroups
@@ -5885,7 +5887,7 @@ pub fn networksecurity_projects_locations_address_groups_create(
 pub fn networksecurity_projects_locations_address_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6025,7 +6027,7 @@ pub struct NetworksecurityProjectsLocationsAddressGroupsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}
@@ -6228,7 +6230,7 @@ pub fn networksecurity_projects_locations_address_groups_get(
 pub fn networksecurity_projects_locations_address_groups_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6370,7 +6372,7 @@ pub struct NetworksecurityProjectsLocationsAddressGroupsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:getIamPolicy
@@ -6410,9 +6412,9 @@ pub fn networksecurity_projects_locations_address_groups_get_iam_policy(
 pub fn networksecurity_projects_locations_address_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6560,11 +6562,11 @@ pub struct NetworksecurityProjectsLocationsAddressGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups
@@ -6606,8 +6608,8 @@ pub fn networksecurity_projects_locations_address_groups_list(
 pub fn networksecurity_projects_locations_address_groups_list_references_builder<R>(
     client: &SimpleHttpClient<R>,
     addressGroup: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6754,9 +6756,9 @@ pub struct NetworksecurityProjectsLocationsAddressGroupsListReferencesArgs {
     /// Path parameter: addressGroup
     pub addressGroup: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}:listReferences
@@ -6799,8 +6801,8 @@ pub fn networksecurity_projects_locations_address_groups_list_references(
 pub fn networksecurity_projects_locations_address_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6943,9 +6945,9 @@ pub struct NetworksecurityProjectsLocationsAddressGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/addressGroups/{addressGroupsId}
@@ -7486,7 +7488,7 @@ pub fn networksecurity_projects_locations_address_groups_test_iam_permissions(
 pub fn networksecurity_projects_locations_authorization_policies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    authorizationPolicyId: &Option<Option<String>>,
+    authorizationPolicyId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7626,7 +7628,7 @@ pub struct NetworksecurityProjectsLocationsAuthorizationPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: authorizationPolicyId
-    pub authorizationPolicyId: Option<Option<String>>,
+    pub authorizationPolicyId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/authorizationPolicies
@@ -7991,7 +7993,7 @@ pub fn networksecurity_projects_locations_authorization_policies_get(
 pub fn networksecurity_projects_locations_authorization_policies_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8134,7 +8136,7 @@ pub struct NetworksecurityProjectsLocationsAuthorizationPoliciesGetIamPolicyArgs
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}:getIamPolicy
@@ -8174,8 +8176,8 @@ pub fn networksecurity_projects_locations_authorization_policies_get_iam_policy(
 pub fn networksecurity_projects_locations_authorization_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8322,9 +8324,9 @@ pub struct NetworksecurityProjectsLocationsAuthorizationPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizationPolicies
@@ -8367,7 +8369,7 @@ pub fn networksecurity_projects_locations_authorization_policies_list(
 pub fn networksecurity_projects_locations_authorization_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8507,7 +8509,7 @@ pub struct NetworksecurityProjectsLocationsAuthorizationPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/authorizationPolicies/{authorizationPoliciesId}
@@ -8887,8 +8889,8 @@ pub fn networksecurity_projects_locations_authorization_policies_test_iam_permis
 pub fn networksecurity_projects_locations_authz_policies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    authzPolicyId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    authzPolicyId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9031,9 +9033,9 @@ pub struct NetworksecurityProjectsLocationsAuthzPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: authzPolicyId
-    pub authzPolicyId: Option<Option<String>>,
+    pub authzPolicyId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/authzPolicies
@@ -9072,7 +9074,7 @@ pub fn networksecurity_projects_locations_authz_policies_create(
 pub fn networksecurity_projects_locations_authz_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9212,7 +9214,7 @@ pub struct NetworksecurityProjectsLocationsAuthzPoliciesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/authzPolicies/{authzPoliciesId}
@@ -9411,7 +9413,7 @@ pub fn networksecurity_projects_locations_authz_policies_get(
 pub fn networksecurity_projects_locations_authz_policies_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9553,7 +9555,7 @@ pub struct NetworksecurityProjectsLocationsAuthzPoliciesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzPolicies/{authzPoliciesId}:getIamPolicy
@@ -9593,10 +9595,10 @@ pub fn networksecurity_projects_locations_authz_policies_get_iam_policy(
 pub fn networksecurity_projects_locations_authz_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9747,13 +9749,13 @@ pub struct NetworksecurityProjectsLocationsAuthzPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzPolicies
@@ -9796,8 +9798,8 @@ pub fn networksecurity_projects_locations_authz_policies_list(
 pub fn networksecurity_projects_locations_authz_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9940,9 +9942,9 @@ pub struct NetworksecurityProjectsLocationsAuthzPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/authzPolicies/{authzPoliciesId}
@@ -10320,7 +10322,7 @@ pub fn networksecurity_projects_locations_authz_policies_test_iam_permissions(
 pub fn networksecurity_projects_locations_backend_authentication_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    backendAuthenticationConfigId: &Option<Option<String>>,
+    backendAuthenticationConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10461,7 +10463,7 @@ pub struct NetworksecurityProjectsLocationsBackendAuthenticationConfigsCreateArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: backendAuthenticationConfigId
-    pub backendAuthenticationConfigId: Option<Option<String>>,
+    pub backendAuthenticationConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/backendAuthenticationConfigs
@@ -10499,7 +10501,7 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_create(
 pub fn networksecurity_projects_locations_backend_authentication_configs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10640,7 +10642,7 @@ pub struct NetworksecurityProjectsLocationsBackendAuthenticationConfigsDeleteArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/backendAuthenticationConfigs/{backendAuthenticationConfigsId}
@@ -10846,8 +10848,8 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_get(
 pub fn networksecurity_projects_locations_backend_authentication_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10995,9 +10997,9 @@ pub struct NetworksecurityProjectsLocationsBackendAuthenticationConfigsListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backendAuthenticationConfigs
@@ -11040,7 +11042,7 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_list(
 pub fn networksecurity_projects_locations_backend_authentication_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11181,7 +11183,7 @@ pub struct NetworksecurityProjectsLocationsBackendAuthenticationConfigsPatchArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/backendAuthenticationConfigs/{backendAuthenticationConfigsId}
@@ -11219,7 +11221,7 @@ pub fn networksecurity_projects_locations_backend_authentication_configs_patch(
 pub fn networksecurity_projects_locations_client_tls_policies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    clientTlsPolicyId: &Option<Option<String>>,
+    clientTlsPolicyId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11359,7 +11361,7 @@ pub struct NetworksecurityProjectsLocationsClientTlsPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: clientTlsPolicyId
-    pub clientTlsPolicyId: Option<Option<String>>,
+    pub clientTlsPolicyId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/clientTlsPolicies
@@ -11723,7 +11725,7 @@ pub fn networksecurity_projects_locations_client_tls_policies_get(
 pub fn networksecurity_projects_locations_client_tls_policies_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11865,7 +11867,7 @@ pub struct NetworksecurityProjectsLocationsClientTlsPoliciesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}:getIamPolicy
@@ -11905,8 +11907,8 @@ pub fn networksecurity_projects_locations_client_tls_policies_get_iam_policy(
 pub fn networksecurity_projects_locations_client_tls_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12053,9 +12055,9 @@ pub struct NetworksecurityProjectsLocationsClientTlsPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clientTlsPolicies
@@ -12098,7 +12100,7 @@ pub fn networksecurity_projects_locations_client_tls_policies_list(
 pub fn networksecurity_projects_locations_client_tls_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12238,7 +12240,7 @@ pub struct NetworksecurityProjectsLocationsClientTlsPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/clientTlsPolicies/{clientTlsPoliciesId}
@@ -12616,7 +12618,7 @@ pub fn networksecurity_projects_locations_client_tls_policies_test_iam_permissio
 pub fn networksecurity_projects_locations_dns_threat_detectors_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dnsThreatDetectorId: &Option<Option<String>>,
+    dnsThreatDetectorId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12758,7 +12760,7 @@ pub struct NetworksecurityProjectsLocationsDnsThreatDetectorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dnsThreatDetectorId
-    pub dnsThreatDetectorId: Option<Option<String>>,
+    pub dnsThreatDetectorId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dnsThreatDetectors
@@ -13124,8 +13126,8 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_get(
 pub fn networksecurity_projects_locations_dns_threat_detectors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13272,9 +13274,9 @@ pub struct NetworksecurityProjectsLocationsDnsThreatDetectorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsThreatDetectors
@@ -13317,7 +13319,7 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_list(
 pub fn networksecurity_projects_locations_dns_threat_detectors_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13459,7 +13461,7 @@ pub struct NetworksecurityProjectsLocationsDnsThreatDetectorsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dnsThreatDetectors/{dnsThreatDetectorsId}
@@ -13499,8 +13501,8 @@ pub fn networksecurity_projects_locations_dns_threat_detectors_patch(
 pub fn networksecurity_projects_locations_firewall_endpoint_associations_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    firewallEndpointAssociationId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    firewallEndpointAssociationId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13644,9 +13646,9 @@ pub struct NetworksecurityProjectsLocationsFirewallEndpointAssociationsCreateArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: firewallEndpointAssociationId
-    pub firewallEndpointAssociationId: Option<Option<String>>,
+    pub firewallEndpointAssociationId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/firewallEndpointAssociations
@@ -13685,7 +13687,7 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_create(
 pub fn networksecurity_projects_locations_firewall_endpoint_associations_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13826,7 +13828,7 @@ pub struct NetworksecurityProjectsLocationsFirewallEndpointAssociationsDeleteArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/firewallEndpointAssociations/{firewallEndpointAssociationsId}
@@ -14034,10 +14036,10 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_get(
 pub fn networksecurity_projects_locations_firewall_endpoint_associations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14191,13 +14193,13 @@ pub struct NetworksecurityProjectsLocationsFirewallEndpointAssociationsListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/firewallEndpointAssociations
@@ -14242,8 +14244,8 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_list(
 pub fn networksecurity_projects_locations_firewall_endpoint_associations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14387,9 +14389,9 @@ pub struct NetworksecurityProjectsLocationsFirewallEndpointAssociationsPatchArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/firewallEndpointAssociations/{firewallEndpointAssociationsId}
@@ -14428,7 +14430,7 @@ pub fn networksecurity_projects_locations_firewall_endpoint_associations_patch(
 pub fn networksecurity_projects_locations_gateway_security_policies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    gatewaySecurityPolicyId: &Option<Option<String>>,
+    gatewaySecurityPolicyId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14568,7 +14570,7 @@ pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: gatewaySecurityPolicyId
-    pub gatewaySecurityPolicyId: Option<Option<String>>,
+    pub gatewaySecurityPolicyId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies
@@ -14934,8 +14936,8 @@ pub fn networksecurity_projects_locations_gateway_security_policies_get(
 pub fn networksecurity_projects_locations_gateway_security_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15082,9 +15084,9 @@ pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies
@@ -15127,7 +15129,7 @@ pub fn networksecurity_projects_locations_gateway_security_policies_list(
 pub fn networksecurity_projects_locations_gateway_security_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15267,7 +15269,7 @@ pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}
@@ -15305,7 +15307,7 @@ pub fn networksecurity_projects_locations_gateway_security_policies_patch(
 pub fn networksecurity_projects_locations_gateway_security_policies_rules_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    gatewaySecurityPolicyRuleId: &Option<Option<String>>,
+    gatewaySecurityPolicyRuleId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15446,7 +15448,7 @@ pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesRulesCreateArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: gatewaySecurityPolicyRuleId
-    pub gatewaySecurityPolicyRuleId: Option<Option<String>>,
+    pub gatewaySecurityPolicyRuleId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}/rules
@@ -15816,8 +15818,8 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_get(
 pub fn networksecurity_projects_locations_gateway_security_policies_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15965,9 +15967,9 @@ pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesRulesListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}/rules
@@ -16010,7 +16012,7 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_list(
 pub fn networksecurity_projects_locations_gateway_security_policies_rules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16151,7 +16153,7 @@ pub struct NetworksecurityProjectsLocationsGatewaySecurityPoliciesRulesPatchArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/gatewaySecurityPolicies/{gatewaySecurityPoliciesId}/rules/{rulesId}
@@ -16189,8 +16191,8 @@ pub fn networksecurity_projects_locations_gateway_security_policies_rules_patch(
 pub fn networksecurity_projects_locations_intercept_deployment_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    interceptDeploymentGroupId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    interceptDeploymentGroupId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16333,9 +16335,9 @@ pub struct NetworksecurityProjectsLocationsInterceptDeploymentGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: interceptDeploymentGroupId
-    pub interceptDeploymentGroupId: Option<Option<String>>,
+    pub interceptDeploymentGroupId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/interceptDeploymentGroups
@@ -16374,7 +16376,7 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_create(
 pub fn networksecurity_projects_locations_intercept_deployment_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16514,7 +16516,7 @@ pub struct NetworksecurityProjectsLocationsInterceptDeploymentGroupsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/interceptDeploymentGroups/{interceptDeploymentGroupsId}
@@ -16718,10 +16720,10 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_get(
 pub fn networksecurity_projects_locations_intercept_deployment_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16874,13 +16876,13 @@ pub struct NetworksecurityProjectsLocationsInterceptDeploymentGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptDeploymentGroups
@@ -16925,8 +16927,8 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_list(
 pub fn networksecurity_projects_locations_intercept_deployment_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17069,9 +17071,9 @@ pub struct NetworksecurityProjectsLocationsInterceptDeploymentGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/interceptDeploymentGroups/{interceptDeploymentGroupsId}
@@ -17110,8 +17112,8 @@ pub fn networksecurity_projects_locations_intercept_deployment_groups_patch(
 pub fn networksecurity_projects_locations_intercept_deployments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    interceptDeploymentId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    interceptDeploymentId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17254,9 +17256,9 @@ pub struct NetworksecurityProjectsLocationsInterceptDeploymentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: interceptDeploymentId
-    pub interceptDeploymentId: Option<Option<String>>,
+    pub interceptDeploymentId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/interceptDeployments
@@ -17295,7 +17297,7 @@ pub fn networksecurity_projects_locations_intercept_deployments_create(
 pub fn networksecurity_projects_locations_intercept_deployments_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17435,7 +17437,7 @@ pub struct NetworksecurityProjectsLocationsInterceptDeploymentsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/interceptDeployments/{interceptDeploymentsId}
@@ -17638,10 +17640,10 @@ pub fn networksecurity_projects_locations_intercept_deployments_get(
 pub fn networksecurity_projects_locations_intercept_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17794,13 +17796,13 @@ pub struct NetworksecurityProjectsLocationsInterceptDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptDeployments
@@ -17845,8 +17847,8 @@ pub fn networksecurity_projects_locations_intercept_deployments_list(
 pub fn networksecurity_projects_locations_intercept_deployments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17989,9 +17991,9 @@ pub struct NetworksecurityProjectsLocationsInterceptDeploymentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/interceptDeployments/{interceptDeploymentsId}
@@ -18030,8 +18032,8 @@ pub fn networksecurity_projects_locations_intercept_deployments_patch(
 pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    interceptEndpointGroupAssociationId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    interceptEndpointGroupAssociationId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18177,9 +18179,9 @@ pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsCre
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: interceptEndpointGroupAssociationId
-    pub interceptEndpointGroupAssociationId: Option<Option<String>>,
+    pub interceptEndpointGroupAssociationId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroupAssociations
@@ -18219,7 +18221,7 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18362,7 +18364,7 @@ pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsDel
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroupAssociations/{interceptEndpointGroupAssociationsId}
@@ -18573,10 +18575,10 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18732,13 +18734,13 @@ pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsLis
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroupAssociations
@@ -18784,8 +18786,8 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18930,9 +18932,9 @@ pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupAssociationsPat
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroupAssociations/{interceptEndpointGroupAssociationsId}
@@ -18972,8 +18974,8 @@ pub fn networksecurity_projects_locations_intercept_endpoint_group_associations_
 pub fn networksecurity_projects_locations_intercept_endpoint_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    interceptEndpointGroupId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    interceptEndpointGroupId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19116,9 +19118,9 @@ pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: interceptEndpointGroupId
-    pub interceptEndpointGroupId: Option<Option<String>>,
+    pub interceptEndpointGroupId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroups
@@ -19157,7 +19159,7 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_create(
 pub fn networksecurity_projects_locations_intercept_endpoint_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19297,7 +19299,7 @@ pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroups/{interceptEndpointGroupsId}
@@ -19501,10 +19503,10 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_get(
 pub fn networksecurity_projects_locations_intercept_endpoint_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19657,13 +19659,13 @@ pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroups
@@ -19708,8 +19710,8 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_list(
 pub fn networksecurity_projects_locations_intercept_endpoint_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19852,9 +19854,9 @@ pub struct NetworksecurityProjectsLocationsInterceptEndpointGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/interceptEndpointGroups/{interceptEndpointGroupsId}
@@ -19893,8 +19895,8 @@ pub fn networksecurity_projects_locations_intercept_endpoint_groups_patch(
 pub fn networksecurity_projects_locations_mirroring_deployment_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    mirroringDeploymentGroupId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    mirroringDeploymentGroupId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20037,9 +20039,9 @@ pub struct NetworksecurityProjectsLocationsMirroringDeploymentGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: mirroringDeploymentGroupId
-    pub mirroringDeploymentGroupId: Option<Option<String>>,
+    pub mirroringDeploymentGroupId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/mirroringDeploymentGroups
@@ -20078,7 +20080,7 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_create(
 pub fn networksecurity_projects_locations_mirroring_deployment_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20218,7 +20220,7 @@ pub struct NetworksecurityProjectsLocationsMirroringDeploymentGroupsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/mirroringDeploymentGroups/{mirroringDeploymentGroupsId}
@@ -20422,10 +20424,10 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_get(
 pub fn networksecurity_projects_locations_mirroring_deployment_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20578,13 +20580,13 @@ pub struct NetworksecurityProjectsLocationsMirroringDeploymentGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringDeploymentGroups
@@ -20629,8 +20631,8 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_list(
 pub fn networksecurity_projects_locations_mirroring_deployment_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20773,9 +20775,9 @@ pub struct NetworksecurityProjectsLocationsMirroringDeploymentGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/mirroringDeploymentGroups/{mirroringDeploymentGroupsId}
@@ -20814,8 +20816,8 @@ pub fn networksecurity_projects_locations_mirroring_deployment_groups_patch(
 pub fn networksecurity_projects_locations_mirroring_deployments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    mirroringDeploymentId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    mirroringDeploymentId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20958,9 +20960,9 @@ pub struct NetworksecurityProjectsLocationsMirroringDeploymentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: mirroringDeploymentId
-    pub mirroringDeploymentId: Option<Option<String>>,
+    pub mirroringDeploymentId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/mirroringDeployments
@@ -20999,7 +21001,7 @@ pub fn networksecurity_projects_locations_mirroring_deployments_create(
 pub fn networksecurity_projects_locations_mirroring_deployments_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21139,7 +21141,7 @@ pub struct NetworksecurityProjectsLocationsMirroringDeploymentsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/mirroringDeployments/{mirroringDeploymentsId}
@@ -21342,10 +21344,10 @@ pub fn networksecurity_projects_locations_mirroring_deployments_get(
 pub fn networksecurity_projects_locations_mirroring_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21498,13 +21500,13 @@ pub struct NetworksecurityProjectsLocationsMirroringDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringDeployments
@@ -21549,8 +21551,8 @@ pub fn networksecurity_projects_locations_mirroring_deployments_list(
 pub fn networksecurity_projects_locations_mirroring_deployments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21693,9 +21695,9 @@ pub struct NetworksecurityProjectsLocationsMirroringDeploymentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/mirroringDeployments/{mirroringDeploymentsId}
@@ -21734,8 +21736,8 @@ pub fn networksecurity_projects_locations_mirroring_deployments_patch(
 pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    mirroringEndpointGroupAssociationId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    mirroringEndpointGroupAssociationId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21881,9 +21883,9 @@ pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsCre
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: mirroringEndpointGroupAssociationId
-    pub mirroringEndpointGroupAssociationId: Option<Option<String>>,
+    pub mirroringEndpointGroupAssociationId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroupAssociations
@@ -21923,7 +21925,7 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22066,7 +22068,7 @@ pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsDel
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroupAssociations/{mirroringEndpointGroupAssociationsId}
@@ -22277,10 +22279,10 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22436,13 +22438,13 @@ pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsLis
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroupAssociations
@@ -22488,8 +22490,8 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22634,9 +22636,9 @@ pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupAssociationsPat
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroupAssociations/{mirroringEndpointGroupAssociationsId}
@@ -22676,8 +22678,8 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_group_associations_
 pub fn networksecurity_projects_locations_mirroring_endpoint_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    mirroringEndpointGroupId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    mirroringEndpointGroupId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22820,9 +22822,9 @@ pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: mirroringEndpointGroupId
-    pub mirroringEndpointGroupId: Option<Option<String>>,
+    pub mirroringEndpointGroupId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroups
@@ -22861,7 +22863,7 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_create(
 pub fn networksecurity_projects_locations_mirroring_endpoint_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23001,7 +23003,7 @@ pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroups/{mirroringEndpointGroupsId}
@@ -23205,10 +23207,10 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_get(
 pub fn networksecurity_projects_locations_mirroring_endpoint_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23361,13 +23363,13 @@ pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroups
@@ -23412,8 +23414,8 @@ pub fn networksecurity_projects_locations_mirroring_endpoint_groups_list(
 pub fn networksecurity_projects_locations_mirroring_endpoint_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23556,9 +23558,9 @@ pub struct NetworksecurityProjectsLocationsMirroringEndpointGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/mirroringEndpointGroups/{mirroringEndpointGroupsId}
@@ -24077,10 +24079,10 @@ pub fn networksecurity_projects_locations_operations_get(
 pub fn networksecurity_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24231,13 +24233,13 @@ pub struct NetworksecurityProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -24280,7 +24282,7 @@ pub fn networksecurity_projects_locations_operations_list(
 pub fn networksecurity_projects_locations_server_tls_policies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    serverTlsPolicyId: &Option<Option<String>>,
+    serverTlsPolicyId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24420,7 +24422,7 @@ pub struct NetworksecurityProjectsLocationsServerTlsPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: serverTlsPolicyId
-    pub serverTlsPolicyId: Option<Option<String>>,
+    pub serverTlsPolicyId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/serverTlsPolicies
@@ -24784,7 +24786,7 @@ pub fn networksecurity_projects_locations_server_tls_policies_get(
 pub fn networksecurity_projects_locations_server_tls_policies_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24926,7 +24928,7 @@ pub struct NetworksecurityProjectsLocationsServerTlsPoliciesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}:getIamPolicy
@@ -24966,9 +24968,9 @@ pub fn networksecurity_projects_locations_server_tls_policies_get_iam_policy(
 pub fn networksecurity_projects_locations_server_tls_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25118,11 +25120,11 @@ pub struct NetworksecurityProjectsLocationsServerTlsPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serverTlsPolicies
@@ -25166,7 +25168,7 @@ pub fn networksecurity_projects_locations_server_tls_policies_list(
 pub fn networksecurity_projects_locations_server_tls_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25306,7 +25308,7 @@ pub struct NetworksecurityProjectsLocationsServerTlsPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/serverTlsPolicies/{serverTlsPoliciesId}
@@ -25684,7 +25686,7 @@ pub fn networksecurity_projects_locations_server_tls_policies_test_iam_permissio
 pub fn networksecurity_projects_locations_tls_inspection_policies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    tlsInspectionPolicyId: &Option<Option<String>>,
+    tlsInspectionPolicyId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25824,7 +25826,7 @@ pub struct NetworksecurityProjectsLocationsTlsInspectionPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: tlsInspectionPolicyId
-    pub tlsInspectionPolicyId: Option<Option<String>>,
+    pub tlsInspectionPolicyId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tlsInspectionPolicies
@@ -25862,7 +25864,7 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_create(
 pub fn networksecurity_projects_locations_tls_inspection_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26002,7 +26004,7 @@ pub struct NetworksecurityProjectsLocationsTlsInspectionPoliciesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/tlsInspectionPolicies/{tlsInspectionPoliciesId}
@@ -26205,8 +26207,8 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_get(
 pub fn networksecurity_projects_locations_tls_inspection_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26353,9 +26355,9 @@ pub struct NetworksecurityProjectsLocationsTlsInspectionPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tlsInspectionPolicies
@@ -26398,7 +26400,7 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_list(
 pub fn networksecurity_projects_locations_tls_inspection_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26538,7 +26540,7 @@ pub struct NetworksecurityProjectsLocationsTlsInspectionPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tlsInspectionPolicies/{tlsInspectionPoliciesId}
@@ -26576,7 +26578,7 @@ pub fn networksecurity_projects_locations_tls_inspection_policies_patch(
 pub fn networksecurity_projects_locations_url_lists_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    urlListId: &Option<Option<String>>,
+    urlListId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26716,7 +26718,7 @@ pub struct NetworksecurityProjectsLocationsUrlListsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: urlListId
-    pub urlListId: Option<Option<String>>,
+    pub urlListId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/urlLists
@@ -27074,8 +27076,8 @@ pub fn networksecurity_projects_locations_url_lists_get(
 pub fn networksecurity_projects_locations_url_lists_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27220,9 +27222,9 @@ pub struct NetworksecurityProjectsLocationsUrlListsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/urlLists
@@ -27263,7 +27265,7 @@ pub fn networksecurity_projects_locations_url_lists_list(
 pub fn networksecurity_projects_locations_url_lists_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27403,7 +27405,7 @@ pub struct NetworksecurityProjectsLocationsUrlListsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/urlLists/{urlListsId}

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -518,8 +520,8 @@ pub fn games_configuration_achievement_configurations_insert(
 pub fn games_configuration_achievement_configurations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     applicationId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -666,9 +668,9 @@ pub struct GamesConfigurationAchievementConfigurationsListArgs {
     /// Path parameter: applicationId
     pub applicationId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET games/v1configuration/applications/{applicationId}/achievements
@@ -1364,8 +1366,8 @@ pub fn games_configuration_leaderboard_configurations_insert(
 pub fn games_configuration_leaderboard_configurations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     applicationId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1512,9 +1514,9 @@ pub struct GamesConfigurationLeaderboardConfigurationsListArgs {
     /// Path parameter: applicationId
     pub applicationId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET games/v1configuration/applications/{applicationId}/leaderboards

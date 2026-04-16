@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -189,7 +191,7 @@ pub fn reseller_customers_get(
 
 pub fn reseller_customers_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    customerAuthToken: &Option<Option<String>>,
+    customerAuthToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -324,7 +326,7 @@ pub fn reseller_customers_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ResellerCustomersInsertArgs {
     /// Query parameter: customerAuthToken
-    pub customerAuthToken: Option<Option<String>>,
+    pub customerAuthToken: Option<String>,
 }
 
 /// POST apps/reseller/v1/customers
@@ -834,7 +836,7 @@ pub fn reseller_resellernotify_getwatchdetails(
 
 pub fn reseller_resellernotify_register_builder<R>(
     client: &SimpleHttpClient<R>,
-    serviceAccountEmailAddress: &Option<Option<String>>,
+    serviceAccountEmailAddress: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -972,7 +974,7 @@ pub fn reseller_resellernotify_register_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ResellerResellernotifyRegisterArgs {
     /// Query parameter: serviceAccountEmailAddress
-    pub serviceAccountEmailAddress: Option<Option<String>>,
+    pub serviceAccountEmailAddress: Option<String>,
 }
 
 /// POST apps/reseller/v1/resellernotify/register
@@ -1008,7 +1010,7 @@ pub fn reseller_resellernotify_register(
 
 pub fn reseller_resellernotify_unregister_builder<R>(
     client: &SimpleHttpClient<R>,
-    serviceAccountEmailAddress: &Option<Option<String>>,
+    serviceAccountEmailAddress: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1146,7 +1148,7 @@ pub fn reseller_resellernotify_unregister_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ResellerResellernotifyUnregisterArgs {
     /// Query parameter: serviceAccountEmailAddress
-    pub serviceAccountEmailAddress: Option<Option<String>>,
+    pub serviceAccountEmailAddress: Option<String>,
 }
 
 /// POST apps/reseller/v1/resellernotify/unregister
@@ -1864,7 +1866,7 @@ pub fn reseller_subscriptions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     customerId: &String,
     subscriptionId: &String,
-    deletionType: &Option<Option<String>>,
+    deletionType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2003,7 +2005,7 @@ pub struct ResellerSubscriptionsDeleteArgs {
     /// Path parameter: subscriptionId
     pub subscriptionId: String,
     /// Query parameter: deletionType
-    pub deletionType: Option<Option<String>>,
+    pub deletionType: Option<String>,
 }
 
 /// DELETE apps/reseller/v1/customers/{customerId}/subscriptions/{subscriptionId}
@@ -2210,9 +2212,9 @@ pub fn reseller_subscriptions_get(
 pub fn reseller_subscriptions_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     customerId: &String,
-    action: &Option<Option<String>>,
-    customerAuthToken: &Option<Option<String>>,
-    sourceSkuId: &Option<Option<String>>,
+    action: &Option<String>,
+    customerAuthToken: &Option<String>,
+    sourceSkuId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2360,11 +2362,11 @@ pub struct ResellerSubscriptionsInsertArgs {
     /// Path parameter: customerId
     pub customerId: String,
     /// Query parameter: action
-    pub action: Option<Option<String>>,
+    pub action: Option<String>,
     /// Query parameter: customerAuthToken
-    pub customerAuthToken: Option<Option<String>>,
+    pub customerAuthToken: Option<String>,
     /// Query parameter: sourceSkuId
-    pub sourceSkuId: Option<Option<String>>,
+    pub sourceSkuId: Option<String>,
 }
 
 /// POST apps/reseller/v1/customers/{customerId}/subscriptions
@@ -2405,11 +2407,11 @@ pub fn reseller_subscriptions_insert(
 
 pub fn reseller_subscriptions_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    customerAuthToken: &Option<Option<String>>,
-    customerId: &Option<Option<String>>,
-    customerNamePrefix: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    customerAuthToken: &Option<String>,
+    customerId: &Option<String>,
+    customerNamePrefix: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2558,15 +2560,15 @@ pub fn reseller_subscriptions_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ResellerSubscriptionsListArgs {
     /// Query parameter: customerAuthToken
-    pub customerAuthToken: Option<Option<String>>,
+    pub customerAuthToken: Option<String>,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
     /// Query parameter: customerNamePrefix
-    pub customerNamePrefix: Option<Option<String>>,
+    pub customerNamePrefix: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET apps/reseller/v1/subscriptions
@@ -3025,31 +3027,6 @@ impl ResourceIdentifier<ResellerCustomersUpdateArgs> for Customer {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::reseller::Customer"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ResellernotifyGetwatchdetailsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ResellernotifyGetwatchdetailsResponse with ResellerResellernotifyGetwatchdetailsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ResellerResellernotifyGetwatchdetailsArgs>
-    for ResellernotifyGetwatchdetailsResponse
-{
-    fn generate_resource_id(&self, input: &ResellerResellernotifyGetwatchdetailsArgs) -> String {
-        "gcp::reseller::ResellernotifyGetwatchdetailsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::reseller::ResellernotifyGetwatchdetailsResponse"
     }
 
     fn provider(&self) -> &'static str {

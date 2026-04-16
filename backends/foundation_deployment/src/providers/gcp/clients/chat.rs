@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -491,9 +493,9 @@ pub fn chat_custom_emojis_get(
 
 pub fn chat_custom_emojis_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -636,11 +638,11 @@ pub fn chat_custom_emojis_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ChatCustomEmojisListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/customEmojis
@@ -1165,7 +1167,7 @@ pub fn chat_spaces_complete_import(
 
 pub fn chat_spaces_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1300,7 +1302,7 @@ pub fn chat_spaces_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ChatSpacesCreateArgs {
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/spaces
@@ -1334,7 +1336,7 @@ pub fn chat_spaces_create(
 pub fn chat_spaces_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    useAdminAccess: &Option<Option<String>>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1471,7 +1473,7 @@ pub struct ChatSpacesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// DELETE v1/spaces/{spacesId}
@@ -1504,7 +1506,7 @@ pub fn chat_spaces_delete(
 
 pub fn chat_spaces_find_direct_message_builder<R>(
     client: &SimpleHttpClient<R>,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1639,7 +1641,7 @@ pub fn chat_spaces_find_direct_message_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ChatSpacesFindDirectMessageArgs {
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// GET v1/spaces:findDirectMessage
@@ -1672,10 +1674,10 @@ pub fn chat_spaces_find_direct_message(
 
 pub fn chat_spaces_find_group_chats_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    spaceView: &Option<Option<String>>,
-    users: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    spaceView: &Option<String>,
+    users: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1821,13 +1823,13 @@ pub fn chat_spaces_find_group_chats_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ChatSpacesFindGroupChatsArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: spaceView
-    pub spaceView: Option<Option<String>>,
+    pub spaceView: Option<String>,
     /// Query parameter: users
-    pub users: Option<Option<String>>,
+    pub users: Option<String>,
 }
 
 /// GET v1/spaces:findGroupChats
@@ -1869,7 +1871,7 @@ pub fn chat_spaces_find_group_chats(
 pub fn chat_spaces_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    useAdminAccess: &Option<Option<String>>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2006,7 +2008,7 @@ pub struct ChatSpacesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// GET v1/spaces/{spacesId}
@@ -2039,9 +2041,9 @@ pub fn chat_spaces_get(
 
 pub fn chat_spaces_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2184,11 +2186,11 @@ pub fn chat_spaces_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ChatSpacesListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/spaces
@@ -2224,8 +2226,8 @@ pub fn chat_spaces_list(
 pub fn chat_spaces_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    useAdminAccess: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2365,9 +2367,9 @@ pub struct ChatSpacesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// PATCH v1/spaces/{spacesId}
@@ -2401,11 +2403,11 @@ pub fn chat_spaces_patch(
 
 pub fn chat_spaces_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    useAdminAccess: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2554,15 +2556,15 @@ pub fn chat_spaces_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ChatSpacesSearchArgs {
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// GET v1/spaces:search
@@ -2753,7 +2755,7 @@ pub fn chat_spaces_setup(
 pub fn chat_spaces_members_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    useAdminAccess: &Option<Option<String>>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2890,7 +2892,7 @@ pub struct ChatSpacesMembersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// POST v1/spaces/{spacesId}/members
@@ -2924,7 +2926,7 @@ pub fn chat_spaces_members_create(
 pub fn chat_spaces_members_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    useAdminAccess: &Option<Option<String>>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3064,7 +3066,7 @@ pub struct ChatSpacesMembersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// DELETE v1/spaces/{spacesId}/members/{membersId}
@@ -3098,7 +3100,7 @@ pub fn chat_spaces_members_delete(
 pub fn chat_spaces_members_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    useAdminAccess: &Option<Option<String>>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3238,7 +3240,7 @@ pub struct ChatSpacesMembersGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// GET v1/spaces/{spacesId}/members/{membersId}
@@ -3272,12 +3274,12 @@ pub fn chat_spaces_members_get(
 pub fn chat_spaces_members_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showGroups: &Option<Option<String>>,
-    showInvited: &Option<Option<String>>,
-    useAdminAccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showGroups: &Option<String>,
+    showInvited: &Option<String>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3431,17 +3433,17 @@ pub struct ChatSpacesMembersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showGroups
-    pub showGroups: Option<Option<String>>,
+    pub showGroups: Option<String>,
     /// Query parameter: showInvited
-    pub showInvited: Option<Option<String>>,
+    pub showInvited: Option<String>,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// GET v1/spaces/{spacesId}/members
@@ -3486,8 +3488,8 @@ pub fn chat_spaces_members_list(
 pub fn chat_spaces_members_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    useAdminAccess: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3630,9 +3632,9 @@ pub struct ChatSpacesMembersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// PATCH v1/spaces/{spacesId}/members/{membersId}
@@ -3671,10 +3673,10 @@ pub fn chat_spaces_members_patch(
 pub fn chat_spaces_messages_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    messageId: &Option<Option<String>>,
-    messageReplyOption: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    threadKey: &Option<Option<String>>,
+    messageId: &Option<String>,
+    messageReplyOption: &Option<String>,
+    requestId: &Option<String>,
+    threadKey: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3820,13 +3822,13 @@ pub struct ChatSpacesMessagesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: messageId
-    pub messageId: Option<Option<String>>,
+    pub messageId: Option<String>,
     /// Query parameter: messageReplyOption
-    pub messageReplyOption: Option<Option<String>>,
+    pub messageReplyOption: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: threadKey
-    pub threadKey: Option<Option<String>>,
+    pub threadKey: Option<String>,
 }
 
 /// POST v1/spaces/{spacesId}/messages
@@ -3867,7 +3869,7 @@ pub fn chat_spaces_messages_create(
 pub fn chat_spaces_messages_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4007,7 +4009,7 @@ pub struct ChatSpacesMessagesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/spaces/{spacesId}/messages/{messagesId}
@@ -4201,11 +4203,11 @@ pub fn chat_spaces_messages_get(
 pub fn chat_spaces_messages_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4356,15 +4358,15 @@ pub struct ChatSpacesMessagesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v1/spaces/{spacesId}/messages
@@ -4408,8 +4410,8 @@ pub fn chat_spaces_messages_list(
 pub fn chat_spaces_messages_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4552,9 +4554,9 @@ pub struct ChatSpacesMessagesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/spaces/{spacesId}/messages/{messagesId}
@@ -4593,8 +4595,8 @@ pub fn chat_spaces_messages_patch(
 pub fn chat_spaces_messages_update_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4737,9 +4739,9 @@ pub struct ChatSpacesMessagesUpdateArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PUT v1/spaces/{spacesId}/messages/{messagesId}
@@ -5258,9 +5260,9 @@ pub fn chat_spaces_messages_reactions_delete(
 pub fn chat_spaces_messages_reactions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5408,11 +5410,11 @@ pub struct ChatSpacesMessagesReactionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/spaces/{spacesId}/messages/{messagesId}/reactions
@@ -5614,9 +5616,9 @@ pub fn chat_spaces_space_events_get(
 pub fn chat_spaces_space_events_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5764,11 +5766,11 @@ pub struct ChatSpacesSpaceEventsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/spaces/{spacesId}/spaceEvents
@@ -6131,8 +6133,8 @@ pub fn chat_users_sections_delete(
 pub fn chat_users_sections_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6274,9 +6276,9 @@ pub struct ChatUsersSectionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/users/{usersId}/sections
@@ -6313,7 +6315,7 @@ pub fn chat_users_sections_list(
 pub fn chat_users_sections_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6455,7 +6457,7 @@ pub struct ChatUsersSectionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/users/{usersId}/sections/{sectionsId}
@@ -6655,9 +6657,9 @@ pub fn chat_users_sections_position(
 pub fn chat_users_sections_items_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6805,11 +6807,11 @@ pub struct ChatUsersSectionsItemsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/users/{usersId}/sections/{sectionsId}/items
@@ -7179,7 +7181,7 @@ pub fn chat_users_spaces_get_space_read_state(
 pub fn chat_users_spaces_update_space_read_state_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7321,7 +7323,7 @@ pub struct ChatUsersSpacesUpdateSpaceReadStateArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/users/{usersId}/spaces/{spacesId}/spaceReadState
@@ -7522,7 +7524,7 @@ pub fn chat_users_spaces_space_notification_setting_get(
 pub fn chat_users_spaces_space_notification_setting_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7664,7 +7666,7 @@ pub struct ChatUsersSpacesSpaceNotificationSettingPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/users/{usersId}/spaces/{spacesId}/spaceNotificationSetting
@@ -7857,29 +7859,6 @@ pub fn chat_users_spaces_threads_get_thread_read_state(
 > {
     let builder = chat_users_spaces_threads_get_thread_read_state_builder(client, &args.name)?;
     chat_users_spaces_threads_get_thread_read_state_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for CustomEmoji
-// =============================================================================
-
-/// ResourceIdentifier implementation for CustomEmoji with ChatCustomEmojisCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ChatCustomEmojisCreateArgs> for CustomEmoji {
-    fn generate_resource_id(&self, input: &ChatCustomEmojisCreateArgs) -> String {
-        "gcp::chat::CustomEmoji".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::chat::CustomEmoji"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================
@@ -8197,29 +8176,6 @@ impl ResourceIdentifier<ChatSpacesSearchArgs> for SearchSpacesResponse {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::chat::SearchSpacesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Space
-// =============================================================================
-
-/// ResourceIdentifier implementation for Space with ChatSpacesSetupArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ChatSpacesSetupArgs> for Space {
-    fn generate_resource_id(&self, input: &ChatSpacesSetupArgs) -> String {
-        "gcp::chat::Space".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::chat::Space"
     }
 
     fn provider(&self) -> &'static str {

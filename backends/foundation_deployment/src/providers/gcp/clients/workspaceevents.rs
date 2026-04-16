@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -341,7 +343,7 @@ pub fn workspaceevents_operations_get(
 
 pub fn workspaceevents_subscriptions_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -476,7 +478,7 @@ pub fn workspaceevents_subscriptions_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkspaceeventsSubscriptionsCreateArgs {
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/subscriptions
@@ -510,9 +512,9 @@ pub fn workspaceevents_subscriptions_create(
 pub fn workspaceevents_subscriptions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -658,11 +660,11 @@ pub struct WorkspaceeventsSubscriptionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/subscriptions/{subscriptionsId}
@@ -865,9 +867,9 @@ pub fn workspaceevents_subscriptions_get(
 
 pub fn workspaceevents_subscriptions_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1010,11 +1012,11 @@ pub fn workspaceevents_subscriptions_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkspaceeventsSubscriptionsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/subscriptions
@@ -1055,8 +1057,8 @@ pub fn workspaceevents_subscriptions_list(
 pub fn workspaceevents_subscriptions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1199,9 +1201,9 @@ pub struct WorkspaceeventsSubscriptionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/subscriptions/{subscriptionsId}
@@ -1560,8 +1562,8 @@ pub fn workspaceevents_tasks_cancel(
 pub fn workspaceevents_tasks_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    historyLength: &Option<Option<String>>,
-    tenant: &Option<Option<String>>,
+    historyLength: &Option<String>,
+    tenant: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1701,9 +1703,9 @@ pub struct WorkspaceeventsTasksGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: historyLength
-    pub historyLength: Option<Option<String>>,
+    pub historyLength: Option<String>,
     /// Query parameter: tenant
-    pub tenant: Option<Option<String>>,
+    pub tenant: Option<String>,
 }
 
 /// GET v1/tasks/{tasksId}
@@ -1738,7 +1740,7 @@ pub fn workspaceevents_tasks_get(
 pub fn workspaceevents_tasks_subscribe_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    tenant: &Option<Option<String>>,
+    tenant: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1880,7 +1882,7 @@ pub struct WorkspaceeventsTasksSubscribeArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: tenant
-    pub tenant: Option<Option<String>>,
+    pub tenant: Option<String>,
 }
 
 /// GET v1/tasks/{tasksId}:subscribe
@@ -1916,8 +1918,8 @@ pub fn workspaceevents_tasks_subscribe(
 pub fn workspaceevents_tasks_push_notification_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    configId: &Option<Option<String>>,
-    tenant: &Option<Option<String>>,
+    configId: &Option<String>,
+    tenant: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2064,9 +2066,9 @@ pub struct WorkspaceeventsTasksPushNotificationConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: configId
-    pub configId: Option<Option<String>>,
+    pub configId: Option<String>,
     /// Query parameter: tenant
-    pub tenant: Option<Option<String>>,
+    pub tenant: Option<String>,
 }
 
 /// POST v1/tasks/{tasksId}/pushNotificationConfigs
@@ -2109,7 +2111,7 @@ pub fn workspaceevents_tasks_push_notification_configs_create(
 pub fn workspaceevents_tasks_push_notification_configs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    tenant: &Option<Option<String>>,
+    tenant: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2249,7 +2251,7 @@ pub struct WorkspaceeventsTasksPushNotificationConfigsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: tenant
-    pub tenant: Option<Option<String>>,
+    pub tenant: Option<String>,
 }
 
 /// DELETE v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
@@ -2287,7 +2289,7 @@ pub fn workspaceevents_tasks_push_notification_configs_delete(
 pub fn workspaceevents_tasks_push_notification_configs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    tenant: &Option<Option<String>>,
+    tenant: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2431,7 +2433,7 @@ pub struct WorkspaceeventsTasksPushNotificationConfigsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: tenant
-    pub tenant: Option<Option<String>>,
+    pub tenant: Option<String>,
 }
 
 /// GET v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
@@ -2473,9 +2475,9 @@ pub fn workspaceevents_tasks_push_notification_configs_get(
 pub fn workspaceevents_tasks_push_notification_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    tenant: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    tenant: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2625,11 +2627,11 @@ pub struct WorkspaceeventsTasksPushNotificationConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: tenant
-    pub tenant: Option<Option<String>>,
+    pub tenant: Option<String>,
 }
 
 /// GET v1/tasks/{tasksId}/pushNotificationConfigs
@@ -2662,29 +2664,6 @@ pub fn workspaceevents_tasks_push_notification_configs_list(
         &args.tenant,
     )?;
     workspaceevents_tasks_push_notification_configs_list_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for StreamResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for StreamResponse with WorkspaceeventsMessageStreamArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WorkspaceeventsMessageStreamArgs> for StreamResponse {
-    fn generate_resource_id(&self, input: &WorkspaceeventsMessageStreamArgs) -> String {
-        "gcp::workspaceevents::StreamResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::workspaceevents::StreamResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================

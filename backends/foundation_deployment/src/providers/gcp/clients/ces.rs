@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn ces_projects_locations_get(
 pub fn ces_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -341,13 +343,13 @@ pub struct CesProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -390,7 +392,7 @@ pub fn ces_projects_locations_list(
 pub fn ces_projects_locations_apps_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    appId: &Option<Option<String>>,
+    appId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -530,7 +532,7 @@ pub struct CesProjectsLocationsAppsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: appId
-    pub appId: Option<Option<String>>,
+    pub appId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apps
@@ -564,7 +566,7 @@ pub fn ces_projects_locations_apps_create(
 pub fn ces_projects_locations_apps_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -704,7 +706,7 @@ pub struct CesProjectsLocationsAppsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
@@ -1382,10 +1384,10 @@ pub fn ces_projects_locations_apps_import_app(
 pub fn ces_projects_locations_apps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1536,13 +1538,13 @@ pub struct CesProjectsLocationsAppsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps
@@ -1585,7 +1587,7 @@ pub fn ces_projects_locations_apps_list(
 pub fn ces_projects_locations_apps_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1725,7 +1727,7 @@ pub struct CesProjectsLocationsAppsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}
@@ -1927,7 +1929,7 @@ pub fn ces_projects_locations_apps_retrieve_tool_schema(
 pub fn ces_projects_locations_apps_agents_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    agentId: &Option<Option<String>>,
+    agentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2067,7 +2069,7 @@ pub struct CesProjectsLocationsAppsAgentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: agentId
-    pub agentId: Option<Option<String>>,
+    pub agentId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents
@@ -2102,8 +2104,8 @@ pub fn ces_projects_locations_apps_agents_create(
 pub fn ces_projects_locations_apps_agents_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
+    etag: &Option<String>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2246,9 +2248,9 @@ pub struct CesProjectsLocationsAppsAgentsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
@@ -2447,10 +2449,10 @@ pub fn ces_projects_locations_apps_agents_get(
 pub fn ces_projects_locations_apps_agents_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2601,13 +2603,13 @@ pub struct CesProjectsLocationsAppsAgentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents
@@ -2650,7 +2652,7 @@ pub fn ces_projects_locations_apps_agents_list(
 pub fn ces_projects_locations_apps_agents_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2790,7 +2792,7 @@ pub struct CesProjectsLocationsAppsAgentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/agents/{agentsId}
@@ -2985,10 +2987,10 @@ pub fn ces_projects_locations_apps_changelogs_get(
 pub fn ces_projects_locations_apps_changelogs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3139,13 +3141,13 @@ pub struct CesProjectsLocationsAppsChangelogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/changelogs
@@ -3349,7 +3351,7 @@ pub fn ces_projects_locations_apps_conversations_batch_delete(
 pub fn ces_projects_locations_apps_conversations_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    source: &Option<Option<String>>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3489,7 +3491,7 @@ pub struct CesProjectsLocationsAppsConversationsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}
@@ -3524,7 +3526,7 @@ pub fn ces_projects_locations_apps_conversations_delete(
 pub fn ces_projects_locations_apps_conversations_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    source: &Option<Option<String>>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3666,7 +3668,7 @@ pub struct CesProjectsLocationsAppsConversationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations/{conversationsId}
@@ -3703,11 +3705,11 @@ pub fn ces_projects_locations_apps_conversations_get(
 pub fn ces_projects_locations_apps_conversations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    sources: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    source: &Option<String>,
+    sources: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3861,15 +3863,15 @@ pub struct CesProjectsLocationsAppsConversationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: sources
-    pub sources: Option<Option<String>>,
+    pub sources: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/conversations
@@ -3913,7 +3915,7 @@ pub fn ces_projects_locations_apps_conversations_list(
 pub fn ces_projects_locations_apps_deployments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    deploymentId: &Option<Option<String>>,
+    deploymentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4053,7 +4055,7 @@ pub struct CesProjectsLocationsAppsDeploymentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: deploymentId
-    pub deploymentId: Option<Option<String>>,
+    pub deploymentId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments
@@ -4091,7 +4093,7 @@ pub fn ces_projects_locations_apps_deployments_create(
 pub fn ces_projects_locations_apps_deployments_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4231,7 +4233,7 @@ pub struct CesProjectsLocationsAppsDeploymentsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
@@ -4426,9 +4428,9 @@ pub fn ces_projects_locations_apps_deployments_get(
 pub fn ces_projects_locations_apps_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4576,11 +4578,11 @@ pub struct CesProjectsLocationsAppsDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments
@@ -4622,7 +4624,7 @@ pub fn ces_projects_locations_apps_deployments_list(
 pub fn ces_projects_locations_apps_deployments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4762,7 +4764,7 @@ pub struct CesProjectsLocationsAppsDeploymentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/deployments/{deploymentsId}
@@ -4800,7 +4802,7 @@ pub fn ces_projects_locations_apps_deployments_patch(
 pub fn ces_projects_locations_apps_examples_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    exampleId: &Option<Option<String>>,
+    exampleId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4940,7 +4942,7 @@ pub struct CesProjectsLocationsAppsExamplesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: exampleId
-    pub exampleId: Option<Option<String>>,
+    pub exampleId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples
@@ -4975,7 +4977,7 @@ pub fn ces_projects_locations_apps_examples_create(
 pub fn ces_projects_locations_apps_examples_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5115,7 +5117,7 @@ pub struct CesProjectsLocationsAppsExamplesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
@@ -5310,10 +5312,10 @@ pub fn ces_projects_locations_apps_examples_get(
 pub fn ces_projects_locations_apps_examples_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5464,13 +5466,13 @@ pub struct CesProjectsLocationsAppsExamplesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples
@@ -5513,7 +5515,7 @@ pub fn ces_projects_locations_apps_examples_list(
 pub fn ces_projects_locations_apps_examples_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5653,7 +5655,7 @@ pub struct CesProjectsLocationsAppsExamplesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/examples/{examplesId}
@@ -5688,7 +5690,7 @@ pub fn ces_projects_locations_apps_examples_patch(
 pub fn ces_projects_locations_apps_guardrails_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    guardrailId: &Option<Option<String>>,
+    guardrailId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5828,7 +5830,7 @@ pub struct CesProjectsLocationsAppsGuardrailsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: guardrailId
-    pub guardrailId: Option<Option<String>>,
+    pub guardrailId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails
@@ -5866,8 +5868,8 @@ pub fn ces_projects_locations_apps_guardrails_create(
 pub fn ces_projects_locations_apps_guardrails_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
+    etag: &Option<String>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6010,9 +6012,9 @@ pub struct CesProjectsLocationsAppsGuardrailsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
@@ -6211,10 +6213,10 @@ pub fn ces_projects_locations_apps_guardrails_get(
 pub fn ces_projects_locations_apps_guardrails_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6365,13 +6367,13 @@ pub struct CesProjectsLocationsAppsGuardrailsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails
@@ -6414,7 +6416,7 @@ pub fn ces_projects_locations_apps_guardrails_list(
 pub fn ces_projects_locations_apps_guardrails_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6554,7 +6556,7 @@ pub struct CesProjectsLocationsAppsGuardrailsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/guardrails/{guardrailsId}
@@ -7083,7 +7085,7 @@ pub fn ces_projects_locations_apps_sessions_stream_run_session(
 pub fn ces_projects_locations_apps_tools_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    toolId: &Option<Option<String>>,
+    toolId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7223,7 +7225,7 @@ pub struct CesProjectsLocationsAppsToolsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: toolId
-    pub toolId: Option<Option<String>>,
+    pub toolId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools
@@ -7258,8 +7260,8 @@ pub fn ces_projects_locations_apps_tools_create(
 pub fn ces_projects_locations_apps_tools_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
+    etag: &Option<String>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7402,9 +7404,9 @@ pub struct CesProjectsLocationsAppsToolsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
@@ -7603,10 +7605,10 @@ pub fn ces_projects_locations_apps_tools_get(
 pub fn ces_projects_locations_apps_tools_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7757,13 +7759,13 @@ pub struct CesProjectsLocationsAppsToolsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools
@@ -7806,7 +7808,7 @@ pub fn ces_projects_locations_apps_tools_list(
 pub fn ces_projects_locations_apps_tools_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7946,7 +7948,7 @@ pub struct CesProjectsLocationsAppsToolsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/tools/{toolsId}
@@ -7981,7 +7983,7 @@ pub fn ces_projects_locations_apps_tools_patch(
 pub fn ces_projects_locations_apps_toolsets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    toolsetId: &Option<Option<String>>,
+    toolsetId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8121,7 +8123,7 @@ pub struct CesProjectsLocationsAppsToolsetsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: toolsetId
-    pub toolsetId: Option<Option<String>>,
+    pub toolsetId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets
@@ -8156,8 +8158,8 @@ pub fn ces_projects_locations_apps_toolsets_create(
 pub fn ces_projects_locations_apps_toolsets_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
+    etag: &Option<String>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8300,9 +8302,9 @@ pub struct CesProjectsLocationsAppsToolsetsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
@@ -8501,10 +8503,10 @@ pub fn ces_projects_locations_apps_toolsets_get(
 pub fn ces_projects_locations_apps_toolsets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8655,13 +8657,13 @@ pub struct CesProjectsLocationsAppsToolsetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets
@@ -8704,7 +8706,7 @@ pub fn ces_projects_locations_apps_toolsets_list(
 pub fn ces_projects_locations_apps_toolsets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8844,7 +8846,7 @@ pub struct CesProjectsLocationsAppsToolsetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/toolsets/{toolsetsId}
@@ -9044,7 +9046,7 @@ pub fn ces_projects_locations_apps_toolsets_retrieve_tools(
 pub fn ces_projects_locations_apps_versions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    appVersionId: &Option<Option<String>>,
+    appVersionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9184,7 +9186,7 @@ pub struct CesProjectsLocationsAppsVersionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: appVersionId
-    pub appVersionId: Option<Option<String>>,
+    pub appVersionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions
@@ -9222,7 +9224,7 @@ pub fn ces_projects_locations_apps_versions_create(
 pub fn ces_projects_locations_apps_versions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9362,7 +9364,7 @@ pub struct CesProjectsLocationsAppsVersionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions/{versionsId}
@@ -9557,10 +9559,10 @@ pub fn ces_projects_locations_apps_versions_get(
 pub fn ces_projects_locations_apps_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9711,13 +9713,13 @@ pub struct CesProjectsLocationsAppsVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apps/{appsId}/versions
@@ -10400,10 +10402,10 @@ pub fn ces_projects_locations_operations_get(
 pub fn ces_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10554,13 +10556,13 @@ pub struct CesProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,7 +32,7 @@ use serde::Serialize;
 pub fn transcoder_projects_locations_job_templates_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    jobTemplateId: &Option<Option<String>>,
+    jobTemplateId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -170,7 +172,7 @@ pub struct TranscoderProjectsLocationsJobTemplatesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: jobTemplateId
-    pub jobTemplateId: Option<Option<String>>,
+    pub jobTemplateId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/jobTemplates
@@ -208,7 +210,7 @@ pub fn transcoder_projects_locations_job_templates_create(
 pub fn transcoder_projects_locations_job_templates_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
+    allowMissing: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -348,7 +350,7 @@ pub struct TranscoderProjectsLocationsJobTemplatesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/jobTemplates/{jobTemplatesId}
@@ -546,10 +548,10 @@ pub fn transcoder_projects_locations_job_templates_get(
 pub fn transcoder_projects_locations_job_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -700,13 +702,13 @@ pub struct TranscoderProjectsLocationsJobTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobTemplates
@@ -909,7 +911,7 @@ pub fn transcoder_projects_locations_jobs_create(
 pub fn transcoder_projects_locations_jobs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
+    allowMissing: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1049,7 +1051,7 @@ pub struct TranscoderProjectsLocationsJobsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
@@ -1244,10 +1246,10 @@ pub fn transcoder_projects_locations_jobs_get(
 pub fn transcoder_projects_locations_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1398,13 +1400,13 @@ pub struct TranscoderProjectsLocationsJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobs

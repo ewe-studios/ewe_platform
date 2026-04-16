@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -492,88 +494,4 @@ pub fn travelimpactmodel_flights_compute_typical_flight_emissions(
 > {
     let builder = travelimpactmodel_flights_compute_typical_flight_emissions_builder(client)?;
     travelimpactmodel_flights_compute_typical_flight_emissions_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ComputeFlightEmissionsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ComputeFlightEmissionsResponse with TravelimpactmodelFlightsComputeFlightEmissionsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<TravelimpactmodelFlightsComputeFlightEmissionsArgs>
-    for ComputeFlightEmissionsResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &TravelimpactmodelFlightsComputeFlightEmissionsArgs,
-    ) -> String {
-        "gcp::travelimpactmodel::ComputeFlightEmissionsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::travelimpactmodel::ComputeFlightEmissionsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ComputeScope3FlightEmissionsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ComputeScope3FlightEmissionsResponse with TravelimpactmodelFlightsComputeScope3FlightEmissionsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<TravelimpactmodelFlightsComputeScope3FlightEmissionsArgs>
-    for ComputeScope3FlightEmissionsResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &TravelimpactmodelFlightsComputeScope3FlightEmissionsArgs,
-    ) -> String {
-        "gcp::travelimpactmodel::ComputeScope3FlightEmissionsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::travelimpactmodel::ComputeScope3FlightEmissionsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ComputeTypicalFlightEmissionsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ComputeTypicalFlightEmissionsResponse with TravelimpactmodelFlightsComputeTypicalFlightEmissionsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<TravelimpactmodelFlightsComputeTypicalFlightEmissionsArgs>
-    for ComputeTypicalFlightEmissionsResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &TravelimpactmodelFlightsComputeTypicalFlightEmissionsArgs,
-    ) -> String {
-        "gcp::travelimpactmodel::ComputeTypicalFlightEmissionsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::travelimpactmodel::ComputeTypicalFlightEmissionsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }

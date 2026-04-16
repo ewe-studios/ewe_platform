@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,7 +31,7 @@ use serde::Serialize;
 
 pub fn cloudbilling_billing_accounts_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -166,7 +168,7 @@ pub fn cloudbilling_billing_accounts_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudbillingBillingAccountsCreateArgs {
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// POST v1/billingAccounts
@@ -366,7 +368,7 @@ pub fn cloudbilling_billing_accounts_get(
 pub fn cloudbilling_billing_accounts_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -506,7 +508,7 @@ pub struct CloudbillingBillingAccountsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}:getIamPolicy
@@ -543,10 +545,10 @@ pub fn cloudbilling_billing_accounts_get_iam_policy(
 
 pub fn cloudbilling_billing_accounts_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -694,13 +696,13 @@ pub fn cloudbilling_billing_accounts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudbillingBillingAccountsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/billingAccounts
@@ -908,7 +910,7 @@ pub fn cloudbilling_billing_accounts_move(
 pub fn cloudbilling_billing_accounts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1050,7 +1052,7 @@ pub struct CloudbillingBillingAccountsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/billingAccounts/{billingAccountsId}
@@ -1416,8 +1418,8 @@ pub fn cloudbilling_billing_accounts_test_iam_permissions(
 pub fn cloudbilling_billing_accounts_projects_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1564,9 +1566,9 @@ pub struct CloudbillingBillingAccountsProjectsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}/projects
@@ -1773,9 +1775,9 @@ pub fn cloudbilling_billing_accounts_sub_accounts_create(
 pub fn cloudbilling_billing_accounts_sub_accounts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1925,11 +1927,11 @@ pub struct CloudbillingBillingAccountsSubAccountsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}/subAccounts
@@ -2137,9 +2139,9 @@ pub fn cloudbilling_organizations_billing_accounts_create(
 pub fn cloudbilling_organizations_billing_accounts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2289,11 +2291,11 @@ pub struct CloudbillingOrganizationsBillingAccountsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/billingAccounts
@@ -2835,8 +2837,8 @@ pub fn cloudbilling_projects_update_billing_info(
 
 pub fn cloudbilling_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2976,9 +2978,9 @@ pub fn cloudbilling_services_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudbillingServicesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/services
@@ -3014,11 +3016,11 @@ pub fn cloudbilling_services_list(
 pub fn cloudbilling_services_skus_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    currencyCode: &Option<Option<String>>,
-    endTime: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startTime: &Option<Option<String>>,
+    currencyCode: &Option<String>,
+    endTime: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3172,15 +3174,15 @@ pub struct CloudbillingServicesSkusListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: currencyCode
-    pub currencyCode: Option<Option<String>>,
+    pub currencyCode: Option<String>,
     /// Query parameter: endTime
-    pub endTime: Option<Option<String>>,
+    pub endTime: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
 }
 
 /// GET v1/services/{servicesId}/skus

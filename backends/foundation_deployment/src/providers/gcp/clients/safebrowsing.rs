@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,9 +32,9 @@ use serde::Serialize;
 pub fn safebrowsing_hash_list_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    sizeConstraints_maxDatabaseEntries: &Option<Option<String>>,
-    sizeConstraints_maxUpdateEntries: &Option<Option<String>>,
-    version: &Option<Option<String>>,
+    sizeConstraints_maxDatabaseEntries: &Option<String>,
+    sizeConstraints_maxUpdateEntries: &Option<String>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -179,11 +181,11 @@ pub struct SafebrowsingHashListGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: sizeConstraints_maxDatabaseEntries
-    pub sizeConstraints_maxDatabaseEntries: Option<Option<String>>,
+    pub sizeConstraints_maxDatabaseEntries: Option<String>,
     /// Query parameter: sizeConstraints_maxUpdateEntries
-    pub sizeConstraints_maxUpdateEntries: Option<Option<String>>,
+    pub sizeConstraints_maxUpdateEntries: Option<String>,
     /// Query parameter: version
-    pub version: Option<Option<String>>,
+    pub version: Option<String>,
 }
 
 /// GET v5/hashList/{name}
@@ -226,10 +228,10 @@ pub fn safebrowsing_hash_list_get(
 
 pub fn safebrowsing_hash_lists_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    names: &Option<Option<String>>,
-    sizeConstraints_maxDatabaseEntries: &Option<Option<String>>,
-    sizeConstraints_maxUpdateEntries: &Option<Option<String>>,
-    version: &Option<Option<String>>,
+    names: &Option<String>,
+    sizeConstraints_maxDatabaseEntries: &Option<String>,
+    sizeConstraints_maxUpdateEntries: &Option<String>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -384,13 +386,13 @@ pub fn safebrowsing_hash_lists_batch_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SafebrowsingHashListsBatchGetArgs {
     /// Query parameter: names
-    pub names: Option<Option<String>>,
+    pub names: Option<String>,
     /// Query parameter: sizeConstraints_maxDatabaseEntries
-    pub sizeConstraints_maxDatabaseEntries: Option<Option<String>>,
+    pub sizeConstraints_maxDatabaseEntries: Option<String>,
     /// Query parameter: sizeConstraints_maxUpdateEntries
-    pub sizeConstraints_maxUpdateEntries: Option<Option<String>>,
+    pub sizeConstraints_maxUpdateEntries: Option<String>,
     /// Query parameter: version
-    pub version: Option<Option<String>>,
+    pub version: Option<String>,
 }
 
 /// GET v5/hashLists:batchGet
@@ -436,8 +438,8 @@ pub fn safebrowsing_hash_lists_batch_get(
 
 pub fn safebrowsing_hash_lists_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -583,9 +585,9 @@ pub fn safebrowsing_hash_lists_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SafebrowsingHashListsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v5/hashLists
@@ -622,7 +624,7 @@ pub fn safebrowsing_hash_lists_list(
 
 pub fn safebrowsing_hashes_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    hashPrefixes: &Option<Option<String>>,
+    hashPrefixes: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -762,7 +764,7 @@ pub fn safebrowsing_hashes_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SafebrowsingHashesSearchArgs {
     /// Query parameter: hashPrefixes
-    pub hashPrefixes: Option<Option<String>>,
+    pub hashPrefixes: Option<String>,
 }
 
 /// GET v5/hashes:search
@@ -799,7 +801,7 @@ pub fn safebrowsing_hashes_search(
 
 pub fn safebrowsing_urls_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    urls: &Option<Option<String>>,
+    urls: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -939,7 +941,7 @@ pub fn safebrowsing_urls_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SafebrowsingUrlsSearchArgs {
     /// Query parameter: urls
-    pub urls: Option<Option<String>>,
+    pub urls: Option<String>,
 }
 
 /// GET v5/urls:search

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn managedidentities_projects_locations_get(
 pub fn managedidentities_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct ManagedidentitiesProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -729,7 +731,7 @@ pub fn managedidentities_projects_locations_global_domains_check_migration_permi
 pub fn managedidentities_projects_locations_global_domains_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    domainName: &Option<Option<String>>,
+    domainName: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -869,7 +871,7 @@ pub struct ManagedidentitiesProjectsLocationsGlobalDomainsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: domainName
-    pub domainName: Option<Option<String>>,
+    pub domainName: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/global/domains
@@ -2048,7 +2050,7 @@ pub fn managedidentities_projects_locations_global_domains_get(
 pub fn managedidentities_projects_locations_global_domains_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2188,7 +2190,7 @@ pub struct ManagedidentitiesProjectsLocationsGlobalDomainsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}:getIamPolicy
@@ -2392,10 +2394,10 @@ pub fn managedidentities_projects_locations_global_domains_get_ldapssettings(
 pub fn managedidentities_projects_locations_global_domains_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2546,13 +2548,13 @@ pub struct ManagedidentitiesProjectsLocationsGlobalDomainsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/global/domains
@@ -2595,7 +2597,7 @@ pub fn managedidentities_projects_locations_global_domains_list(
 pub fn managedidentities_projects_locations_global_domains_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2735,7 +2737,7 @@ pub struct ManagedidentitiesProjectsLocationsGlobalDomainsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/global/domains/{domainsId}
@@ -3602,7 +3604,7 @@ pub fn managedidentities_projects_locations_global_domains_test_iam_permissions(
 pub fn managedidentities_projects_locations_global_domains_update_ldapssettings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3743,7 +3745,7 @@ pub struct ManagedidentitiesProjectsLocationsGlobalDomainsUpdateLdapssettingsArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/global/domains/{domainsId}/ldapssettings
@@ -3943,7 +3945,7 @@ pub fn managedidentities_projects_locations_global_domains_validate_trust(
 pub fn managedidentities_projects_locations_global_domains_backups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    backupId: &Option<Option<String>>,
+    backupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4083,7 +4085,7 @@ pub struct ManagedidentitiesProjectsLocationsGlobalDomainsBackupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: backupId
-    pub backupId: Option<Option<String>>,
+    pub backupId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/global/domains/{domainsId}/backups
@@ -4445,7 +4447,7 @@ pub fn managedidentities_projects_locations_global_domains_backups_get(
 pub fn managedidentities_projects_locations_global_domains_backups_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4586,7 +4588,7 @@ pub struct ManagedidentitiesProjectsLocationsGlobalDomainsBackupsGetIamPolicyArg
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/backups/{backupsId}:getIamPolicy
@@ -4625,10 +4627,10 @@ pub fn managedidentities_projects_locations_global_domains_backups_get_iam_polic
 pub fn managedidentities_projects_locations_global_domains_backups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4779,13 +4781,13 @@ pub struct ManagedidentitiesProjectsLocationsGlobalDomainsBackupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/backups
@@ -4828,7 +4830,7 @@ pub fn managedidentities_projects_locations_global_domains_backups_list(
 pub fn managedidentities_projects_locations_global_domains_backups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4968,7 +4970,7 @@ pub struct ManagedidentitiesProjectsLocationsGlobalDomainsBackupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/global/domains/{domainsId}/backups/{backupsId}
@@ -5515,10 +5517,10 @@ pub fn managedidentities_projects_locations_global_domains_sql_integrations_get(
 pub fn managedidentities_projects_locations_global_domains_sql_integrations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5672,13 +5674,13 @@ pub struct ManagedidentitiesProjectsLocationsGlobalDomainsSqlIntegrationsListArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/global/domains/{domainsId}/sqlIntegrations
@@ -6207,10 +6209,10 @@ pub fn managedidentities_projects_locations_global_operations_get(
 pub fn managedidentities_projects_locations_global_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6361,13 +6363,13 @@ pub struct ManagedidentitiesProjectsLocationsGlobalOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/global/operations
@@ -6410,7 +6412,7 @@ pub fn managedidentities_projects_locations_global_operations_list(
 pub fn managedidentities_projects_locations_global_peerings_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    peeringId: &Option<Option<String>>,
+    peeringId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6550,7 +6552,7 @@ pub struct ManagedidentitiesProjectsLocationsGlobalPeeringsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: peeringId
-    pub peeringId: Option<Option<String>>,
+    pub peeringId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/global/peerings
@@ -6910,7 +6912,7 @@ pub fn managedidentities_projects_locations_global_peerings_get(
 pub fn managedidentities_projects_locations_global_peerings_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7050,7 +7052,7 @@ pub struct ManagedidentitiesProjectsLocationsGlobalPeeringsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/global/peerings/{peeringsId}:getIamPolicy
@@ -7088,10 +7090,10 @@ pub fn managedidentities_projects_locations_global_peerings_get_iam_policy(
 pub fn managedidentities_projects_locations_global_peerings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7242,13 +7244,13 @@ pub struct ManagedidentitiesProjectsLocationsGlobalPeeringsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/global/peerings
@@ -7291,7 +7293,7 @@ pub fn managedidentities_projects_locations_global_peerings_list(
 pub fn managedidentities_projects_locations_global_peerings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7431,7 +7433,7 @@ pub struct ManagedidentitiesProjectsLocationsGlobalPeeringsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/global/peerings/{peeringsId}

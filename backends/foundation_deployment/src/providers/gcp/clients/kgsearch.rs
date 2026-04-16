@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,13 +31,13 @@ use serde::Serialize;
 
 pub fn kgsearch_entities_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    ids: &Option<Option<String>>,
-    indent: &Option<Option<String>>,
-    languages: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    prefix: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    types: &Option<Option<String>>,
+    ids: &Option<String>,
+    indent: &Option<String>,
+    languages: &Option<String>,
+    limit: &Option<String>,
+    prefix: &Option<String>,
+    query: &Option<String>,
+    types: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -190,19 +192,19 @@ pub fn kgsearch_entities_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct KgsearchEntitiesSearchArgs {
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: indent
-    pub indent: Option<Option<String>>,
+    pub indent: Option<String>,
     /// Query parameter: languages
-    pub languages: Option<Option<String>>,
+    pub languages: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: prefix
-    pub prefix: Option<Option<String>>,
+    pub prefix: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: types
-    pub types: Option<Option<String>>,
+    pub types: Option<String>,
 }
 
 /// GET v1/entities:search

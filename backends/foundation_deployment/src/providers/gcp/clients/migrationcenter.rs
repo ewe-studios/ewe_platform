@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -350,10 +352,10 @@ pub fn migrationcenter_projects_locations_get_settings(
 pub fn migrationcenter_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -504,13 +506,13 @@ pub struct MigrationcenterProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -553,8 +555,8 @@ pub fn migrationcenter_projects_locations_list(
 pub fn migrationcenter_projects_locations_update_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -697,9 +699,9 @@ pub struct MigrationcenterProjectsLocationsUpdateSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/settings
@@ -1233,7 +1235,7 @@ pub fn migrationcenter_projects_locations_assets_batch_update(
 pub fn migrationcenter_projects_locations_assets_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1373,7 +1375,7 @@ pub struct MigrationcenterProjectsLocationsAssetsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/assets/{assetsId}
@@ -1411,7 +1413,7 @@ pub fn migrationcenter_projects_locations_assets_delete(
 pub fn migrationcenter_projects_locations_assets_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1551,7 +1553,7 @@ pub struct MigrationcenterProjectsLocationsAssetsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assets/{assetsId}
@@ -1586,12 +1588,12 @@ pub fn migrationcenter_projects_locations_assets_get(
 pub fn migrationcenter_projects_locations_assets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showHidden: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showHidden: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1748,17 +1750,17 @@ pub struct MigrationcenterProjectsLocationsAssetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showHidden
-    pub showHidden: Option<Option<String>>,
+    pub showHidden: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assets
@@ -1803,8 +1805,8 @@ pub fn migrationcenter_projects_locations_assets_list(
 pub fn migrationcenter_projects_locations_assets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1947,9 +1949,9 @@ pub struct MigrationcenterProjectsLocationsAssetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/assets/{assetsId}
@@ -1988,7 +1990,7 @@ pub fn migrationcenter_projects_locations_assets_patch(
 pub fn migrationcenter_projects_locations_assets_report_asset_frames_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    source: &Option<Option<String>>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2130,7 +2132,7 @@ pub struct MigrationcenterProjectsLocationsAssetsReportAssetFramesArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/assets:reportAssetFrames
@@ -2170,8 +2172,8 @@ pub fn migrationcenter_projects_locations_assets_report_asset_frames(
 pub fn migrationcenter_projects_locations_assets_export_jobs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    assetsExportJobId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    assetsExportJobId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2314,9 +2316,9 @@ pub struct MigrationcenterProjectsLocationsAssetsExportJobsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: assetsExportJobId
-    pub assetsExportJobId: Option<Option<String>>,
+    pub assetsExportJobId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/assetsExportJobs
@@ -2681,8 +2683,8 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_get(
 pub fn migrationcenter_projects_locations_assets_export_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2829,9 +2831,9 @@ pub struct MigrationcenterProjectsLocationsAssetsExportJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assetsExportJobs
@@ -3035,8 +3037,8 @@ pub fn migrationcenter_projects_locations_assets_export_jobs_run(
 pub fn migrationcenter_projects_locations_discovery_clients_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    discoveryClientId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    discoveryClientId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3179,9 +3181,9 @@ pub struct MigrationcenterProjectsLocationsDiscoveryClientsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: discoveryClientId
-    pub discoveryClientId: Option<Option<String>>,
+    pub discoveryClientId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/discoveryClients
@@ -3220,7 +3222,7 @@ pub fn migrationcenter_projects_locations_discovery_clients_create(
 pub fn migrationcenter_projects_locations_discovery_clients_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3360,7 +3362,7 @@ pub struct MigrationcenterProjectsLocationsDiscoveryClientsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/discoveryClients/{discoveryClientsId}
@@ -3563,10 +3565,10 @@ pub fn migrationcenter_projects_locations_discovery_clients_get(
 pub fn migrationcenter_projects_locations_discovery_clients_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3719,13 +3721,13 @@ pub struct MigrationcenterProjectsLocationsDiscoveryClientsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveryClients
@@ -3770,8 +3772,8 @@ pub fn migrationcenter_projects_locations_discovery_clients_list(
 pub fn migrationcenter_projects_locations_discovery_clients_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3914,9 +3916,9 @@ pub struct MigrationcenterProjectsLocationsDiscoveryClientsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/discoveryClients/{discoveryClientsId}
@@ -4278,8 +4280,8 @@ pub fn migrationcenter_projects_locations_groups_add_assets(
 pub fn migrationcenter_projects_locations_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    groupId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    groupId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4422,9 +4424,9 @@ pub struct MigrationcenterProjectsLocationsGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: groupId
-    pub groupId: Option<Option<String>>,
+    pub groupId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/groups
@@ -4463,7 +4465,7 @@ pub fn migrationcenter_projects_locations_groups_create(
 pub fn migrationcenter_projects_locations_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4603,7 +4605,7 @@ pub struct MigrationcenterProjectsLocationsGroupsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
@@ -4801,10 +4803,10 @@ pub fn migrationcenter_projects_locations_groups_get(
 pub fn migrationcenter_projects_locations_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4955,13 +4957,13 @@ pub struct MigrationcenterProjectsLocationsGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups
@@ -5004,8 +5006,8 @@ pub fn migrationcenter_projects_locations_groups_list(
 pub fn migrationcenter_projects_locations_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5148,9 +5150,9 @@ pub struct MigrationcenterProjectsLocationsGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
@@ -5350,8 +5352,8 @@ pub fn migrationcenter_projects_locations_groups_remove_assets(
 pub fn migrationcenter_projects_locations_import_jobs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    importJobId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    importJobId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5494,9 +5496,9 @@ pub struct MigrationcenterProjectsLocationsImportJobsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: importJobId
-    pub importJobId: Option<Option<String>>,
+    pub importJobId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/importJobs
@@ -5535,8 +5537,8 @@ pub fn migrationcenter_projects_locations_import_jobs_create(
 pub fn migrationcenter_projects_locations_import_jobs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    force: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5679,9 +5681,9 @@ pub struct MigrationcenterProjectsLocationsImportJobsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}
@@ -5720,7 +5722,7 @@ pub fn migrationcenter_projects_locations_import_jobs_delete(
 pub fn migrationcenter_projects_locations_import_jobs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5860,7 +5862,7 @@ pub struct MigrationcenterProjectsLocationsImportJobsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}
@@ -5895,11 +5897,11 @@ pub fn migrationcenter_projects_locations_import_jobs_get(
 pub fn migrationcenter_projects_locations_import_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6053,15 +6055,15 @@ pub struct MigrationcenterProjectsLocationsImportJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs
@@ -6105,8 +6107,8 @@ pub fn migrationcenter_projects_locations_import_jobs_list(
 pub fn migrationcenter_projects_locations_import_jobs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6249,9 +6251,9 @@ pub struct MigrationcenterProjectsLocationsImportJobsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}
@@ -6611,8 +6613,8 @@ pub fn migrationcenter_projects_locations_import_jobs_validate(
 pub fn migrationcenter_projects_locations_import_jobs_import_data_files_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    importDataFileId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    importDataFileId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6756,9 +6758,9 @@ pub struct MigrationcenterProjectsLocationsImportJobsImportDataFilesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: importDataFileId
-    pub importDataFileId: Option<Option<String>>,
+    pub importDataFileId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}/importDataFiles
@@ -6797,7 +6799,7 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_create(
 pub fn migrationcenter_projects_locations_import_jobs_import_data_files_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6938,7 +6940,7 @@ pub struct MigrationcenterProjectsLocationsImportJobsImportDataFilesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}/importDataFiles/{importDataFilesId}
@@ -7142,10 +7144,10 @@ pub fn migrationcenter_projects_locations_import_jobs_import_data_files_get(
 pub fn migrationcenter_projects_locations_import_jobs_import_data_files_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7298,13 +7300,13 @@ pub struct MigrationcenterProjectsLocationsImportJobsImportDataFilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/importJobs/{importJobsId}/importDataFiles
@@ -7829,10 +7831,10 @@ pub fn migrationcenter_projects_locations_operations_get(
 pub fn migrationcenter_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7983,13 +7985,13 @@ pub struct MigrationcenterProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -8032,8 +8034,8 @@ pub fn migrationcenter_projects_locations_operations_list(
 pub fn migrationcenter_projects_locations_preference_sets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    preferenceSetId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    preferenceSetId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8176,9 +8178,9 @@ pub struct MigrationcenterProjectsLocationsPreferenceSetsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: preferenceSetId
-    pub preferenceSetId: Option<Option<String>>,
+    pub preferenceSetId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/preferenceSets
@@ -8217,7 +8219,7 @@ pub fn migrationcenter_projects_locations_preference_sets_create(
 pub fn migrationcenter_projects_locations_preference_sets_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8357,7 +8359,7 @@ pub struct MigrationcenterProjectsLocationsPreferenceSetsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/preferenceSets/{preferenceSetsId}
@@ -8560,9 +8562,9 @@ pub fn migrationcenter_projects_locations_preference_sets_get(
 pub fn migrationcenter_projects_locations_preference_sets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8712,11 +8714,11 @@ pub struct MigrationcenterProjectsLocationsPreferenceSetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/preferenceSets
@@ -8760,8 +8762,8 @@ pub fn migrationcenter_projects_locations_preference_sets_list(
 pub fn migrationcenter_projects_locations_preference_sets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8904,9 +8906,9 @@ pub struct MigrationcenterProjectsLocationsPreferenceSetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/preferenceSets/{preferenceSetsId}
@@ -9105,10 +9107,10 @@ pub fn migrationcenter_projects_locations_relations_get(
 pub fn migrationcenter_projects_locations_relations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9259,13 +9261,13 @@ pub struct MigrationcenterProjectsLocationsRelationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/relations
@@ -9308,8 +9310,8 @@ pub fn migrationcenter_projects_locations_relations_list(
 pub fn migrationcenter_projects_locations_report_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    reportConfigId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    reportConfigId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9452,9 +9454,9 @@ pub struct MigrationcenterProjectsLocationsReportConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: reportConfigId
-    pub reportConfigId: Option<Option<String>>,
+    pub reportConfigId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reportConfigs
@@ -9493,8 +9495,8 @@ pub fn migrationcenter_projects_locations_report_configs_create(
 pub fn migrationcenter_projects_locations_report_configs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    force: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9637,9 +9639,9 @@ pub struct MigrationcenterProjectsLocationsReportConfigsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/reportConfigs/{reportConfigsId}
@@ -9843,10 +9845,10 @@ pub fn migrationcenter_projects_locations_report_configs_get(
 pub fn migrationcenter_projects_locations_report_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9997,13 +9999,13 @@ pub struct MigrationcenterProjectsLocationsReportConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reportConfigs
@@ -10046,8 +10048,8 @@ pub fn migrationcenter_projects_locations_report_configs_list(
 pub fn migrationcenter_projects_locations_report_configs_reports_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    reportId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    reportId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10190,9 +10192,9 @@ pub struct MigrationcenterProjectsLocationsReportConfigsReportsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: reportId
-    pub reportId: Option<Option<String>>,
+    pub reportId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reportConfigs/{reportConfigsId}/reports
@@ -10231,7 +10233,7 @@ pub fn migrationcenter_projects_locations_report_configs_reports_create(
 pub fn migrationcenter_projects_locations_report_configs_reports_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10371,7 +10373,7 @@ pub struct MigrationcenterProjectsLocationsReportConfigsReportsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/reportConfigs/{reportConfigsId}/reports/{reportsId}
@@ -10409,7 +10411,7 @@ pub fn migrationcenter_projects_locations_report_configs_reports_delete(
 pub fn migrationcenter_projects_locations_report_configs_reports_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10549,7 +10551,7 @@ pub struct MigrationcenterProjectsLocationsReportConfigsReportsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reportConfigs/{reportConfigsId}/reports/{reportsId}
@@ -10585,11 +10587,11 @@ pub fn migrationcenter_projects_locations_report_configs_reports_get(
 pub fn migrationcenter_projects_locations_report_configs_reports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10743,15 +10745,15 @@ pub struct MigrationcenterProjectsLocationsReportConfigsReportsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reportConfigs/{reportConfigsId}/reports
@@ -10795,8 +10797,8 @@ pub fn migrationcenter_projects_locations_report_configs_reports_list(
 pub fn migrationcenter_projects_locations_sources_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    sourceId: &Option<Option<String>>,
+    requestId: &Option<String>,
+    sourceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10939,9 +10941,9 @@ pub struct MigrationcenterProjectsLocationsSourcesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: sourceId
-    pub sourceId: Option<Option<String>>,
+    pub sourceId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/sources
@@ -10980,7 +10982,7 @@ pub fn migrationcenter_projects_locations_sources_create(
 pub fn migrationcenter_projects_locations_sources_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11120,7 +11122,7 @@ pub struct MigrationcenterProjectsLocationsSourcesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}
@@ -11318,10 +11320,10 @@ pub fn migrationcenter_projects_locations_sources_get(
 pub fn migrationcenter_projects_locations_sources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11472,13 +11474,13 @@ pub struct MigrationcenterProjectsLocationsSourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources
@@ -11521,8 +11523,8 @@ pub fn migrationcenter_projects_locations_sources_list(
 pub fn migrationcenter_projects_locations_sources_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11665,9 +11667,9 @@ pub struct MigrationcenterProjectsLocationsSourcesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}
@@ -11706,7 +11708,7 @@ pub fn migrationcenter_projects_locations_sources_patch(
 pub fn migrationcenter_projects_locations_sources_error_frames_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11846,7 +11848,7 @@ pub struct MigrationcenterProjectsLocationsSourcesErrorFramesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/errorFrames/{errorFramesId}
@@ -11882,9 +11884,9 @@ pub fn migrationcenter_projects_locations_sources_error_frames_get(
 pub fn migrationcenter_projects_locations_sources_error_frames_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12032,11 +12034,11 @@ pub struct MigrationcenterProjectsLocationsSourcesErrorFramesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/errorFrames

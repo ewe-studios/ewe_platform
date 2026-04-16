@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,8 +32,8 @@ use serde::Serialize;
 pub fn dataflow_projects_delete_snapshots_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    location: &Option<Option<String>>,
-    snapshotId: &Option<Option<String>>,
+    location: &Option<String>,
+    snapshotId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -176,9 +178,9 @@ pub struct DataflowProjectsDeleteSnapshotsArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: snapshotId
-    pub snapshotId: Option<Option<String>>,
+    pub snapshotId: Option<String>,
 }
 
 /// DELETE v1b3/projects/{projectId}/snapshots
@@ -387,12 +389,12 @@ pub fn dataflow_projects_worker_messages(
 pub fn dataflow_projects_jobs_aggregated_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    filter: &Option<Option<String>>,
-    location: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    location: &Option<String>,
+    name: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -549,17 +551,17 @@ pub struct DataflowProjectsJobsAggregatedArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/jobs:aggregated
@@ -604,9 +606,9 @@ pub fn dataflow_projects_jobs_aggregated(
 pub fn dataflow_projects_jobs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    location: &Option<Option<String>>,
-    replaceJobId: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    location: &Option<String>,
+    replaceJobId: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -752,11 +754,11 @@ pub struct DataflowProjectsJobsCreateArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: replaceJobId
-    pub replaceJobId: Option<Option<String>>,
+    pub replaceJobId: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// POST v1b3/projects/{projectId}/jobs
@@ -797,8 +799,8 @@ pub fn dataflow_projects_jobs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
-    location: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    location: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -943,9 +945,9 @@ pub struct DataflowProjectsJobsGetArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/jobs/{jobId}
@@ -986,8 +988,8 @@ pub fn dataflow_projects_jobs_get_metrics_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
-    location: &Option<Option<String>>,
-    startTime: &Option<Option<String>>,
+    location: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1132,9 +1134,9 @@ pub struct DataflowProjectsJobsGetMetricsArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/jobs/{jobId}/metrics
@@ -1174,12 +1176,12 @@ pub fn dataflow_projects_jobs_get_metrics(
 pub fn dataflow_projects_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    filter: &Option<Option<String>>,
-    location: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    location: &Option<String>,
+    name: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1336,17 +1338,17 @@ pub struct DataflowProjectsJobsListArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/jobs
@@ -1555,8 +1557,8 @@ pub fn dataflow_projects_jobs_update_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
-    location: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    location: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1701,9 +1703,9 @@ pub struct DataflowProjectsJobsUpdateArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PUT v1b3/projects/{projectId}/jobs/{jobId}
@@ -2080,12 +2082,12 @@ pub fn dataflow_projects_jobs_messages_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
-    endTime: &Option<Option<String>>,
-    location: &Option<Option<String>>,
-    minimumImportance: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startTime: &Option<Option<String>>,
+    endTime: &Option<String>,
+    location: &Option<String>,
+    minimumImportance: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2244,17 +2246,17 @@ pub struct DataflowProjectsJobsMessagesListArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: endTime
-    pub endTime: Option<Option<String>>,
+    pub endTime: Option<String>,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: minimumImportance
-    pub minimumImportance: Option<Option<String>>,
+    pub minimumImportance: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/jobs/{jobId}/messages
@@ -2994,8 +2996,8 @@ pub fn dataflow_projects_locations_jobs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
-    replaceJobId: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    replaceJobId: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3140,9 +3142,9 @@ pub struct DataflowProjectsLocationsJobsCreateArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: replaceJobId
-    pub replaceJobId: Option<Option<String>>,
+    pub replaceJobId: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// POST v1b3/projects/{projectId}/locations/{location}/jobs
@@ -3184,7 +3186,7 @@ pub fn dataflow_projects_locations_jobs_get_builder<R>(
     projectId: &String,
     location: &String,
     jobId: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3328,7 +3330,7 @@ pub struct DataflowProjectsLocationsJobsGetArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}
@@ -3370,8 +3372,8 @@ pub fn dataflow_projects_locations_jobs_get_execution_details_builder<R>(
     projectId: &String,
     location: &String,
     jobId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3520,9 +3522,9 @@ pub struct DataflowProjectsLocationsJobsGetExecutionDetailsArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/executionDetails
@@ -3567,7 +3569,7 @@ pub fn dataflow_projects_locations_jobs_get_metrics_builder<R>(
     projectId: &String,
     location: &String,
     jobId: &String,
-    startTime: &Option<Option<String>>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3711,7 +3713,7 @@ pub struct DataflowProjectsLocationsJobsGetMetricsArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/metrics
@@ -3752,11 +3754,11 @@ pub fn dataflow_projects_locations_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
-    filter: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    name: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3912,15 +3914,15 @@ pub struct DataflowProjectsLocationsJobsListArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs
@@ -4138,7 +4140,7 @@ pub fn dataflow_projects_locations_jobs_update_builder<R>(
     projectId: &String,
     location: &String,
     jobId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4282,7 +4284,7 @@ pub struct DataflowProjectsLocationsJobsUpdateArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PUT v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}
@@ -4855,11 +4857,11 @@ pub fn dataflow_projects_locations_jobs_messages_list_builder<R>(
     projectId: &String,
     location: &String,
     jobId: &String,
-    endTime: &Option<Option<String>>,
-    minimumImportance: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startTime: &Option<Option<String>>,
+    endTime: &Option<String>,
+    minimumImportance: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5017,15 +5019,15 @@ pub struct DataflowProjectsLocationsJobsMessagesListArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: endTime
-    pub endTime: Option<Option<String>>,
+    pub endTime: Option<String>,
     /// Query parameter: minimumImportance
-    pub minimumImportance: Option<Option<String>>,
+    pub minimumImportance: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/messages
@@ -5249,10 +5251,10 @@ pub fn dataflow_projects_locations_jobs_stages_get_execution_details_builder<R>(
     location: &String,
     jobId: &String,
     stageId: &String,
-    endTime: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startTime: &Option<Option<String>>,
+    endTime: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5412,13 +5414,13 @@ pub struct DataflowProjectsLocationsJobsStagesGetExecutionDetailsArgs {
     /// Path parameter: stageId
     pub stageId: String,
     /// Query parameter: endTime
-    pub endTime: Option<Option<String>>,
+    pub endTime: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/stages/{stageId}/executionDetails
@@ -6167,7 +6169,7 @@ pub fn dataflow_projects_locations_snapshots_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
-    jobId: &Option<Option<String>>,
+    jobId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6311,7 +6313,7 @@ pub struct DataflowProjectsLocationsSnapshotsListArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: jobId
-    pub jobId: Option<Option<String>>,
+    pub jobId: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/snapshots
@@ -6520,8 +6522,8 @@ pub fn dataflow_projects_locations_templates_get_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
-    gcsPath: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    gcsPath: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6668,9 +6670,9 @@ pub struct DataflowProjectsLocationsTemplatesGetArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: gcsPath
-    pub gcsPath: Option<Option<String>>,
+    pub gcsPath: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/templates:get
@@ -6713,10 +6715,10 @@ pub fn dataflow_projects_locations_templates_launch_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     location: &String,
-    dynamicTemplate_gcsPath: &Option<Option<String>>,
-    dynamicTemplate_stagingLocation: &Option<Option<String>>,
-    gcsPath: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    dynamicTemplate_gcsPath: &Option<String>,
+    dynamicTemplate_stagingLocation: &Option<String>,
+    gcsPath: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6869,13 +6871,13 @@ pub struct DataflowProjectsLocationsTemplatesLaunchArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: dynamicTemplate_gcsPath
-    pub dynamicTemplate_gcsPath: Option<Option<String>>,
+    pub dynamicTemplate_gcsPath: Option<String>,
     /// Query parameter: dynamicTemplate_stagingLocation
-    pub dynamicTemplate_stagingLocation: Option<Option<String>>,
+    pub dynamicTemplate_stagingLocation: Option<String>,
     /// Query parameter: gcsPath
-    pub gcsPath: Option<Option<String>>,
+    pub gcsPath: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1b3/projects/{projectId}/locations/{location}/templates:launch
@@ -6920,7 +6922,7 @@ pub fn dataflow_projects_snapshots_get_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     snapshotId: &String,
-    location: &Option<Option<String>>,
+    location: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7062,7 +7064,7 @@ pub struct DataflowProjectsSnapshotsGetArgs {
     /// Path parameter: snapshotId
     pub snapshotId: String,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/snapshots/{snapshotId}
@@ -7101,8 +7103,8 @@ pub fn dataflow_projects_snapshots_get(
 pub fn dataflow_projects_snapshots_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    jobId: &Option<Option<String>>,
-    location: &Option<Option<String>>,
+    jobId: &Option<String>,
+    location: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7247,9 +7249,9 @@ pub struct DataflowProjectsSnapshotsListArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: jobId
-    pub jobId: Option<Option<String>>,
+    pub jobId: Option<String>,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/snapshots
@@ -7450,9 +7452,9 @@ pub fn dataflow_projects_templates_create(
 pub fn dataflow_projects_templates_get_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    gcsPath: &Option<Option<String>>,
-    location: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    gcsPath: &Option<String>,
+    location: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7600,11 +7602,11 @@ pub struct DataflowProjectsTemplatesGetArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: gcsPath
-    pub gcsPath: Option<Option<String>>,
+    pub gcsPath: Option<String>,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1b3/projects/{projectId}/templates:get
@@ -7646,11 +7648,11 @@ pub fn dataflow_projects_templates_get(
 pub fn dataflow_projects_templates_launch_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    dynamicTemplate_gcsPath: &Option<Option<String>>,
-    dynamicTemplate_stagingLocation: &Option<Option<String>>,
-    gcsPath: &Option<Option<String>>,
-    location: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    dynamicTemplate_gcsPath: &Option<String>,
+    dynamicTemplate_stagingLocation: &Option<String>,
+    gcsPath: &Option<String>,
+    location: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7804,15 +7806,15 @@ pub struct DataflowProjectsTemplatesLaunchArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: dynamicTemplate_gcsPath
-    pub dynamicTemplate_gcsPath: Option<Option<String>>,
+    pub dynamicTemplate_gcsPath: Option<String>,
     /// Query parameter: dynamicTemplate_stagingLocation
-    pub dynamicTemplate_stagingLocation: Option<Option<String>>,
+    pub dynamicTemplate_stagingLocation: Option<String>,
     /// Query parameter: gcsPath
-    pub gcsPath: Option<Option<String>>,
+    pub gcsPath: Option<String>,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1b3/projects/{projectId}/templates:launch

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -679,8 +681,8 @@ pub fn slides_presentations_pages_get_thumbnail_builder<R>(
     client: &SimpleHttpClient<R>,
     presentationId: &String,
     pageObjectId: &String,
-    thumbnailProperties_mimeType: &Option<Option<String>>,
-    thumbnailProperties_thumbnailSize: &Option<Option<String>>,
+    thumbnailProperties_mimeType: &Option<String>,
+    thumbnailProperties_thumbnailSize: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -825,9 +827,9 @@ pub struct SlidesPresentationsPagesGetThumbnailArgs {
     /// Path parameter: pageObjectId
     pub pageObjectId: String,
     /// Query parameter: thumbnailProperties_mimeType
-    pub thumbnailProperties_mimeType: Option<Option<String>>,
+    pub thumbnailProperties_mimeType: Option<String>,
     /// Query parameter: thumbnailProperties_thumbnailSize
-    pub thumbnailProperties_thumbnailSize: Option<Option<String>>,
+    pub thumbnailProperties_thumbnailSize: Option<String>,
 }
 
 /// GET v1/presentations/{presentationId}/pages/{pageObjectId}/thumbnail
@@ -877,29 +879,6 @@ impl ResourceIdentifier<SlidesPresentationsBatchUpdateArgs> for BatchUpdatePrese
 
     fn resource_kind(&self) -> &'static str {
         "gcp::slides::BatchUpdatePresentationResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Presentation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Presentation with SlidesPresentationsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SlidesPresentationsCreateArgs> for Presentation {
-    fn generate_resource_id(&self, input: &SlidesPresentationsCreateArgs) -> String {
-        "gcp::slides::Presentation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::slides::Presentation"
     }
 
     fn provider(&self) -> &'static str {

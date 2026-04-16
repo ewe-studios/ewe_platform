@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -346,8 +348,8 @@ pub fn docs_documents_create(
 pub fn docs_documents_get_builder<R>(
     client: &SimpleHttpClient<R>,
     documentId: &String,
-    includeTabsContent: &Option<Option<String>>,
-    suggestionsViewMode: &Option<Option<String>>,
+    includeTabsContent: &Option<String>,
+    suggestionsViewMode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -487,9 +489,9 @@ pub struct DocsDocumentsGetArgs {
     /// Path parameter: documentId
     pub documentId: String,
     /// Query parameter: includeTabsContent
-    pub includeTabsContent: Option<Option<String>>,
+    pub includeTabsContent: Option<String>,
     /// Query parameter: suggestionsViewMode
-    pub suggestionsViewMode: Option<Option<String>>,
+    pub suggestionsViewMode: Option<String>,
 }
 
 /// GET v1/documents/{documentId}
@@ -538,29 +540,6 @@ impl ResourceIdentifier<DocsDocumentsBatchUpdateArgs> for BatchUpdateDocumentRes
 
     fn resource_kind(&self) -> &'static str {
         "gcp::docs::BatchUpdateDocumentResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Document
-// =============================================================================
-
-/// ResourceIdentifier implementation for Document with DocsDocumentsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DocsDocumentsCreateArgs> for Document {
-    fn generate_resource_id(&self, input: &DocsDocumentsCreateArgs) -> String {
-        "gcp::docs::Document".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::docs::Document"
     }
 
     fn provider(&self) -> &'static str {

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -198,8 +200,8 @@ pub fn checks_accounts_apps_get(
 pub fn checks_accounts_apps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -347,9 +349,9 @@ pub struct ChecksAccountsAppsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha/accounts/{accountsId}/apps
@@ -868,10 +870,10 @@ pub fn checks_accounts_apps_operations_get(
 pub fn checks_accounts_apps_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1022,13 +1024,13 @@ pub struct ChecksAccountsAppsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1alpha/accounts/{accountsId}/apps/{appsId}/operations
@@ -1231,7 +1233,7 @@ pub fn checks_accounts_apps_operations_wait(
 pub fn checks_accounts_apps_reports_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    checksFilter: &Option<Option<String>>,
+    checksFilter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1375,7 +1377,7 @@ pub struct ChecksAccountsAppsReportsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: checksFilter
-    pub checksFilter: Option<Option<String>>,
+    pub checksFilter: Option<String>,
 }
 
 /// GET v1alpha/accounts/{accountsId}/apps/{appsId}/reports/{reportsId}
@@ -1413,10 +1415,10 @@ pub fn checks_accounts_apps_reports_get(
 pub fn checks_accounts_apps_reports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    checksFilter: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    checksFilter: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1570,13 +1572,13 @@ pub struct ChecksAccountsAppsReportsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: checksFilter
-    pub checksFilter: Option<Option<String>>,
+    pub checksFilter: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha/accounts/{accountsId}/apps/{appsId}/reports
@@ -2109,9 +2111,9 @@ pub fn checks_accounts_repos_scans_get(
 pub fn checks_accounts_repos_scans_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2262,11 +2264,11 @@ pub struct ChecksAccountsReposScansListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha/accounts/{accountsId}/repos/{reposId}/scans
@@ -2932,31 +2934,6 @@ impl ResourceIdentifier<ChecksAccountsReposScansListArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::checks::GoogleChecksRepoScanV1alphaListRepoScansResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleChecksAisafetyV1alphaClassifyContentResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleChecksAisafetyV1alphaClassifyContentResponse with ChecksAisafetyClassifyContentArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ChecksAisafetyClassifyContentArgs>
-    for GoogleChecksAisafetyV1alphaClassifyContentResponse
-{
-    fn generate_resource_id(&self, input: &ChecksAisafetyClassifyContentArgs) -> String {
-        "gcp::checks::GoogleChecksAisafetyV1alphaClassifyContentResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::checks::GoogleChecksAisafetyV1alphaClassifyContentResponse"
     }
 
     fn provider(&self) -> &'static str {

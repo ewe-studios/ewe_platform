@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn netapp_projects_locations_get(
 pub fn netapp_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct NetappProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,7 +395,7 @@ pub fn netapp_projects_locations_list(
 pub fn netapp_projects_locations_active_directories_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    activeDirectoryId: &Option<Option<String>>,
+    activeDirectoryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -533,7 +535,7 @@ pub struct NetappProjectsLocationsActiveDirectoriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: activeDirectoryId
-    pub activeDirectoryId: Option<Option<String>>,
+    pub activeDirectoryId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/activeDirectories
@@ -895,10 +897,10 @@ pub fn netapp_projects_locations_active_directories_get(
 pub fn netapp_projects_locations_active_directories_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1051,13 +1053,13 @@ pub struct NetappProjectsLocationsActiveDirectoriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories
@@ -1102,7 +1104,7 @@ pub fn netapp_projects_locations_active_directories_list(
 pub fn netapp_projects_locations_active_directories_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1242,7 +1244,7 @@ pub struct NetappProjectsLocationsActiveDirectoriesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
@@ -1280,7 +1282,7 @@ pub fn netapp_projects_locations_active_directories_patch(
 pub fn netapp_projects_locations_backup_policies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    backupPolicyId: &Option<Option<String>>,
+    backupPolicyId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1420,7 +1422,7 @@ pub struct NetappProjectsLocationsBackupPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: backupPolicyId
-    pub backupPolicyId: Option<Option<String>>,
+    pub backupPolicyId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/backupPolicies
@@ -1782,10 +1784,10 @@ pub fn netapp_projects_locations_backup_policies_get(
 pub fn netapp_projects_locations_backup_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1938,13 +1940,13 @@ pub struct NetappProjectsLocationsBackupPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies
@@ -1989,7 +1991,7 @@ pub fn netapp_projects_locations_backup_policies_list(
 pub fn netapp_projects_locations_backup_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2129,7 +2131,7 @@ pub struct NetappProjectsLocationsBackupPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
@@ -2167,7 +2169,7 @@ pub fn netapp_projects_locations_backup_policies_patch(
 pub fn netapp_projects_locations_backup_vaults_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    backupVaultId: &Option<Option<String>>,
+    backupVaultId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2307,7 +2309,7 @@ pub struct NetappProjectsLocationsBackupVaultsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: backupVaultId
-    pub backupVaultId: Option<Option<String>>,
+    pub backupVaultId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults
@@ -2665,10 +2667,10 @@ pub fn netapp_projects_locations_backup_vaults_get(
 pub fn netapp_projects_locations_backup_vaults_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2819,13 +2821,13 @@ pub struct NetappProjectsLocationsBackupVaultsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults
@@ -2868,7 +2870,7 @@ pub fn netapp_projects_locations_backup_vaults_list(
 pub fn netapp_projects_locations_backup_vaults_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3008,7 +3010,7 @@ pub struct NetappProjectsLocationsBackupVaultsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
@@ -3046,7 +3048,7 @@ pub fn netapp_projects_locations_backup_vaults_patch(
 pub fn netapp_projects_locations_backup_vaults_backups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    backupId: &Option<Option<String>>,
+    backupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3186,7 +3188,7 @@ pub struct NetappProjectsLocationsBackupVaultsBackupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: backupId
-    pub backupId: Option<Option<String>>,
+    pub backupId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups
@@ -3545,10 +3547,10 @@ pub fn netapp_projects_locations_backup_vaults_backups_get(
 pub fn netapp_projects_locations_backup_vaults_backups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3699,13 +3701,13 @@ pub struct NetappProjectsLocationsBackupVaultsBackupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups
@@ -3748,7 +3750,7 @@ pub fn netapp_projects_locations_backup_vaults_backups_list(
 pub fn netapp_projects_locations_backup_vaults_backups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3888,7 +3890,7 @@ pub struct NetappProjectsLocationsBackupVaultsBackupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
@@ -3926,7 +3928,7 @@ pub fn netapp_projects_locations_backup_vaults_backups_patch(
 pub fn netapp_projects_locations_host_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    hostGroupId: &Option<Option<String>>,
+    hostGroupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4066,7 +4068,7 @@ pub struct NetappProjectsLocationsHostGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: hostGroupId
-    pub hostGroupId: Option<Option<String>>,
+    pub hostGroupId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/hostGroups
@@ -4424,10 +4426,10 @@ pub fn netapp_projects_locations_host_groups_get(
 pub fn netapp_projects_locations_host_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4578,13 +4580,13 @@ pub struct NetappProjectsLocationsHostGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups
@@ -4627,7 +4629,7 @@ pub fn netapp_projects_locations_host_groups_list(
 pub fn netapp_projects_locations_host_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4767,7 +4769,7 @@ pub struct NetappProjectsLocationsHostGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
@@ -4802,7 +4804,7 @@ pub fn netapp_projects_locations_host_groups_patch(
 pub fn netapp_projects_locations_kms_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    kmsConfigId: &Option<Option<String>>,
+    kmsConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4942,7 +4944,7 @@ pub struct NetappProjectsLocationsKmsConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: kmsConfigId
-    pub kmsConfigId: Option<Option<String>>,
+    pub kmsConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs
@@ -5460,10 +5462,10 @@ pub fn netapp_projects_locations_kms_configs_get(
 pub fn netapp_projects_locations_kms_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5614,13 +5616,13 @@ pub struct NetappProjectsLocationsKmsConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs
@@ -5663,7 +5665,7 @@ pub fn netapp_projects_locations_kms_configs_list(
 pub fn netapp_projects_locations_kms_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5803,7 +5805,7 @@ pub struct NetappProjectsLocationsKmsConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
@@ -6490,10 +6492,10 @@ pub fn netapp_projects_locations_operations_get(
 pub fn netapp_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6644,13 +6646,13 @@ pub struct NetappProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -6693,7 +6695,7 @@ pub fn netapp_projects_locations_operations_list(
 pub fn netapp_projects_locations_storage_pools_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    storagePoolId: &Option<Option<String>>,
+    storagePoolId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6833,7 +6835,7 @@ pub struct NetappProjectsLocationsStoragePoolsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: storagePoolId
-    pub storagePoolId: Option<Option<String>>,
+    pub storagePoolId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools
@@ -7191,10 +7193,10 @@ pub fn netapp_projects_locations_storage_pools_get(
 pub fn netapp_projects_locations_storage_pools_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7345,13 +7347,13 @@ pub struct NetappProjectsLocationsStoragePoolsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools
@@ -7394,7 +7396,7 @@ pub fn netapp_projects_locations_storage_pools_list(
 pub fn netapp_projects_locations_storage_pools_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7534,7 +7536,7 @@ pub struct NetappProjectsLocationsStoragePoolsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
@@ -8566,7 +8568,7 @@ pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_post(
 pub fn netapp_projects_locations_volumes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    volumeId: &Option<Option<String>>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8706,7 +8708,7 @@ pub struct NetappProjectsLocationsVolumesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: volumeId
-    pub volumeId: Option<Option<String>>,
+    pub volumeId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/volumes
@@ -8741,7 +8743,7 @@ pub fn netapp_projects_locations_volumes_create(
 pub fn netapp_projects_locations_volumes_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8881,7 +8883,7 @@ pub struct NetappProjectsLocationsVolumesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
@@ -9236,10 +9238,10 @@ pub fn netapp_projects_locations_volumes_get(
 pub fn netapp_projects_locations_volumes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9390,13 +9392,13 @@ pub struct NetappProjectsLocationsVolumesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes
@@ -9439,7 +9441,7 @@ pub fn netapp_projects_locations_volumes_list(
 pub fn netapp_projects_locations_volumes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9579,7 +9581,7 @@ pub struct NetappProjectsLocationsVolumesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
@@ -9934,7 +9936,7 @@ pub fn netapp_projects_locations_volumes_revert(
 pub fn netapp_projects_locations_volumes_quota_rules_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    quotaRuleId: &Option<Option<String>>,
+    quotaRuleId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10074,7 +10076,7 @@ pub struct NetappProjectsLocationsVolumesQuotaRulesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: quotaRuleId
-    pub quotaRuleId: Option<Option<String>>,
+    pub quotaRuleId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules
@@ -10432,10 +10434,10 @@ pub fn netapp_projects_locations_volumes_quota_rules_get(
 pub fn netapp_projects_locations_volumes_quota_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10586,13 +10588,13 @@ pub struct NetappProjectsLocationsVolumesQuotaRulesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules
@@ -10635,7 +10637,7 @@ pub fn netapp_projects_locations_volumes_quota_rules_list(
 pub fn netapp_projects_locations_volumes_quota_rules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10775,7 +10777,7 @@ pub struct NetappProjectsLocationsVolumesQuotaRulesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
@@ -10813,7 +10815,7 @@ pub fn netapp_projects_locations_volumes_quota_rules_patch(
 pub fn netapp_projects_locations_volumes_replications_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    replicationId: &Option<Option<String>>,
+    replicationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10953,7 +10955,7 @@ pub struct NetappProjectsLocationsVolumesReplicationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: replicationId
-    pub replicationId: Option<Option<String>>,
+    pub replicationId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications
@@ -11474,10 +11476,10 @@ pub fn netapp_projects_locations_volumes_replications_get(
 pub fn netapp_projects_locations_volumes_replications_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11628,13 +11630,13 @@ pub struct NetappProjectsLocationsVolumesReplicationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications
@@ -11677,7 +11679,7 @@ pub fn netapp_projects_locations_volumes_replications_list(
 pub fn netapp_projects_locations_volumes_replications_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11817,7 +11819,7 @@ pub struct NetappProjectsLocationsVolumesReplicationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
@@ -12498,7 +12500,7 @@ pub fn netapp_projects_locations_volumes_replications_sync(
 pub fn netapp_projects_locations_volumes_snapshots_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    snapshotId: &Option<Option<String>>,
+    snapshotId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12638,7 +12640,7 @@ pub struct NetappProjectsLocationsVolumesSnapshotsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: snapshotId
-    pub snapshotId: Option<Option<String>>,
+    pub snapshotId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
@@ -12996,10 +12998,10 @@ pub fn netapp_projects_locations_volumes_snapshots_get(
 pub fn netapp_projects_locations_volumes_snapshots_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13150,13 +13152,13 @@ pub struct NetappProjectsLocationsVolumesSnapshotsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
@@ -13199,7 +13201,7 @@ pub fn netapp_projects_locations_volumes_snapshots_list(
 pub fn netapp_projects_locations_volumes_snapshots_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13339,7 +13341,7 @@ pub struct NetappProjectsLocationsVolumesSnapshotsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}

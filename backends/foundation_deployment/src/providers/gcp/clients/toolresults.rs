@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -358,7 +360,7 @@ pub fn toolresults_projects_initialize_settings(
 pub fn toolresults_projects_histories_create_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -498,7 +500,7 @@ pub struct ToolresultsProjectsHistoriesCreateArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST toolresults/v1beta3/projects/{projectId}/histories
@@ -697,9 +699,9 @@ pub fn toolresults_projects_histories_get(
 pub fn toolresults_projects_histories_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    filterByName: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filterByName: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -847,11 +849,11 @@ pub struct ToolresultsProjectsHistoriesListArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: filterByName
-    pub filterByName: Option<Option<String>>,
+    pub filterByName: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories
@@ -894,7 +896,7 @@ pub fn toolresults_projects_histories_executions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1037,7 +1039,7 @@ pub struct ToolresultsProjectsHistoriesExecutionsCreateArgs {
     /// Path parameter: historyId
     pub historyId: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
@@ -1250,8 +1252,8 @@ pub fn toolresults_projects_histories_executions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     historyId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1399,9 +1401,9 @@ pub struct ToolresultsProjectsHistoriesExecutionsListArgs {
     /// Path parameter: historyId
     pub historyId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
@@ -1445,7 +1447,7 @@ pub fn toolresults_projects_histories_executions_patch_builder<R>(
     projectId: &String,
     historyId: &String,
     executionId: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1591,7 +1593,7 @@ pub struct ToolresultsProjectsHistoriesExecutionsPatchArgs {
     /// Path parameter: executionId
     pub executionId: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}
@@ -2174,8 +2176,8 @@ pub fn toolresults_projects_histories_executions_environments_list_builder<R>(
     projectId: &String,
     historyId: &String,
     executionId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2326,9 +2328,9 @@ pub struct ToolresultsProjectsHistoriesExecutionsEnvironmentsListArgs {
     /// Path parameter: executionId
     pub executionId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/environments
@@ -2371,7 +2373,7 @@ pub fn toolresults_projects_histories_executions_environments_list(
 pub fn toolresults_projects_histories_executions_steps_accessibility_clusters_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    locale: &Option<Option<String>>,
+    locale: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2516,7 +2518,7 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsAccessibilityClustersArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
 }
 
 /// GET toolresults/v1beta3/projects/{projectsId}/histories/{historiesId}/executions/{executionsId}/steps/{stepsId}:accessibilityClusters
@@ -2560,7 +2562,7 @@ pub fn toolresults_projects_histories_executions_steps_create_builder<R>(
     projectId: &String,
     historyId: &String,
     executionId: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2706,7 +2708,7 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsCreateArgs {
     /// Path parameter: executionId
     pub executionId: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
@@ -3109,8 +3111,8 @@ pub fn toolresults_projects_histories_executions_steps_list_builder<R>(
     projectId: &String,
     historyId: &String,
     executionId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3261,9 +3263,9 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsListArgs {
     /// Path parameter: executionId
     pub executionId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
@@ -3309,7 +3311,7 @@ pub fn toolresults_projects_histories_executions_steps_patch_builder<R>(
     historyId: &String,
     executionId: &String,
     stepId: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3458,7 +3460,7 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsPatchArgs {
     /// Path parameter: stepId
     pub stepId: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}
@@ -4237,7 +4239,7 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list_b
     historyId: &String,
     executionId: &String,
     stepId: &String,
-    filter: &Option<Option<String>>,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4391,7 +4393,7 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesListArgs {
     /// Path parameter: stepId
     pub stepId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
@@ -4628,8 +4630,8 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
     executionId: &String,
     stepId: &String,
     sampleSeriesId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4789,9 +4791,9 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesSamplesLis
     /// Path parameter: sampleSeriesId
     pub sampleSeriesId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}/samples
@@ -5023,8 +5025,8 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_list_builder<R
     historyId: &String,
     executionId: &String,
     stepId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5178,9 +5180,9 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsTestCasesListArgs {
     /// Path parameter: stepId
     pub stepId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/testCases
@@ -5227,8 +5229,8 @@ pub fn toolresults_projects_histories_executions_steps_thumbnails_list_builder<R
     historyId: &String,
     executionId: &String,
     stepId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5384,9 +5386,9 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsThumbnailsListArgs {
     /// Path parameter: stepId
     pub stepId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/thumbnails

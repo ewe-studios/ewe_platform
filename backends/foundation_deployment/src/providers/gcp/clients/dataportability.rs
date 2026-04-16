@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -980,29 +982,6 @@ pub fn dataportability_portability_archive_initiate(
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for CheckAccessTypeResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for CheckAccessTypeResponse with DataportabilityAccessTypeCheckArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DataportabilityAccessTypeCheckArgs> for CheckAccessTypeResponse {
-    fn generate_resource_id(&self, input: &DataportabilityAccessTypeCheckArgs) -> String {
-        "gcp::dataportability::CheckAccessTypeResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::dataportability::CheckAccessTypeResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for CancelPortabilityArchiveResponse
 // =============================================================================
 
@@ -1078,57 +1057,6 @@ impl ResourceIdentifier<DataportabilityArchiveJobsRetryArgs> for RetryPortabilit
 
     fn resource_kind(&self) -> &'static str {
         "gcp::dataportability::RetryPortabilityArchiveResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Empty
-// =============================================================================
-
-/// ResourceIdentifier implementation for Empty with DataportabilityAuthorizationResetArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DataportabilityAuthorizationResetArgs> for Empty {
-    fn generate_resource_id(&self, input: &DataportabilityAuthorizationResetArgs) -> String {
-        "gcp::dataportability::Empty".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::dataportability::Empty"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for InitiatePortabilityArchiveResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for InitiatePortabilityArchiveResponse with DataportabilityPortabilityArchiveInitiateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DataportabilityPortabilityArchiveInitiateArgs>
-    for InitiatePortabilityArchiveResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &DataportabilityPortabilityArchiveInitiateArgs,
-    ) -> String {
-        "gcp::dataportability::InitiatePortabilityArchiveResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::dataportability::InitiatePortabilityArchiveResponse"
     }
 
     fn provider(&self) -> &'static str {

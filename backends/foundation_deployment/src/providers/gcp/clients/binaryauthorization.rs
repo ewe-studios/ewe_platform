@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -350,7 +352,7 @@ pub fn binaryauthorization_projects_update_policy(
 pub fn binaryauthorization_projects_attestors_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    attestorId: &Option<Option<String>>,
+    attestorId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -490,7 +492,7 @@ pub struct BinaryauthorizationProjectsAttestorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: attestorId
-    pub attestorId: Option<Option<String>>,
+    pub attestorId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/attestors
@@ -848,7 +850,7 @@ pub fn binaryauthorization_projects_attestors_get(
 pub fn binaryauthorization_projects_attestors_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -988,7 +990,7 @@ pub struct BinaryauthorizationProjectsAttestorsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/attestors/{attestorsId}:getIamPolicy
@@ -1026,8 +1028,8 @@ pub fn binaryauthorization_projects_attestors_get_iam_policy(
 pub fn binaryauthorization_projects_attestors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1172,9 +1174,9 @@ pub struct BinaryauthorizationProjectsAttestorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/attestors
@@ -2044,7 +2046,7 @@ pub fn binaryauthorization_projects_platforms_gke_policies_evaluate(
 pub fn binaryauthorization_projects_platforms_policies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    policyId: &Option<Option<String>>,
+    policyId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2186,7 +2188,7 @@ pub struct BinaryauthorizationProjectsPlatformsPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: policyId
-    pub policyId: Option<Option<String>>,
+    pub policyId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/platforms/{platformsId}/policies
@@ -2226,7 +2228,7 @@ pub fn binaryauthorization_projects_platforms_policies_create(
 pub fn binaryauthorization_projects_platforms_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2366,7 +2368,7 @@ pub struct BinaryauthorizationProjectsPlatformsPoliciesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
@@ -2566,8 +2568,8 @@ pub fn binaryauthorization_projects_platforms_policies_get(
 pub fn binaryauthorization_projects_platforms_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2714,9 +2716,9 @@ pub struct BinaryauthorizationProjectsPlatformsPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies
@@ -2926,7 +2928,7 @@ pub fn binaryauthorization_projects_platforms_policies_replace_platform_policy(
 pub fn binaryauthorization_projects_policy_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3066,7 +3068,7 @@ pub struct BinaryauthorizationProjectsPolicyGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/policy:getIamPolicy

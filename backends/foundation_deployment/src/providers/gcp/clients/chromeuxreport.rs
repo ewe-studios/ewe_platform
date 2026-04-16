@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -324,50 +326,4 @@ pub fn chromeuxreport_records_query_record(
 > {
     let builder = chromeuxreport_records_query_record_builder(client)?;
     chromeuxreport_records_query_record_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for QueryHistoryResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for QueryHistoryResponse with ChromeuxreportRecordsQueryHistoryRecordArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ChromeuxreportRecordsQueryHistoryRecordArgs> for QueryHistoryResponse {
-    fn generate_resource_id(&self, input: &ChromeuxreportRecordsQueryHistoryRecordArgs) -> String {
-        "gcp::chromeuxreport::QueryHistoryResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::chromeuxreport::QueryHistoryResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for QueryResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for QueryResponse with ChromeuxreportRecordsQueryRecordArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ChromeuxreportRecordsQueryRecordArgs> for QueryResponse {
-    fn generate_resource_id(&self, input: &ChromeuxreportRecordsQueryRecordArgs) -> String {
-        "gcp::chromeuxreport::QueryResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::chromeuxreport::QueryResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }

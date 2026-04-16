@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -1052,35 +1054,6 @@ pub fn searchads360_search_ads360_fields_search(
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse with Searchads360CustomersListAccessibleCustomersArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<Searchads360CustomersListAccessibleCustomersArgs>
-    for GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &Searchads360CustomersListAccessibleCustomersArgs,
-    ) -> String {
-        "gcp::searchads360::GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse"
-            .to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::searchads360::GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for GoogleAdsSearchads360V0ResourcesCustomColumn
 // =============================================================================
 
@@ -1185,32 +1158,6 @@ impl ResourceIdentifier<Searchads360SearchAds360FieldsGetArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::searchads360::GoogleAdsSearchads360V0ResourcesSearchAds360Field"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse with Searchads360SearchAds360FieldsSearchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<Searchads360SearchAds360FieldsSearchArgs>
-    for GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse
-{
-    fn generate_resource_id(&self, input: &Searchads360SearchAds360FieldsSearchArgs) -> String {
-        "gcp::searchads360::GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse"
-            .to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::searchads360::GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse"
     }
 
     fn provider(&self) -> &'static str {

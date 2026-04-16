@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -513,10 +515,10 @@ pub fn securityposture_organizations_locations_operations_get(
 pub fn securityposture_organizations_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -667,13 +669,13 @@ pub struct SecuritypostureOrganizationsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
@@ -716,7 +718,7 @@ pub fn securityposture_organizations_locations_operations_list(
 pub fn securityposture_organizations_locations_posture_deployments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    postureDeploymentId: &Option<Option<String>>,
+    postureDeploymentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -856,7 +858,7 @@ pub struct SecuritypostureOrganizationsLocationsPostureDeploymentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: postureDeploymentId
-    pub postureDeploymentId: Option<Option<String>>,
+    pub postureDeploymentId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/postureDeployments
@@ -894,7 +896,7 @@ pub fn securityposture_organizations_locations_posture_deployments_create(
 pub fn securityposture_organizations_locations_posture_deployments_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1034,7 +1036,7 @@ pub struct SecuritypostureOrganizationsLocationsPostureDeploymentsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/postureDeployments/{postureDeploymentsId}
@@ -1236,9 +1238,9 @@ pub fn securityposture_organizations_locations_posture_deployments_get(
 pub fn securityposture_organizations_locations_posture_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1388,11 +1390,11 @@ pub struct SecuritypostureOrganizationsLocationsPostureDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postureDeployments
@@ -1436,7 +1438,7 @@ pub fn securityposture_organizations_locations_posture_deployments_list(
 pub fn securityposture_organizations_locations_posture_deployments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1576,7 +1578,7 @@ pub struct SecuritypostureOrganizationsLocationsPostureDeploymentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/postureDeployments/{postureDeploymentsId}
@@ -1614,7 +1616,7 @@ pub fn securityposture_organizations_locations_posture_deployments_patch(
 pub fn securityposture_organizations_locations_posture_templates_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    revisionId: &Option<Option<String>>,
+    revisionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1756,7 +1758,7 @@ pub struct SecuritypostureOrganizationsLocationsPostureTemplatesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: revisionId
-    pub revisionId: Option<Option<String>>,
+    pub revisionId: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postureTemplates/{postureTemplatesId}
@@ -1796,9 +1798,9 @@ pub fn securityposture_organizations_locations_posture_templates_get(
 pub fn securityposture_organizations_locations_posture_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1948,11 +1950,11 @@ pub struct SecuritypostureOrganizationsLocationsPostureTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postureTemplates
@@ -1996,7 +1998,7 @@ pub fn securityposture_organizations_locations_posture_templates_list(
 pub fn securityposture_organizations_locations_postures_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    postureId: &Option<Option<String>>,
+    postureId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2136,7 +2138,7 @@ pub struct SecuritypostureOrganizationsLocationsPosturesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: postureId
-    pub postureId: Option<Option<String>>,
+    pub postureId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/postures
@@ -2174,7 +2176,7 @@ pub fn securityposture_organizations_locations_postures_create(
 pub fn securityposture_organizations_locations_postures_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2314,7 +2316,7 @@ pub struct SecuritypostureOrganizationsLocationsPosturesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/postures/{posturesId}
@@ -2511,7 +2513,7 @@ pub fn securityposture_organizations_locations_postures_extract(
 pub fn securityposture_organizations_locations_postures_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    revisionId: &Option<Option<String>>,
+    revisionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2651,7 +2653,7 @@ pub struct SecuritypostureOrganizationsLocationsPosturesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: revisionId
-    pub revisionId: Option<Option<String>>,
+    pub revisionId: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postures/{posturesId}
@@ -2689,9 +2691,9 @@ pub fn securityposture_organizations_locations_postures_get(
 pub fn securityposture_organizations_locations_postures_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2839,11 +2841,11 @@ pub struct SecuritypostureOrganizationsLocationsPosturesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postures
@@ -2885,8 +2887,8 @@ pub fn securityposture_organizations_locations_postures_list(
 pub fn securityposture_organizations_locations_postures_list_revisions_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3033,9 +3035,9 @@ pub struct SecuritypostureOrganizationsLocationsPosturesListRevisionsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postures/{posturesId}:listRevisions
@@ -3078,8 +3080,8 @@ pub fn securityposture_organizations_locations_postures_list_revisions(
 pub fn securityposture_organizations_locations_postures_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    revisionId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    revisionId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3222,9 +3224,9 @@ pub struct SecuritypostureOrganizationsLocationsPosturesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: revisionId
-    pub revisionId: Option<Option<String>>,
+    pub revisionId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/postures/{posturesId}
@@ -3589,9 +3591,9 @@ pub fn securityposture_organizations_locations_reports_get(
 pub fn securityposture_organizations_locations_reports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3739,11 +3741,11 @@ pub struct SecuritypostureOrganizationsLocationsReportsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/reports
@@ -3945,10 +3947,10 @@ pub fn securityposture_projects_locations_get(
 pub fn securityposture_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4099,13 +4101,13 @@ pub struct SecuritypostureProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations

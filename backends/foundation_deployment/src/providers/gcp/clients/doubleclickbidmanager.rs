@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -494,9 +496,9 @@ pub fn doubleclickbidmanager_queries_get(
 
 pub fn doubleclickbidmanager_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -639,11 +641,11 @@ pub fn doubleclickbidmanager_queries_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DoubleclickbidmanagerQueriesListArgs {
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET queries
@@ -684,7 +686,7 @@ pub fn doubleclickbidmanager_queries_list(
 pub fn doubleclickbidmanager_queries_run_builder<R>(
     client: &SimpleHttpClient<R>,
     queryId: &String,
-    synchronous: &Option<Option<String>>,
+    synchronous: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -824,7 +826,7 @@ pub struct DoubleclickbidmanagerQueriesRunArgs {
     /// Path parameter: queryId
     pub queryId: String,
     /// Query parameter: synchronous
-    pub synchronous: Option<Option<String>>,
+    pub synchronous: Option<String>,
 }
 
 /// POST queries/{queryId}:run
@@ -1023,9 +1025,9 @@ pub fn doubleclickbidmanager_queries_reports_get(
 pub fn doubleclickbidmanager_queries_reports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     queryId: &String,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1173,11 +1175,11 @@ pub struct DoubleclickbidmanagerQueriesReportsListArgs {
     /// Path parameter: queryId
     pub queryId: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET queries/{queryId}/reports
@@ -1208,29 +1210,6 @@ pub fn doubleclickbidmanager_queries_reports_list(
         &args.pageToken,
     )?;
     doubleclickbidmanager_queries_reports_list_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Query
-// =============================================================================
-
-/// ResourceIdentifier implementation for Query with DoubleclickbidmanagerQueriesCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DoubleclickbidmanagerQueriesCreateArgs> for Query {
-    fn generate_resource_id(&self, input: &DoubleclickbidmanagerQueriesCreateArgs) -> String {
-        "gcp::doubleclickbidmanager::Query".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::doubleclickbidmanager::Query"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================

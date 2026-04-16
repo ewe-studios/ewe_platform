@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -31,7 +33,7 @@ pub fn dns_changes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -173,7 +175,7 @@ pub struct DnsChangesCreateArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// POST dns/v1/projects/{project}/managedZones/{managedZone}/changes
@@ -214,7 +216,7 @@ pub fn dns_changes_get_builder<R>(
     project: &String,
     managedZone: &String,
     changeId: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -358,7 +360,7 @@ pub struct DnsChangesGetArgs {
     /// Path parameter: changeId
     pub changeId: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes/{changeId}
@@ -399,10 +401,10 @@ pub fn dns_changes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    sortBy: &Option<Option<String>>,
-    sortOrder: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    sortBy: &Option<String>,
+    sortOrder: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -555,13 +557,13 @@ pub struct DnsChangesListArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: sortBy
-    pub sortBy: Option<Option<String>>,
+    pub sortBy: Option<String>,
     /// Query parameter: sortOrder
-    pub sortOrder: Option<Option<String>>,
+    pub sortOrder: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes
@@ -607,8 +609,8 @@ pub fn dns_dns_keys_get_builder<R>(
     project: &String,
     managedZone: &String,
     dnsKeyId: &String,
-    clientOperationId: &Option<Option<String>>,
-    digestType: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
+    digestType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -755,9 +757,9 @@ pub struct DnsDnsKeysGetArgs {
     /// Path parameter: dnsKeyId
     pub dnsKeyId: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
     /// Query parameter: digestType
-    pub digestType: Option<Option<String>>,
+    pub digestType: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/dnsKeys/{dnsKeyId}
@@ -799,9 +801,9 @@ pub fn dns_dns_keys_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
-    digestType: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    digestType: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -951,11 +953,11 @@ pub struct DnsDnsKeysListArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: digestType
-    pub digestType: Option<Option<String>>,
+    pub digestType: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/dnsKeys
@@ -1000,7 +1002,7 @@ pub fn dns_managed_zone_operations_get_builder<R>(
     project: &String,
     managedZone: &String,
     operation: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1144,7 +1146,7 @@ pub struct DnsManagedZoneOperationsGetArgs {
     /// Path parameter: operation
     pub operation: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/operations/{operation}
@@ -1185,9 +1187,9 @@ pub fn dns_managed_zone_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    sortBy: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    sortBy: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1339,11 +1341,11 @@ pub struct DnsManagedZoneOperationsListArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: sortBy
-    pub sortBy: Option<Option<String>>,
+    pub sortBy: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/operations
@@ -1388,7 +1390,7 @@ pub fn dns_managed_zone_operations_list(
 pub fn dns_managed_zones_create_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1528,7 +1530,7 @@ pub struct DnsManagedZonesCreateArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// POST dns/v1/projects/{project}/managedZones
@@ -1563,7 +1565,7 @@ pub fn dns_managed_zones_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1702,7 +1704,7 @@ pub struct DnsManagedZonesDeleteArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// DELETE dns/v1/projects/{project}/managedZones/{managedZone}
@@ -1742,7 +1744,7 @@ pub fn dns_managed_zones_get_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1884,7 +1886,7 @@ pub struct DnsManagedZonesGetArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}
@@ -2087,9 +2089,9 @@ pub fn dns_managed_zones_get_iam_policy(
 pub fn dns_managed_zones_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    dnsName: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    dnsName: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2237,11 +2239,11 @@ pub struct DnsManagedZonesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: dnsName
-    pub dnsName: Option<Option<String>>,
+    pub dnsName: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones
@@ -2284,7 +2286,7 @@ pub fn dns_managed_zones_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2426,7 +2428,7 @@ pub struct DnsManagedZonesPatchArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// PATCH dns/v1/projects/{project}/managedZones/{managedZone}
@@ -2798,7 +2800,7 @@ pub fn dns_managed_zones_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2940,7 +2942,7 @@ pub struct DnsManagedZonesUpdateArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// PUT dns/v1/projects/{project}/managedZones/{managedZone}
@@ -2979,7 +2981,7 @@ pub fn dns_managed_zones_update(
 pub fn dns_policies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3119,7 +3121,7 @@ pub struct DnsPoliciesCreateArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// POST dns/v1/projects/{project}/policies
@@ -3154,7 +3156,7 @@ pub fn dns_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     policy: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3293,7 +3295,7 @@ pub struct DnsPoliciesDeleteArgs {
     /// Path parameter: policy
     pub policy: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// DELETE dns/v1/projects/{project}/policies/{policy}
@@ -3329,7 +3331,7 @@ pub fn dns_policies_get_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     policy: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3471,7 +3473,7 @@ pub struct DnsPoliciesGetArgs {
     /// Path parameter: policy
     pub policy: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/policies/{policy}
@@ -3506,8 +3508,8 @@ pub fn dns_policies_get(
 pub fn dns_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3652,9 +3654,9 @@ pub struct DnsPoliciesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/policies
@@ -3692,7 +3694,7 @@ pub fn dns_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     policy: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3836,7 +3838,7 @@ pub struct DnsPoliciesPatchArgs {
     /// Path parameter: policy
     pub policy: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// PATCH dns/v1/projects/{project}/policies/{policy}
@@ -3874,7 +3876,7 @@ pub fn dns_policies_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     policy: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4018,7 +4020,7 @@ pub struct DnsPoliciesUpdateArgs {
     /// Path parameter: policy
     pub policy: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// PUT dns/v1/projects/{project}/policies/{policy}
@@ -4055,7 +4057,7 @@ pub fn dns_policies_update(
 pub fn dns_projects_get_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4192,7 +4194,7 @@ pub struct DnsProjectsGetArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}
@@ -4227,7 +4229,7 @@ pub fn dns_resource_record_sets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4371,7 +4373,7 @@ pub struct DnsResourceRecordSetsCreateArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// POST dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
@@ -4415,7 +4417,7 @@ pub fn dns_resource_record_sets_delete_builder<R>(
     managedZone: &String,
     name: &String,
     type_rs: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4565,7 +4567,7 @@ pub struct DnsResourceRecordSetsDeleteArgs {
     /// Path parameter: type
     pub type_rs: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// DELETE dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
@@ -4613,7 +4615,7 @@ pub fn dns_resource_record_sets_get_builder<R>(
     managedZone: &String,
     name: &String,
     type_rs: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4761,7 +4763,7 @@ pub struct DnsResourceRecordSetsGetArgs {
     /// Path parameter: type
     pub type_rs: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
@@ -4805,11 +4807,11 @@ pub fn dns_resource_record_sets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     managedZone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    name: &Option<String>,
+    pageToken: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4967,15 +4969,15 @@ pub struct DnsResourceRecordSetsListArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
@@ -5025,7 +5027,7 @@ pub fn dns_resource_record_sets_patch_builder<R>(
     managedZone: &String,
     name: &String,
     type_rs: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5173,7 +5175,7 @@ pub struct DnsResourceRecordSetsPatchArgs {
     /// Path parameter: type
     pub type_rs: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// PATCH dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
@@ -5216,7 +5218,7 @@ pub fn dns_resource_record_sets_patch(
 pub fn dns_response_policies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5358,7 +5360,7 @@ pub struct DnsResponsePoliciesCreateArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// POST dns/v1/projects/{project}/responsePolicies
@@ -5396,7 +5398,7 @@ pub fn dns_response_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5535,7 +5537,7 @@ pub struct DnsResponsePoliciesDeleteArgs {
     /// Path parameter: responsePolicy
     pub responsePolicy: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// DELETE dns/v1/projects/{project}/responsePolicies/{responsePolicy}
@@ -5575,7 +5577,7 @@ pub fn dns_response_policies_get_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5719,7 +5721,7 @@ pub struct DnsResponsePoliciesGetArgs {
     /// Path parameter: responsePolicy
     pub responsePolicy: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}
@@ -5760,8 +5762,8 @@ pub fn dns_response_policies_get(
 pub fn dns_response_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5908,9 +5910,9 @@ pub struct DnsResponsePoliciesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/responsePolicies
@@ -5954,7 +5956,7 @@ pub fn dns_response_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6100,7 +6102,7 @@ pub struct DnsResponsePoliciesPatchArgs {
     /// Path parameter: responsePolicy
     pub responsePolicy: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// PATCH dns/v1/projects/{project}/responsePolicies/{responsePolicy}
@@ -6144,7 +6146,7 @@ pub fn dns_response_policies_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6290,7 +6292,7 @@ pub struct DnsResponsePoliciesUpdateArgs {
     /// Path parameter: responsePolicy
     pub responsePolicy: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// PUT dns/v1/projects/{project}/responsePolicies/{responsePolicy}
@@ -6334,7 +6336,7 @@ pub fn dns_response_policy_rules_create_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6478,7 +6480,7 @@ pub struct DnsResponsePolicyRulesCreateArgs {
     /// Path parameter: responsePolicy
     pub responsePolicy: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// POST dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
@@ -6521,7 +6523,7 @@ pub fn dns_response_policy_rules_delete_builder<R>(
     project: &String,
     responsePolicy: &String,
     responsePolicyRule: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6662,7 +6664,7 @@ pub struct DnsResponsePolicyRulesDeleteArgs {
     /// Path parameter: responsePolicyRule
     pub responsePolicyRule: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// DELETE dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
@@ -6704,7 +6706,7 @@ pub fn dns_response_policy_rules_get_builder<R>(
     project: &String,
     responsePolicy: &String,
     responsePolicyRule: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6850,7 +6852,7 @@ pub struct DnsResponsePolicyRulesGetArgs {
     /// Path parameter: responsePolicyRule
     pub responsePolicyRule: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
@@ -6893,8 +6895,8 @@ pub fn dns_response_policy_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     responsePolicy: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7043,9 +7045,9 @@ pub struct DnsResponsePolicyRulesListArgs {
     /// Path parameter: responsePolicy
     pub responsePolicy: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
@@ -7091,7 +7093,7 @@ pub fn dns_response_policy_rules_patch_builder<R>(
     project: &String,
     responsePolicy: &String,
     responsePolicyRule: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7239,7 +7241,7 @@ pub struct DnsResponsePolicyRulesPatchArgs {
     /// Path parameter: responsePolicyRule
     pub responsePolicyRule: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// PATCH dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
@@ -7285,7 +7287,7 @@ pub fn dns_response_policy_rules_update_builder<R>(
     project: &String,
     responsePolicy: &String,
     responsePolicyRule: &String,
-    clientOperationId: &Option<Option<String>>,
+    clientOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7433,7 +7435,7 @@ pub struct DnsResponsePolicyRulesUpdateArgs {
     /// Path parameter: responsePolicyRule
     pub responsePolicyRule: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<Option<String>>,
+    pub clientOperationId: Option<String>,
 }
 
 /// PUT dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}

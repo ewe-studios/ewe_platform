@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -1229,9 +1231,9 @@ pub fn contactcenterinsights_projects_locations_get_settings(
 pub fn contactcenterinsights_projects_locations_list_all_feedback_labels_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1388,11 +1390,11 @@ pub struct ContactcenterinsightsProjectsLocationsListAllFeedbackLabelsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:listAllFeedbackLabels
@@ -1950,7 +1952,7 @@ pub fn contactcenterinsights_projects_locations_test_correlation_config(
 pub fn contactcenterinsights_projects_locations_update_correlation_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2098,7 +2100,7 @@ pub struct ContactcenterinsightsProjectsLocationsUpdateCorrelationConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/correlationConfig
@@ -2140,7 +2142,7 @@ pub fn contactcenterinsights_projects_locations_update_correlation_config(
 pub fn contactcenterinsights_projects_locations_update_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2285,7 +2287,7 @@ pub struct ContactcenterinsightsProjectsLocationsUpdateSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/settings
@@ -2834,8 +2836,8 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_get(
 pub fn contactcenterinsights_projects_locations_analysis_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2989,9 +2991,9 @@ pub struct ContactcenterinsightsProjectsLocationsAnalysisRulesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/analysisRules
@@ -3037,7 +3039,7 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_list(
 pub fn contactcenterinsights_projects_locations_analysis_rules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3182,7 +3184,7 @@ pub struct ContactcenterinsightsProjectsLocationsAnalysisRulesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/analysisRules/{analysisRulesId}
@@ -3224,7 +3226,7 @@ pub fn contactcenterinsights_projects_locations_analysis_rules_patch(
 pub fn contactcenterinsights_projects_locations_assessment_rules_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    assessmentRuleId: &Option<Option<String>>,
+    assessmentRuleId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3369,7 +3371,7 @@ pub struct ContactcenterinsightsProjectsLocationsAssessmentRulesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: assessmentRuleId
-    pub assessmentRuleId: Option<Option<String>>,
+    pub assessmentRuleId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/assessmentRules
@@ -3747,8 +3749,8 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_get(
 pub fn contactcenterinsights_projects_locations_assessment_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3902,9 +3904,9 @@ pub struct ContactcenterinsightsProjectsLocationsAssessmentRulesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/assessmentRules
@@ -3950,7 +3952,7 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_list(
 pub fn contactcenterinsights_projects_locations_assessment_rules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4095,7 +4097,7 @@ pub struct ContactcenterinsightsProjectsLocationsAssessmentRulesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/assessmentRules/{assessmentRulesId}
@@ -4137,7 +4139,7 @@ pub fn contactcenterinsights_projects_locations_assessment_rules_patch(
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    authorizedViewSetId: &Option<Option<String>>,
+    authorizedViewSetId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4285,7 +4287,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: authorizedViewSetId
-    pub authorizedViewSetId: Option<Option<String>>,
+    pub authorizedViewSetId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets
@@ -4327,7 +4329,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_create(
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4469,7 +4471,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}
@@ -4683,10 +4685,10 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_get(
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4846,13 +4848,13 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets
@@ -4900,7 +4902,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_list(
 pub fn contactcenterinsights_projects_locations_authorized_view_sets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5048,7 +5050,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}
@@ -5092,7 +5094,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    authorizedViewId: &Option<Option<String>>,
+    authorizedViewId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5240,7 +5242,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: authorizedViewId
-    pub authorizedViewId: Option<Option<String>>,
+    pub authorizedViewId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews
@@ -5803,7 +5805,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5945,7 +5947,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}:getIamPolicy
@@ -5983,10 +5985,10 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6149,13 +6151,13 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews
@@ -6200,7 +6202,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6348,7 +6350,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}
@@ -6731,10 +6733,10 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6897,13 +6899,13 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews:search
@@ -7285,7 +7287,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     location: &String,
-    filter: &Option<Option<String>>,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7437,7 +7439,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: location
     pub location: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations:calculateStats
@@ -7480,7 +7482,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7623,7 +7625,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}
@@ -7842,7 +7844,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7988,7 +7990,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}
@@ -8028,11 +8030,11 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8196,15 +8198,15 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations
@@ -8591,7 +8593,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8734,7 +8736,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}
@@ -9116,9 +9118,9 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9276,11 +9278,11 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments
@@ -9833,8 +9835,8 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9986,9 +9988,9 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes
@@ -10028,7 +10030,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10173,7 +10175,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes/{notesId}
@@ -10213,7 +10215,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    feedbackLabelId: &Option<Option<String>>,
+    feedbackLabelId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10359,7 +10361,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: feedbackLabelId
-    pub feedbackLabelId: Option<Option<String>>,
+    pub feedbackLabelId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/feedbackLabels
@@ -10738,9 +10740,9 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10898,11 +10900,11 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/feedbackLabels
@@ -10945,7 +10947,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11091,7 +11093,7 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}
@@ -11469,10 +11471,10 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11627,13 +11629,13 @@ pub struct ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedVie
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authorizedViewSets/{authorizedViewSetsId}/authorizedViews/{authorizedViewsId}/operations
@@ -11671,7 +11673,7 @@ pub fn contactcenterinsights_projects_locations_authorized_view_sets_authorized_
 pub fn contactcenterinsights_projects_locations_auto_labeling_rules_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    autoLabelingRuleId: &Option<Option<String>>,
+    autoLabelingRuleId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11819,7 +11821,7 @@ pub struct ContactcenterinsightsProjectsLocationsAutoLabelingRulesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: autoLabelingRuleId
-    pub autoLabelingRuleId: Option<Option<String>>,
+    pub autoLabelingRuleId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/autoLabelingRules
@@ -12201,8 +12203,8 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_get(
 pub fn contactcenterinsights_projects_locations_auto_labeling_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12356,9 +12358,9 @@ pub struct ContactcenterinsightsProjectsLocationsAutoLabelingRulesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoLabelingRules
@@ -12404,7 +12406,7 @@ pub fn contactcenterinsights_projects_locations_auto_labeling_rules_list(
 pub fn contactcenterinsights_projects_locations_auto_labeling_rules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12552,7 +12554,7 @@ pub struct ContactcenterinsightsProjectsLocationsAutoLabelingRulesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/autoLabelingRules/{autoLabelingRulesId}
@@ -13117,7 +13119,7 @@ pub fn contactcenterinsights_projects_locations_conversations_bulk_delete(
 pub fn contactcenterinsights_projects_locations_conversations_calculate_stats_builder<R>(
     client: &SimpleHttpClient<R>,
     location: &String,
-    filter: &Option<Option<String>>,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13269,7 +13271,7 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsCalculateStatsArgs
     /// Path parameter: location
     pub location: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations:calculateStats
@@ -13314,7 +13316,7 @@ pub fn contactcenterinsights_projects_locations_conversations_calculate_stats(
 pub fn contactcenterinsights_projects_locations_conversations_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    conversationId: &Option<Option<String>>,
+    conversationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13459,7 +13461,7 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: conversationId
-    pub conversationId: Option<Option<String>>,
+    pub conversationId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/conversations
@@ -13501,7 +13503,7 @@ pub fn contactcenterinsights_projects_locations_conversations_create(
 pub fn contactcenterinsights_projects_locations_conversations_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13643,7 +13645,7 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}
@@ -13865,7 +13867,7 @@ pub fn contactcenterinsights_projects_locations_conversations_generate_signed_au
 pub fn contactcenterinsights_projects_locations_conversations_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14010,7 +14012,7 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}
@@ -14221,11 +14223,11 @@ pub fn contactcenterinsights_projects_locations_conversations_ingest(
 pub fn contactcenterinsights_projects_locations_conversations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14388,15 +14390,15 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations
@@ -14445,9 +14447,9 @@ pub fn contactcenterinsights_projects_locations_conversations_list(
 pub fn contactcenterinsights_projects_locations_conversations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    conversationAutoLabelingUpdateConfig_allowAutoLabelingUpdate: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    conversationAutoLabelingUpdateConfig_allowAutoLabelingUpdate: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14601,11 +14603,11 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: conversationAutoLabelingUpdateConfig_allowAutoLabelingUpdate
-    pub conversationAutoLabelingUpdateConfig_allowAutoLabelingUpdate: Option<Option<String>>,
+    pub conversationAutoLabelingUpdateConfig_allowAutoLabelingUpdate: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}
@@ -15501,9 +15503,9 @@ pub fn contactcenterinsights_projects_locations_conversations_analyses_get(
 pub fn contactcenterinsights_projects_locations_conversations_analyses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15660,11 +15662,11 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsAnalysesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/analyses
@@ -16058,7 +16060,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_create
 pub fn contactcenterinsights_projects_locations_conversations_assessments_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16201,7 +16203,7 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsDeleteA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}
@@ -16587,9 +16589,9 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_get(
 pub fn contactcenterinsights_projects_locations_conversations_assessments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16747,11 +16749,11 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsListArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments
@@ -17316,8 +17318,8 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17470,9 +17472,9 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsNotesLi
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes
@@ -17516,7 +17518,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17662,7 +17664,7 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsAssessmentsNotesPa
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/assessments/{assessmentsId}/notes/{notesId}
@@ -17705,7 +17707,7 @@ pub fn contactcenterinsights_projects_locations_conversations_assessments_notes_
 pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    feedbackLabelId: &Option<Option<String>>,
+    feedbackLabelId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17852,7 +17854,7 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsFeedbackLabelsCrea
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: feedbackLabelId
-    pub feedbackLabelId: Option<Option<String>>,
+    pub feedbackLabelId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/feedbackLabels
@@ -18237,9 +18239,9 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_ge
 pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18397,11 +18399,11 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsFeedbackLabelsList
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/feedbackLabels
@@ -18449,7 +18451,7 @@ pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_li
 pub fn contactcenterinsights_projects_locations_conversations_feedback_labels_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18595,7 +18597,7 @@ pub struct ContactcenterinsightsProjectsLocationsConversationsFeedbackLabelsPatc
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}
@@ -18811,7 +18813,7 @@ pub fn contactcenterinsights_projects_locations_conversations_segments_bulk_anal
 pub fn contactcenterinsights_projects_locations_dashboards_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dashboardId: &Option<Option<String>>,
+    dashboardId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18956,7 +18958,7 @@ pub struct ContactcenterinsightsProjectsLocationsDashboardsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dashboardId
-    pub dashboardId: Option<Option<String>>,
+    pub dashboardId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dashboards
@@ -19333,10 +19335,10 @@ pub fn contactcenterinsights_projects_locations_dashboards_get(
 pub fn contactcenterinsights_projects_locations_dashboards_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19496,13 +19498,13 @@ pub struct ContactcenterinsightsProjectsLocationsDashboardsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dashboards
@@ -19550,7 +19552,7 @@ pub fn contactcenterinsights_projects_locations_dashboards_list(
 pub fn contactcenterinsights_projects_locations_dashboards_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19695,7 +19697,7 @@ pub struct ContactcenterinsightsProjectsLocationsDashboardsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dashboards/{dashboardsId}
@@ -19737,7 +19739,7 @@ pub fn contactcenterinsights_projects_locations_dashboards_patch(
 pub fn contactcenterinsights_projects_locations_dashboards_charts_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    chartId: &Option<Option<String>>,
+    chartId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19882,7 +19884,7 @@ pub struct ContactcenterinsightsProjectsLocationsDashboardsChartsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: chartId
-    pub chartId: Option<Option<String>>,
+    pub chartId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dashboards/{dashboardsId}/charts
@@ -20435,7 +20437,7 @@ pub fn contactcenterinsights_projects_locations_dashboards_charts_list(
 pub fn contactcenterinsights_projects_locations_dashboards_charts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20580,7 +20582,7 @@ pub struct ContactcenterinsightsProjectsLocationsDashboardsChartsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dashboards/{dashboardsId}/charts/{chartsId}
@@ -21145,7 +21147,7 @@ pub fn contactcenterinsights_projects_locations_datasets_bulk_upload_feedback_la
 pub fn contactcenterinsights_projects_locations_datasets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    datasetId: &Option<Option<String>>,
+    datasetId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21289,7 +21291,7 @@ pub struct ContactcenterinsightsProjectsLocationsDatasetsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: datasetId
-    pub datasetId: Option<Option<String>>,
+    pub datasetId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets
@@ -21669,9 +21671,9 @@ pub fn contactcenterinsights_projects_locations_datasets_get(
 pub fn contactcenterinsights_projects_locations_datasets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21828,11 +21830,11 @@ pub struct ContactcenterinsightsProjectsLocationsDatasetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets
@@ -21879,9 +21881,9 @@ pub fn contactcenterinsights_projects_locations_datasets_list(
 pub fn contactcenterinsights_projects_locations_datasets_list_all_feedback_labels_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22039,11 +22041,11 @@ pub struct ContactcenterinsightsProjectsLocationsDatasetsListAllFeedbackLabelsAr
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:listAllFeedbackLabels
@@ -22091,7 +22093,7 @@ pub fn contactcenterinsights_projects_locations_datasets_list_all_feedback_label
 pub fn contactcenterinsights_projects_locations_datasets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22235,7 +22237,7 @@ pub struct ContactcenterinsightsProjectsLocationsDatasetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
@@ -22635,7 +22637,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_calculate
 pub fn contactcenterinsights_projects_locations_datasets_conversations_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22778,7 +22780,7 @@ pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsDeleteArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}
@@ -23003,7 +23005,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_generate_
 pub fn contactcenterinsights_projects_locations_datasets_conversations_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23148,7 +23150,7 @@ pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}
@@ -23360,11 +23362,11 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_ingest(
 pub fn contactcenterinsights_projects_locations_datasets_conversations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23527,15 +23529,15 @@ pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations
@@ -23758,7 +23760,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    feedbackLabelId: &Option<Option<String>>,
+    feedbackLabelId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23903,7 +23905,7 @@ pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsFeedbackLa
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: feedbackLabelId
-    pub feedbackLabelId: Option<Option<String>>,
+    pub feedbackLabelId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}/feedbackLabels
@@ -24289,9 +24291,9 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24451,11 +24453,11 @@ pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsFeedbackLa
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}/feedbackLabels
@@ -24500,7 +24502,7 @@ pub fn contactcenterinsights_projects_locations_datasets_conversations_feedback_
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24648,7 +24650,7 @@ pub struct ContactcenterinsightsProjectsLocationsDatasetsConversationsFeedbackLa
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/conversations/{conversationsId}/feedbackLabels/{feedbackLabelsId}
@@ -26581,7 +26583,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_list(
 pub fn contactcenterinsights_projects_locations_issue_models_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26726,7 +26728,7 @@ pub struct ContactcenterinsightsProjectsLocationsIssueModelsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}
@@ -27620,7 +27622,7 @@ pub fn contactcenterinsights_projects_locations_issue_models_issues_list(
 pub fn contactcenterinsights_projects_locations_issue_models_issues_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27765,7 +27767,7 @@ pub struct ContactcenterinsightsProjectsLocationsIssueModelsIssuesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/issueModels/{issueModelsId}/issues/{issuesId}
@@ -28141,10 +28143,10 @@ pub fn contactcenterinsights_projects_locations_operations_get(
 pub fn contactcenterinsights_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28298,13 +28300,13 @@ pub struct ContactcenterinsightsProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -28857,9 +28859,9 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_get(
 pub fn contactcenterinsights_projects_locations_phrase_matchers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29016,11 +29018,11 @@ pub struct ContactcenterinsightsProjectsLocationsPhraseMatchersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/phraseMatchers
@@ -29067,7 +29069,7 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_list(
 pub fn contactcenterinsights_projects_locations_phrase_matchers_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29212,7 +29214,7 @@ pub struct ContactcenterinsightsProjectsLocationsPhraseMatchersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/phraseMatchers/{phraseMatchersId}
@@ -29254,7 +29256,7 @@ pub fn contactcenterinsights_projects_locations_phrase_matchers_patch(
 pub fn contactcenterinsights_projects_locations_qa_question_tags_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    qaQuestionTagId: &Option<Option<String>>,
+    qaQuestionTagId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29399,7 +29401,7 @@ pub struct ContactcenterinsightsProjectsLocationsQaQuestionTagsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: qaQuestionTagId
-    pub qaQuestionTagId: Option<Option<String>>,
+    pub qaQuestionTagId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/qaQuestionTags
@@ -29781,7 +29783,7 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_get(
 pub fn contactcenterinsights_projects_locations_qa_question_tags_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29932,7 +29934,7 @@ pub struct ContactcenterinsightsProjectsLocationsQaQuestionTagsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaQuestionTags
@@ -29977,7 +29979,7 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_list(
 pub fn contactcenterinsights_projects_locations_qa_question_tags_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30121,7 +30123,7 @@ pub struct ContactcenterinsightsProjectsLocationsQaQuestionTagsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/qaQuestionTags/{qaQuestionTagsId}
@@ -30163,7 +30165,7 @@ pub fn contactcenterinsights_projects_locations_qa_question_tags_patch(
 pub fn contactcenterinsights_projects_locations_qa_scorecards_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    qaScorecardId: &Option<Option<String>>,
+    qaScorecardId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30308,7 +30310,7 @@ pub struct ContactcenterinsightsProjectsLocationsQaScorecardsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: qaScorecardId
-    pub qaScorecardId: Option<Option<String>>,
+    pub qaScorecardId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/qaScorecards
@@ -30350,7 +30352,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_create(
 pub fn contactcenterinsights_projects_locations_qa_scorecards_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30492,7 +30494,7 @@ pub struct ContactcenterinsightsProjectsLocationsQaScorecardsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}
@@ -30702,9 +30704,9 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_get(
 pub fn contactcenterinsights_projects_locations_qa_scorecards_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    qaScorecardSources: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    qaScorecardSources: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30861,11 +30863,11 @@ pub struct ContactcenterinsightsProjectsLocationsQaScorecardsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: qaScorecardSources
-    pub qaScorecardSources: Option<Option<String>>,
+    pub qaScorecardSources: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards
@@ -30912,7 +30914,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_list(
 pub fn contactcenterinsights_projects_locations_qa_scorecards_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31057,7 +31059,7 @@ pub struct ContactcenterinsightsProjectsLocationsQaScorecardsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}
@@ -31099,7 +31101,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_patch(
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    qaScorecardRevisionId: &Option<Option<String>>,
+    qaScorecardRevisionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31251,7 +31253,7 @@ pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsCreateArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: qaScorecardRevisionId
-    pub qaScorecardRevisionId: Option<Option<String>>,
+    pub qaScorecardRevisionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions
@@ -31296,7 +31298,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_create(
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31439,7 +31441,7 @@ pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsDeleteArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}
@@ -31840,10 +31842,10 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_get(
 pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    qaScorecardSources: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    qaScorecardSources: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32003,13 +32005,13 @@ pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: qaScorecardSources
-    pub qaScorecardSources: Option<Option<String>>,
+    pub qaScorecardSources: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions
@@ -32411,7 +32413,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    qaQuestionId: &Option<Option<String>>,
+    qaQuestionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32559,7 +32561,7 @@ pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestion
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: qaQuestionId
-    pub qaQuestionId: Option<Option<String>>,
+    pub qaQuestionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}/qaQuestions
@@ -32951,8 +32953,8 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33109,9 +33111,9 @@ pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestion
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}/qaQuestions
@@ -33162,7 +33164,7 @@ pub fn contactcenterinsights_projects_locations_qa_scorecards_revisions_qa_quest
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33310,7 +33312,7 @@ pub struct ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestion
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/qaScorecards/{qaScorecardsId}/revisions/{revisionsId}/qaQuestions/{qaQuestionsId}
@@ -33852,8 +33854,8 @@ pub fn contactcenterinsights_projects_locations_views_get(
 pub fn contactcenterinsights_projects_locations_views_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34004,9 +34006,9 @@ pub struct ContactcenterinsightsProjectsLocationsViewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/views
@@ -34049,7 +34051,7 @@ pub fn contactcenterinsights_projects_locations_views_list(
 pub fn contactcenterinsights_projects_locations_views_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34193,7 +34195,7 @@ pub struct ContactcenterinsightsProjectsLocationsViewsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/views/{viewsId}

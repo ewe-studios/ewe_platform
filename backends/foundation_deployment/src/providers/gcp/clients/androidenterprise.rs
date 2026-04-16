@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -889,7 +891,7 @@ pub fn androidenterprise_devices_update_builder<R>(
     enterpriseId: &String,
     userId: &String,
     deviceId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1035,7 +1037,7 @@ pub struct AndroidenterpriseDevicesUpdateArgs {
     /// Path parameter: deviceId
     pub deviceId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/devices/{deviceId}
@@ -1238,7 +1240,7 @@ pub fn androidenterprise_enrollment_tokens_create(
 
 pub fn androidenterprise_enterprises_acknowledge_notification_set_builder<R>(
     client: &SimpleHttpClient<R>,
-    notificationSetId: &Option<Option<String>>,
+    notificationSetId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1372,7 +1374,7 @@ pub fn androidenterprise_enterprises_acknowledge_notification_set_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroidenterpriseEnterprisesAcknowledgeNotificationSetArgs {
     /// Query parameter: notificationSetId
-    pub notificationSetId: Option<Option<String>>,
+    pub notificationSetId: Option<String>,
 }
 
 /// POST androidenterprise/v1/enterprises/acknowledgeNotificationSet
@@ -1408,8 +1410,8 @@ pub fn androidenterprise_enterprises_acknowledge_notification_set(
 
 pub fn androidenterprise_enterprises_complete_signup_builder<R>(
     client: &SimpleHttpClient<R>,
-    completionToken: &Option<Option<String>>,
-    enterpriseToken: &Option<Option<String>>,
+    completionToken: &Option<String>,
+    enterpriseToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1549,9 +1551,9 @@ pub fn androidenterprise_enterprises_complete_signup_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroidenterpriseEnterprisesCompleteSignupArgs {
     /// Query parameter: completionToken
-    pub completionToken: Option<Option<String>>,
+    pub completionToken: Option<String>,
     /// Query parameter: enterpriseToken
-    pub enterpriseToken: Option<Option<String>>,
+    pub enterpriseToken: Option<String>,
 }
 
 /// POST androidenterprise/v1/enterprises/completeSignup
@@ -1753,7 +1755,7 @@ pub fn androidenterprise_enterprises_create_web_token(
 
 pub fn androidenterprise_enterprises_enroll_builder<R>(
     client: &SimpleHttpClient<R>,
-    token: &Option<Option<String>>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1890,7 +1892,7 @@ pub fn androidenterprise_enterprises_enroll_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroidenterpriseEnterprisesEnrollArgs {
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// POST androidenterprise/v1/enterprises/enroll
@@ -1924,8 +1926,8 @@ pub fn androidenterprise_enterprises_enroll(
 pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url_builder<R>(
     client: &SimpleHttpClient<R>,
     enterpriseId: &String,
-    adminEmail: &Option<Option<String>>,
-    allowedDomains: &Option<Option<String>>,
+    adminEmail: &Option<String>,
+    allowedDomains: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2072,9 +2074,9 @@ pub struct AndroidenterpriseEnterprisesGenerateEnterpriseUpgradeUrlArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
     /// Query parameter: adminEmail
-    pub adminEmail: Option<Option<String>>,
+    pub adminEmail: Option<String>,
     /// Query parameter: allowedDomains
-    pub allowedDomains: Option<Option<String>>,
+    pub allowedDomains: Option<String>,
 }
 
 /// POST androidenterprise/v1/enterprises/{enterpriseId}/generateEnterpriseUpgradeUrl
@@ -2116,9 +2118,9 @@ pub fn androidenterprise_enterprises_generate_enterprise_upgrade_url(
 
 pub fn androidenterprise_enterprises_generate_signup_url_builder<R>(
     client: &SimpleHttpClient<R>,
-    adminEmail: &Option<Option<String>>,
-    allowedDomains: &Option<Option<String>>,
-    callbackUrl: &Option<Option<String>>,
+    adminEmail: &Option<String>,
+    allowedDomains: &Option<String>,
+    callbackUrl: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2261,11 +2263,11 @@ pub fn androidenterprise_enterprises_generate_signup_url_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroidenterpriseEnterprisesGenerateSignupUrlArgs {
     /// Query parameter: adminEmail
-    pub adminEmail: Option<Option<String>>,
+    pub adminEmail: Option<String>,
     /// Query parameter: allowedDomains
-    pub allowedDomains: Option<Option<String>>,
+    pub allowedDomains: Option<String>,
     /// Query parameter: callbackUrl
-    pub callbackUrl: Option<Option<String>>,
+    pub callbackUrl: Option<String>,
 }
 
 /// POST androidenterprise/v1/enterprises/signupUrl
@@ -2464,7 +2466,7 @@ pub fn androidenterprise_enterprises_get(
 pub fn androidenterprise_enterprises_get_service_account_builder<R>(
     client: &SimpleHttpClient<R>,
     enterpriseId: &String,
-    keyType: &Option<Option<String>>,
+    keyType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2606,7 +2608,7 @@ pub struct AndroidenterpriseEnterprisesGetServiceAccountArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
     /// Query parameter: keyType
-    pub keyType: Option<Option<String>>,
+    pub keyType: Option<String>,
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/serviceAccount
@@ -2806,7 +2808,7 @@ pub fn androidenterprise_enterprises_get_store_layout(
 
 pub fn androidenterprise_enterprises_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    domain: &Option<Option<String>>,
+    domain: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2944,7 +2946,7 @@ pub fn androidenterprise_enterprises_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroidenterpriseEnterprisesListArgs {
     /// Query parameter: domain
-    pub domain: Option<Option<String>>,
+    pub domain: Option<String>,
 }
 
 /// GET androidenterprise/v1/enterprises
@@ -2979,7 +2981,7 @@ pub fn androidenterprise_enterprises_list(
 
 pub fn androidenterprise_enterprises_pull_notification_set_builder<R>(
     client: &SimpleHttpClient<R>,
-    requestMode: &Option<Option<String>>,
+    requestMode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3118,7 +3120,7 @@ pub fn androidenterprise_enterprises_pull_notification_set_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroidenterpriseEnterprisesPullNotificationSetArgs {
     /// Query parameter: requestMode
-    pub requestMode: Option<Option<String>>,
+    pub requestMode: Option<String>,
 }
 
 /// POST androidenterprise/v1/enterprises/pullNotificationSet
@@ -4323,7 +4325,7 @@ pub fn androidenterprise_entitlements_update_builder<R>(
     enterpriseId: &String,
     userId: &String,
     entitlementId: &String,
-    install: &Option<Option<String>>,
+    install: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4469,7 +4471,7 @@ pub struct AndroidenterpriseEntitlementsUpdateArgs {
     /// Path parameter: entitlementId
     pub entitlementId: String,
     /// Query parameter: install
-    pub install: Option<Option<String>>,
+    pub install: Option<String>,
 }
 
 /// PUT androidenterprise/v1/enterprises/{enterpriseId}/users/{userId}/entitlements/{entitlementId}
@@ -7326,7 +7328,7 @@ pub fn androidenterprise_managedconfigurationssettings_list(
 pub fn androidenterprise_permissions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     permissionId: &String,
-    language: &Option<Option<String>>,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7466,7 +7468,7 @@ pub struct AndroidenterprisePermissionsGetArgs {
     /// Path parameter: permissionId
     pub permissionId: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
 }
 
 /// GET androidenterprise/v1/permissions/{permissionId}
@@ -7664,7 +7666,7 @@ pub fn androidenterprise_products_generate_approval_url_builder<R>(
     client: &SimpleHttpClient<R>,
     enterpriseId: &String,
     productId: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7811,7 +7813,7 @@ pub struct AndroidenterpriseProductsGenerateApprovalUrlArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// POST androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/generateApprovalUrl
@@ -7855,7 +7857,7 @@ pub fn androidenterprise_products_get_builder<R>(
     client: &SimpleHttpClient<R>,
     enterpriseId: &String,
     productId: &String,
-    language: &Option<Option<String>>,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7997,7 +7999,7 @@ pub struct AndroidenterpriseProductsGetArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}
@@ -8037,7 +8039,7 @@ pub fn androidenterprise_products_get_app_restrictions_schema_builder<R>(
     client: &SimpleHttpClient<R>,
     enterpriseId: &String,
     productId: &String,
-    language: &Option<Option<String>>,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8182,7 +8184,7 @@ pub struct AndroidenterpriseProductsGetAppRestrictionsSchemaArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products/{productId}/appRestrictionsSchema
@@ -8395,11 +8397,11 @@ pub fn androidenterprise_products_get_permissions(
 pub fn androidenterprise_products_list_builder<R>(
     client: &SimpleHttpClient<R>,
     enterpriseId: &String,
-    approved: &Option<Option<String>>,
-    language: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    approved: &Option<String>,
+    language: &Option<String>,
+    maxResults: &Option<String>,
+    query: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8553,15 +8555,15 @@ pub struct AndroidenterpriseProductsListArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
     /// Query parameter: approved
-    pub approved: Option<Option<String>>,
+    pub approved: Option<String>,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/products
@@ -11785,7 +11787,7 @@ pub fn androidenterprise_users_insert(
 pub fn androidenterprise_users_list_builder<R>(
     client: &SimpleHttpClient<R>,
     enterpriseId: &String,
-    email: &Option<Option<String>>,
+    email: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11927,7 +11929,7 @@ pub struct AndroidenterpriseUsersListArgs {
     /// Path parameter: enterpriseId
     pub enterpriseId: String,
     /// Query parameter: email
-    pub email: Option<Option<String>>,
+    pub email: Option<String>,
 }
 
 /// GET androidenterprise/v1/enterprises/{enterpriseId}/users

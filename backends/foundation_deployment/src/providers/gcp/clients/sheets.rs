@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -346,9 +348,9 @@ pub fn sheets_spreadsheets_create(
 pub fn sheets_spreadsheets_get_builder<R>(
     client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
-    excludeTablesInBandedRanges: &Option<Option<String>>,
-    includeGridData: &Option<Option<String>>,
-    ranges: &Option<Option<String>>,
+    excludeTablesInBandedRanges: &Option<String>,
+    includeGridData: &Option<String>,
+    ranges: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -494,11 +496,11 @@ pub struct SheetsSpreadsheetsGetArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
     /// Query parameter: excludeTablesInBandedRanges
-    pub excludeTablesInBandedRanges: Option<Option<String>>,
+    pub excludeTablesInBandedRanges: Option<String>,
     /// Query parameter: includeGridData
-    pub includeGridData: Option<Option<String>>,
+    pub includeGridData: Option<String>,
     /// Query parameter: ranges
-    pub ranges: Option<Option<String>>,
+    pub ranges: Option<String>,
 }
 
 /// GET v4/spreadsheets/{spreadsheetId}
@@ -1207,11 +1209,11 @@ pub fn sheets_spreadsheets_values_append_builder<R>(
     client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
     range: &String,
-    includeValuesInResponse: &Option<Option<String>>,
-    insertDataOption: &Option<Option<String>>,
-    responseDateTimeRenderOption: &Option<Option<String>>,
-    responseValueRenderOption: &Option<Option<String>>,
-    valueInputOption: &Option<Option<String>>,
+    includeValuesInResponse: &Option<String>,
+    insertDataOption: &Option<String>,
+    responseDateTimeRenderOption: &Option<String>,
+    responseValueRenderOption: &Option<String>,
+    valueInputOption: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1367,15 +1369,15 @@ pub struct SheetsSpreadsheetsValuesAppendArgs {
     /// Path parameter: range
     pub range: String,
     /// Query parameter: includeValuesInResponse
-    pub includeValuesInResponse: Option<Option<String>>,
+    pub includeValuesInResponse: Option<String>,
     /// Query parameter: insertDataOption
-    pub insertDataOption: Option<Option<String>>,
+    pub insertDataOption: Option<String>,
     /// Query parameter: responseDateTimeRenderOption
-    pub responseDateTimeRenderOption: Option<Option<String>>,
+    pub responseDateTimeRenderOption: Option<String>,
     /// Query parameter: responseValueRenderOption
-    pub responseValueRenderOption: Option<Option<String>>,
+    pub responseValueRenderOption: Option<String>,
     /// Query parameter: valueInputOption
-    pub valueInputOption: Option<Option<String>>,
+    pub valueInputOption: Option<String>,
 }
 
 /// POST v4/spreadsheets/{spreadsheetId}/values/{range}:append
@@ -1753,10 +1755,10 @@ pub fn sheets_spreadsheets_values_batch_clear_by_data_filter(
 pub fn sheets_spreadsheets_values_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
-    dateTimeRenderOption: &Option<Option<String>>,
-    majorDimension: &Option<Option<String>>,
-    ranges: &Option<Option<String>>,
-    valueRenderOption: &Option<Option<String>>,
+    dateTimeRenderOption: &Option<String>,
+    majorDimension: &Option<String>,
+    ranges: &Option<String>,
+    valueRenderOption: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1907,13 +1909,13 @@ pub struct SheetsSpreadsheetsValuesBatchGetArgs {
     /// Path parameter: spreadsheetId
     pub spreadsheetId: String,
     /// Query parameter: dateTimeRenderOption
-    pub dateTimeRenderOption: Option<Option<String>>,
+    pub dateTimeRenderOption: Option<String>,
     /// Query parameter: majorDimension
-    pub majorDimension: Option<Option<String>>,
+    pub majorDimension: Option<String>,
     /// Query parameter: ranges
-    pub ranges: Option<Option<String>>,
+    pub ranges: Option<String>,
     /// Query parameter: valueRenderOption
-    pub valueRenderOption: Option<Option<String>>,
+    pub valueRenderOption: Option<String>,
 }
 
 /// GET v4/spreadsheets/{spreadsheetId}/values:batchGet
@@ -2629,9 +2631,9 @@ pub fn sheets_spreadsheets_values_get_builder<R>(
     client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
     range: &String,
-    dateTimeRenderOption: &Option<Option<String>>,
-    majorDimension: &Option<Option<String>>,
-    valueRenderOption: &Option<Option<String>>,
+    dateTimeRenderOption: &Option<String>,
+    majorDimension: &Option<String>,
+    valueRenderOption: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2779,11 +2781,11 @@ pub struct SheetsSpreadsheetsValuesGetArgs {
     /// Path parameter: range
     pub range: String,
     /// Query parameter: dateTimeRenderOption
-    pub dateTimeRenderOption: Option<Option<String>>,
+    pub dateTimeRenderOption: Option<String>,
     /// Query parameter: majorDimension
-    pub majorDimension: Option<Option<String>>,
+    pub majorDimension: Option<String>,
     /// Query parameter: valueRenderOption
-    pub valueRenderOption: Option<Option<String>>,
+    pub valueRenderOption: Option<String>,
 }
 
 /// GET v4/spreadsheets/{spreadsheetId}/values/{range}
@@ -2825,10 +2827,10 @@ pub fn sheets_spreadsheets_values_update_builder<R>(
     client: &SimpleHttpClient<R>,
     spreadsheetId: &String,
     range: &String,
-    includeValuesInResponse: &Option<Option<String>>,
-    responseDateTimeRenderOption: &Option<Option<String>>,
-    responseValueRenderOption: &Option<Option<String>>,
-    valueInputOption: &Option<Option<String>>,
+    includeValuesInResponse: &Option<String>,
+    responseDateTimeRenderOption: &Option<String>,
+    responseValueRenderOption: &Option<String>,
+    valueInputOption: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2981,13 +2983,13 @@ pub struct SheetsSpreadsheetsValuesUpdateArgs {
     /// Path parameter: range
     pub range: String,
     /// Query parameter: includeValuesInResponse
-    pub includeValuesInResponse: Option<Option<String>>,
+    pub includeValuesInResponse: Option<String>,
     /// Query parameter: responseDateTimeRenderOption
-    pub responseDateTimeRenderOption: Option<Option<String>>,
+    pub responseDateTimeRenderOption: Option<String>,
     /// Query parameter: responseValueRenderOption
-    pub responseValueRenderOption: Option<Option<String>>,
+    pub responseValueRenderOption: Option<String>,
     /// Query parameter: valueInputOption
-    pub valueInputOption: Option<Option<String>>,
+    pub valueInputOption: Option<String>,
 }
 
 /// PUT v4/spreadsheets/{spreadsheetId}/values/{range}
@@ -3041,29 +3043,6 @@ impl ResourceIdentifier<SheetsSpreadsheetsBatchUpdateArgs> for BatchUpdateSpread
 
     fn resource_kind(&self) -> &'static str {
         "gcp::sheets::BatchUpdateSpreadsheetResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Spreadsheet
-// =============================================================================
-
-/// ResourceIdentifier implementation for Spreadsheet with SheetsSpreadsheetsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SheetsSpreadsheetsCreateArgs> for Spreadsheet {
-    fn generate_resource_id(&self, input: &SheetsSpreadsheetsCreateArgs) -> String {
-        "gcp::sheets::Spreadsheet".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::sheets::Spreadsheet"
     }
 
     fn provider(&self) -> &'static str {

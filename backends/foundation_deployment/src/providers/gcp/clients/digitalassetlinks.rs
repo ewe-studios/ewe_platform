@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -181,14 +183,14 @@ pub fn digitalassetlinks_assetlinks_bulk_check(
 
 pub fn digitalassetlinks_assetlinks_check_builder<R>(
     client: &SimpleHttpClient<R>,
-    relation: &Option<Option<String>>,
-    returnRelationExtensions: &Option<Option<String>>,
-    source_androidApp_certificate_sha256Fingerprint: &Option<Option<String>>,
-    source_androidApp_packageName: &Option<Option<String>>,
-    source_web_site: &Option<Option<String>>,
-    target_androidApp_certificate_sha256Fingerprint: &Option<Option<String>>,
-    target_androidApp_packageName: &Option<Option<String>>,
-    target_web_site: &Option<Option<String>>,
+    relation: &Option<String>,
+    returnRelationExtensions: &Option<String>,
+    source_androidApp_certificate_sha256Fingerprint: &Option<String>,
+    source_androidApp_packageName: &Option<String>,
+    source_web_site: &Option<String>,
+    target_androidApp_certificate_sha256Fingerprint: &Option<String>,
+    target_androidApp_packageName: &Option<String>,
+    target_web_site: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -352,21 +354,21 @@ pub fn digitalassetlinks_assetlinks_check_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DigitalassetlinksAssetlinksCheckArgs {
     /// Query parameter: relation
-    pub relation: Option<Option<String>>,
+    pub relation: Option<String>,
     /// Query parameter: returnRelationExtensions
-    pub returnRelationExtensions: Option<Option<String>>,
+    pub returnRelationExtensions: Option<String>,
     /// Query parameter: source_androidApp_certificate_sha256Fingerprint
-    pub source_androidApp_certificate_sha256Fingerprint: Option<Option<String>>,
+    pub source_androidApp_certificate_sha256Fingerprint: Option<String>,
     /// Query parameter: source_androidApp_packageName
-    pub source_androidApp_packageName: Option<Option<String>>,
+    pub source_androidApp_packageName: Option<String>,
     /// Query parameter: source_web_site
-    pub source_web_site: Option<Option<String>>,
+    pub source_web_site: Option<String>,
     /// Query parameter: target_androidApp_certificate_sha256Fingerprint
-    pub target_androidApp_certificate_sha256Fingerprint: Option<Option<String>>,
+    pub target_androidApp_certificate_sha256Fingerprint: Option<String>,
     /// Query parameter: target_androidApp_packageName
-    pub target_androidApp_packageName: Option<Option<String>>,
+    pub target_androidApp_packageName: Option<String>,
     /// Query parameter: target_web_site
-    pub target_web_site: Option<Option<String>>,
+    pub target_web_site: Option<String>,
 }
 
 /// GET v1/assetlinks:check
@@ -411,11 +413,11 @@ pub fn digitalassetlinks_assetlinks_check(
 
 pub fn digitalassetlinks_statements_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    relation: &Option<Option<String>>,
-    returnRelationExtensions: &Option<Option<String>>,
-    source_androidApp_certificate_sha256Fingerprint: &Option<Option<String>>,
-    source_androidApp_packageName: &Option<Option<String>>,
-    source_web_site: &Option<Option<String>>,
+    relation: &Option<String>,
+    returnRelationExtensions: &Option<String>,
+    source_androidApp_certificate_sha256Fingerprint: &Option<String>,
+    source_androidApp_packageName: &Option<String>,
+    source_web_site: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -567,15 +569,15 @@ pub fn digitalassetlinks_statements_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DigitalassetlinksStatementsListArgs {
     /// Query parameter: relation
-    pub relation: Option<Option<String>>,
+    pub relation: Option<String>,
     /// Query parameter: returnRelationExtensions
-    pub returnRelationExtensions: Option<Option<String>>,
+    pub returnRelationExtensions: Option<String>,
     /// Query parameter: source_androidApp_certificate_sha256Fingerprint
-    pub source_androidApp_certificate_sha256Fingerprint: Option<Option<String>>,
+    pub source_androidApp_certificate_sha256Fingerprint: Option<String>,
     /// Query parameter: source_androidApp_packageName
-    pub source_androidApp_packageName: Option<Option<String>>,
+    pub source_androidApp_packageName: Option<String>,
     /// Query parameter: source_web_site
-    pub source_web_site: Option<Option<String>>,
+    pub source_web_site: Option<String>,
 }
 
 /// GET v1/statements:list
@@ -607,29 +609,6 @@ pub fn digitalassetlinks_statements_list(
         &args.source_web_site,
     )?;
     digitalassetlinks_statements_list_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BulkCheckResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for BulkCheckResponse with DigitalassetlinksAssetlinksBulkCheckArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DigitalassetlinksAssetlinksBulkCheckArgs> for BulkCheckResponse {
-    fn generate_resource_id(&self, input: &DigitalassetlinksAssetlinksBulkCheckArgs) -> String {
-        "gcp::digitalassetlinks::BulkCheckResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::digitalassetlinks::BulkCheckResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,8 +31,8 @@ use serde::Serialize;
 
 pub fn androiddeviceprovisioning_customers_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -172,9 +174,9 @@ pub fn androiddeviceprovisioning_customers_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroiddeviceprovisioningCustomersListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/customers
@@ -873,7 +875,7 @@ pub fn androiddeviceprovisioning_customers_configurations_list(
 pub fn androiddeviceprovisioning_customers_configurations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1015,7 +1017,7 @@ pub struct AndroiddeviceprovisioningCustomersConfigurationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/customers/{customersId}/configurations/{configurationsId}
@@ -1378,8 +1380,8 @@ pub fn androiddeviceprovisioning_customers_devices_get(
 pub fn androiddeviceprovisioning_customers_devices_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1526,9 +1528,9 @@ pub struct AndroiddeviceprovisioningCustomersDevicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/customers/{customersId}/devices
@@ -2380,8 +2382,8 @@ pub fn androiddeviceprovisioning_partners_customers_create(
 pub fn androiddeviceprovisioning_partners_customers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     partnerId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2526,9 +2528,9 @@ pub struct AndroiddeviceprovisioningPartnersCustomersListArgs {
     /// Path parameter: partnerId
     pub partnerId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/partners/{partnersId}/customers
@@ -4222,8 +4224,8 @@ pub fn androiddeviceprovisioning_partners_devices_update_metadata_async(
 pub fn androiddeviceprovisioning_partners_vendors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4368,9 +4370,9 @@ pub struct AndroiddeviceprovisioningPartnersVendorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/partners/{partnersId}/vendors
@@ -4411,8 +4413,8 @@ pub fn androiddeviceprovisioning_partners_vendors_list(
 pub fn androiddeviceprovisioning_partners_vendors_customers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4559,9 +4561,9 @@ pub struct AndroiddeviceprovisioningPartnersVendorsCustomersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/partners/{partnersId}/vendors/{vendorsId}/customers

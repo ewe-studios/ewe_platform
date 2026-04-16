@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn developerconnect_projects_locations_get(
 pub fn developerconnect_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct DeveloperconnectProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,9 +395,9 @@ pub fn developerconnect_projects_locations_list(
 pub fn developerconnect_projects_locations_account_connectors_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    accountConnectorId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    accountConnectorId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -541,11 +543,11 @@ pub struct DeveloperconnectProjectsLocationsAccountConnectorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: accountConnectorId
-    pub accountConnectorId: Option<Option<String>>,
+    pub accountConnectorId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/accountConnectors
@@ -585,10 +587,10 @@ pub fn developerconnect_projects_locations_account_connectors_create(
 pub fn developerconnect_projects_locations_account_connectors_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    force: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -737,13 +739,13 @@ pub struct DeveloperconnectProjectsLocationsAccountConnectorsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}
@@ -784,9 +786,9 @@ pub fn developerconnect_projects_locations_account_connectors_delete(
 pub fn developerconnect_projects_locations_account_connectors_fetch_user_repositories_builder<R>(
     client: &SimpleHttpClient<R>,
     accountConnector: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    repository: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    repository: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -938,11 +940,11 @@ pub struct DeveloperconnectProjectsLocationsAccountConnectorsFetchUserRepositori
     /// Path parameter: accountConnector
     pub accountConnector: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: repository
-    pub repository: Option<Option<String>>,
+    pub repository: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}:fetchUserRepositories
@@ -1152,10 +1154,10 @@ pub fn developerconnect_projects_locations_account_connectors_get(
 pub fn developerconnect_projects_locations_account_connectors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1308,13 +1310,13 @@ pub struct DeveloperconnectProjectsLocationsAccountConnectorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors
@@ -1359,10 +1361,10 @@ pub fn developerconnect_projects_locations_account_connectors_list(
 pub fn developerconnect_projects_locations_account_connectors_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1511,13 +1513,13 @@ pub struct DeveloperconnectProjectsLocationsAccountConnectorsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}
@@ -1558,9 +1560,9 @@ pub fn developerconnect_projects_locations_account_connectors_patch(
 pub fn developerconnect_projects_locations_account_connectors_users_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1706,11 +1708,11 @@ pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users/{usersId}
@@ -2247,11 +2249,11 @@ pub fn developerconnect_projects_locations_account_connectors_users_fetch_self(
 pub fn developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_builder<R>(
     client: &SimpleHttpClient<R>,
     accountConnector: &String,
-    googleOauthParams_scopes: &Option<Option<String>>,
-    googleOauthParams_ticket: &Option<Option<String>>,
-    googleOauthParams_versionInfo: &Option<Option<String>>,
-    oauthParams_code: &Option<Option<String>>,
-    oauthParams_ticket: &Option<Option<String>>,
+    googleOauthParams_scopes: &Option<String>,
+    googleOauthParams_ticket: &Option<String>,
+    googleOauthParams_versionInfo: &Option<String>,
+    oauthParams_code: &Option<String>,
+    oauthParams_ticket: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2408,15 +2410,15 @@ pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOAuthFlo
     /// Path parameter: accountConnector
     pub accountConnector: String,
     /// Query parameter: googleOauthParams_scopes
-    pub googleOauthParams_scopes: Option<Option<String>>,
+    pub googleOauthParams_scopes: Option<String>,
     /// Query parameter: googleOauthParams_ticket
-    pub googleOauthParams_ticket: Option<Option<String>>,
+    pub googleOauthParams_ticket: Option<String>,
     /// Query parameter: googleOauthParams_versionInfo
-    pub googleOauthParams_versionInfo: Option<Option<String>>,
+    pub googleOauthParams_versionInfo: Option<String>,
     /// Query parameter: oauthParams_code
-    pub oauthParams_code: Option<Option<String>>,
+    pub oauthParams_code: Option<String>,
     /// Query parameter: oauthParams_ticket
-    pub oauthParams_ticket: Option<Option<String>>,
+    pub oauthParams_ticket: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users:finishOAuthFlow
@@ -2461,10 +2463,10 @@ pub fn developerconnect_projects_locations_account_connectors_users_finish_o_aut
 pub fn developerconnect_projects_locations_account_connectors_users_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2615,13 +2617,13 @@ pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users
@@ -2834,9 +2836,9 @@ pub fn developerconnect_projects_locations_account_connectors_users_start_o_auth
 pub fn developerconnect_projects_locations_connections_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    connectionId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    connectionId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2982,11 +2984,11 @@ pub struct DeveloperconnectProjectsLocationsConnectionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: connectionId
-    pub connectionId: Option<Option<String>>,
+    pub connectionId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/connections
@@ -3026,9 +3028,9 @@ pub fn developerconnect_projects_locations_connections_create(
 pub fn developerconnect_projects_locations_connections_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3174,11 +3176,11 @@ pub struct DeveloperconnectProjectsLocationsConnectionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
@@ -3391,8 +3393,8 @@ pub fn developerconnect_projects_locations_connections_fetch_git_hub_installatio
 pub fn developerconnect_projects_locations_connections_fetch_linkable_git_repositories_builder<R>(
     client: &SimpleHttpClient<R>,
     connection: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3542,9 +3544,9 @@ pub struct DeveloperconnectProjectsLocationsConnectionsFetchLinkableGitRepositor
     /// Path parameter: connection
     pub connection: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:fetchLinkableGitRepositories
@@ -3748,10 +3750,10 @@ pub fn developerconnect_projects_locations_connections_get(
 pub fn developerconnect_projects_locations_connections_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3902,13 +3904,13 @@ pub struct DeveloperconnectProjectsLocationsConnectionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections
@@ -3951,10 +3953,10 @@ pub fn developerconnect_projects_locations_connections_list(
 pub fn developerconnect_projects_locations_connections_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4103,13 +4105,13 @@ pub struct DeveloperconnectProjectsLocationsConnectionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
@@ -4321,9 +4323,9 @@ pub fn developerconnect_projects_locations_connections_process_git_hub_enterpris
 pub fn developerconnect_projects_locations_connections_git_repository_links_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    gitRepositoryLinkId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    gitRepositoryLinkId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4470,11 +4472,11 @@ pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksCreateA
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: gitRepositoryLinkId
-    pub gitRepositoryLinkId: Option<Option<String>>,
+    pub gitRepositoryLinkId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks
@@ -4515,9 +4517,9 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_crea
 pub fn developerconnect_projects_locations_connections_git_repository_links_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4664,11 +4666,11 @@ pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksDeleteA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}
@@ -4711,9 +4713,9 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_fetc
 >(
     client: &SimpleHttpClient<R>,
     gitRepositoryLink: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    refType: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    refType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4864,11 +4866,11 @@ pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchGi
     /// Path parameter: gitRepositoryLink
     pub gitRepositoryLink: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: refType
-    pub refType: Option<Option<String>>,
+    pub refType: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:fetchGitRefs
@@ -5414,10 +5416,10 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_get(
 pub fn developerconnect_projects_locations_connections_git_repository_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5571,13 +5573,13 @@ pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksListArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks
@@ -6274,8 +6276,8 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_proc
 pub fn developerconnect_projects_locations_insights_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    insightsConfigId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    insightsConfigId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6418,9 +6420,9 @@ pub struct DeveloperconnectProjectsLocationsInsightsConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: insightsConfigId
-    pub insightsConfigId: Option<Option<String>>,
+    pub insightsConfigId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/insightsConfigs
@@ -6459,9 +6461,9 @@ pub fn developerconnect_projects_locations_insights_configs_create(
 pub fn developerconnect_projects_locations_insights_configs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6607,11 +6609,11 @@ pub struct DeveloperconnectProjectsLocationsInsightsConfigsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/insightsConfigs/{insightsConfigsId}
@@ -6816,10 +6818,10 @@ pub fn developerconnect_projects_locations_insights_configs_get(
 pub fn developerconnect_projects_locations_insights_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6972,13 +6974,13 @@ pub struct DeveloperconnectProjectsLocationsInsightsConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightsConfigs
@@ -7023,9 +7025,9 @@ pub fn developerconnect_projects_locations_insights_configs_list(
 pub fn developerconnect_projects_locations_insights_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7171,11 +7173,11 @@ pub struct DeveloperconnectProjectsLocationsInsightsConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/insightsConfigs/{insightsConfigsId}
@@ -7383,9 +7385,9 @@ pub fn developerconnect_projects_locations_insights_configs_deployment_events_ge
 pub fn developerconnect_projects_locations_insights_configs_deployment_events_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7536,11 +7538,11 @@ pub struct DeveloperconnectProjectsLocationsInsightsConfigsDeploymentEventsListA
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightsConfigs/{insightsConfigsId}/deploymentEvents
@@ -8067,10 +8069,10 @@ pub fn developerconnect_projects_locations_operations_get(
 pub fn developerconnect_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8221,13 +8223,13 @@ pub struct DeveloperconnectProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
