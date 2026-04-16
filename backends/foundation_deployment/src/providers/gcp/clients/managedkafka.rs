@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn managedkafka_projects_locations_get(
 pub fn managedkafka_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct ManagedkafkaProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,8 +395,8 @@ pub fn managedkafka_projects_locations_list(
 pub fn managedkafka_projects_locations_clusters_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    clusterId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    clusterId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -537,9 +539,9 @@ pub struct ManagedkafkaProjectsLocationsClustersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: clusterId
-    pub clusterId: Option<Option<String>>,
+    pub clusterId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/clusters
@@ -578,7 +580,7 @@ pub fn managedkafka_projects_locations_clusters_create(
 pub fn managedkafka_projects_locations_clusters_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -718,7 +720,7 @@ pub struct ManagedkafkaProjectsLocationsClustersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
@@ -756,7 +758,7 @@ pub fn managedkafka_projects_locations_clusters_delete(
 pub fn managedkafka_projects_locations_clusters_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -896,7 +898,7 @@ pub struct ManagedkafkaProjectsLocationsClustersGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
@@ -931,10 +933,10 @@ pub fn managedkafka_projects_locations_clusters_get(
 pub fn managedkafka_projects_locations_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1085,13 +1087,13 @@ pub struct ManagedkafkaProjectsLocationsClustersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
@@ -1134,8 +1136,8 @@ pub fn managedkafka_projects_locations_clusters_list(
 pub fn managedkafka_projects_locations_clusters_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1278,9 +1280,9 @@ pub struct ManagedkafkaProjectsLocationsClustersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
@@ -1484,7 +1486,7 @@ pub fn managedkafka_projects_locations_clusters_acls_add_acl_entry(
 pub fn managedkafka_projects_locations_clusters_acls_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    aclId: &Option<Option<String>>,
+    aclId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1624,7 +1626,7 @@ pub struct ManagedkafkaProjectsLocationsClustersAclsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: aclId
-    pub aclId: Option<Option<String>>,
+    pub aclId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls
@@ -1982,8 +1984,8 @@ pub fn managedkafka_projects_locations_clusters_acls_get(
 pub fn managedkafka_projects_locations_clusters_acls_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2128,9 +2130,9 @@ pub struct ManagedkafkaProjectsLocationsClustersAclsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls
@@ -2171,7 +2173,7 @@ pub fn managedkafka_projects_locations_clusters_acls_list(
 pub fn managedkafka_projects_locations_clusters_acls_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2311,7 +2313,7 @@ pub struct ManagedkafkaProjectsLocationsClustersAclsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
@@ -2841,10 +2843,10 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_get(
 pub fn managedkafka_projects_locations_clusters_consumer_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2997,13 +2999,13 @@ pub struct ManagedkafkaProjectsLocationsClustersConsumerGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups
@@ -3048,7 +3050,7 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_list(
 pub fn managedkafka_projects_locations_clusters_consumer_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3190,7 +3192,7 @@ pub struct ManagedkafkaProjectsLocationsClustersConsumerGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
@@ -3230,7 +3232,7 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_patch(
 pub fn managedkafka_projects_locations_clusters_topics_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    topicId: &Option<Option<String>>,
+    topicId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3370,7 +3372,7 @@ pub struct ManagedkafkaProjectsLocationsClustersTopicsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: topicId
-    pub topicId: Option<Option<String>>,
+    pub topicId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics
@@ -3729,8 +3731,8 @@ pub fn managedkafka_projects_locations_clusters_topics_get(
 pub fn managedkafka_projects_locations_clusters_topics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3875,9 +3877,9 @@ pub struct ManagedkafkaProjectsLocationsClustersTopicsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics
@@ -3918,7 +3920,7 @@ pub fn managedkafka_projects_locations_clusters_topics_list(
 pub fn managedkafka_projects_locations_clusters_topics_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4058,7 +4060,7 @@ pub struct ManagedkafkaProjectsLocationsClustersTopicsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
@@ -4096,8 +4098,8 @@ pub fn managedkafka_projects_locations_clusters_topics_patch(
 pub fn managedkafka_projects_locations_connect_clusters_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    connectClusterId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    connectClusterId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4240,9 +4242,9 @@ pub struct ManagedkafkaProjectsLocationsConnectClustersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: connectClusterId
-    pub connectClusterId: Option<Option<String>>,
+    pub connectClusterId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters
@@ -4281,7 +4283,7 @@ pub fn managedkafka_projects_locations_connect_clusters_create(
 pub fn managedkafka_projects_locations_connect_clusters_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4421,7 +4423,7 @@ pub struct ManagedkafkaProjectsLocationsConnectClustersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
@@ -4623,10 +4625,10 @@ pub fn managedkafka_projects_locations_connect_clusters_get(
 pub fn managedkafka_projects_locations_connect_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4779,13 +4781,13 @@ pub struct ManagedkafkaProjectsLocationsConnectClustersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters
@@ -4830,8 +4832,8 @@ pub fn managedkafka_projects_locations_connect_clusters_list(
 pub fn managedkafka_projects_locations_connect_clusters_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4974,9 +4976,9 @@ pub struct ManagedkafkaProjectsLocationsConnectClustersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
@@ -5015,7 +5017,7 @@ pub fn managedkafka_projects_locations_connect_clusters_patch(
 pub fn managedkafka_projects_locations_connect_clusters_connectors_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    connectorId: &Option<Option<String>>,
+    connectorId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5155,7 +5157,7 @@ pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: connectorId
-    pub connectorId: Option<Option<String>>,
+    pub connectorId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors
@@ -5517,8 +5519,8 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_get(
 pub fn managedkafka_projects_locations_connect_clusters_connectors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5663,9 +5665,9 @@ pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors
@@ -5706,7 +5708,7 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_list(
 pub fn managedkafka_projects_locations_connect_clusters_connectors_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5846,7 +5848,7 @@ pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
@@ -7028,10 +7030,10 @@ pub fn managedkafka_projects_locations_operations_get(
 pub fn managedkafka_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7182,13 +7184,13 @@ pub struct ManagedkafkaProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -7722,7 +7724,7 @@ pub fn managedkafka_projects_locations_schema_registries_get(
 pub fn managedkafka_projects_locations_schema_registries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7866,7 +7868,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries
@@ -8249,7 +8251,7 @@ pub fn managedkafka_projects_locations_schema_registries_config_delete(
 pub fn managedkafka_projects_locations_schema_registries_config_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    defaultToGlobal: &Option<Option<String>>,
+    defaultToGlobal: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8391,7 +8393,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesConfigGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: defaultToGlobal
-    pub defaultToGlobal: Option<Option<String>>,
+    pub defaultToGlobal: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
@@ -9259,7 +9261,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_config_delete(
 pub fn managedkafka_projects_locations_schema_registries_contexts_config_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    defaultToGlobal: &Option<Option<String>>,
+    defaultToGlobal: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9401,7 +9403,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: defaultToGlobal
-    pub defaultToGlobal: Option<Option<String>>,
+    pub defaultToGlobal: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
@@ -10096,7 +10098,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_mode_update(
 pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    subject: &Option<Option<String>>,
+    subject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10237,7 +10239,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: subject
-    pub subject: Option<Option<String>>,
+    pub subject: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}
@@ -10275,7 +10277,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get(
 pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    subject: &Option<Option<String>>,
+    subject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10417,7 +10419,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetSchema
     /// Path parameter: name
     pub name: String,
     /// Query parameter: subject
-    pub subject: Option<Option<String>>,
+    pub subject: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/schema
@@ -10456,8 +10458,8 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_sc
 pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    deleted: &Option<Option<String>>,
-    subject: &Option<Option<String>>,
+    deleted: &Option<String>,
+    subject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10603,9 +10605,9 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasSubjectsL
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
     /// Query parameter: subject
-    pub subject: Option<Option<String>>,
+    pub subject: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/subjects
@@ -10813,8 +10815,8 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_types_
 pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    deleted: &Option<Option<String>>,
-    subject: &Option<Option<String>>,
+    deleted: &Option<String>,
+    subject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10960,9 +10962,9 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasVersionsL
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
     /// Query parameter: subject
-    pub subject: Option<Option<String>>,
+    pub subject: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/versions
@@ -11004,7 +11006,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_versio
 pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    permanent: &Option<Option<String>>,
+    permanent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11145,7 +11147,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsDeleteAr
     /// Path parameter: name
     pub name: String,
     /// Query parameter: permanent
-    pub permanent: Option<Option<String>>,
+    pub permanent: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}
@@ -11184,8 +11186,8 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_delet
 pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    deleted: &Option<Option<String>>,
-    subjectPrefix: &Option<Option<String>>,
+    deleted: &Option<String>,
+    subjectPrefix: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11329,9 +11331,9 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsListArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
     /// Query parameter: subjectPrefix
-    pub subjectPrefix: Option<Option<String>>,
+    pub subjectPrefix: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects
@@ -11718,7 +11720,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    permanent: &Option<Option<String>>,
+    permanent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11861,7 +11863,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersions
     /// Path parameter: name
     pub name: String,
     /// Query parameter: permanent
-    pub permanent: Option<Option<String>>,
+    pub permanent: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}
@@ -11897,7 +11899,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    deleted: &Option<Option<String>>,
+    deleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12042,7 +12044,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersions
     /// Path parameter: name
     pub name: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}
@@ -12087,7 +12089,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    deleted: &Option<Option<String>>,
+    deleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12227,7 +12229,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersions
     /// Path parameter: name
     pub name: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/schema
@@ -12265,7 +12267,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    deleted: &Option<Option<String>>,
+    deleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12408,7 +12410,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersions
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions
@@ -13095,7 +13097,7 @@ pub fn managedkafka_projects_locations_schema_registries_mode_update(
 pub fn managedkafka_projects_locations_schema_registries_schemas_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    subject: &Option<Option<String>>,
+    subject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13235,7 +13237,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: subject
-    pub subject: Option<Option<String>>,
+    pub subject: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}
@@ -13273,7 +13275,7 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_get(
 pub fn managedkafka_projects_locations_schema_registries_schemas_get_schema_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    subject: &Option<Option<String>>,
+    subject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13413,7 +13415,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetSchemaArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: subject
-    pub subject: Option<Option<String>>,
+    pub subject: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/schema
@@ -13451,8 +13453,8 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_get_schema(
 pub fn managedkafka_projects_locations_schema_registries_schemas_subjects_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    deleted: &Option<Option<String>>,
-    subject: &Option<Option<String>>,
+    deleted: &Option<String>,
+    subject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13596,9 +13598,9 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasSubjectsListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
     /// Query parameter: subject
-    pub subject: Option<Option<String>>,
+    pub subject: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/subjects
@@ -13800,8 +13802,8 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_types_list(
 pub fn managedkafka_projects_locations_schema_registries_schemas_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    deleted: &Option<Option<String>>,
-    subject: &Option<Option<String>>,
+    deleted: &Option<String>,
+    subject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13945,9 +13947,9 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasVersionsListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
     /// Query parameter: subject
-    pub subject: Option<Option<String>>,
+    pub subject: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/versions
@@ -13986,7 +13988,7 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_versions_list(
 pub fn managedkafka_projects_locations_schema_registries_subjects_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    permanent: &Option<Option<String>>,
+    permanent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14126,7 +14128,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: permanent
-    pub permanent: Option<Option<String>>,
+    pub permanent: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}
@@ -14164,8 +14166,8 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_delete(
 pub fn managedkafka_projects_locations_schema_registries_subjects_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    deleted: &Option<Option<String>>,
-    subjectPrefix: &Option<Option<String>>,
+    deleted: &Option<String>,
+    subjectPrefix: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14308,9 +14310,9 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
     /// Query parameter: subjectPrefix
-    pub subjectPrefix: Option<Option<String>>,
+    pub subjectPrefix: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects
@@ -14687,7 +14689,7 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_creat
 pub fn managedkafka_projects_locations_schema_registries_subjects_versions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    permanent: &Option<Option<String>>,
+    permanent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14828,7 +14830,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsDeleteAr
     /// Path parameter: name
     pub name: String,
     /// Query parameter: permanent
-    pub permanent: Option<Option<String>>,
+    pub permanent: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}
@@ -14867,7 +14869,7 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_delet
 pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    deleted: &Option<Option<String>>,
+    deleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15010,7 +15012,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}
@@ -15050,7 +15052,7 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get(
 pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    deleted: &Option<Option<String>>,
+    deleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15192,7 +15194,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetSchem
     /// Path parameter: name
     pub name: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/schema
@@ -15231,7 +15233,7 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_s
 pub fn managedkafka_projects_locations_schema_registries_subjects_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    deleted: &Option<Option<String>>,
+    deleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15372,7 +15374,7 @@ pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsListArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions

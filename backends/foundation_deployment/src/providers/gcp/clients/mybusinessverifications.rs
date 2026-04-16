@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -699,8 +701,8 @@ pub fn mybusinessverifications_locations_verifications_complete(
 pub fn mybusinessverifications_locations_verifications_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -845,9 +847,9 @@ pub struct MybusinessverificationsLocationsVerificationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/locations/{locationsId}/verifications
@@ -1179,34 +1181,6 @@ impl ResourceIdentifier<MybusinessverificationsLocationsVerificationsListArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::mybusinessverifications::ListVerificationsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GenerateInstantVerificationTokenResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GenerateInstantVerificationTokenResponse with MybusinessverificationsVerificationTokensGenerateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<MybusinessverificationsVerificationTokensGenerateArgs>
-    for GenerateInstantVerificationTokenResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &MybusinessverificationsVerificationTokensGenerateArgs,
-    ) -> String {
-        "gcp::mybusinessverifications::GenerateInstantVerificationTokenResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::mybusinessverifications::GenerateInstantVerificationTokenResponse"
     }
 
     fn provider(&self) -> &'static str {

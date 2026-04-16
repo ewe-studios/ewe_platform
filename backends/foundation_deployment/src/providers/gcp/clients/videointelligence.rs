@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -1029,10 +1031,10 @@ pub fn videointelligence_projects_locations_operations_get(
 pub fn videointelligence_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1186,13 +1188,13 @@ pub struct VideointelligenceProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -1582,29 +1584,6 @@ impl ResourceIdentifier<VideointelligenceProjectsLocationsOperationsListArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::videointelligence::GoogleLongrunningListOperationsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleLongrunningOperation
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleLongrunningOperation with VideointelligenceVideosAnnotateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<VideointelligenceVideosAnnotateArgs> for GoogleLongrunningOperation {
-    fn generate_resource_id(&self, input: &VideointelligenceVideosAnnotateArgs) -> String {
-        "gcp::videointelligence::GoogleLongrunningOperation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::videointelligence::GoogleLongrunningOperation"
     }
 
     fn provider(&self) -> &'static str {

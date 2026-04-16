@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn cloudbuild_projects_locations_get(
 pub fn cloudbuild_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct CloudbuildProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations
@@ -393,7 +395,7 @@ pub fn cloudbuild_projects_locations_list(
 pub fn cloudbuild_projects_locations_connections_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    connectionId: &Option<Option<String>>,
+    connectionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -533,7 +535,7 @@ pub struct CloudbuildProjectsLocationsConnectionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: connectionId
-    pub connectionId: Option<Option<String>>,
+    pub connectionId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/connections
@@ -571,8 +573,8 @@ pub fn cloudbuild_projects_locations_connections_create(
 pub fn cloudbuild_projects_locations_connections_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -715,9 +717,9 @@ pub struct CloudbuildProjectsLocationsConnectionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
@@ -756,8 +758,8 @@ pub fn cloudbuild_projects_locations_connections_delete(
 pub fn cloudbuild_projects_locations_connections_fetch_linkable_repositories_builder<R>(
     client: &SimpleHttpClient<R>,
     connection: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -904,9 +906,9 @@ pub struct CloudbuildProjectsLocationsConnectionsFetchLinkableRepositoriesArgs {
     /// Path parameter: connection
     pub connection: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:fetchLinkableRepositories
@@ -1109,7 +1111,7 @@ pub fn cloudbuild_projects_locations_connections_get(
 pub fn cloudbuild_projects_locations_connections_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1249,7 +1251,7 @@ pub struct CloudbuildProjectsLocationsConnectionsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:getIamPolicy
@@ -1287,9 +1289,9 @@ pub fn cloudbuild_projects_locations_connections_get_iam_policy(
 pub fn cloudbuild_projects_locations_connections_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1437,11 +1439,11 @@ pub struct CloudbuildProjectsLocationsConnectionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections
@@ -1483,9 +1485,9 @@ pub fn cloudbuild_projects_locations_connections_list(
 pub fn cloudbuild_projects_locations_connections_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1631,11 +1633,11 @@ pub struct CloudbuildProjectsLocationsConnectionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
@@ -1675,7 +1677,7 @@ pub fn cloudbuild_projects_locations_connections_patch(
 pub fn cloudbuild_projects_locations_connections_process_webhook_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    webhookKey: &Option<Option<String>>,
+    webhookKey: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1815,7 +1817,7 @@ pub struct CloudbuildProjectsLocationsConnectionsProcessWebhookArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: webhookKey
-    pub webhookKey: Option<Option<String>>,
+    pub webhookKey: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/connections:processWebhook
@@ -2690,7 +2692,7 @@ pub fn cloudbuild_projects_locations_connections_repositories_batch_create(
 pub fn cloudbuild_projects_locations_connections_repositories_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    repositoryId: &Option<Option<String>>,
+    repositoryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2830,7 +2832,7 @@ pub struct CloudbuildProjectsLocationsConnectionsRepositoriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: repositoryId
-    pub repositoryId: Option<Option<String>>,
+    pub repositoryId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/repositories
@@ -2868,8 +2870,8 @@ pub fn cloudbuild_projects_locations_connections_repositories_create(
 pub fn cloudbuild_projects_locations_connections_repositories_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3012,9 +3014,9 @@ pub struct CloudbuildProjectsLocationsConnectionsRepositoriesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/repositories/{repositoriesId}
@@ -3053,9 +3055,9 @@ pub fn cloudbuild_projects_locations_connections_repositories_delete(
 pub fn cloudbuild_projects_locations_connections_repositories_fetch_git_refs_builder<R>(
     client: &SimpleHttpClient<R>,
     repository: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    refType: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    refType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3203,11 +3205,11 @@ pub struct CloudbuildProjectsLocationsConnectionsRepositoriesFetchGitRefsArgs {
     /// Path parameter: repository
     pub repository: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: refType
-    pub refType: Option<Option<String>>,
+    pub refType: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/repositories/{repositoriesId}:fetchGitRefs
@@ -3410,10 +3412,10 @@ pub fn cloudbuild_projects_locations_connections_repositories_get(
 pub fn cloudbuild_projects_locations_connections_repositories_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3564,13 +3566,13 @@ pub struct CloudbuildProjectsLocationsConnectionsRepositoriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/repositories

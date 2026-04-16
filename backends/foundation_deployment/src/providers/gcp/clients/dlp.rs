@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,10 +31,10 @@ use serde::Serialize;
 
 pub fn dlp_info_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    locationId: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    locationId: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -181,13 +183,13 @@ pub fn dlp_info_types_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpInfoTypesListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v2/infoTypes
@@ -231,9 +233,9 @@ pub fn dlp_info_types_list(
 pub fn dlp_locations_info_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    locationId: &Option<Option<String>>,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    locationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -384,11 +386,11 @@ pub struct DlpLocationsInfoTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
 }
 
 /// GET v2/locations/{locationsId}/infoTypes
@@ -932,10 +934,10 @@ pub fn dlp_organizations_deidentify_templates_get(
 pub fn dlp_organizations_deidentify_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1092,13 +1094,13 @@ pub struct DlpOrganizationsDeidentifyTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/deidentifyTemplates
@@ -1811,10 +1813,10 @@ pub fn dlp_organizations_inspect_templates_get(
 pub fn dlp_organizations_inspect_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1968,13 +1970,13 @@ pub struct DlpOrganizationsInspectTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/inspectTemplates
@@ -2355,10 +2357,10 @@ pub fn dlp_organizations_locations_column_data_profiles_get(
 pub fn dlp_organizations_locations_column_data_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2512,13 +2514,13 @@ pub struct DlpOrganizationsLocationsColumnDataProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/columnDataProfiles
@@ -3063,9 +3065,9 @@ pub fn dlp_organizations_locations_connections_get(
 pub fn dlp_organizations_locations_connections_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3215,11 +3217,11 @@ pub struct DlpOrganizationsLocationsConnectionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/connections
@@ -3431,9 +3433,9 @@ pub fn dlp_organizations_locations_connections_patch(
 pub fn dlp_organizations_locations_connections_search_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3584,11 +3586,11 @@ pub struct DlpOrganizationsLocationsConnectionsSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/connections:search
@@ -4134,10 +4136,10 @@ pub fn dlp_organizations_locations_deidentify_templates_get(
 pub fn dlp_organizations_locations_deidentify_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4294,13 +4296,13 @@ pub struct DlpOrganizationsLocationsDeidentifyTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/deidentifyTemplates
@@ -5015,9 +5017,9 @@ pub fn dlp_organizations_locations_discovery_configs_get(
 pub fn dlp_organizations_locations_discovery_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5168,11 +5170,11 @@ pub struct DlpOrganizationsLocationsDiscoveryConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/discoveryConfigs
@@ -5384,12 +5386,12 @@ pub fn dlp_organizations_locations_discovery_configs_patch(
 pub fn dlp_organizations_locations_dlp_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    filter: &Option<String>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5548,17 +5550,17 @@ pub struct DlpOrganizationsLocationsDlpJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/dlpJobs
@@ -5939,10 +5941,10 @@ pub fn dlp_organizations_locations_file_store_data_profiles_get(
 pub fn dlp_organizations_locations_file_store_data_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6099,13 +6101,13 @@ pub struct DlpOrganizationsLocationsFileStoreDataProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/fileStoreDataProfiles
@@ -6150,9 +6152,9 @@ pub fn dlp_organizations_locations_file_store_data_profiles_list(
 pub fn dlp_organizations_locations_info_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    locationId: &Option<Option<String>>,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    locationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6303,11 +6305,11 @@ pub struct DlpOrganizationsLocationsInfoTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/infoTypes
@@ -6852,10 +6854,10 @@ pub fn dlp_organizations_locations_inspect_templates_get(
 pub fn dlp_organizations_locations_inspect_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7009,13 +7011,13 @@ pub struct DlpOrganizationsLocationsInspectTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/inspectTemplates
@@ -7728,12 +7730,12 @@ pub fn dlp_organizations_locations_job_triggers_get(
 pub fn dlp_organizations_locations_job_triggers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    filter: &Option<String>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7892,17 +7894,17 @@ pub struct DlpOrganizationsLocationsJobTriggersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/jobTriggers
@@ -8286,10 +8288,10 @@ pub fn dlp_organizations_locations_project_data_profiles_get(
 pub fn dlp_organizations_locations_project_data_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8446,13 +8448,13 @@ pub struct DlpOrganizationsLocationsProjectDataProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/projectDataProfiles
@@ -8998,10 +9000,10 @@ pub fn dlp_organizations_locations_stored_info_types_get(
 pub fn dlp_organizations_locations_stored_info_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9155,13 +9157,13 @@ pub struct DlpOrganizationsLocationsStoredInfoTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/storedInfoTypes
@@ -9707,10 +9709,10 @@ pub fn dlp_organizations_locations_table_data_profiles_get(
 pub fn dlp_organizations_locations_table_data_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9864,13 +9866,13 @@ pub struct DlpOrganizationsLocationsTableDataProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/tableDataProfiles
@@ -10415,10 +10417,10 @@ pub fn dlp_organizations_stored_info_types_get(
 pub fn dlp_organizations_stored_info_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10572,13 +10574,13 @@ pub struct DlpOrganizationsStoredInfoTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/storedInfoTypes
@@ -11797,10 +11799,10 @@ pub fn dlp_projects_deidentify_templates_get(
 pub fn dlp_projects_deidentify_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11957,13 +11959,13 @@ pub struct DlpProjectsDeidentifyTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/deidentifyTemplates
@@ -12829,12 +12831,12 @@ pub fn dlp_projects_dlp_jobs_get(
 pub fn dlp_projects_dlp_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    filter: &Option<String>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12990,17 +12992,17 @@ pub struct DlpProjectsDlpJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/dlpJobs
@@ -13715,10 +13717,10 @@ pub fn dlp_projects_inspect_templates_get(
 pub fn dlp_projects_inspect_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13872,13 +13874,13 @@ pub struct DlpProjectsInspectTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/inspectTemplates
@@ -14755,12 +14757,12 @@ pub fn dlp_projects_job_triggers_get(
 pub fn dlp_projects_job_triggers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    filter: &Option<String>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14919,17 +14921,17 @@ pub struct DlpProjectsJobTriggersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/jobTriggers
@@ -15312,10 +15314,10 @@ pub fn dlp_projects_locations_column_data_profiles_get(
 pub fn dlp_projects_locations_column_data_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15469,13 +15471,13 @@ pub struct DlpProjectsLocationsColumnDataProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/columnDataProfiles
@@ -16020,9 +16022,9 @@ pub fn dlp_projects_locations_connections_get(
 pub fn dlp_projects_locations_connections_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16172,11 +16174,11 @@ pub struct DlpProjectsLocationsConnectionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections
@@ -16388,9 +16390,9 @@ pub fn dlp_projects_locations_connections_patch(
 pub fn dlp_projects_locations_connections_search_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16541,11 +16543,11 @@ pub struct DlpProjectsLocationsConnectionsSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections:search
@@ -17595,10 +17597,10 @@ pub fn dlp_projects_locations_deidentify_templates_get(
 pub fn dlp_projects_locations_deidentify_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17755,13 +17757,13 @@ pub struct DlpProjectsLocationsDeidentifyTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/deidentifyTemplates
@@ -18474,9 +18476,9 @@ pub fn dlp_projects_locations_discovery_configs_get(
 pub fn dlp_projects_locations_discovery_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18627,11 +18629,11 @@ pub struct DlpProjectsLocationsDiscoveryConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/discoveryConfigs
@@ -19832,12 +19834,12 @@ pub fn dlp_projects_locations_dlp_jobs_hybrid_inspect(
 pub fn dlp_projects_locations_dlp_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    filter: &Option<String>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19996,17 +19998,17 @@ pub struct DlpProjectsLocationsDlpJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dlpJobs
@@ -20386,10 +20388,10 @@ pub fn dlp_projects_locations_file_store_data_profiles_get(
 pub fn dlp_projects_locations_file_store_data_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20546,13 +20548,13 @@ pub struct DlpProjectsLocationsFileStoreDataProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/fileStoreDataProfiles
@@ -20765,9 +20767,9 @@ pub fn dlp_projects_locations_image_redact(
 pub fn dlp_projects_locations_info_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    locationId: &Option<Option<String>>,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    locationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20918,11 +20920,11 @@ pub struct DlpProjectsLocationsInfoTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/infoTypes
@@ -21466,10 +21468,10 @@ pub fn dlp_projects_locations_inspect_templates_get(
 pub fn dlp_projects_locations_inspect_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21623,13 +21625,13 @@ pub struct DlpProjectsLocationsInspectTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/inspectTemplates
@@ -22675,12 +22677,12 @@ pub fn dlp_projects_locations_job_triggers_hybrid_inspect(
 pub fn dlp_projects_locations_job_triggers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    filter: &Option<String>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22839,17 +22841,17 @@ pub struct DlpProjectsLocationsJobTriggersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobTriggers
@@ -23232,10 +23234,10 @@ pub fn dlp_projects_locations_project_data_profiles_get(
 pub fn dlp_projects_locations_project_data_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23392,13 +23394,13 @@ pub struct DlpProjectsLocationsProjectDataProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/projectDataProfiles
@@ -23943,10 +23945,10 @@ pub fn dlp_projects_locations_stored_info_types_get(
 pub fn dlp_projects_locations_stored_info_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24100,13 +24102,13 @@ pub struct DlpProjectsLocationsStoredInfoTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/storedInfoTypes
@@ -24651,10 +24653,10 @@ pub fn dlp_projects_locations_table_data_profiles_get(
 pub fn dlp_projects_locations_table_data_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24808,13 +24810,13 @@ pub struct DlpProjectsLocationsTableDataProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/tableDataProfiles
@@ -25359,10 +25361,10 @@ pub fn dlp_projects_stored_info_types_get(
 pub fn dlp_projects_stored_info_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    locationId: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    locationId: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25516,13 +25518,13 @@ pub struct DlpProjectsStoredInfoTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: locationId
-    pub locationId: Option<Option<String>>,
+    pub locationId: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/storedInfoTypes

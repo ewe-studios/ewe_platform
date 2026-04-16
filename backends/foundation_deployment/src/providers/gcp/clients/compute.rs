@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,13 +32,13 @@ use serde::Serialize;
 pub fn compute_accelerator_types_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -198,19 +200,19 @@ pub struct ComputeAcceleratorTypesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/acceleratorTypes
@@ -434,11 +436,11 @@ pub fn compute_accelerator_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -594,15 +596,15 @@ pub struct ComputeAcceleratorTypesListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/acceleratorTypes
@@ -647,13 +649,13 @@ pub fn compute_accelerator_types_list(
 pub fn compute_addresses_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -813,19 +815,19 @@ pub struct ComputeAddressesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/addresses
@@ -873,7 +875,7 @@ pub fn compute_addresses_delete_builder<R>(
     project: &String,
     region: &String,
     address: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1017,7 +1019,7 @@ pub struct ComputeAddressesDeleteArgs {
     /// Path parameter: address
     pub address: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/addresses/{address}
@@ -1225,7 +1227,7 @@ pub fn compute_addresses_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1367,7 +1369,7 @@ pub struct ComputeAddressesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/addresses
@@ -1403,11 +1405,11 @@ pub fn compute_addresses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1561,15 +1563,15 @@ pub struct ComputeAddressesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/addresses
@@ -1614,7 +1616,7 @@ pub fn compute_addresses_move_builder<R>(
     project: &String,
     region: &String,
     address: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1758,7 +1760,7 @@ pub struct ComputeAddressesMoveArgs {
     /// Path parameter: address
     pub address: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/addresses/{address}/move
@@ -1800,7 +1802,7 @@ pub fn compute_addresses_set_labels_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1944,7 +1946,7 @@ pub struct ComputeAddressesSetLabelsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/addresses/{resource}/setLabels
@@ -2332,13 +2334,13 @@ pub fn compute_advice_calendar_mode(
 pub fn compute_autoscalers_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2498,19 +2500,19 @@ pub struct ComputeAutoscalersAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/autoscalers
@@ -2558,7 +2560,7 @@ pub fn compute_autoscalers_delete_builder<R>(
     project: &String,
     zone: &String,
     autoscaler: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2702,7 +2704,7 @@ pub struct ComputeAutoscalersDeleteArgs {
     /// Path parameter: autoscaler
     pub autoscaler: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/autoscalers/{autoscaler}
@@ -2910,7 +2912,7 @@ pub fn compute_autoscalers_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3052,7 +3054,7 @@ pub struct ComputeAutoscalersInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/autoscalers
@@ -3088,11 +3090,11 @@ pub fn compute_autoscalers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3248,15 +3250,15 @@ pub struct ComputeAutoscalersListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/autoscalers
@@ -3302,8 +3304,8 @@ pub fn compute_autoscalers_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    autoscaler: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    autoscaler: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3448,9 +3450,9 @@ pub struct ComputeAutoscalersPatchArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: autoscaler
-    pub autoscaler: Option<Option<String>>,
+    pub autoscaler: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/zones/{zone}/autoscalers
@@ -3668,8 +3670,8 @@ pub fn compute_autoscalers_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    autoscaler: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    autoscaler: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3814,9 +3816,9 @@ pub struct ComputeAutoscalersUpdateArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: autoscaler
-    pub autoscaler: Option<Option<String>>,
+    pub autoscaler: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/zones/{zone}/autoscalers
@@ -3857,7 +3859,7 @@ pub fn compute_backend_buckets_add_signed_url_key_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     backendBucket: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4000,7 +4002,7 @@ pub struct ComputeBackendBucketsAddSignedUrlKeyArgs {
     /// Path parameter: backendBucket
     pub backendBucket: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/backendBuckets/{backendBucket}/addSignedUrlKey
@@ -4039,13 +4041,13 @@ pub fn compute_backend_buckets_add_signed_url_key(
 pub fn compute_backend_buckets_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4207,19 +4209,19 @@ pub struct ComputeBackendBucketsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/backendBuckets
@@ -4268,7 +4270,7 @@ pub fn compute_backend_buckets_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     backendBucket: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4410,7 +4412,7 @@ pub struct ComputeBackendBucketsDeleteArgs {
     /// Path parameter: backendBucket
     pub backendBucket: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/backendBuckets/{backendBucket}
@@ -4450,8 +4452,8 @@ pub fn compute_backend_buckets_delete_signed_url_key_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     backendBucket: &String,
-    keyName: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    keyName: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4597,9 +4599,9 @@ pub struct ComputeBackendBucketsDeleteSignedUrlKeyArgs {
     /// Path parameter: backendBucket
     pub backendBucket: String,
     /// Query parameter: keyName
-    pub keyName: Option<Option<String>>,
+    pub keyName: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/backendBuckets/{backendBucket}/deleteSignedUrlKey
@@ -4807,7 +4809,7 @@ pub fn compute_backend_buckets_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4950,7 +4952,7 @@ pub struct ComputeBackendBucketsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/global/backendBuckets/{resource}/getIamPolicy
@@ -4989,7 +4991,7 @@ pub fn compute_backend_buckets_get_iam_policy(
 pub fn compute_backend_buckets_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5129,7 +5131,7 @@ pub struct ComputeBackendBucketsInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/backendBuckets
@@ -5163,11 +5165,11 @@ pub fn compute_backend_buckets_insert(
 pub fn compute_backend_buckets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5321,15 +5323,15 @@ pub struct ComputeBackendBucketsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/backendBuckets
@@ -5373,11 +5375,11 @@ pub fn compute_backend_buckets_list(
 pub fn compute_backend_buckets_list_usable_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5531,15 +5533,15 @@ pub struct ComputeBackendBucketsListUsableArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/backendBuckets/listUsable
@@ -5584,7 +5586,7 @@ pub fn compute_backend_buckets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     backendBucket: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5726,7 +5728,7 @@ pub struct ComputeBackendBucketsPatchArgs {
     /// Path parameter: backendBucket
     pub backendBucket: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/backendBuckets/{backendBucket}
@@ -5766,7 +5768,7 @@ pub fn compute_backend_buckets_set_edge_security_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     backendBucket: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5909,7 +5911,7 @@ pub struct ComputeBackendBucketsSetEdgeSecurityPolicyArgs {
     /// Path parameter: backendBucket
     pub backendBucket: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/backendBuckets/{backendBucket}/setEdgeSecurityPolicy
@@ -6286,7 +6288,7 @@ pub fn compute_backend_buckets_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     backendBucket: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6428,7 +6430,7 @@ pub struct ComputeBackendBucketsUpdateArgs {
     /// Path parameter: backendBucket
     pub backendBucket: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/global/backendBuckets/{backendBucket}
@@ -6468,7 +6470,7 @@ pub fn compute_backend_services_add_signed_url_key_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6611,7 +6613,7 @@ pub struct ComputeBackendServicesAddSignedUrlKeyArgs {
     /// Path parameter: backendService
     pub backendService: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/backendServices/{backendService}/addSignedUrlKey
@@ -6650,13 +6652,13 @@ pub fn compute_backend_services_add_signed_url_key(
 pub fn compute_backend_services_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6818,19 +6820,19 @@ pub struct ComputeBackendServicesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/backendServices
@@ -6879,7 +6881,7 @@ pub fn compute_backend_services_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7021,7 +7023,7 @@ pub struct ComputeBackendServicesDeleteArgs {
     /// Path parameter: backendService
     pub backendService: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/backendServices/{backendService}
@@ -7061,8 +7063,8 @@ pub fn compute_backend_services_delete_signed_url_key_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
-    keyName: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    keyName: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7208,9 +7210,9 @@ pub struct ComputeBackendServicesDeleteSignedUrlKeyArgs {
     /// Path parameter: backendService
     pub backendService: String,
     /// Query parameter: keyName
-    pub keyName: Option<Option<String>>,
+    pub keyName: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/backendServices/{backendService}/deleteSignedUrlKey
@@ -7752,7 +7754,7 @@ pub fn compute_backend_services_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7895,7 +7897,7 @@ pub struct ComputeBackendServicesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/global/backendServices/{resource}/getIamPolicy
@@ -7934,7 +7936,7 @@ pub fn compute_backend_services_get_iam_policy(
 pub fn compute_backend_services_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8074,7 +8076,7 @@ pub struct ComputeBackendServicesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/backendServices
@@ -8108,11 +8110,11 @@ pub fn compute_backend_services_insert(
 pub fn compute_backend_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8266,15 +8268,15 @@ pub struct ComputeBackendServicesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/backendServices
@@ -8318,11 +8320,11 @@ pub fn compute_backend_services_list(
 pub fn compute_backend_services_list_usable_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8476,15 +8478,15 @@ pub struct ComputeBackendServicesListUsableArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/backendServices/listUsable
@@ -8529,7 +8531,7 @@ pub fn compute_backend_services_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8671,7 +8673,7 @@ pub struct ComputeBackendServicesPatchArgs {
     /// Path parameter: backendService
     pub backendService: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/backendServices/{backendService}
@@ -8711,7 +8713,7 @@ pub fn compute_backend_services_set_edge_security_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8854,7 +8856,7 @@ pub struct ComputeBackendServicesSetEdgeSecurityPolicyArgs {
     /// Path parameter: backendService
     pub backendService: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/backendServices/{backendService}/setEdgeSecurityPolicy
@@ -9059,7 +9061,7 @@ pub fn compute_backend_services_set_security_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9202,7 +9204,7 @@ pub struct ComputeBackendServicesSetSecurityPolicyArgs {
     /// Path parameter: backendService
     pub backendService: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/backendServices/{backendService}/setSecurityPolicy
@@ -9414,7 +9416,7 @@ pub fn compute_backend_services_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     backendService: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9556,7 +9558,7 @@ pub struct ComputeBackendServicesUpdateArgs {
     /// Path parameter: backendService
     pub backendService: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/global/backendServices/{backendService}
@@ -9596,7 +9598,7 @@ pub fn compute_cross_site_networks_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     crossSiteNetwork: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9738,7 +9740,7 @@ pub struct ComputeCrossSiteNetworksDeleteArgs {
     /// Path parameter: crossSiteNetwork
     pub crossSiteNetwork: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/crossSiteNetworks/{crossSiteNetwork}
@@ -9945,8 +9947,8 @@ pub fn compute_cross_site_networks_get(
 pub fn compute_cross_site_networks_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10089,9 +10091,9 @@ pub struct ComputeCrossSiteNetworksInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST projects/{project}/global/crossSiteNetworks
@@ -10130,11 +10132,11 @@ pub fn compute_cross_site_networks_insert(
 pub fn compute_cross_site_networks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10288,15 +10290,15 @@ pub struct ComputeCrossSiteNetworksListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/crossSiteNetworks
@@ -10341,9 +10343,9 @@ pub fn compute_cross_site_networks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     crossSiteNetwork: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10491,11 +10493,11 @@ pub struct ComputeCrossSiteNetworksPatchArgs {
     /// Path parameter: crossSiteNetwork
     pub crossSiteNetwork: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH projects/{project}/global/crossSiteNetworks/{crossSiteNetwork}
@@ -10536,13 +10538,13 @@ pub fn compute_cross_site_networks_patch(
 pub fn compute_disk_types_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10702,19 +10704,19 @@ pub struct ComputeDiskTypesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/diskTypes
@@ -10928,11 +10930,11 @@ pub fn compute_disk_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11088,15 +11090,15 @@ pub struct ComputeDiskTypesListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/diskTypes
@@ -11143,7 +11145,7 @@ pub fn compute_disks_add_resource_policies_builder<R>(
     project: &String,
     zone: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11289,7 +11291,7 @@ pub struct ComputeDisksAddResourcePoliciesArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/disks/{disk}/addResourcePolicies
@@ -11329,13 +11331,13 @@ pub fn compute_disks_add_resource_policies(
 pub fn compute_disks_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11495,19 +11497,19 @@ pub struct ComputeDisksAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/disks
@@ -11554,7 +11556,7 @@ pub fn compute_disks_bulk_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11696,7 +11698,7 @@ pub struct ComputeDisksBulkInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/disks/bulkInsert
@@ -11732,8 +11734,8 @@ pub fn compute_disks_bulk_set_labels_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
-    resource: &Option<Option<String>>,
+    requestId: &Option<String>,
+    resource: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11878,9 +11880,9 @@ pub struct ComputeDisksBulkSetLabelsArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: resource
-    pub resource: Option<Option<String>>,
+    pub resource: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/disks/bulkSetLabels
@@ -11922,8 +11924,8 @@ pub fn compute_disks_create_snapshot_builder<R>(
     project: &String,
     zone: &String,
     disk: &String,
-    guestFlush: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    guestFlush: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12070,9 +12072,9 @@ pub struct ComputeDisksCreateSnapshotArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: guestFlush
-    pub guestFlush: Option<Option<String>>,
+    pub guestFlush: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/disks/{disk}/createSnapshot
@@ -12115,7 +12117,7 @@ pub fn compute_disks_delete_builder<R>(
     project: &String,
     zone: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12259,7 +12261,7 @@ pub struct ComputeDisksDeleteArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/disks/{disk}
@@ -12467,7 +12469,7 @@ pub fn compute_disks_get_iam_policy_builder<R>(
     project: &String,
     zone: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12611,7 +12613,7 @@ pub struct ComputeDisksGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/disks/{resource}/getIamPolicy
@@ -12652,8 +12654,8 @@ pub fn compute_disks_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
-    sourceImage: &Option<Option<String>>,
+    requestId: &Option<String>,
+    sourceImage: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12798,9 +12800,9 @@ pub struct ComputeDisksInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: sourceImage
-    pub sourceImage: Option<Option<String>>,
+    pub sourceImage: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/disks
@@ -12841,11 +12843,11 @@ pub fn compute_disks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12999,15 +13001,15 @@ pub struct ComputeDisksListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/disks
@@ -13052,7 +13054,7 @@ pub fn compute_disks_remove_resource_policies_builder<R>(
     project: &String,
     zone: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13198,7 +13200,7 @@ pub struct ComputeDisksRemoveResourcePoliciesArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/disks/{disk}/removeResourcePolicies
@@ -13240,7 +13242,7 @@ pub fn compute_disks_resize_builder<R>(
     project: &String,
     zone: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13384,7 +13386,7 @@ pub struct ComputeDisksResizeArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/disks/{disk}/resize
@@ -13593,7 +13595,7 @@ pub fn compute_disks_set_labels_builder<R>(
     project: &String,
     zone: &String,
     resource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13737,7 +13739,7 @@ pub struct ComputeDisksSetLabelsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/disks/{resource}/setLabels
@@ -13779,7 +13781,7 @@ pub fn compute_disks_start_async_replication_builder<R>(
     project: &String,
     zone: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13925,7 +13927,7 @@ pub struct ComputeDisksStartAsyncReplicationArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/disks/{disk}/startAsyncReplication
@@ -13967,7 +13969,7 @@ pub fn compute_disks_stop_async_replication_builder<R>(
     project: &String,
     zone: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14113,7 +14115,7 @@ pub struct ComputeDisksStopAsyncReplicationArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/disks/{disk}/stopAsyncReplication
@@ -14154,7 +14156,7 @@ pub fn compute_disks_stop_group_async_replication_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14297,7 +14299,7 @@ pub struct ComputeDisksStopGroupAsyncReplicationArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/disks/stopGroupAsyncReplication
@@ -14515,9 +14517,9 @@ pub fn compute_disks_update_builder<R>(
     project: &String,
     zone: &String,
     disk: &String,
-    paths: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    paths: &Option<String>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14667,11 +14669,11 @@ pub struct ComputeDisksUpdateArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: paths
-    pub paths: Option<Option<String>>,
+    pub paths: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/zones/{zone}/disks/{disk}
@@ -14715,7 +14717,7 @@ pub fn compute_disks_update_kms_key_builder<R>(
     project: &String,
     zone: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14859,7 +14861,7 @@ pub struct ComputeDisksUpdateKmsKeyArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/disks/{disk}/updateKmsKey
@@ -14900,7 +14902,7 @@ pub fn compute_external_vpn_gateways_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     externalVpnGateway: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15042,7 +15044,7 @@ pub struct ComputeExternalVpnGatewaysDeleteArgs {
     /// Path parameter: externalVpnGateway
     pub externalVpnGateway: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/externalVpnGateways/{externalVpnGateway}
@@ -15249,7 +15251,7 @@ pub fn compute_external_vpn_gateways_get(
 pub fn compute_external_vpn_gateways_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15389,7 +15391,7 @@ pub struct ComputeExternalVpnGatewaysInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/externalVpnGateways
@@ -15424,11 +15426,11 @@ pub fn compute_external_vpn_gateways_insert(
 pub fn compute_external_vpn_gateways_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15582,15 +15584,15 @@ pub struct ComputeExternalVpnGatewaysListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/externalVpnGateways
@@ -15971,8 +15973,8 @@ pub fn compute_external_vpn_gateways_test_iam_permissions(
 pub fn compute_firewall_policies_add_association_builder<R>(
     client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
-    replaceExistingAssociation: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    replaceExistingAssociation: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16115,9 +16117,9 @@ pub struct ComputeFirewallPoliciesAddAssociationArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: replaceExistingAssociation
-    pub replaceExistingAssociation: Option<Option<String>>,
+    pub replaceExistingAssociation: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/firewallPolicies/{firewallPolicy}/addAssociation
@@ -16156,7 +16158,7 @@ pub fn compute_firewall_policies_add_association(
 pub fn compute_firewall_policies_add_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16296,7 +16298,7 @@ pub struct ComputeFirewallPoliciesAddRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/firewallPolicies/{firewallPolicy}/addRule
@@ -16331,8 +16333,8 @@ pub fn compute_firewall_policies_add_rule(
 pub fn compute_firewall_policies_clone_rules_builder<R>(
     client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
-    requestId: &Option<Option<String>>,
-    sourceFirewallPolicy: &Option<Option<String>>,
+    requestId: &Option<String>,
+    sourceFirewallPolicy: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16475,9 +16477,9 @@ pub struct ComputeFirewallPoliciesCloneRulesArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: sourceFirewallPolicy
-    pub sourceFirewallPolicy: Option<Option<String>>,
+    pub sourceFirewallPolicy: Option<String>,
 }
 
 /// POST locations/global/firewallPolicies/{firewallPolicy}/cloneRules
@@ -16516,7 +16518,7 @@ pub fn compute_firewall_policies_clone_rules(
 pub fn compute_firewall_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16656,7 +16658,7 @@ pub struct ComputeFirewallPoliciesDeleteArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE locations/global/firewallPolicies/{firewallPolicy}
@@ -16855,7 +16857,7 @@ pub fn compute_firewall_policies_get(
 pub fn compute_firewall_policies_get_association_builder<R>(
     client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16997,7 +16999,7 @@ pub struct ComputeFirewallPoliciesGetAssociationArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// GET locations/global/firewallPolicies/{firewallPolicy}/getAssociation
@@ -17037,7 +17039,7 @@ pub fn compute_firewall_policies_get_association(
 pub fn compute_firewall_policies_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17177,7 +17179,7 @@ pub struct ComputeFirewallPoliciesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET locations/global/firewallPolicies/{resource}/getIamPolicy
@@ -17215,7 +17217,7 @@ pub fn compute_firewall_policies_get_iam_policy(
 pub fn compute_firewall_policies_get_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
-    priority: &Option<Option<String>>,
+    priority: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17357,7 +17359,7 @@ pub struct ComputeFirewallPoliciesGetRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
 }
 
 /// GET locations/global/firewallPolicies/{firewallPolicy}/getRule
@@ -17393,8 +17395,8 @@ pub fn compute_firewall_policies_get_rule(
 
 pub fn compute_firewall_policies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    parentId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    parentId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17533,9 +17535,9 @@ pub fn compute_firewall_policies_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ComputeFirewallPoliciesInsertArgs {
     /// Query parameter: parentId
-    pub parentId: Option<Option<String>>,
+    pub parentId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/firewallPolicies
@@ -17569,12 +17571,12 @@ pub fn compute_firewall_policies_insert(
 
 pub fn compute_firewall_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parentId: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    parentId: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17727,17 +17729,17 @@ pub fn compute_firewall_policies_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ComputeFirewallPoliciesListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parentId
-    pub parentId: Option<Option<String>>,
+    pub parentId: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET locations/global/firewallPolicies
@@ -17780,8 +17782,8 @@ pub fn compute_firewall_policies_list(
 
 pub fn compute_firewall_policies_list_associations_builder<R>(
     client: &SimpleHttpClient<R>,
-    includeInheritedPolicies: &Option<Option<String>>,
-    targetResource: &Option<Option<String>>,
+    includeInheritedPolicies: &Option<String>,
+    targetResource: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17925,9 +17927,9 @@ pub fn compute_firewall_policies_list_associations_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ComputeFirewallPoliciesListAssociationsArgs {
     /// Query parameter: includeInheritedPolicies
-    pub includeInheritedPolicies: Option<Option<String>>,
+    pub includeInheritedPolicies: Option<String>,
     /// Query parameter: targetResource
-    pub targetResource: Option<Option<String>>,
+    pub targetResource: Option<String>,
 }
 
 /// GET locations/global/firewallPolicies/listAssociations
@@ -17969,8 +17971,8 @@ pub fn compute_firewall_policies_list_associations(
 pub fn compute_firewall_policies_move_builder<R>(
     client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
-    parentId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    parentId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18113,9 +18115,9 @@ pub struct ComputeFirewallPoliciesMoveArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: parentId
-    pub parentId: Option<Option<String>>,
+    pub parentId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/firewallPolicies/{firewallPolicy}/move
@@ -18154,7 +18156,7 @@ pub fn compute_firewall_policies_move(
 pub fn compute_firewall_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18294,7 +18296,7 @@ pub struct ComputeFirewallPoliciesPatchArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH locations/global/firewallPolicies/{firewallPolicy}
@@ -18329,8 +18331,8 @@ pub fn compute_firewall_policies_patch(
 pub fn compute_firewall_policies_patch_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
-    priority: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    priority: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18473,9 +18475,9 @@ pub struct ComputeFirewallPoliciesPatchRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/firewallPolicies/{firewallPolicy}/patchRule
@@ -18514,8 +18516,8 @@ pub fn compute_firewall_policies_patch_rule(
 pub fn compute_firewall_policies_remove_association_builder<R>(
     client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
-    name: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    name: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18658,9 +18660,9 @@ pub struct ComputeFirewallPoliciesRemoveAssociationArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/firewallPolicies/{firewallPolicy}/removeAssociation
@@ -18699,8 +18701,8 @@ pub fn compute_firewall_policies_remove_association(
 pub fn compute_firewall_policies_remove_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     firewallPolicy: &String,
-    priority: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    priority: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18843,9 +18845,9 @@ pub struct ComputeFirewallPoliciesRemoveRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/firewallPolicies/{firewallPolicy}/removeRule
@@ -19209,7 +19211,7 @@ pub fn compute_firewalls_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewall: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19351,7 +19353,7 @@ pub struct ComputeFirewallsDeleteArgs {
     /// Path parameter: firewall
     pub firewall: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/firewalls/{firewall}
@@ -19549,7 +19551,7 @@ pub fn compute_firewalls_get(
 pub fn compute_firewalls_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19689,7 +19691,7 @@ pub struct ComputeFirewallsInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/firewalls
@@ -19723,11 +19725,11 @@ pub fn compute_firewalls_insert(
 pub fn compute_firewalls_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19881,15 +19883,15 @@ pub struct ComputeFirewallsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/firewalls
@@ -19934,7 +19936,7 @@ pub fn compute_firewalls_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewall: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20076,7 +20078,7 @@ pub struct ComputeFirewallsPatchArgs {
     /// Path parameter: firewall
     pub firewall: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/firewalls/{firewall}
@@ -20281,7 +20283,7 @@ pub fn compute_firewalls_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewall: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20423,7 +20425,7 @@ pub struct ComputeFirewallsUpdateArgs {
     /// Path parameter: firewall
     pub firewall: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/global/firewalls/{firewall}
@@ -20458,13 +20460,13 @@ pub fn compute_firewalls_update(
 pub fn compute_forwarding_rules_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20626,19 +20628,19 @@ pub struct ComputeForwardingRulesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/forwardingRules
@@ -20688,7 +20690,7 @@ pub fn compute_forwarding_rules_delete_builder<R>(
     project: &String,
     region: &String,
     forwardingRule: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20832,7 +20834,7 @@ pub struct ComputeForwardingRulesDeleteArgs {
     /// Path parameter: forwardingRule
     pub forwardingRule: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/forwardingRules/{forwardingRule}
@@ -21048,7 +21050,7 @@ pub fn compute_forwarding_rules_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21190,7 +21192,7 @@ pub struct ComputeForwardingRulesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/forwardingRules
@@ -21230,11 +21232,11 @@ pub fn compute_forwarding_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21390,15 +21392,15 @@ pub struct ComputeForwardingRulesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/forwardingRules
@@ -21445,7 +21447,7 @@ pub fn compute_forwarding_rules_patch_builder<R>(
     project: &String,
     region: &String,
     forwardingRule: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21589,7 +21591,7 @@ pub struct ComputeForwardingRulesPatchArgs {
     /// Path parameter: forwardingRule
     pub forwardingRule: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/forwardingRules/{forwardingRule}
@@ -21631,7 +21633,7 @@ pub fn compute_forwarding_rules_set_labels_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21777,7 +21779,7 @@ pub struct ComputeForwardingRulesSetLabelsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/forwardingRules/{resource}/setLabels
@@ -21819,7 +21821,7 @@ pub fn compute_forwarding_rules_set_target_builder<R>(
     project: &String,
     region: &String,
     forwardingRule: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21965,7 +21967,7 @@ pub struct ComputeForwardingRulesSetTargetArgs {
     /// Path parameter: forwardingRule
     pub forwardingRule: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/forwardingRules/{forwardingRule}/setTarget
@@ -22005,13 +22007,13 @@ pub fn compute_forwarding_rules_set_target(
 pub fn compute_future_reservations_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22173,19 +22175,19 @@ pub struct ComputeFutureReservationsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/futureReservations
@@ -22235,7 +22237,7 @@ pub fn compute_future_reservations_cancel_builder<R>(
     project: &String,
     zone: &String,
     futureReservation: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22381,7 +22383,7 @@ pub struct ComputeFutureReservationsCancelArgs {
     /// Path parameter: futureReservation
     pub futureReservation: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/futureReservations/{futureReservation}/cancel
@@ -22423,7 +22425,7 @@ pub fn compute_future_reservations_delete_builder<R>(
     project: &String,
     zone: &String,
     futureReservation: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22567,7 +22569,7 @@ pub struct ComputeFutureReservationsDeleteArgs {
     /// Path parameter: futureReservation
     pub futureReservation: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/futureReservations/{futureReservation}
@@ -22783,7 +22785,7 @@ pub fn compute_future_reservations_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22925,7 +22927,7 @@ pub struct ComputeFutureReservationsInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/futureReservations
@@ -22965,11 +22967,11 @@ pub fn compute_future_reservations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23127,15 +23129,15 @@ pub struct ComputeFutureReservationsListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/futureReservations
@@ -23184,8 +23186,8 @@ pub fn compute_future_reservations_update_builder<R>(
     project: &String,
     zone: &String,
     futureReservation: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23332,9 +23334,9 @@ pub struct ComputeFutureReservationsUpdateArgs {
     /// Path parameter: futureReservation
     pub futureReservation: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/zones/{zone}/futureReservations/{futureReservation}
@@ -23376,7 +23378,7 @@ pub fn compute_global_addresses_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     address: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23518,7 +23520,7 @@ pub struct ComputeGlobalAddressesDeleteArgs {
     /// Path parameter: address
     pub address: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/addresses/{address}
@@ -23720,7 +23722,7 @@ pub fn compute_global_addresses_get(
 pub fn compute_global_addresses_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23860,7 +23862,7 @@ pub struct ComputeGlobalAddressesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/addresses
@@ -23894,11 +23896,11 @@ pub fn compute_global_addresses_insert(
 pub fn compute_global_addresses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24050,15 +24052,15 @@ pub struct ComputeGlobalAddressesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/addresses
@@ -24101,7 +24103,7 @@ pub fn compute_global_addresses_move_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     address: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24243,7 +24245,7 @@ pub struct ComputeGlobalAddressesMoveArgs {
     /// Path parameter: address
     pub address: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/addresses/{address}/move
@@ -24619,7 +24621,7 @@ pub fn compute_global_forwarding_rules_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     forwardingRule: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24761,7 +24763,7 @@ pub struct ComputeGlobalForwardingRulesDeleteArgs {
     /// Path parameter: forwardingRule
     pub forwardingRule: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/forwardingRules/{forwardingRule}
@@ -24968,7 +24970,7 @@ pub fn compute_global_forwarding_rules_get(
 pub fn compute_global_forwarding_rules_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25108,7 +25110,7 @@ pub struct ComputeGlobalForwardingRulesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/forwardingRules
@@ -25143,11 +25145,11 @@ pub fn compute_global_forwarding_rules_insert(
 pub fn compute_global_forwarding_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25301,15 +25303,15 @@ pub struct ComputeGlobalForwardingRulesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/forwardingRules
@@ -25354,7 +25356,7 @@ pub fn compute_global_forwarding_rules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     forwardingRule: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25496,7 +25498,7 @@ pub struct ComputeGlobalForwardingRulesPatchArgs {
     /// Path parameter: forwardingRule
     pub forwardingRule: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/forwardingRules/{forwardingRule}
@@ -25700,7 +25702,7 @@ pub fn compute_global_forwarding_rules_set_target_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     forwardingRule: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25842,7 +25844,7 @@ pub struct ComputeGlobalForwardingRulesSetTargetArgs {
     /// Path parameter: forwardingRule
     pub forwardingRule: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/forwardingRules/{forwardingRule}/setTarget
@@ -25882,7 +25884,7 @@ pub fn compute_global_network_endpoint_groups_attach_network_endpoints_builder<R
     client: &SimpleHttpClient<R>,
     project: &String,
     networkEndpointGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26025,7 +26027,7 @@ pub struct ComputeGlobalNetworkEndpointGroupsAttachNetworkEndpointsArgs {
     /// Path parameter: networkEndpointGroup
     pub networkEndpointGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/networkEndpointGroups/{networkEndpointGroup}/attachNetworkEndpoints
@@ -26065,7 +26067,7 @@ pub fn compute_global_network_endpoint_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     networkEndpointGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26207,7 +26209,7 @@ pub struct ComputeGlobalNetworkEndpointGroupsDeleteArgs {
     /// Path parameter: networkEndpointGroup
     pub networkEndpointGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/networkEndpointGroups/{networkEndpointGroup}
@@ -26247,7 +26249,7 @@ pub fn compute_global_network_endpoint_groups_detach_network_endpoints_builder<R
     client: &SimpleHttpClient<R>,
     project: &String,
     networkEndpointGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26390,7 +26392,7 @@ pub struct ComputeGlobalNetworkEndpointGroupsDetachNetworkEndpointsArgs {
     /// Path parameter: networkEndpointGroup
     pub networkEndpointGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/networkEndpointGroups/{networkEndpointGroup}/detachNetworkEndpoints
@@ -26600,7 +26602,7 @@ pub fn compute_global_network_endpoint_groups_get(
 pub fn compute_global_network_endpoint_groups_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26740,7 +26742,7 @@ pub struct ComputeGlobalNetworkEndpointGroupsInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/networkEndpointGroups
@@ -26778,11 +26780,11 @@ pub fn compute_global_network_endpoint_groups_insert(
 pub fn compute_global_network_endpoint_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26936,15 +26938,15 @@ pub struct ComputeGlobalNetworkEndpointGroupsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/networkEndpointGroups
@@ -26989,11 +26991,11 @@ pub fn compute_global_network_endpoint_groups_list_network_endpoints_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     networkEndpointGroup: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27152,15 +27154,15 @@ pub struct ComputeGlobalNetworkEndpointGroupsListNetworkEndpointsArgs {
     /// Path parameter: networkEndpointGroup
     pub networkEndpointGroup: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// POST projects/{project}/global/networkEndpointGroups/{networkEndpointGroup}/listNetworkEndpoints
@@ -27207,13 +27209,13 @@ pub fn compute_global_network_endpoint_groups_list_network_endpoints(
 pub fn compute_global_operations_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27373,19 +27375,19 @@ pub struct ComputeGlobalOperationsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/operations
@@ -27754,11 +27756,11 @@ pub fn compute_global_operations_get(
 pub fn compute_global_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27912,15 +27914,15 @@ pub struct ComputeGlobalOperationsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/operations
@@ -28127,7 +28129,7 @@ pub fn compute_global_operations_wait(
 pub fn compute_global_organization_operations_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     operation: &String,
-    parentId: &Option<Option<String>>,
+    parentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28264,7 +28266,7 @@ pub struct ComputeGlobalOrganizationOperationsDeleteArgs {
     /// Path parameter: operation
     pub operation: String,
     /// Query parameter: parentId
-    pub parentId: Option<Option<String>>,
+    pub parentId: Option<String>,
 }
 
 /// DELETE locations/global/operations/{operation}
@@ -28302,7 +28304,7 @@ pub fn compute_global_organization_operations_delete(
 pub fn compute_global_organization_operations_get_builder<R>(
     client: &SimpleHttpClient<R>,
     operation: &String,
-    parentId: &Option<Option<String>>,
+    parentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28442,7 +28444,7 @@ pub struct ComputeGlobalOrganizationOperationsGetArgs {
     /// Path parameter: operation
     pub operation: String,
     /// Query parameter: parentId
-    pub parentId: Option<Option<String>>,
+    pub parentId: Option<String>,
 }
 
 /// GET locations/global/operations/{operation}
@@ -28479,12 +28481,12 @@ pub fn compute_global_organization_operations_get(
 
 pub fn compute_global_organization_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parentId: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    parentId: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28637,17 +28639,17 @@ pub fn compute_global_organization_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ComputeGlobalOrganizationOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parentId
-    pub parentId: Option<Option<String>>,
+    pub parentId: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET locations/global/operations
@@ -28692,7 +28694,7 @@ pub fn compute_global_public_delegated_prefixes_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     publicDelegatedPrefix: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28834,7 +28836,7 @@ pub struct ComputeGlobalPublicDelegatedPrefixesDeleteArgs {
     /// Path parameter: publicDelegatedPrefix
     pub publicDelegatedPrefix: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/publicDelegatedPrefixes/{publicDelegatedPrefix}
@@ -29044,7 +29046,7 @@ pub fn compute_global_public_delegated_prefixes_get(
 pub fn compute_global_public_delegated_prefixes_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29184,7 +29186,7 @@ pub struct ComputeGlobalPublicDelegatedPrefixesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/publicDelegatedPrefixes
@@ -29222,11 +29224,11 @@ pub fn compute_global_public_delegated_prefixes_insert(
 pub fn compute_global_public_delegated_prefixes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29380,15 +29382,15 @@ pub struct ComputeGlobalPublicDelegatedPrefixesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/publicDelegatedPrefixes
@@ -29433,7 +29435,7 @@ pub fn compute_global_public_delegated_prefixes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     publicDelegatedPrefix: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29575,7 +29577,7 @@ pub struct ComputeGlobalPublicDelegatedPrefixesPatchArgs {
     /// Path parameter: publicDelegatedPrefix
     pub publicDelegatedPrefix: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/publicDelegatedPrefixes/{publicDelegatedPrefix}
@@ -29614,13 +29616,13 @@ pub fn compute_global_public_delegated_prefixes_patch(
 pub fn compute_health_checks_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29782,19 +29784,19 @@ pub struct ComputeHealthChecksAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/healthChecks
@@ -29843,7 +29845,7 @@ pub fn compute_health_checks_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     healthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29985,7 +29987,7 @@ pub struct ComputeHealthChecksDeleteArgs {
     /// Path parameter: healthCheck
     pub healthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/healthChecks/{healthCheck}
@@ -30187,7 +30189,7 @@ pub fn compute_health_checks_get(
 pub fn compute_health_checks_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30327,7 +30329,7 @@ pub struct ComputeHealthChecksInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/healthChecks
@@ -30361,11 +30363,11 @@ pub fn compute_health_checks_insert(
 pub fn compute_health_checks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30519,15 +30521,15 @@ pub struct ComputeHealthChecksListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/healthChecks
@@ -30572,7 +30574,7 @@ pub fn compute_health_checks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     healthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30714,7 +30716,7 @@ pub struct ComputeHealthChecksPatchArgs {
     /// Path parameter: healthCheck
     pub healthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/healthChecks/{healthCheck}
@@ -30923,7 +30925,7 @@ pub fn compute_health_checks_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     healthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31065,7 +31067,7 @@ pub struct ComputeHealthChecksUpdateArgs {
     /// Path parameter: healthCheck
     pub healthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/global/healthChecks/{healthCheck}
@@ -31105,7 +31107,7 @@ pub fn compute_http_health_checks_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     httpHealthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31247,7 +31249,7 @@ pub struct ComputeHttpHealthChecksDeleteArgs {
     /// Path parameter: httpHealthCheck
     pub httpHealthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/httpHealthChecks/{httpHealthCheck}
@@ -31454,7 +31456,7 @@ pub fn compute_http_health_checks_get(
 pub fn compute_http_health_checks_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31594,7 +31596,7 @@ pub struct ComputeHttpHealthChecksInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/httpHealthChecks
@@ -31629,11 +31631,11 @@ pub fn compute_http_health_checks_insert(
 pub fn compute_http_health_checks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31787,15 +31789,15 @@ pub struct ComputeHttpHealthChecksListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/httpHealthChecks
@@ -31840,7 +31842,7 @@ pub fn compute_http_health_checks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     httpHealthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31982,7 +31984,7 @@ pub struct ComputeHttpHealthChecksPatchArgs {
     /// Path parameter: httpHealthCheck
     pub httpHealthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/httpHealthChecks/{httpHealthCheck}
@@ -32194,7 +32196,7 @@ pub fn compute_http_health_checks_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     httpHealthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32336,7 +32338,7 @@ pub struct ComputeHttpHealthChecksUpdateArgs {
     /// Path parameter: httpHealthCheck
     pub httpHealthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/global/httpHealthChecks/{httpHealthCheck}
@@ -32376,7 +32378,7 @@ pub fn compute_https_health_checks_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     httpsHealthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32518,7 +32520,7 @@ pub struct ComputeHttpsHealthChecksDeleteArgs {
     /// Path parameter: httpsHealthCheck
     pub httpsHealthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/httpsHealthChecks/{httpsHealthCheck}
@@ -32725,7 +32727,7 @@ pub fn compute_https_health_checks_get(
 pub fn compute_https_health_checks_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32865,7 +32867,7 @@ pub struct ComputeHttpsHealthChecksInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/httpsHealthChecks
@@ -32900,11 +32902,11 @@ pub fn compute_https_health_checks_insert(
 pub fn compute_https_health_checks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33058,15 +33060,15 @@ pub struct ComputeHttpsHealthChecksListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/httpsHealthChecks
@@ -33111,7 +33113,7 @@ pub fn compute_https_health_checks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     httpsHealthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33253,7 +33255,7 @@ pub struct ComputeHttpsHealthChecksPatchArgs {
     /// Path parameter: httpsHealthCheck
     pub httpsHealthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/httpsHealthChecks/{httpsHealthCheck}
@@ -33465,7 +33467,7 @@ pub fn compute_https_health_checks_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     httpsHealthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33607,7 +33609,7 @@ pub struct ComputeHttpsHealthChecksUpdateArgs {
     /// Path parameter: httpsHealthCheck
     pub httpsHealthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/global/httpsHealthChecks/{httpsHealthCheck}
@@ -33818,7 +33820,7 @@ pub fn compute_images_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     image: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33960,7 +33962,7 @@ pub struct ComputeImagesDeleteArgs {
     /// Path parameter: image
     pub image: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/images/{image}
@@ -33996,7 +33998,7 @@ pub fn compute_images_deprecate_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     image: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34138,7 +34140,7 @@ pub struct ComputeImagesDeprecateArgs {
     /// Path parameter: image
     pub image: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/images/{image}/deprecate
@@ -34500,7 +34502,7 @@ pub fn compute_images_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34642,7 +34644,7 @@ pub struct ComputeImagesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/global/images/{resource}/getIamPolicy
@@ -34681,8 +34683,8 @@ pub fn compute_images_get_iam_policy(
 pub fn compute_images_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    forceCreate: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    forceCreate: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34825,9 +34827,9 @@ pub struct ComputeImagesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: forceCreate
-    pub forceCreate: Option<Option<String>>,
+    pub forceCreate: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/images
@@ -34862,11 +34864,11 @@ pub fn compute_images_insert(
 pub fn compute_images_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35018,15 +35020,15 @@ pub struct ComputeImagesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/images
@@ -35069,7 +35071,7 @@ pub fn compute_images_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     image: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35211,7 +35213,7 @@ pub struct ComputeImagesPatchArgs {
     /// Path parameter: image
     pub image: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/images/{image}
@@ -35743,7 +35745,7 @@ pub fn compute_instance_group_manager_resize_requests_cancel_builder<R>(
     zone: &String,
     instanceGroupManager: &String,
     resizeRequest: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35892,7 +35894,7 @@ pub struct ComputeInstanceGroupManagerResizeRequestsCancelArgs {
     /// Path parameter: resizeRequest
     pub resizeRequest: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/resizeRequests/{resizeRequest}/cancel
@@ -35936,7 +35938,7 @@ pub fn compute_instance_group_manager_resize_requests_delete_builder<R>(
     zone: &String,
     instanceGroupManager: &String,
     resizeRequest: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36085,7 +36087,7 @@ pub struct ComputeInstanceGroupManagerResizeRequestsDeleteArgs {
     /// Path parameter: resizeRequest
     pub resizeRequest: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/resizeRequests/{resizeRequest}
@@ -36314,7 +36316,7 @@ pub fn compute_instance_group_manager_resize_requests_insert_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36460,7 +36462,7 @@ pub struct ComputeInstanceGroupManagerResizeRequestsInsertArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/resizeRequests
@@ -36502,11 +36504,11 @@ pub fn compute_instance_group_manager_resize_requests_list_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36669,15 +36671,15 @@ pub struct ComputeInstanceGroupManagerResizeRequestsListArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/resizeRequests
@@ -36727,7 +36729,7 @@ pub fn compute_instance_group_managers_abandon_instances_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36873,7 +36875,7 @@ pub struct ComputeInstanceGroupManagersAbandonInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/abandonInstances
@@ -36913,13 +36915,13 @@ pub fn compute_instance_group_managers_abandon_instances(
 pub fn compute_instance_group_managers_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37081,19 +37083,19 @@ pub struct ComputeInstanceGroupManagersAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/instanceGroupManagers
@@ -37316,7 +37318,7 @@ pub fn compute_instance_group_managers_create_instances_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37462,7 +37464,7 @@ pub struct ComputeInstanceGroupManagersCreateInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/createInstances
@@ -37504,7 +37506,7 @@ pub fn compute_instance_group_managers_delete_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37648,7 +37650,7 @@ pub struct ComputeInstanceGroupManagersDeleteArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}
@@ -37690,7 +37692,7 @@ pub fn compute_instance_group_managers_delete_instances_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37836,7 +37838,7 @@ pub struct ComputeInstanceGroupManagersDeleteInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/deleteInstances
@@ -38225,7 +38227,7 @@ pub fn compute_instance_group_managers_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -38367,7 +38369,7 @@ pub struct ComputeInstanceGroupManagersInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers
@@ -38407,11 +38409,11 @@ pub fn compute_instance_group_managers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -38567,15 +38569,15 @@ pub struct ComputeInstanceGroupManagersListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instanceGroupManagers
@@ -38622,11 +38624,11 @@ pub fn compute_instance_group_managers_list_errors_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -38789,15 +38791,15 @@ pub struct ComputeInstanceGroupManagersListErrorsArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/listErrors
@@ -38847,11 +38849,11 @@ pub fn compute_instance_group_managers_list_managed_instances_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39017,15 +39019,15 @@ pub struct ComputeInstanceGroupManagersListManagedInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/listManagedInstances
@@ -39075,11 +39077,11 @@ pub fn compute_instance_group_managers_list_per_instance_configs_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39242,15 +39244,15 @@ pub struct ComputeInstanceGroupManagersListPerInstanceConfigsArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/listPerInstanceConfigs
@@ -39300,7 +39302,7 @@ pub fn compute_instance_group_managers_patch_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39444,7 +39446,7 @@ pub struct ComputeInstanceGroupManagersPatchArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}
@@ -39486,7 +39488,7 @@ pub fn compute_instance_group_managers_patch_per_instance_configs_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39632,7 +39634,7 @@ pub struct ComputeInstanceGroupManagersPatchPerInstanceConfigsArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/patchPerInstanceConfigs
@@ -39674,7 +39676,7 @@ pub fn compute_instance_group_managers_recreate_instances_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39820,7 +39822,7 @@ pub struct ComputeInstanceGroupManagersRecreateInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/recreateInstances
@@ -39862,8 +39864,8 @@ pub fn compute_instance_group_managers_resize_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
-    size: &Option<Option<String>>,
+    requestId: &Option<String>,
+    size: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40012,9 +40014,9 @@ pub struct ComputeInstanceGroupManagersResizeArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: size
-    pub size: Option<Option<String>>,
+    pub size: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/resize
@@ -40057,7 +40059,7 @@ pub fn compute_instance_group_managers_resume_instances_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40203,7 +40205,7 @@ pub struct ComputeInstanceGroupManagersResumeInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/resumeInstances
@@ -40245,7 +40247,7 @@ pub fn compute_instance_group_managers_set_instance_template_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40391,7 +40393,7 @@ pub struct ComputeInstanceGroupManagersSetInstanceTemplateArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/setInstanceTemplate
@@ -40433,7 +40435,7 @@ pub fn compute_instance_group_managers_set_target_pools_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40579,7 +40581,7 @@ pub struct ComputeInstanceGroupManagersSetTargetPoolsArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/setTargetPools
@@ -40621,7 +40623,7 @@ pub fn compute_instance_group_managers_start_instances_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40767,7 +40769,7 @@ pub struct ComputeInstanceGroupManagersStartInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/startInstances
@@ -40809,7 +40811,7 @@ pub fn compute_instance_group_managers_stop_instances_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40955,7 +40957,7 @@ pub struct ComputeInstanceGroupManagersStopInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/stopInstances
@@ -40997,7 +40999,7 @@ pub fn compute_instance_group_managers_suspend_instances_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41143,7 +41145,7 @@ pub struct ComputeInstanceGroupManagersSuspendInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/suspendInstances
@@ -41185,7 +41187,7 @@ pub fn compute_instance_group_managers_update_per_instance_configs_builder<R>(
     project: &String,
     zone: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41331,7 +41333,7 @@ pub struct ComputeInstanceGroupManagersUpdatePerInstanceConfigsArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroupManagers/{instanceGroupManager}/updatePerInstanceConfigs
@@ -41373,7 +41375,7 @@ pub fn compute_instance_groups_add_instances_builder<R>(
     project: &String,
     zone: &String,
     instanceGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41519,7 +41521,7 @@ pub struct ComputeInstanceGroupsAddInstancesArgs {
     /// Path parameter: instanceGroup
     pub instanceGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroups/{instanceGroup}/addInstances
@@ -41559,13 +41561,13 @@ pub fn compute_instance_groups_add_instances(
 pub fn compute_instance_groups_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41727,19 +41729,19 @@ pub struct ComputeInstanceGroupsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/instanceGroups
@@ -41789,7 +41791,7 @@ pub fn compute_instance_groups_delete_builder<R>(
     project: &String,
     zone: &String,
     instanceGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41933,7 +41935,7 @@ pub struct ComputeInstanceGroupsDeleteArgs {
     /// Path parameter: instanceGroup
     pub instanceGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/instanceGroups/{instanceGroup}
@@ -42149,7 +42151,7 @@ pub fn compute_instance_groups_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42291,7 +42293,7 @@ pub struct ComputeInstanceGroupsInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroups
@@ -42327,11 +42329,11 @@ pub fn compute_instance_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42487,15 +42489,15 @@ pub struct ComputeInstanceGroupsListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instanceGroups
@@ -42542,11 +42544,11 @@ pub fn compute_instance_groups_list_instances_builder<R>(
     project: &String,
     zone: &String,
     instanceGroup: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42708,15 +42710,15 @@ pub struct ComputeInstanceGroupsListInstancesArgs {
     /// Path parameter: instanceGroup
     pub instanceGroup: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroups/{instanceGroup}/listInstances
@@ -42766,7 +42768,7 @@ pub fn compute_instance_groups_remove_instances_builder<R>(
     project: &String,
     zone: &String,
     instanceGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42912,7 +42914,7 @@ pub struct ComputeInstanceGroupsRemoveInstancesArgs {
     /// Path parameter: instanceGroup
     pub instanceGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroups/{instanceGroup}/removeInstances
@@ -42954,7 +42956,7 @@ pub fn compute_instance_groups_set_named_ports_builder<R>(
     project: &String,
     zone: &String,
     instanceGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43100,7 +43102,7 @@ pub struct ComputeInstanceGroupsSetNamedPortsArgs {
     /// Path parameter: instanceGroup
     pub instanceGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instanceGroups/{instanceGroup}/setNamedPorts
@@ -43485,8 +43487,8 @@ pub fn compute_instance_settings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43631,9 +43633,9 @@ pub struct ComputeInstanceSettingsPatchArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/zones/{zone}/instanceSettings
@@ -43673,13 +43675,13 @@ pub fn compute_instance_settings_patch(
 pub fn compute_instance_templates_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43841,19 +43843,19 @@ pub struct ComputeInstanceTemplatesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/instanceTemplates
@@ -43902,7 +43904,7 @@ pub fn compute_instance_templates_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     instanceTemplate: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -44044,7 +44046,7 @@ pub struct ComputeInstanceTemplatesDeleteArgs {
     /// Path parameter: instanceTemplate
     pub instanceTemplate: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/instanceTemplates/{instanceTemplate}
@@ -44252,7 +44254,7 @@ pub fn compute_instance_templates_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -44395,7 +44397,7 @@ pub struct ComputeInstanceTemplatesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/global/instanceTemplates/{resource}/getIamPolicy
@@ -44434,7 +44436,7 @@ pub fn compute_instance_templates_get_iam_policy(
 pub fn compute_instance_templates_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -44574,7 +44576,7 @@ pub struct ComputeInstanceTemplatesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/instanceTemplates
@@ -44609,11 +44611,11 @@ pub fn compute_instance_templates_insert(
 pub fn compute_instance_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -44767,15 +44769,15 @@ pub struct ComputeInstanceTemplatesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/instanceTemplates
@@ -45158,8 +45160,8 @@ pub fn compute_instances_add_access_config_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    networkInterface: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    networkInterface: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -45308,9 +45310,9 @@ pub struct ComputeInstancesAddAccessConfigArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: networkInterface
-    pub networkInterface: Option<Option<String>>,
+    pub networkInterface: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/addAccessConfig
@@ -45353,7 +45355,7 @@ pub fn compute_instances_add_network_interface_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -45499,7 +45501,7 @@ pub struct ComputeInstancesAddNetworkInterfaceArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/addNetworkInterface
@@ -45541,7 +45543,7 @@ pub fn compute_instances_add_resource_policies_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -45687,7 +45689,7 @@ pub struct ComputeInstancesAddResourcePoliciesArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/addResourcePolicies
@@ -45727,13 +45729,13 @@ pub fn compute_instances_add_resource_policies(
 pub fn compute_instances_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -45893,19 +45895,19 @@ pub struct ComputeInstancesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/instances
@@ -45953,8 +45955,8 @@ pub fn compute_instances_attach_disk_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    forceAttach: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    forceAttach: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46101,9 +46103,9 @@ pub struct ComputeInstancesAttachDiskArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: forceAttach
-    pub forceAttach: Option<Option<String>>,
+    pub forceAttach: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/attachDisk
@@ -46145,7 +46147,7 @@ pub fn compute_instances_bulk_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46287,7 +46289,7 @@ pub struct ComputeInstancesBulkInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/bulkInsert
@@ -46324,7 +46326,7 @@ pub fn compute_instances_delete_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46468,7 +46470,7 @@ pub struct ComputeInstancesDeleteArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/instances/{instance}
@@ -46510,9 +46512,9 @@ pub fn compute_instances_delete_access_config_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    accessConfig: &Option<Option<String>>,
-    networkInterface: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    accessConfig: &Option<String>,
+    networkInterface: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46664,11 +46666,11 @@ pub struct ComputeInstancesDeleteAccessConfigArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: accessConfig
-    pub accessConfig: Option<Option<String>>,
+    pub accessConfig: Option<String>,
     /// Query parameter: networkInterface
-    pub networkInterface: Option<Option<String>>,
+    pub networkInterface: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/deleteAccessConfig
@@ -46712,8 +46714,8 @@ pub fn compute_instances_delete_network_interface_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    networkInterfaceName: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    networkInterfaceName: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46862,9 +46864,9 @@ pub struct ComputeInstancesDeleteNetworkInterfaceArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: networkInterfaceName
-    pub networkInterfaceName: Option<Option<String>>,
+    pub networkInterfaceName: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/deleteNetworkInterface
@@ -46907,8 +46909,8 @@ pub fn compute_instances_detach_disk_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    deviceName: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    deviceName: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -47055,9 +47057,9 @@ pub struct ComputeInstancesDetachDiskArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: deviceName
-    pub deviceName: Option<Option<String>>,
+    pub deviceName: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/detachDisk
@@ -47266,7 +47268,7 @@ pub fn compute_instances_get_effective_firewalls_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    networkInterface: &Option<Option<String>>,
+    networkInterface: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -47416,7 +47418,7 @@ pub struct ComputeInstancesGetEffectiveFirewallsArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: networkInterface
-    pub networkInterface: Option<Option<String>>,
+    pub networkInterface: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instances/{instance}/getEffectiveFirewalls
@@ -47462,8 +47464,8 @@ pub fn compute_instances_get_guest_attributes_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    queryPath: &Option<Option<String>>,
-    variableKey: &Option<Option<String>>,
+    queryPath: &Option<String>,
+    variableKey: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -47614,9 +47616,9 @@ pub struct ComputeInstancesGetGuestAttributesArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: queryPath
-    pub queryPath: Option<Option<String>>,
+    pub queryPath: Option<String>,
     /// Query parameter: variableKey
-    pub variableKey: Option<Option<String>>,
+    pub variableKey: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instances/{instance}/getGuestAttributes
@@ -47661,7 +47663,7 @@ pub fn compute_instances_get_iam_policy_builder<R>(
     project: &String,
     zone: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -47805,7 +47807,7 @@ pub struct ComputeInstancesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instances/{resource}/getIamPolicy
@@ -48018,8 +48020,8 @@ pub fn compute_instances_get_serial_port_output_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    port: &Option<Option<String>>,
-    start: &Option<Option<String>>,
+    port: &Option<String>,
+    start: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48168,9 +48170,9 @@ pub struct ComputeInstancesGetSerialPortOutputArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: port
-    pub port: Option<Option<String>>,
+    pub port: Option<String>,
     /// Query parameter: start
-    pub start: Option<Option<String>>,
+    pub start: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instances/{instance}/serialPort
@@ -48391,9 +48393,9 @@ pub fn compute_instances_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
-    sourceInstanceTemplate: &Option<Option<String>>,
-    sourceMachineImage: &Option<Option<String>>,
+    requestId: &Option<String>,
+    sourceInstanceTemplate: &Option<String>,
+    sourceMachineImage: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48541,11 +48543,11 @@ pub struct ComputeInstancesInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: sourceInstanceTemplate
-    pub sourceInstanceTemplate: Option<Option<String>>,
+    pub sourceInstanceTemplate: Option<String>,
     /// Query parameter: sourceMachineImage
-    pub sourceMachineImage: Option<Option<String>>,
+    pub sourceMachineImage: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances
@@ -48587,11 +48589,11 @@ pub fn compute_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48747,15 +48749,15 @@ pub struct ComputeInstancesListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instances
@@ -48802,11 +48804,11 @@ pub fn compute_instances_list_referrers_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48964,15 +48966,15 @@ pub struct ComputeInstancesListReferrersArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instances/{instance}/referrers
@@ -49020,7 +49022,7 @@ pub fn compute_instances_perform_maintenance_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -49166,7 +49168,7 @@ pub struct ComputeInstancesPerformMaintenanceArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/performMaintenance
@@ -49208,7 +49210,7 @@ pub fn compute_instances_remove_resource_policies_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -49354,7 +49356,7 @@ pub struct ComputeInstancesRemoveResourcePoliciesArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/removeResourcePolicies
@@ -49396,7 +49398,7 @@ pub fn compute_instances_report_host_as_faulty_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -49542,7 +49544,7 @@ pub struct ComputeInstancesReportHostAsFaultyArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/reportHostAsFaulty
@@ -49584,7 +49586,7 @@ pub fn compute_instances_reset_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -49728,7 +49730,7 @@ pub struct ComputeInstancesResetArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/reset
@@ -49770,7 +49772,7 @@ pub fn compute_instances_resume_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -49914,7 +49916,7 @@ pub struct ComputeInstancesResumeArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/resume
@@ -50126,8 +50128,8 @@ pub fn compute_instances_set_deletion_protection_builder<R>(
     project: &String,
     zone: &String,
     resource: &String,
-    deletionProtection: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    deletionProtection: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -50276,9 +50278,9 @@ pub struct ComputeInstancesSetDeletionProtectionArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: deletionProtection
-    pub deletionProtection: Option<Option<String>>,
+    pub deletionProtection: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{resource}/setDeletionProtection
@@ -50321,9 +50323,9 @@ pub fn compute_instances_set_disk_auto_delete_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    autoDelete: &Option<Option<String>>,
-    deviceName: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    autoDelete: &Option<String>,
+    deviceName: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -50475,11 +50477,11 @@ pub struct ComputeInstancesSetDiskAutoDeleteArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: autoDelete
-    pub autoDelete: Option<Option<String>>,
+    pub autoDelete: Option<String>,
     /// Query parameter: deviceName
-    pub deviceName: Option<Option<String>>,
+    pub deviceName: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setDiskAutoDelete
@@ -50694,7 +50696,7 @@ pub fn compute_instances_set_labels_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -50838,7 +50840,7 @@ pub struct ComputeInstancesSetLabelsArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setLabels
@@ -50880,7 +50882,7 @@ pub fn compute_instances_set_machine_resources_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51026,7 +51028,7 @@ pub struct ComputeInstancesSetMachineResourcesArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setMachineResources
@@ -51068,7 +51070,7 @@ pub fn compute_instances_set_machine_type_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51214,7 +51216,7 @@ pub struct ComputeInstancesSetMachineTypeArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setMachineType
@@ -51256,7 +51258,7 @@ pub fn compute_instances_set_metadata_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51400,7 +51402,7 @@ pub struct ComputeInstancesSetMetadataArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setMetadata
@@ -51442,7 +51444,7 @@ pub fn compute_instances_set_min_cpu_platform_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51588,7 +51590,7 @@ pub struct ComputeInstancesSetMinCpuPlatformArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setMinCpuPlatform
@@ -51630,7 +51632,7 @@ pub fn compute_instances_set_name_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51774,7 +51776,7 @@ pub struct ComputeInstancesSetNameArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setName
@@ -51816,7 +51818,7 @@ pub fn compute_instances_set_scheduling_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51960,7 +51962,7 @@ pub struct ComputeInstancesSetSchedulingArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setScheduling
@@ -52002,7 +52004,7 @@ pub fn compute_instances_set_security_policy_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -52148,7 +52150,7 @@ pub struct ComputeInstancesSetSecurityPolicyArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setSecurityPolicy
@@ -52190,7 +52192,7 @@ pub fn compute_instances_set_service_account_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -52336,7 +52338,7 @@ pub struct ComputeInstancesSetServiceAccountArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setServiceAccount
@@ -52378,7 +52380,7 @@ pub fn compute_instances_set_shielded_instance_integrity_policy_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -52524,7 +52526,7 @@ pub struct ComputeInstancesSetShieldedInstanceIntegrityPolicyArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/zones/{zone}/instances/{instance}/setShieldedInstanceIntegrityPolicy
@@ -52566,7 +52568,7 @@ pub fn compute_instances_set_tags_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -52710,7 +52712,7 @@ pub struct ComputeInstancesSetTagsArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/setTags
@@ -52752,8 +52754,8 @@ pub fn compute_instances_simulate_maintenance_event_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
-    withExtendedNotifications: &Option<Option<String>>,
+    requestId: &Option<String>,
+    withExtendedNotifications: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -52902,9 +52904,9 @@ pub struct ComputeInstancesSimulateMaintenanceEventArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: withExtendedNotifications
-    pub withExtendedNotifications: Option<Option<String>>,
+    pub withExtendedNotifications: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/simulateMaintenanceEvent
@@ -52947,7 +52949,7 @@ pub fn compute_instances_start_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -53091,7 +53093,7 @@ pub struct ComputeInstancesStartArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/start
@@ -53133,7 +53135,7 @@ pub fn compute_instances_start_with_encryption_key_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -53279,7 +53281,7 @@ pub struct ComputeInstancesStartWithEncryptionKeyArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/startWithEncryptionKey
@@ -53321,8 +53323,8 @@ pub fn compute_instances_stop_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    discardLocalSsd: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    discardLocalSsd: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -53469,9 +53471,9 @@ pub struct ComputeInstancesStopArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: discardLocalSsd
-    pub discardLocalSsd: Option<Option<String>>,
+    pub discardLocalSsd: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/stop
@@ -53514,8 +53516,8 @@ pub fn compute_instances_suspend_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    discardLocalSsd: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    discardLocalSsd: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -53662,9 +53664,9 @@ pub struct ComputeInstancesSuspendArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: discardLocalSsd
-    pub discardLocalSsd: Option<Option<String>>,
+    pub discardLocalSsd: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/suspend
@@ -53884,10 +53886,10 @@ pub fn compute_instances_update_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    discardLocalSsd: &Option<Option<String>>,
-    minimalAction: &Option<Option<String>>,
-    mostDisruptiveAllowedAction: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    discardLocalSsd: &Option<String>,
+    minimalAction: &Option<String>,
+    mostDisruptiveAllowedAction: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -54040,13 +54042,13 @@ pub struct ComputeInstancesUpdateArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: discardLocalSsd
-    pub discardLocalSsd: Option<Option<String>>,
+    pub discardLocalSsd: Option<String>,
     /// Query parameter: minimalAction
-    pub minimalAction: Option<Option<String>>,
+    pub minimalAction: Option<String>,
     /// Query parameter: mostDisruptiveAllowedAction
-    pub mostDisruptiveAllowedAction: Option<Option<String>>,
+    pub mostDisruptiveAllowedAction: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/zones/{zone}/instances/{instance}
@@ -54091,8 +54093,8 @@ pub fn compute_instances_update_access_config_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    networkInterface: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    networkInterface: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -54241,9 +54243,9 @@ pub struct ComputeInstancesUpdateAccessConfigArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: networkInterface
-    pub networkInterface: Option<Option<String>>,
+    pub networkInterface: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instances/{instance}/updateAccessConfig
@@ -54286,7 +54288,7 @@ pub fn compute_instances_update_display_device_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -54432,7 +54434,7 @@ pub struct ComputeInstancesUpdateDisplayDeviceArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/zones/{zone}/instances/{instance}/updateDisplayDevice
@@ -54474,8 +54476,8 @@ pub fn compute_instances_update_network_interface_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    networkInterface: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    networkInterface: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -54624,9 +54626,9 @@ pub struct ComputeInstancesUpdateNetworkInterfaceArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: networkInterface
-    pub networkInterface: Option<Option<String>>,
+    pub networkInterface: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/zones/{zone}/instances/{instance}/updateNetworkInterface
@@ -54669,7 +54671,7 @@ pub fn compute_instances_update_shielded_instance_config_builder<R>(
     project: &String,
     zone: &String,
     instance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -54815,7 +54817,7 @@ pub struct ComputeInstancesUpdateShieldedInstanceConfigArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/zones/{zone}/instances/{instance}/updateShieldedInstanceConfig
@@ -54857,7 +54859,7 @@ pub fn compute_instant_snapshot_groups_delete_builder<R>(
     project: &String,
     zone: &String,
     instantSnapshotGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -55001,7 +55003,7 @@ pub struct ComputeInstantSnapshotGroupsDeleteArgs {
     /// Path parameter: instantSnapshotGroup
     pub instantSnapshotGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/instantSnapshotGroups/{instantSnapshotGroup}
@@ -55218,7 +55220,7 @@ pub fn compute_instant_snapshot_groups_get_iam_policy_builder<R>(
     project: &String,
     zone: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -55364,7 +55366,7 @@ pub struct ComputeInstantSnapshotGroupsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instantSnapshotGroups/{resource}/getIamPolicy
@@ -55405,8 +55407,8 @@ pub fn compute_instant_snapshot_groups_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
-    sourceConsistencyGroup: &Option<Option<String>>,
+    requestId: &Option<String>,
+    sourceConsistencyGroup: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -55551,9 +55553,9 @@ pub struct ComputeInstantSnapshotGroupsInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: sourceConsistencyGroup
-    pub sourceConsistencyGroup: Option<Option<String>>,
+    pub sourceConsistencyGroup: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instantSnapshotGroups
@@ -55594,11 +55596,11 @@ pub fn compute_instant_snapshot_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -55754,15 +55756,15 @@ pub struct ComputeInstantSnapshotGroupsListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instantSnapshotGroups
@@ -56157,13 +56159,13 @@ pub fn compute_instant_snapshot_groups_test_iam_permissions(
 pub fn compute_instant_snapshots_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -56325,19 +56327,19 @@ pub struct ComputeInstantSnapshotsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/instantSnapshots
@@ -56387,7 +56389,7 @@ pub fn compute_instant_snapshots_delete_builder<R>(
     project: &String,
     zone: &String,
     instantSnapshot: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -56531,7 +56533,7 @@ pub struct ComputeInstantSnapshotsDeleteArgs {
     /// Path parameter: instantSnapshot
     pub instantSnapshot: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/instantSnapshots/{instantSnapshot}
@@ -56748,7 +56750,7 @@ pub fn compute_instant_snapshots_get_iam_policy_builder<R>(
     project: &String,
     zone: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -56894,7 +56896,7 @@ pub struct ComputeInstantSnapshotsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instantSnapshots/{resource}/getIamPolicy
@@ -56935,7 +56937,7 @@ pub fn compute_instant_snapshots_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -57077,7 +57079,7 @@ pub struct ComputeInstantSnapshotsInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instantSnapshots
@@ -57117,11 +57119,11 @@ pub fn compute_instant_snapshots_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -57277,15 +57279,15 @@ pub struct ComputeInstantSnapshotsListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/instantSnapshots
@@ -57505,7 +57507,7 @@ pub fn compute_instant_snapshots_set_labels_builder<R>(
     project: &String,
     zone: &String,
     resource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -57651,7 +57653,7 @@ pub struct ComputeInstantSnapshotsSetLabelsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/instantSnapshots/{resource}/setLabels
@@ -57869,7 +57871,7 @@ pub fn compute_interconnect_attachment_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     interconnectAttachmentGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -58012,7 +58014,7 @@ pub struct ComputeInterconnectAttachmentGroupsDeleteArgs {
     /// Path parameter: interconnectAttachmentGroup
     pub interconnectAttachmentGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/interconnectAttachmentGroups/{interconnectAttachmentGroup}
@@ -58228,7 +58230,7 @@ pub fn compute_interconnect_attachment_groups_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -58371,7 +58373,7 @@ pub struct ComputeInterconnectAttachmentGroupsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/global/interconnectAttachmentGroups/{resource}/getIamPolicy
@@ -58596,7 +58598,7 @@ pub fn compute_interconnect_attachment_groups_get_operational_status(
 pub fn compute_interconnect_attachment_groups_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -58736,7 +58738,7 @@ pub struct ComputeInterconnectAttachmentGroupsInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/interconnectAttachmentGroups
@@ -58774,11 +58776,11 @@ pub fn compute_interconnect_attachment_groups_insert(
 pub fn compute_interconnect_attachment_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -58934,15 +58936,15 @@ pub struct ComputeInterconnectAttachmentGroupsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/interconnectAttachmentGroups
@@ -58989,8 +58991,8 @@ pub fn compute_interconnect_attachment_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     interconnectAttachmentGroup: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -59136,9 +59138,9 @@ pub struct ComputeInterconnectAttachmentGroupsPatchArgs {
     /// Path parameter: interconnectAttachmentGroup
     pub interconnectAttachmentGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/global/interconnectAttachmentGroups/{interconnectAttachmentGroup}
@@ -59518,13 +59520,13 @@ pub fn compute_interconnect_attachment_groups_test_iam_permissions(
 pub fn compute_interconnect_attachments_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -59686,19 +59688,19 @@ pub struct ComputeInterconnectAttachmentsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/interconnectAttachments
@@ -59748,7 +59750,7 @@ pub fn compute_interconnect_attachments_delete_builder<R>(
     project: &String,
     region: &String,
     interconnectAttachment: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -59894,7 +59896,7 @@ pub struct ComputeInterconnectAttachmentsDeleteArgs {
     /// Path parameter: interconnectAttachment
     pub interconnectAttachment: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/interconnectAttachments/{interconnectAttachment}
@@ -60112,8 +60114,8 @@ pub fn compute_interconnect_attachments_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60258,9 +60260,9 @@ pub struct ComputeInterconnectAttachmentsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/interconnectAttachments
@@ -60301,11 +60303,11 @@ pub fn compute_interconnect_attachments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60463,15 +60465,15 @@ pub struct ComputeInterconnectAttachmentsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/interconnectAttachments
@@ -60520,7 +60522,7 @@ pub fn compute_interconnect_attachments_patch_builder<R>(
     project: &String,
     region: &String,
     interconnectAttachment: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60666,7 +60668,7 @@ pub struct ComputeInterconnectAttachmentsPatchArgs {
     /// Path parameter: interconnectAttachment
     pub interconnectAttachment: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/interconnectAttachments/{interconnectAttachment}
@@ -60708,7 +60710,7 @@ pub fn compute_interconnect_attachments_set_labels_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60854,7 +60856,7 @@ pub struct ComputeInterconnectAttachmentsSetLabelsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/interconnectAttachments/{resource}/setLabels
@@ -61063,7 +61065,7 @@ pub fn compute_interconnect_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     interconnectGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -61205,7 +61207,7 @@ pub struct ComputeInterconnectGroupsDeleteArgs {
     /// Path parameter: interconnectGroup
     pub interconnectGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/interconnectGroups/{interconnectGroup}
@@ -61413,7 +61415,7 @@ pub fn compute_interconnect_groups_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -61556,7 +61558,7 @@ pub struct ComputeInterconnectGroupsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/global/interconnectGroups/{resource}/getIamPolicy
@@ -61772,7 +61774,7 @@ pub fn compute_interconnect_groups_get_operational_status(
 pub fn compute_interconnect_groups_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -61912,7 +61914,7 @@ pub struct ComputeInterconnectGroupsInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/interconnectGroups
@@ -61947,11 +61949,11 @@ pub fn compute_interconnect_groups_insert(
 pub fn compute_interconnect_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -62107,15 +62109,15 @@ pub struct ComputeInterconnectGroupsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/interconnectGroups
@@ -62162,8 +62164,8 @@ pub fn compute_interconnect_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     interconnectGroup: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -62308,9 +62310,9 @@ pub struct ComputeInterconnectGroupsPatchArgs {
     /// Path parameter: interconnectGroup
     pub interconnectGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/global/interconnectGroups/{interconnectGroup}
@@ -62858,11 +62860,11 @@ pub fn compute_interconnect_locations_get(
 pub fn compute_interconnect_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -63016,15 +63018,15 @@ pub struct ComputeInterconnectLocationsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/interconnectLocations
@@ -63244,11 +63246,11 @@ pub fn compute_interconnect_remote_locations_get(
 pub fn compute_interconnect_remote_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -63404,15 +63406,15 @@ pub struct ComputeInterconnectRemoteLocationsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/interconnectRemoteLocations
@@ -63459,7 +63461,7 @@ pub fn compute_interconnects_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     interconnect: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -63601,7 +63603,7 @@ pub struct ComputeInterconnectsDeleteArgs {
     /// Path parameter: interconnect
     pub interconnect: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/interconnects/{interconnect}
@@ -64153,7 +64155,7 @@ pub fn compute_interconnects_get_macsec_config(
 pub fn compute_interconnects_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -64293,7 +64295,7 @@ pub struct ComputeInterconnectsInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/interconnects
@@ -64327,11 +64329,11 @@ pub fn compute_interconnects_insert(
 pub fn compute_interconnects_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -64485,15 +64487,15 @@ pub struct ComputeInterconnectsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/interconnects
@@ -64538,7 +64540,7 @@ pub fn compute_interconnects_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     interconnect: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -64680,7 +64682,7 @@ pub struct ComputeInterconnectsPatchArgs {
     /// Path parameter: interconnect
     pub interconnect: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/interconnects/{interconnect}
@@ -65215,7 +65217,7 @@ pub fn compute_licenses_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     license: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65357,7 +65359,7 @@ pub struct ComputeLicensesDeleteArgs {
     /// Path parameter: license
     pub license: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/licenses/{license}
@@ -65556,7 +65558,7 @@ pub fn compute_licenses_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65698,7 +65700,7 @@ pub struct ComputeLicensesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/global/licenses/{resource}/getIamPolicy
@@ -65737,7 +65739,7 @@ pub fn compute_licenses_get_iam_policy(
 pub fn compute_licenses_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65877,7 +65879,7 @@ pub struct ComputeLicensesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/licenses
@@ -65911,11 +65913,11 @@ pub fn compute_licenses_insert(
 pub fn compute_licenses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -66069,15 +66071,15 @@ pub struct ComputeLicensesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/licenses
@@ -66454,8 +66456,8 @@ pub fn compute_licenses_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     license: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -66600,9 +66602,9 @@ pub struct ComputeLicensesUpdateArgs {
     /// Path parameter: license
     pub license: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/global/licenses/{license}
@@ -66643,7 +66645,7 @@ pub fn compute_machine_images_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     machineImage: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -66785,7 +66787,7 @@ pub struct ComputeMachineImagesDeleteArgs {
     /// Path parameter: machineImage
     pub machineImage: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/machineImages/{machineImage}
@@ -66992,7 +66994,7 @@ pub fn compute_machine_images_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -67135,7 +67137,7 @@ pub struct ComputeMachineImagesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/global/machineImages/{resource}/getIamPolicy
@@ -67174,8 +67176,8 @@ pub fn compute_machine_images_get_iam_policy(
 pub fn compute_machine_images_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
-    sourceInstance: &Option<Option<String>>,
+    requestId: &Option<String>,
+    sourceInstance: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -67318,9 +67320,9 @@ pub struct ComputeMachineImagesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: sourceInstance
-    pub sourceInstance: Option<Option<String>>,
+    pub sourceInstance: Option<String>,
 }
 
 /// POST projects/{project}/global/machineImages
@@ -67359,11 +67361,11 @@ pub fn compute_machine_images_insert(
 pub fn compute_machine_images_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -67517,15 +67519,15 @@ pub struct ComputeMachineImagesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/machineImages
@@ -68066,13 +68068,13 @@ pub fn compute_machine_images_test_iam_permissions(
 pub fn compute_machine_types_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -68232,19 +68234,19 @@ pub struct ComputeMachineTypesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/machineTypes
@@ -68458,11 +68460,11 @@ pub fn compute_machine_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -68618,15 +68620,15 @@ pub struct ComputeMachineTypesListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/machineTypes
@@ -68671,13 +68673,13 @@ pub fn compute_machine_types_list(
 pub fn compute_network_attachments_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -68839,19 +68841,19 @@ pub struct ComputeNetworkAttachmentsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/networkAttachments
@@ -68901,7 +68903,7 @@ pub fn compute_network_attachments_delete_builder<R>(
     project: &String,
     region: &String,
     networkAttachment: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -69045,7 +69047,7 @@ pub struct ComputeNetworkAttachmentsDeleteArgs {
     /// Path parameter: networkAttachment
     pub networkAttachment: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/networkAttachments/{networkAttachment}
@@ -69262,7 +69264,7 @@ pub fn compute_network_attachments_get_iam_policy_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -69408,7 +69410,7 @@ pub struct ComputeNetworkAttachmentsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/networkAttachments/{resource}/getIamPolicy
@@ -69449,7 +69451,7 @@ pub fn compute_network_attachments_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -69591,7 +69593,7 @@ pub struct ComputeNetworkAttachmentsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/networkAttachments
@@ -69631,11 +69633,11 @@ pub fn compute_network_attachments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -69791,15 +69793,15 @@ pub struct ComputeNetworkAttachmentsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/networkAttachments
@@ -69846,7 +69848,7 @@ pub fn compute_network_attachments_patch_builder<R>(
     project: &String,
     region: &String,
     networkAttachment: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -69990,7 +69992,7 @@ pub struct ComputeNetworkAttachmentsPatchArgs {
     /// Path parameter: networkAttachment
     pub networkAttachment: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/networkAttachments/{networkAttachment}
@@ -70380,13 +70382,13 @@ pub fn compute_network_attachments_test_iam_permissions(
 pub fn compute_network_edge_security_services_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -70548,19 +70550,19 @@ pub struct ComputeNetworkEdgeSecurityServicesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/networkEdgeSecurityServices
@@ -70610,7 +70612,7 @@ pub fn compute_network_edge_security_services_delete_builder<R>(
     project: &String,
     region: &String,
     networkEdgeSecurityService: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -70756,7 +70758,7 @@ pub struct ComputeNetworkEdgeSecurityServicesDeleteArgs {
     /// Path parameter: networkEdgeSecurityService
     pub networkEdgeSecurityService: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/networkEdgeSecurityServices/{networkEdgeSecurityService}
@@ -70978,8 +70980,8 @@ pub fn compute_network_edge_security_services_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -71125,9 +71127,9 @@ pub struct ComputeNetworkEdgeSecurityServicesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/networkEdgeSecurityServices
@@ -71169,9 +71171,9 @@ pub fn compute_network_edge_security_services_patch_builder<R>(
     project: &String,
     region: &String,
     networkEdgeSecurityService: &String,
-    paths: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    paths: &Option<String>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -71323,11 +71325,11 @@ pub struct ComputeNetworkEdgeSecurityServicesPatchArgs {
     /// Path parameter: networkEdgeSecurityService
     pub networkEdgeSecurityService: String,
     /// Query parameter: paths
-    pub paths: Option<Option<String>>,
+    pub paths: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/networkEdgeSecurityServices/{networkEdgeSecurityService}
@@ -71369,13 +71371,13 @@ pub fn compute_network_edge_security_services_patch(
 pub fn compute_network_endpoint_groups_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -71537,19 +71539,19 @@ pub struct ComputeNetworkEndpointGroupsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/networkEndpointGroups
@@ -71599,7 +71601,7 @@ pub fn compute_network_endpoint_groups_attach_network_endpoints_builder<R>(
     project: &String,
     zone: &String,
     networkEndpointGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -71745,7 +71747,7 @@ pub struct ComputeNetworkEndpointGroupsAttachNetworkEndpointsArgs {
     /// Path parameter: networkEndpointGroup
     pub networkEndpointGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/networkEndpointGroups/{networkEndpointGroup}/attachNetworkEndpoints
@@ -71787,7 +71789,7 @@ pub fn compute_network_endpoint_groups_delete_builder<R>(
     project: &String,
     zone: &String,
     networkEndpointGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -71931,7 +71933,7 @@ pub struct ComputeNetworkEndpointGroupsDeleteArgs {
     /// Path parameter: networkEndpointGroup
     pub networkEndpointGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/networkEndpointGroups/{networkEndpointGroup}
@@ -71973,7 +71975,7 @@ pub fn compute_network_endpoint_groups_detach_network_endpoints_builder<R>(
     project: &String,
     zone: &String,
     networkEndpointGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -72119,7 +72121,7 @@ pub struct ComputeNetworkEndpointGroupsDetachNetworkEndpointsArgs {
     /// Path parameter: networkEndpointGroup
     pub networkEndpointGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/networkEndpointGroups/{networkEndpointGroup}/detachNetworkEndpoints
@@ -72335,7 +72337,7 @@ pub fn compute_network_endpoint_groups_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -72477,7 +72479,7 @@ pub struct ComputeNetworkEndpointGroupsInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/networkEndpointGroups
@@ -72517,11 +72519,11 @@ pub fn compute_network_endpoint_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -72677,15 +72679,15 @@ pub struct ComputeNetworkEndpointGroupsListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/networkEndpointGroups
@@ -72732,11 +72734,11 @@ pub fn compute_network_endpoint_groups_list_network_endpoints_builder<R>(
     project: &String,
     zone: &String,
     networkEndpointGroup: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -72898,15 +72900,15 @@ pub struct ComputeNetworkEndpointGroupsListNetworkEndpointsArgs {
     /// Path parameter: networkEndpointGroup
     pub networkEndpointGroup: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/networkEndpointGroups/{networkEndpointGroup}/listNetworkEndpoints
@@ -73132,8 +73134,8 @@ pub fn compute_network_firewall_policies_add_association_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    replaceExistingAssociation: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    replaceExistingAssociation: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -73279,9 +73281,9 @@ pub struct ComputeNetworkFirewallPoliciesAddAssociationArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: replaceExistingAssociation
-    pub replaceExistingAssociation: Option<Option<String>>,
+    pub replaceExistingAssociation: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/firewallPolicies/{firewallPolicy}/addAssociation
@@ -73322,9 +73324,9 @@ pub fn compute_network_firewall_policies_add_packet_mirroring_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    maxPriority: &Option<Option<String>>,
-    minPriority: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    maxPriority: &Option<String>,
+    minPriority: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -73473,11 +73475,11 @@ pub struct ComputeNetworkFirewallPoliciesAddPacketMirroringRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: maxPriority
-    pub maxPriority: Option<Option<String>>,
+    pub maxPriority: Option<String>,
     /// Query parameter: minPriority
-    pub minPriority: Option<Option<String>>,
+    pub minPriority: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/firewallPolicies/{firewallPolicy}/addPacketMirroringRule
@@ -73519,9 +73521,9 @@ pub fn compute_network_firewall_policies_add_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    maxPriority: &Option<Option<String>>,
-    minPriority: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    maxPriority: &Option<String>,
+    minPriority: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -73669,11 +73671,11 @@ pub struct ComputeNetworkFirewallPoliciesAddRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: maxPriority
-    pub maxPriority: Option<Option<String>>,
+    pub maxPriority: Option<String>,
     /// Query parameter: minPriority
-    pub minPriority: Option<Option<String>>,
+    pub minPriority: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/firewallPolicies/{firewallPolicy}/addRule
@@ -73714,13 +73716,13 @@ pub fn compute_network_firewall_policies_add_rule(
 pub fn compute_network_firewall_policies_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -73882,19 +73884,19 @@ pub struct ComputeNetworkFirewallPoliciesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/firewallPolicies
@@ -73943,8 +73945,8 @@ pub fn compute_network_firewall_policies_clone_rules_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    requestId: &Option<Option<String>>,
-    sourceFirewallPolicy: &Option<Option<String>>,
+    requestId: &Option<String>,
+    sourceFirewallPolicy: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -74090,9 +74092,9 @@ pub struct ComputeNetworkFirewallPoliciesCloneRulesArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: sourceFirewallPolicy
-    pub sourceFirewallPolicy: Option<Option<String>>,
+    pub sourceFirewallPolicy: Option<String>,
 }
 
 /// POST projects/{project}/global/firewallPolicies/{firewallPolicy}/cloneRules
@@ -74133,7 +74135,7 @@ pub fn compute_network_firewall_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -74275,7 +74277,7 @@ pub struct ComputeNetworkFirewallPoliciesDeleteArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/firewallPolicies/{firewallPolicy}
@@ -74483,7 +74485,7 @@ pub fn compute_network_firewall_policies_get_association_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -74628,7 +74630,7 @@ pub struct ComputeNetworkFirewallPoliciesGetAssociationArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// GET projects/{project}/global/firewallPolicies/{firewallPolicy}/getAssociation
@@ -74670,7 +74672,7 @@ pub fn compute_network_firewall_policies_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -74813,7 +74815,7 @@ pub struct ComputeNetworkFirewallPoliciesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/global/firewallPolicies/{resource}/getIamPolicy
@@ -74853,7 +74855,7 @@ pub fn compute_network_firewall_policies_get_packet_mirroring_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    priority: &Option<Option<String>>,
+    priority: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -74998,7 +75000,7 @@ pub struct ComputeNetworkFirewallPoliciesGetPacketMirroringRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
 }
 
 /// GET projects/{project}/global/firewallPolicies/{firewallPolicy}/getPacketMirroringRule
@@ -75040,7 +75042,7 @@ pub fn compute_network_firewall_policies_get_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    priority: &Option<Option<String>>,
+    priority: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -75184,7 +75186,7 @@ pub struct ComputeNetworkFirewallPoliciesGetRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
 }
 
 /// GET projects/{project}/global/firewallPolicies/{firewallPolicy}/getRule
@@ -75225,7 +75227,7 @@ pub fn compute_network_firewall_policies_get_rule(
 pub fn compute_network_firewall_policies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -75365,7 +75367,7 @@ pub struct ComputeNetworkFirewallPoliciesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/firewallPolicies
@@ -75400,11 +75402,11 @@ pub fn compute_network_firewall_policies_insert(
 pub fn compute_network_firewall_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -75558,15 +75560,15 @@ pub struct ComputeNetworkFirewallPoliciesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/firewallPolicies
@@ -75611,7 +75613,7 @@ pub fn compute_network_firewall_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -75753,7 +75755,7 @@ pub struct ComputeNetworkFirewallPoliciesPatchArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/firewallPolicies/{firewallPolicy}
@@ -75793,8 +75795,8 @@ pub fn compute_network_firewall_policies_patch_packet_mirroring_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    priority: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    priority: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -75940,9 +75942,9 @@ pub struct ComputeNetworkFirewallPoliciesPatchPacketMirroringRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/firewallPolicies/{firewallPolicy}/patchPacketMirroringRule
@@ -75983,8 +75985,8 @@ pub fn compute_network_firewall_policies_patch_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    priority: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    priority: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -76130,9 +76132,9 @@ pub struct ComputeNetworkFirewallPoliciesPatchRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/firewallPolicies/{firewallPolicy}/patchRule
@@ -76173,8 +76175,8 @@ pub fn compute_network_firewall_policies_remove_association_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    name: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    name: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -76320,9 +76322,9 @@ pub struct ComputeNetworkFirewallPoliciesRemoveAssociationArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/firewallPolicies/{firewallPolicy}/removeAssociation
@@ -76363,8 +76365,8 @@ pub fn compute_network_firewall_policies_remove_packet_mirroring_rule_builder<R>
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    priority: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    priority: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -76510,9 +76512,9 @@ pub struct ComputeNetworkFirewallPoliciesRemovePacketMirroringRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/firewallPolicies/{firewallPolicy}/removePacketMirroringRule
@@ -76553,8 +76555,8 @@ pub fn compute_network_firewall_policies_remove_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     firewallPolicy: &String,
-    priority: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    priority: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -76700,9 +76702,9 @@ pub struct ComputeNetworkFirewallPoliciesRemoveRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/firewallPolicies/{firewallPolicy}/removeRule
@@ -77250,11 +77252,11 @@ pub fn compute_network_profiles_get(
 pub fn compute_network_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -77410,15 +77412,15 @@ pub struct ComputeNetworkProfilesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/networkProfiles
@@ -77465,7 +77467,7 @@ pub fn compute_networks_add_peering_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -77607,7 +77609,7 @@ pub struct ComputeNetworksAddPeeringArgs {
     /// Path parameter: network
     pub network: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/networks/{network}/addPeering
@@ -77647,7 +77649,7 @@ pub fn compute_networks_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -77789,7 +77791,7 @@ pub struct ComputeNetworksDeleteArgs {
     /// Path parameter: network
     pub network: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/networks/{network}
@@ -78160,7 +78162,7 @@ pub fn compute_networks_get_effective_firewalls(
 pub fn compute_networks_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -78300,7 +78302,7 @@ pub struct ComputeNetworksInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/networks
@@ -78334,11 +78336,11 @@ pub fn compute_networks_insert(
 pub fn compute_networks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -78490,15 +78492,15 @@ pub struct ComputeNetworksListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/networks
@@ -78541,14 +78543,14 @@ pub fn compute_networks_list_peering_routes_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
-    direction: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    peeringName: &Option<Option<String>>,
-    region: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    direction: &Option<String>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    peeringName: &Option<String>,
+    region: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -78716,21 +78718,21 @@ pub struct ComputeNetworksListPeeringRoutesArgs {
     /// Path parameter: network
     pub network: String,
     /// Query parameter: direction
-    pub direction: Option<Option<String>>,
+    pub direction: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: peeringName
-    pub peeringName: Option<Option<String>>,
+    pub peeringName: Option<String>,
     /// Query parameter: region
-    pub region: Option<Option<String>>,
+    pub region: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/networks/{network}/listPeeringRoutes
@@ -78781,7 +78783,7 @@ pub fn compute_networks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -78923,7 +78925,7 @@ pub struct ComputeNetworksPatchArgs {
     /// Path parameter: network
     pub network: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/networks/{network}
@@ -78959,7 +78961,7 @@ pub fn compute_networks_remove_peering_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -79101,7 +79103,7 @@ pub struct ComputeNetworksRemovePeeringArgs {
     /// Path parameter: network
     pub network: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/networks/{network}/removePeering
@@ -79141,7 +79143,7 @@ pub fn compute_networks_request_remove_peering_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -79284,7 +79286,7 @@ pub struct ComputeNetworksRequestRemovePeeringArgs {
     /// Path parameter: network
     pub network: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/networks/{network}/requestRemovePeering
@@ -79324,7 +79326,7 @@ pub fn compute_networks_switch_to_custom_mode_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -79467,7 +79469,7 @@ pub struct ComputeNetworksSwitchToCustomModeArgs {
     /// Path parameter: network
     pub network: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/networks/{network}/switchToCustomMode
@@ -79507,7 +79509,7 @@ pub fn compute_networks_update_peering_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     network: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -79649,7 +79651,7 @@ pub struct ComputeNetworksUpdatePeeringArgs {
     /// Path parameter: network
     pub network: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/networks/{network}/updatePeering
@@ -79690,7 +79692,7 @@ pub fn compute_node_groups_add_nodes_builder<R>(
     project: &String,
     zone: &String,
     nodeGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -79834,7 +79836,7 @@ pub struct ComputeNodeGroupsAddNodesArgs {
     /// Path parameter: nodeGroup
     pub nodeGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/nodeGroups/{nodeGroup}/addNodes
@@ -79874,13 +79876,13 @@ pub fn compute_node_groups_add_nodes(
 pub fn compute_node_groups_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -80040,19 +80042,19 @@ pub struct ComputeNodeGroupsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/nodeGroups
@@ -80100,7 +80102,7 @@ pub fn compute_node_groups_delete_builder<R>(
     project: &String,
     zone: &String,
     nodeGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -80244,7 +80246,7 @@ pub struct ComputeNodeGroupsDeleteArgs {
     /// Path parameter: nodeGroup
     pub nodeGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/nodeGroups/{nodeGroup}
@@ -80286,7 +80288,7 @@ pub fn compute_node_groups_delete_nodes_builder<R>(
     project: &String,
     zone: &String,
     nodeGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -80430,7 +80432,7 @@ pub struct ComputeNodeGroupsDeleteNodesArgs {
     /// Path parameter: nodeGroup
     pub nodeGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/nodeGroups/{nodeGroup}/deleteNodes
@@ -80639,7 +80641,7 @@ pub fn compute_node_groups_get_iam_policy_builder<R>(
     project: &String,
     zone: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -80783,7 +80785,7 @@ pub struct ComputeNodeGroupsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/nodeGroups/{resource}/getIamPolicy
@@ -80824,8 +80826,8 @@ pub fn compute_node_groups_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    initialNodeCount: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    initialNodeCount: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -80970,9 +80972,9 @@ pub struct ComputeNodeGroupsInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: initialNodeCount
-    pub initialNodeCount: Option<Option<String>>,
+    pub initialNodeCount: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/nodeGroups
@@ -81013,11 +81015,11 @@ pub fn compute_node_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -81173,15 +81175,15 @@ pub struct ComputeNodeGroupsListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/nodeGroups
@@ -81228,11 +81230,11 @@ pub fn compute_node_groups_list_nodes_builder<R>(
     project: &String,
     zone: &String,
     nodeGroup: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -81390,15 +81392,15 @@ pub struct ComputeNodeGroupsListNodesArgs {
     /// Path parameter: nodeGroup
     pub nodeGroup: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/nodeGroups/{nodeGroup}/listNodes
@@ -81446,7 +81448,7 @@ pub fn compute_node_groups_patch_builder<R>(
     project: &String,
     zone: &String,
     nodeGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -81590,7 +81592,7 @@ pub struct ComputeNodeGroupsPatchArgs {
     /// Path parameter: nodeGroup
     pub nodeGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/zones/{zone}/nodeGroups/{nodeGroup}
@@ -81632,7 +81634,7 @@ pub fn compute_node_groups_perform_maintenance_builder<R>(
     project: &String,
     zone: &String,
     nodeGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -81778,7 +81780,7 @@ pub struct ComputeNodeGroupsPerformMaintenanceArgs {
     /// Path parameter: nodeGroup
     pub nodeGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/nodeGroups/{nodeGroup}/performMaintenance
@@ -81991,7 +81993,7 @@ pub fn compute_node_groups_set_node_template_builder<R>(
     project: &String,
     zone: &String,
     nodeGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -82137,7 +82139,7 @@ pub struct ComputeNodeGroupsSetNodeTemplateArgs {
     /// Path parameter: nodeGroup
     pub nodeGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/nodeGroups/{nodeGroup}/setNodeTemplate
@@ -82179,7 +82181,7 @@ pub fn compute_node_groups_simulate_maintenance_event_builder<R>(
     project: &String,
     zone: &String,
     nodeGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -82325,7 +82327,7 @@ pub struct ComputeNodeGroupsSimulateMaintenanceEventArgs {
     /// Path parameter: nodeGroup
     pub nodeGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/nodeGroups/{nodeGroup}/simulateMaintenanceEvent
@@ -82542,13 +82544,13 @@ pub fn compute_node_groups_test_iam_permissions(
 pub fn compute_node_templates_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -82710,19 +82712,19 @@ pub struct ComputeNodeTemplatesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/nodeTemplates
@@ -82772,7 +82774,7 @@ pub fn compute_node_templates_delete_builder<R>(
     project: &String,
     region: &String,
     nodeTemplate: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -82916,7 +82918,7 @@ pub struct ComputeNodeTemplatesDeleteArgs {
     /// Path parameter: nodeTemplate
     pub nodeTemplate: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/nodeTemplates/{nodeTemplate}
@@ -83133,7 +83135,7 @@ pub fn compute_node_templates_get_iam_policy_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -83279,7 +83281,7 @@ pub struct ComputeNodeTemplatesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/nodeTemplates/{resource}/getIamPolicy
@@ -83320,7 +83322,7 @@ pub fn compute_node_templates_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -83462,7 +83464,7 @@ pub struct ComputeNodeTemplatesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/nodeTemplates
@@ -83502,11 +83504,11 @@ pub fn compute_node_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -83662,15 +83664,15 @@ pub struct ComputeNodeTemplatesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/nodeTemplates
@@ -84065,13 +84067,13 @@ pub fn compute_node_templates_test_iam_permissions(
 pub fn compute_node_types_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -84231,19 +84233,19 @@ pub struct ComputeNodeTypesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/nodeTypes
@@ -84457,11 +84459,11 @@ pub fn compute_node_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -84617,15 +84619,15 @@ pub struct ComputeNodeTypesListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/nodeTypes
@@ -84670,8 +84672,8 @@ pub fn compute_node_types_list(
 pub fn compute_organization_security_policies_add_association_builder<R>(
     client: &SimpleHttpClient<R>,
     securityPolicy: &String,
-    replaceExistingAssociation: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    replaceExistingAssociation: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -84814,9 +84816,9 @@ pub struct ComputeOrganizationSecurityPoliciesAddAssociationArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: replaceExistingAssociation
-    pub replaceExistingAssociation: Option<Option<String>>,
+    pub replaceExistingAssociation: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/securityPolicies/{securityPolicy}/addAssociation
@@ -84855,7 +84857,7 @@ pub fn compute_organization_security_policies_add_association(
 pub fn compute_organization_security_policies_add_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     securityPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -84995,7 +84997,7 @@ pub struct ComputeOrganizationSecurityPoliciesAddRuleArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/securityPolicies/{securityPolicy}/addRule
@@ -85033,8 +85035,8 @@ pub fn compute_organization_security_policies_add_rule(
 pub fn compute_organization_security_policies_copy_rules_builder<R>(
     client: &SimpleHttpClient<R>,
     securityPolicy: &String,
-    requestId: &Option<Option<String>>,
-    sourceSecurityPolicy: &Option<Option<String>>,
+    requestId: &Option<String>,
+    sourceSecurityPolicy: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -85177,9 +85179,9 @@ pub struct ComputeOrganizationSecurityPoliciesCopyRulesArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: sourceSecurityPolicy
-    pub sourceSecurityPolicy: Option<Option<String>>,
+    pub sourceSecurityPolicy: Option<String>,
 }
 
 /// POST locations/global/securityPolicies/{securityPolicy}/copyRules
@@ -85218,7 +85220,7 @@ pub fn compute_organization_security_policies_copy_rules(
 pub fn compute_organization_security_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     securityPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -85358,7 +85360,7 @@ pub struct ComputeOrganizationSecurityPoliciesDeleteArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE locations/global/securityPolicies/{securityPolicy}
@@ -85560,7 +85562,7 @@ pub fn compute_organization_security_policies_get(
 pub fn compute_organization_security_policies_get_association_builder<R>(
     client: &SimpleHttpClient<R>,
     securityPolicy: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -85702,7 +85704,7 @@ pub struct ComputeOrganizationSecurityPoliciesGetAssociationArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// GET locations/global/securityPolicies/{securityPolicy}/getAssociation
@@ -85742,7 +85744,7 @@ pub fn compute_organization_security_policies_get_association(
 pub fn compute_organization_security_policies_get_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     securityPolicy: &String,
-    priority: &Option<Option<String>>,
+    priority: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -85884,7 +85886,7 @@ pub struct ComputeOrganizationSecurityPoliciesGetRuleArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
 }
 
 /// GET locations/global/securityPolicies/{securityPolicy}/getRule
@@ -85923,8 +85925,8 @@ pub fn compute_organization_security_policies_get_rule(
 
 pub fn compute_organization_security_policies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    parentId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    parentId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -86063,9 +86065,9 @@ pub fn compute_organization_security_policies_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ComputeOrganizationSecurityPoliciesInsertArgs {
     /// Query parameter: parentId
-    pub parentId: Option<Option<String>>,
+    pub parentId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/securityPolicies
@@ -86102,12 +86104,12 @@ pub fn compute_organization_security_policies_insert(
 
 pub fn compute_organization_security_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parentId: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    parentId: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -86260,17 +86262,17 @@ pub fn compute_organization_security_policies_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ComputeOrganizationSecurityPoliciesListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parentId
-    pub parentId: Option<Option<String>>,
+    pub parentId: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET locations/global/securityPolicies
@@ -86313,7 +86315,7 @@ pub fn compute_organization_security_policies_list(
 
 pub fn compute_organization_security_policies_list_associations_builder<R>(
     client: &SimpleHttpClient<R>,
-    targetResource: &Option<Option<String>>,
+    targetResource: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -86458,7 +86460,7 @@ pub fn compute_organization_security_policies_list_associations_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ComputeOrganizationSecurityPoliciesListAssociationsArgs {
     /// Query parameter: targetResource
-    pub targetResource: Option<Option<String>>,
+    pub targetResource: Option<String>,
 }
 
 /// GET locations/global/securityPolicies/listAssociations
@@ -86498,12 +86500,12 @@ pub fn compute_organization_security_policies_list_associations(
 
 pub fn compute_organization_security_policies_list_preconfigured_expression_sets_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parentId: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    parentId: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -86667,17 +86669,17 @@ pub fn compute_organization_security_policies_list_preconfigured_expression_sets
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ComputeOrganizationSecurityPoliciesListPreconfiguredExpressionSetsArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parentId
-    pub parentId: Option<Option<String>>,
+    pub parentId: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET locations/global/securityPolicies/listPreconfiguredExpressionSets
@@ -86727,8 +86729,8 @@ pub fn compute_organization_security_policies_list_preconfigured_expression_sets
 pub fn compute_organization_security_policies_move_builder<R>(
     client: &SimpleHttpClient<R>,
     securityPolicy: &String,
-    parentId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    parentId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -86871,9 +86873,9 @@ pub struct ComputeOrganizationSecurityPoliciesMoveArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: parentId
-    pub parentId: Option<Option<String>>,
+    pub parentId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/securityPolicies/{securityPolicy}/move
@@ -86912,7 +86914,7 @@ pub fn compute_organization_security_policies_move(
 pub fn compute_organization_security_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     securityPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -87052,7 +87054,7 @@ pub struct ComputeOrganizationSecurityPoliciesPatchArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH locations/global/securityPolicies/{securityPolicy}
@@ -87090,8 +87092,8 @@ pub fn compute_organization_security_policies_patch(
 pub fn compute_organization_security_policies_patch_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     securityPolicy: &String,
-    priority: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    priority: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -87234,9 +87236,9 @@ pub struct ComputeOrganizationSecurityPoliciesPatchRuleArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/securityPolicies/{securityPolicy}/patchRule
@@ -87275,8 +87277,8 @@ pub fn compute_organization_security_policies_patch_rule(
 pub fn compute_organization_security_policies_remove_association_builder<R>(
     client: &SimpleHttpClient<R>,
     securityPolicy: &String,
-    name: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    name: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -87419,9 +87421,9 @@ pub struct ComputeOrganizationSecurityPoliciesRemoveAssociationArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/securityPolicies/{securityPolicy}/removeAssociation
@@ -87460,8 +87462,8 @@ pub fn compute_organization_security_policies_remove_association(
 pub fn compute_organization_security_policies_remove_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     securityPolicy: &String,
-    priority: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    priority: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -87604,9 +87606,9 @@ pub struct ComputeOrganizationSecurityPoliciesRemoveRuleArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST locations/global/securityPolicies/{securityPolicy}/removeRule
@@ -87645,13 +87647,13 @@ pub fn compute_organization_security_policies_remove_rule(
 pub fn compute_packet_mirrorings_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -87813,19 +87815,19 @@ pub struct ComputePacketMirroringsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/packetMirrorings
@@ -87875,7 +87877,7 @@ pub fn compute_packet_mirrorings_delete_builder<R>(
     project: &String,
     region: &String,
     packetMirroring: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -88019,7 +88021,7 @@ pub struct ComputePacketMirroringsDeleteArgs {
     /// Path parameter: packetMirroring
     pub packetMirroring: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/packetMirrorings/{packetMirroring}
@@ -88235,7 +88237,7 @@ pub fn compute_packet_mirrorings_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -88377,7 +88379,7 @@ pub struct ComputePacketMirroringsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/packetMirrorings
@@ -88417,11 +88419,11 @@ pub fn compute_packet_mirrorings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -88577,15 +88579,15 @@ pub struct ComputePacketMirroringsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/packetMirrorings
@@ -88632,7 +88634,7 @@ pub fn compute_packet_mirrorings_patch_builder<R>(
     project: &String,
     region: &String,
     packetMirroring: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -88776,7 +88778,7 @@ pub struct ComputePacketMirroringsPatchArgs {
     /// Path parameter: packetMirroring
     pub packetMirroring: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/packetMirrorings/{packetMirroring}
@@ -89161,11 +89163,11 @@ pub fn compute_preview_features_get(
 pub fn compute_preview_features_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -89319,15 +89321,15 @@ pub struct ComputePreviewFeaturesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/previewFeatures
@@ -89372,7 +89374,7 @@ pub fn compute_preview_features_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     previewFeature: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -89514,7 +89516,7 @@ pub struct ComputePreviewFeaturesUpdateArgs {
     /// Path parameter: previewFeature
     pub previewFeature: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/previewFeatures/{previewFeature}
@@ -89553,7 +89555,7 @@ pub fn compute_preview_features_update(
 pub fn compute_projects_disable_xpn_host_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -89693,7 +89695,7 @@ pub struct ComputeProjectsDisableXpnHostArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/disableXpnHost
@@ -89728,7 +89730,7 @@ pub fn compute_projects_disable_xpn_host(
 pub fn compute_projects_disable_xpn_resource_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -89868,7 +89870,7 @@ pub struct ComputeProjectsDisableXpnResourceArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/disableXpnResource
@@ -89903,7 +89905,7 @@ pub fn compute_projects_disable_xpn_resource(
 pub fn compute_projects_enable_xpn_host_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -90043,7 +90045,7 @@ pub struct ComputeProjectsEnableXpnHostArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/enableXpnHost
@@ -90077,7 +90079,7 @@ pub fn compute_projects_enable_xpn_host(
 pub fn compute_projects_enable_xpn_resource_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -90217,7 +90219,7 @@ pub struct ComputeProjectsEnableXpnResourceArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/enableXpnResource
@@ -90572,11 +90574,11 @@ pub fn compute_projects_get_xpn_host(
 pub fn compute_projects_get_xpn_resources_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -90730,15 +90732,15 @@ pub struct ComputeProjectsGetXpnResourcesArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/getXpnResources
@@ -90782,11 +90784,11 @@ pub fn compute_projects_get_xpn_resources(
 pub fn compute_projects_list_xpn_hosts_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -90938,15 +90940,15 @@ pub struct ComputeProjectsListXpnHostsArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// POST projects/{project}/listXpnHosts
@@ -90988,7 +90990,7 @@ pub fn compute_projects_list_xpn_hosts(
 pub fn compute_projects_move_disk_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -91128,7 +91130,7 @@ pub struct ComputeProjectsMoveDiskArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/moveDisk
@@ -91162,7 +91164,7 @@ pub fn compute_projects_move_disk(
 pub fn compute_projects_move_instance_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -91302,7 +91304,7 @@ pub struct ComputeProjectsMoveInstanceArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/moveInstance
@@ -91336,7 +91338,7 @@ pub fn compute_projects_move_instance(
 pub fn compute_projects_set_cloud_armor_tier_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -91476,7 +91478,7 @@ pub struct ComputeProjectsSetCloudArmorTierArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/setCloudArmorTier
@@ -91511,7 +91513,7 @@ pub fn compute_projects_set_cloud_armor_tier(
 pub fn compute_projects_set_common_instance_metadata_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -91651,7 +91653,7 @@ pub struct ComputeProjectsSetCommonInstanceMetadataArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/setCommonInstanceMetadata
@@ -91689,7 +91691,7 @@ pub fn compute_projects_set_common_instance_metadata(
 pub fn compute_projects_set_default_network_tier_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -91829,7 +91831,7 @@ pub struct ComputeProjectsSetDefaultNetworkTierArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/setDefaultNetworkTier
@@ -91864,7 +91866,7 @@ pub fn compute_projects_set_default_network_tier(
 pub fn compute_projects_set_usage_export_bucket_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -92004,7 +92006,7 @@ pub struct ComputeProjectsSetUsageExportBucketArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/setUsageExportBucket
@@ -92040,7 +92042,7 @@ pub fn compute_public_advertised_prefixes_announce_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     publicAdvertisedPrefix: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -92183,7 +92185,7 @@ pub struct ComputePublicAdvertisedPrefixesAnnounceArgs {
     /// Path parameter: publicAdvertisedPrefix
     pub publicAdvertisedPrefix: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/publicAdvertisedPrefixes/{publicAdvertisedPrefix}/announce
@@ -92223,7 +92225,7 @@ pub fn compute_public_advertised_prefixes_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     publicAdvertisedPrefix: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -92365,7 +92367,7 @@ pub struct ComputePublicAdvertisedPrefixesDeleteArgs {
     /// Path parameter: publicAdvertisedPrefix
     pub publicAdvertisedPrefix: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/publicAdvertisedPrefixes/{publicAdvertisedPrefix}
@@ -92575,7 +92577,7 @@ pub fn compute_public_advertised_prefixes_get(
 pub fn compute_public_advertised_prefixes_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -92715,7 +92717,7 @@ pub struct ComputePublicAdvertisedPrefixesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/publicAdvertisedPrefixes
@@ -92750,11 +92752,11 @@ pub fn compute_public_advertised_prefixes_insert(
 pub fn compute_public_advertised_prefixes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -92910,15 +92912,15 @@ pub struct ComputePublicAdvertisedPrefixesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/publicAdvertisedPrefixes
@@ -92965,7 +92967,7 @@ pub fn compute_public_advertised_prefixes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     publicAdvertisedPrefix: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -93107,7 +93109,7 @@ pub struct ComputePublicAdvertisedPrefixesPatchArgs {
     /// Path parameter: publicAdvertisedPrefix
     pub publicAdvertisedPrefix: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/publicAdvertisedPrefixes/{publicAdvertisedPrefix}
@@ -93147,7 +93149,7 @@ pub fn compute_public_advertised_prefixes_withdraw_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     publicAdvertisedPrefix: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -93290,7 +93292,7 @@ pub struct ComputePublicAdvertisedPrefixesWithdrawArgs {
     /// Path parameter: publicAdvertisedPrefix
     pub publicAdvertisedPrefix: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/publicAdvertisedPrefixes/{publicAdvertisedPrefix}/withdraw
@@ -93329,13 +93331,13 @@ pub fn compute_public_advertised_prefixes_withdraw(
 pub fn compute_public_delegated_prefixes_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -93497,19 +93499,19 @@ pub struct ComputePublicDelegatedPrefixesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/publicDelegatedPrefixes
@@ -93559,7 +93561,7 @@ pub fn compute_public_delegated_prefixes_announce_builder<R>(
     project: &String,
     region: &String,
     publicDelegatedPrefix: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -93705,7 +93707,7 @@ pub struct ComputePublicDelegatedPrefixesAnnounceArgs {
     /// Path parameter: publicDelegatedPrefix
     pub publicDelegatedPrefix: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/publicDelegatedPrefixes/{publicDelegatedPrefix}/announce
@@ -93747,7 +93749,7 @@ pub fn compute_public_delegated_prefixes_delete_builder<R>(
     project: &String,
     region: &String,
     publicDelegatedPrefix: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -93893,7 +93895,7 @@ pub struct ComputePublicDelegatedPrefixesDeleteArgs {
     /// Path parameter: publicDelegatedPrefix
     pub publicDelegatedPrefix: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/publicDelegatedPrefixes/{publicDelegatedPrefix}
@@ -94111,7 +94113,7 @@ pub fn compute_public_delegated_prefixes_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -94253,7 +94255,7 @@ pub struct ComputePublicDelegatedPrefixesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/publicDelegatedPrefixes
@@ -94293,11 +94295,11 @@ pub fn compute_public_delegated_prefixes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -94453,15 +94455,15 @@ pub struct ComputePublicDelegatedPrefixesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/publicDelegatedPrefixes
@@ -94508,7 +94510,7 @@ pub fn compute_public_delegated_prefixes_patch_builder<R>(
     project: &String,
     region: &String,
     publicDelegatedPrefix: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -94654,7 +94656,7 @@ pub struct ComputePublicDelegatedPrefixesPatchArgs {
     /// Path parameter: publicDelegatedPrefix
     pub publicDelegatedPrefix: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/publicDelegatedPrefixes/{publicDelegatedPrefix}
@@ -94696,7 +94698,7 @@ pub fn compute_public_delegated_prefixes_withdraw_builder<R>(
     project: &String,
     region: &String,
     publicDelegatedPrefix: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -94842,7 +94844,7 @@ pub struct ComputePublicDelegatedPrefixesWithdrawArgs {
     /// Path parameter: publicDelegatedPrefix
     pub publicDelegatedPrefix: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/publicDelegatedPrefixes/{publicDelegatedPrefix}/withdraw
@@ -94884,7 +94886,7 @@ pub fn compute_region_autoscalers_delete_builder<R>(
     project: &String,
     region: &String,
     autoscaler: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -95028,7 +95030,7 @@ pub struct ComputeRegionAutoscalersDeleteArgs {
     /// Path parameter: autoscaler
     pub autoscaler: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/autoscalers/{autoscaler}
@@ -95240,7 +95242,7 @@ pub fn compute_region_autoscalers_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -95382,7 +95384,7 @@ pub struct ComputeRegionAutoscalersInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/autoscalers
@@ -95422,11 +95424,11 @@ pub fn compute_region_autoscalers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -95582,15 +95584,15 @@ pub struct ComputeRegionAutoscalersListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/autoscalers
@@ -95636,8 +95638,8 @@ pub fn compute_region_autoscalers_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    autoscaler: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    autoscaler: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -95782,9 +95784,9 @@ pub struct ComputeRegionAutoscalersPatchArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: autoscaler
-    pub autoscaler: Option<Option<String>>,
+    pub autoscaler: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/autoscalers
@@ -96002,8 +96004,8 @@ pub fn compute_region_autoscalers_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    autoscaler: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    autoscaler: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -96148,9 +96150,9 @@ pub struct ComputeRegionAutoscalersUpdateArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: autoscaler
-    pub autoscaler: Option<Option<String>>,
+    pub autoscaler: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/regions/{region}/autoscalers
@@ -96192,7 +96194,7 @@ pub fn compute_region_backend_buckets_delete_builder<R>(
     project: &String,
     region: &String,
     backendBucket: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -96336,7 +96338,7 @@ pub struct ComputeRegionBackendBucketsDeleteArgs {
     /// Path parameter: backendBucket
     pub backendBucket: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/backendBuckets/{backendBucket}
@@ -96553,7 +96555,7 @@ pub fn compute_region_backend_buckets_get_iam_policy_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -96699,7 +96701,7 @@ pub struct ComputeRegionBackendBucketsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/backendBuckets/{resource}/getIamPolicy
@@ -96740,7 +96742,7 @@ pub fn compute_region_backend_buckets_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -96882,7 +96884,7 @@ pub struct ComputeRegionBackendBucketsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/backendBuckets
@@ -96922,11 +96924,11 @@ pub fn compute_region_backend_buckets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -97082,15 +97084,15 @@ pub struct ComputeRegionBackendBucketsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/backendBuckets
@@ -97136,11 +97138,11 @@ pub fn compute_region_backend_buckets_list_usable_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -97297,15 +97299,15 @@ pub struct ComputeRegionBackendBucketsListUsableArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/backendBuckets/listUsable
@@ -97352,7 +97354,7 @@ pub fn compute_region_backend_buckets_patch_builder<R>(
     project: &String,
     region: &String,
     backendBucket: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -97496,7 +97498,7 @@ pub struct ComputeRegionBackendBucketsPatchArgs {
     /// Path parameter: backendBucket
     pub backendBucket: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/backendBuckets/{backendBucket}
@@ -97888,7 +97890,7 @@ pub fn compute_region_backend_services_delete_builder<R>(
     project: &String,
     region: &String,
     backendService: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -98032,7 +98034,7 @@ pub struct ComputeRegionBackendServicesDeleteArgs {
     /// Path parameter: backendService
     pub backendService: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/backendServices/{backendService}
@@ -98426,7 +98428,7 @@ pub fn compute_region_backend_services_get_iam_policy_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -98572,7 +98574,7 @@ pub struct ComputeRegionBackendServicesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/backendServices/{resource}/getIamPolicy
@@ -98613,7 +98615,7 @@ pub fn compute_region_backend_services_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -98755,7 +98757,7 @@ pub struct ComputeRegionBackendServicesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/backendServices
@@ -98795,11 +98797,11 @@ pub fn compute_region_backend_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -98955,15 +98957,15 @@ pub struct ComputeRegionBackendServicesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/backendServices
@@ -99009,11 +99011,11 @@ pub fn compute_region_backend_services_list_usable_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -99170,15 +99172,15 @@ pub struct ComputeRegionBackendServicesListUsableArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/backendServices/listUsable
@@ -99225,7 +99227,7 @@ pub fn compute_region_backend_services_patch_builder<R>(
     project: &String,
     region: &String,
     backendService: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -99369,7 +99371,7 @@ pub struct ComputeRegionBackendServicesPatchArgs {
     /// Path parameter: backendService
     pub backendService: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/backendServices/{backendService}
@@ -99584,7 +99586,7 @@ pub fn compute_region_backend_services_set_security_policy_builder<R>(
     project: &String,
     region: &String,
     backendService: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -99730,7 +99732,7 @@ pub struct ComputeRegionBackendServicesSetSecurityPolicyArgs {
     /// Path parameter: backendService
     pub backendService: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/backendServices/{backendService}/setSecurityPolicy
@@ -99949,7 +99951,7 @@ pub fn compute_region_backend_services_update_builder<R>(
     project: &String,
     region: &String,
     backendService: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -100093,7 +100095,7 @@ pub struct ComputeRegionBackendServicesUpdateArgs {
     /// Path parameter: backendService
     pub backendService: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/regions/{region}/backendServices/{backendService}
@@ -100133,13 +100135,13 @@ pub fn compute_region_backend_services_update(
 pub fn compute_region_commitments_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -100299,19 +100301,19 @@ pub struct ComputeRegionCommitmentsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/commitments
@@ -100529,7 +100531,7 @@ pub fn compute_region_commitments_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -100671,7 +100673,7 @@ pub struct ComputeRegionCommitmentsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/commitments
@@ -100711,11 +100713,11 @@ pub fn compute_region_commitments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -100871,15 +100873,15 @@ pub struct ComputeRegionCommitmentsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/commitments
@@ -100926,9 +100928,9 @@ pub fn compute_region_commitments_update_builder<R>(
     project: &String,
     region: &String,
     commitment: &String,
-    paths: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    paths: &Option<String>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -101078,11 +101080,11 @@ pub struct ComputeRegionCommitmentsUpdateArgs {
     /// Path parameter: commitment
     pub commitment: String,
     /// Query parameter: paths
-    pub paths: Option<Option<String>>,
+    pub paths: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/commitments/{commitment}
@@ -101124,13 +101126,13 @@ pub fn compute_region_commitments_update(
 pub fn compute_region_composite_health_checks_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -101292,19 +101294,19 @@ pub struct ComputeRegionCompositeHealthChecksAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/compositeHealthChecks
@@ -101354,7 +101356,7 @@ pub fn compute_region_composite_health_checks_delete_builder<R>(
     project: &String,
     region: &String,
     compositeHealthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -101498,7 +101500,7 @@ pub struct ComputeRegionCompositeHealthChecksDeleteArgs {
     /// Path parameter: compositeHealthCheck
     pub compositeHealthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/compositeHealthChecks/{compositeHealthCheck}
@@ -101895,7 +101897,7 @@ pub fn compute_region_composite_health_checks_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -102037,7 +102039,7 @@ pub struct ComputeRegionCompositeHealthChecksInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/compositeHealthChecks
@@ -102077,11 +102079,11 @@ pub fn compute_region_composite_health_checks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -102237,15 +102239,15 @@ pub struct ComputeRegionCompositeHealthChecksListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/compositeHealthChecks
@@ -102292,7 +102294,7 @@ pub fn compute_region_composite_health_checks_patch_builder<R>(
     project: &String,
     region: &String,
     compositeHealthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -102436,7 +102438,7 @@ pub struct ComputeRegionCompositeHealthChecksPatchArgs {
     /// Path parameter: compositeHealthCheck
     pub compositeHealthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/compositeHealthChecks/{compositeHealthCheck}
@@ -102821,11 +102823,11 @@ pub fn compute_region_disk_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -102981,15 +102983,15 @@ pub struct ComputeRegionDiskTypesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/diskTypes
@@ -103036,7 +103038,7 @@ pub fn compute_region_disks_add_resource_policies_builder<R>(
     project: &String,
     region: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -103182,7 +103184,7 @@ pub struct ComputeRegionDisksAddResourcePoliciesArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/disks/{disk}/addResourcePolicies
@@ -103223,7 +103225,7 @@ pub fn compute_region_disks_bulk_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -103365,7 +103367,7 @@ pub struct ComputeRegionDisksBulkInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/disks/bulkInsert
@@ -103406,7 +103408,7 @@ pub fn compute_region_disks_create_snapshot_builder<R>(
     project: &String,
     region: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -103550,7 +103552,7 @@ pub struct ComputeRegionDisksCreateSnapshotArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/disks/{disk}/createSnapshot
@@ -103592,7 +103594,7 @@ pub fn compute_region_disks_delete_builder<R>(
     project: &String,
     region: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -103736,7 +103738,7 @@ pub struct ComputeRegionDisksDeleteArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/disks/{disk}
@@ -103945,7 +103947,7 @@ pub fn compute_region_disks_get_iam_policy_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -104089,7 +104091,7 @@ pub struct ComputeRegionDisksGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/disks/{resource}/getIamPolicy
@@ -104130,8 +104132,8 @@ pub fn compute_region_disks_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
-    sourceImage: &Option<Option<String>>,
+    requestId: &Option<String>,
+    sourceImage: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -104276,9 +104278,9 @@ pub struct ComputeRegionDisksInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: sourceImage
-    pub sourceImage: Option<Option<String>>,
+    pub sourceImage: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/disks
@@ -104319,11 +104321,11 @@ pub fn compute_region_disks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -104477,15 +104479,15 @@ pub struct ComputeRegionDisksListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/disks
@@ -104530,7 +104532,7 @@ pub fn compute_region_disks_remove_resource_policies_builder<R>(
     project: &String,
     region: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -104676,7 +104678,7 @@ pub struct ComputeRegionDisksRemoveResourcePoliciesArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/disks/{disk}/removeResourcePolicies
@@ -104718,7 +104720,7 @@ pub fn compute_region_disks_resize_builder<R>(
     project: &String,
     region: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -104862,7 +104864,7 @@ pub struct ComputeRegionDisksResizeArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/disks/{disk}/resize
@@ -105075,7 +105077,7 @@ pub fn compute_region_disks_set_labels_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -105219,7 +105221,7 @@ pub struct ComputeRegionDisksSetLabelsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/disks/{resource}/setLabels
@@ -105261,7 +105263,7 @@ pub fn compute_region_disks_start_async_replication_builder<R>(
     project: &String,
     region: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -105407,7 +105409,7 @@ pub struct ComputeRegionDisksStartAsyncReplicationArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/disks/{disk}/startAsyncReplication
@@ -105449,7 +105451,7 @@ pub fn compute_region_disks_stop_async_replication_builder<R>(
     project: &String,
     region: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -105595,7 +105597,7 @@ pub struct ComputeRegionDisksStopAsyncReplicationArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/disks/{disk}/stopAsyncReplication
@@ -105636,7 +105638,7 @@ pub fn compute_region_disks_stop_group_async_replication_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -105779,7 +105781,7 @@ pub struct ComputeRegionDisksStopGroupAsyncReplicationArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/disks/stopGroupAsyncReplication
@@ -105997,9 +105999,9 @@ pub fn compute_region_disks_update_builder<R>(
     project: &String,
     region: &String,
     disk: &String,
-    paths: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    paths: &Option<String>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -106149,11 +106151,11 @@ pub struct ComputeRegionDisksUpdateArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: paths
-    pub paths: Option<Option<String>>,
+    pub paths: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/disks/{disk}
@@ -106197,7 +106199,7 @@ pub fn compute_region_disks_update_kms_key_builder<R>(
     project: &String,
     region: &String,
     disk: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -106341,7 +106343,7 @@ pub struct ComputeRegionDisksUpdateKmsKeyArgs {
     /// Path parameter: disk
     pub disk: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/disks/{disk}/updateKmsKey
@@ -106381,13 +106383,13 @@ pub fn compute_region_disks_update_kms_key(
 pub fn compute_region_health_aggregation_policies_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -106549,19 +106551,19 @@ pub struct ComputeRegionHealthAggregationPoliciesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/healthAggregationPolicies
@@ -106611,7 +106613,7 @@ pub fn compute_region_health_aggregation_policies_delete_builder<R>(
     project: &String,
     region: &String,
     healthAggregationPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -106757,7 +106759,7 @@ pub struct ComputeRegionHealthAggregationPoliciesDeleteArgs {
     /// Path parameter: healthAggregationPolicy
     pub healthAggregationPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/healthAggregationPolicies/{healthAggregationPolicy}
@@ -106975,7 +106977,7 @@ pub fn compute_region_health_aggregation_policies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -107118,7 +107120,7 @@ pub struct ComputeRegionHealthAggregationPoliciesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/healthAggregationPolicies
@@ -107158,11 +107160,11 @@ pub fn compute_region_health_aggregation_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -107321,15 +107323,15 @@ pub struct ComputeRegionHealthAggregationPoliciesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/healthAggregationPolicies
@@ -107378,7 +107380,7 @@ pub fn compute_region_health_aggregation_policies_patch_builder<R>(
     project: &String,
     region: &String,
     healthAggregationPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -107524,7 +107526,7 @@ pub struct ComputeRegionHealthAggregationPoliciesPatchArgs {
     /// Path parameter: healthAggregationPolicy
     pub healthAggregationPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/healthAggregationPolicies/{healthAggregationPolicy}
@@ -107741,13 +107743,13 @@ pub fn compute_region_health_aggregation_policies_test_iam_permissions(
 pub fn compute_region_health_check_services_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -107909,19 +107911,19 @@ pub struct ComputeRegionHealthCheckServicesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/healthCheckServices
@@ -107971,7 +107973,7 @@ pub fn compute_region_health_check_services_delete_builder<R>(
     project: &String,
     region: &String,
     healthCheckService: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -108115,7 +108117,7 @@ pub struct ComputeRegionHealthCheckServicesDeleteArgs {
     /// Path parameter: healthCheckService
     pub healthCheckService: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/healthCheckServices/{healthCheckService}
@@ -108331,7 +108333,7 @@ pub fn compute_region_health_check_services_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -108473,7 +108475,7 @@ pub struct ComputeRegionHealthCheckServicesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/healthCheckServices
@@ -108513,11 +108515,11 @@ pub fn compute_region_health_check_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -108673,15 +108675,15 @@ pub struct ComputeRegionHealthCheckServicesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/healthCheckServices
@@ -108728,7 +108730,7 @@ pub fn compute_region_health_check_services_patch_builder<R>(
     project: &String,
     region: &String,
     healthCheckService: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -108872,7 +108874,7 @@ pub struct ComputeRegionHealthCheckServicesPatchArgs {
     /// Path parameter: healthCheckService
     pub healthCheckService: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/healthCheckServices/{healthCheckService}
@@ -109091,7 +109093,7 @@ pub fn compute_region_health_checks_delete_builder<R>(
     project: &String,
     region: &String,
     healthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -109235,7 +109237,7 @@ pub struct ComputeRegionHealthChecksDeleteArgs {
     /// Path parameter: healthCheck
     pub healthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/healthChecks/{healthCheck}
@@ -109447,7 +109449,7 @@ pub fn compute_region_health_checks_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -109589,7 +109591,7 @@ pub struct ComputeRegionHealthChecksInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/healthChecks
@@ -109629,11 +109631,11 @@ pub fn compute_region_health_checks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -109789,15 +109791,15 @@ pub struct ComputeRegionHealthChecksListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/healthChecks
@@ -109844,7 +109846,7 @@ pub fn compute_region_health_checks_patch_builder<R>(
     project: &String,
     region: &String,
     healthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -109988,7 +109990,7 @@ pub struct ComputeRegionHealthChecksPatchArgs {
     /// Path parameter: healthCheck
     pub healthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/healthChecks/{healthCheck}
@@ -110207,7 +110209,7 @@ pub fn compute_region_health_checks_update_builder<R>(
     project: &String,
     region: &String,
     healthCheck: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -110351,7 +110353,7 @@ pub struct ComputeRegionHealthChecksUpdateArgs {
     /// Path parameter: healthCheck
     pub healthCheck: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/regions/{region}/healthChecks/{healthCheck}
@@ -110391,13 +110393,13 @@ pub fn compute_region_health_checks_update(
 pub fn compute_region_health_sources_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -110559,19 +110561,19 @@ pub struct ComputeRegionHealthSourcesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/healthSources
@@ -110621,7 +110623,7 @@ pub fn compute_region_health_sources_delete_builder<R>(
     project: &String,
     region: &String,
     healthSource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -110765,7 +110767,7 @@ pub struct ComputeRegionHealthSourcesDeleteArgs {
     /// Path parameter: healthSource
     pub healthSource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/healthSources/{healthSource}
@@ -111158,7 +111160,7 @@ pub fn compute_region_health_sources_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -111300,7 +111302,7 @@ pub struct ComputeRegionHealthSourcesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/healthSources
@@ -111340,11 +111342,11 @@ pub fn compute_region_health_sources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -111500,15 +111502,15 @@ pub struct ComputeRegionHealthSourcesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/healthSources
@@ -111555,7 +111557,7 @@ pub fn compute_region_health_sources_patch_builder<R>(
     project: &String,
     region: &String,
     healthSource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -111699,7 +111701,7 @@ pub struct ComputeRegionHealthSourcesPatchArgs {
     /// Path parameter: healthSource
     pub healthSource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/healthSources/{healthSource}
@@ -111919,7 +111921,7 @@ pub fn compute_region_instance_group_manager_resize_requests_cancel_builder<R>(
     region: &String,
     instanceGroupManager: &String,
     resizeRequest: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -112068,7 +112070,7 @@ pub struct ComputeRegionInstanceGroupManagerResizeRequestsCancelArgs {
     /// Path parameter: resizeRequest
     pub resizeRequest: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/resizeRequests/{resizeRequest}/cancel
@@ -112112,7 +112114,7 @@ pub fn compute_region_instance_group_manager_resize_requests_delete_builder<R>(
     region: &String,
     instanceGroupManager: &String,
     resizeRequest: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -112261,7 +112263,7 @@ pub struct ComputeRegionInstanceGroupManagerResizeRequestsDeleteArgs {
     /// Path parameter: resizeRequest
     pub resizeRequest: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/resizeRequests/{resizeRequest}
@@ -112490,7 +112492,7 @@ pub fn compute_region_instance_group_manager_resize_requests_insert_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -112636,7 +112638,7 @@ pub struct ComputeRegionInstanceGroupManagerResizeRequestsInsertArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/resizeRequests
@@ -112678,11 +112680,11 @@ pub fn compute_region_instance_group_manager_resize_requests_list_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -112848,15 +112850,15 @@ pub struct ComputeRegionInstanceGroupManagerResizeRequestsListArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/resizeRequests
@@ -112906,7 +112908,7 @@ pub fn compute_region_instance_group_managers_abandon_instances_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -113052,7 +113054,7 @@ pub struct ComputeRegionInstanceGroupManagersAbandonInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/abandonInstances
@@ -113267,7 +113269,7 @@ pub fn compute_region_instance_group_managers_create_instances_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -113413,7 +113415,7 @@ pub struct ComputeRegionInstanceGroupManagersCreateInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/createInstances
@@ -113455,7 +113457,7 @@ pub fn compute_region_instance_group_managers_delete_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -113599,7 +113601,7 @@ pub struct ComputeRegionInstanceGroupManagersDeleteArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}
@@ -113641,7 +113643,7 @@ pub fn compute_region_instance_group_managers_delete_instances_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -113787,7 +113789,7 @@ pub struct ComputeRegionInstanceGroupManagersDeleteInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/deleteInstances
@@ -114176,7 +114178,7 @@ pub fn compute_region_instance_group_managers_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -114318,7 +114320,7 @@ pub struct ComputeRegionInstanceGroupManagersInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers
@@ -114358,11 +114360,11 @@ pub fn compute_region_instance_group_managers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -114520,15 +114522,15 @@ pub struct ComputeRegionInstanceGroupManagersListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/instanceGroupManagers
@@ -114577,11 +114579,11 @@ pub fn compute_region_instance_group_managers_list_errors_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -114744,15 +114746,15 @@ pub struct ComputeRegionInstanceGroupManagersListErrorsArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/listErrors
@@ -114802,11 +114804,11 @@ pub fn compute_region_instance_group_managers_list_managed_instances_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -114969,15 +114971,15 @@ pub struct ComputeRegionInstanceGroupManagersListManagedInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/listManagedInstances
@@ -115027,11 +115029,11 @@ pub fn compute_region_instance_group_managers_list_per_instance_configs_builder<
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -115197,15 +115199,15 @@ pub struct ComputeRegionInstanceGroupManagersListPerInstanceConfigsArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/listPerInstanceConfigs
@@ -115255,7 +115257,7 @@ pub fn compute_region_instance_group_managers_patch_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -115399,7 +115401,7 @@ pub struct ComputeRegionInstanceGroupManagersPatchArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}
@@ -115441,7 +115443,7 @@ pub fn compute_region_instance_group_managers_patch_per_instance_configs_builder
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -115587,7 +115589,7 @@ pub struct ComputeRegionInstanceGroupManagersPatchPerInstanceConfigsArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/patchPerInstanceConfigs
@@ -115629,7 +115631,7 @@ pub fn compute_region_instance_group_managers_recreate_instances_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -115775,7 +115777,7 @@ pub struct ComputeRegionInstanceGroupManagersRecreateInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/recreateInstances
@@ -115817,8 +115819,8 @@ pub fn compute_region_instance_group_managers_resize_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
-    size: &Option<Option<String>>,
+    requestId: &Option<String>,
+    size: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -115967,9 +115969,9 @@ pub struct ComputeRegionInstanceGroupManagersResizeArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: size
-    pub size: Option<Option<String>>,
+    pub size: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/resize
@@ -116012,7 +116014,7 @@ pub fn compute_region_instance_group_managers_resume_instances_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -116158,7 +116160,7 @@ pub struct ComputeRegionInstanceGroupManagersResumeInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/resumeInstances
@@ -116200,7 +116202,7 @@ pub fn compute_region_instance_group_managers_set_instance_template_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -116346,7 +116348,7 @@ pub struct ComputeRegionInstanceGroupManagersSetInstanceTemplateArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/setInstanceTemplate
@@ -116388,7 +116390,7 @@ pub fn compute_region_instance_group_managers_set_target_pools_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -116534,7 +116536,7 @@ pub struct ComputeRegionInstanceGroupManagersSetTargetPoolsArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/setTargetPools
@@ -116576,7 +116578,7 @@ pub fn compute_region_instance_group_managers_start_instances_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -116722,7 +116724,7 @@ pub struct ComputeRegionInstanceGroupManagersStartInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/startInstances
@@ -116764,7 +116766,7 @@ pub fn compute_region_instance_group_managers_stop_instances_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -116910,7 +116912,7 @@ pub struct ComputeRegionInstanceGroupManagersStopInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/stopInstances
@@ -116952,7 +116954,7 @@ pub fn compute_region_instance_group_managers_suspend_instances_builder<R>(
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -117098,7 +117100,7 @@ pub struct ComputeRegionInstanceGroupManagersSuspendInstancesArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/suspendInstances
@@ -117140,7 +117142,7 @@ pub fn compute_region_instance_group_managers_update_per_instance_configs_builde
     project: &String,
     region: &String,
     instanceGroupManager: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -117286,7 +117288,7 @@ pub struct ComputeRegionInstanceGroupManagersUpdatePerInstanceConfigsArgs {
     /// Path parameter: instanceGroupManager
     pub instanceGroupManager: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroupManagers/{instanceGroupManager}/updatePerInstanceConfigs
@@ -117502,11 +117504,11 @@ pub fn compute_region_instance_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -117662,15 +117664,15 @@ pub struct ComputeRegionInstanceGroupsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/instanceGroups
@@ -117717,11 +117719,11 @@ pub fn compute_region_instance_groups_list_instances_builder<R>(
     project: &String,
     region: &String,
     instanceGroup: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -117883,15 +117885,15 @@ pub struct ComputeRegionInstanceGroupsListInstancesArgs {
     /// Path parameter: instanceGroup
     pub instanceGroup: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroups/{instanceGroup}/listInstances
@@ -117941,7 +117943,7 @@ pub fn compute_region_instance_groups_set_named_ports_builder<R>(
     project: &String,
     region: &String,
     instanceGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -118087,7 +118089,7 @@ pub struct ComputeRegionInstanceGroupsSetNamedPortsArgs {
     /// Path parameter: instanceGroup
     pub instanceGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceGroups/{instanceGroup}/setNamedPorts
@@ -118306,7 +118308,7 @@ pub fn compute_region_instance_templates_delete_builder<R>(
     project: &String,
     region: &String,
     instanceTemplate: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -118450,7 +118452,7 @@ pub struct ComputeRegionInstanceTemplatesDeleteArgs {
     /// Path parameter: instanceTemplate
     pub instanceTemplate: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/instanceTemplates/{instanceTemplate}
@@ -118666,7 +118668,7 @@ pub fn compute_region_instance_templates_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -118808,7 +118810,7 @@ pub struct ComputeRegionInstanceTemplatesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instanceTemplates
@@ -118848,11 +118850,11 @@ pub fn compute_region_instance_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -119008,15 +119010,15 @@ pub struct ComputeRegionInstanceTemplatesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/instanceTemplates
@@ -119062,7 +119064,7 @@ pub fn compute_region_instances_bulk_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -119204,7 +119206,7 @@ pub struct ComputeRegionInstancesBulkInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instances/bulkInsert
@@ -119245,7 +119247,7 @@ pub fn compute_region_instant_snapshot_groups_delete_builder<R>(
     project: &String,
     region: &String,
     instantSnapshotGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -119389,7 +119391,7 @@ pub struct ComputeRegionInstantSnapshotGroupsDeleteArgs {
     /// Path parameter: instantSnapshotGroup
     pub instantSnapshotGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/instantSnapshotGroups/{instantSnapshotGroup}
@@ -119606,7 +119608,7 @@ pub fn compute_region_instant_snapshot_groups_get_iam_policy_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -119752,7 +119754,7 @@ pub struct ComputeRegionInstantSnapshotGroupsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/instantSnapshotGroups/{resource}/getIamPolicy
@@ -119793,8 +119795,8 @@ pub fn compute_region_instant_snapshot_groups_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
-    sourceConsistencyGroup: &Option<Option<String>>,
+    requestId: &Option<String>,
+    sourceConsistencyGroup: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -119939,9 +119941,9 @@ pub struct ComputeRegionInstantSnapshotGroupsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: sourceConsistencyGroup
-    pub sourceConsistencyGroup: Option<Option<String>>,
+    pub sourceConsistencyGroup: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instantSnapshotGroups
@@ -119982,11 +119984,11 @@ pub fn compute_region_instant_snapshot_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -120142,15 +120144,15 @@ pub struct ComputeRegionInstantSnapshotGroupsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/instantSnapshotGroups
@@ -120547,7 +120549,7 @@ pub fn compute_region_instant_snapshots_delete_builder<R>(
     project: &String,
     region: &String,
     instantSnapshot: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -120691,7 +120693,7 @@ pub struct ComputeRegionInstantSnapshotsDeleteArgs {
     /// Path parameter: instantSnapshot
     pub instantSnapshot: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/instantSnapshots/{instantSnapshot}
@@ -120908,7 +120910,7 @@ pub fn compute_region_instant_snapshots_get_iam_policy_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -121054,7 +121056,7 @@ pub struct ComputeRegionInstantSnapshotsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/instantSnapshots/{resource}/getIamPolicy
@@ -121095,7 +121097,7 @@ pub fn compute_region_instant_snapshots_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -121237,7 +121239,7 @@ pub struct ComputeRegionInstantSnapshotsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instantSnapshots
@@ -121277,11 +121279,11 @@ pub fn compute_region_instant_snapshots_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -121437,15 +121439,15 @@ pub struct ComputeRegionInstantSnapshotsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/instantSnapshots
@@ -121665,7 +121667,7 @@ pub fn compute_region_instant_snapshots_set_labels_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -121811,7 +121813,7 @@ pub struct ComputeRegionInstantSnapshotsSetLabelsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/instantSnapshots/{resource}/setLabels
@@ -122030,7 +122032,7 @@ pub fn compute_region_network_endpoint_groups_attach_network_endpoints_builder<R
     project: &String,
     region: &String,
     networkEndpointGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -122176,7 +122178,7 @@ pub struct ComputeRegionNetworkEndpointGroupsAttachNetworkEndpointsArgs {
     /// Path parameter: networkEndpointGroup
     pub networkEndpointGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/networkEndpointGroups/{networkEndpointGroup}/attachNetworkEndpoints
@@ -122218,7 +122220,7 @@ pub fn compute_region_network_endpoint_groups_delete_builder<R>(
     project: &String,
     region: &String,
     networkEndpointGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -122362,7 +122364,7 @@ pub struct ComputeRegionNetworkEndpointGroupsDeleteArgs {
     /// Path parameter: networkEndpointGroup
     pub networkEndpointGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/networkEndpointGroups/{networkEndpointGroup}
@@ -122404,7 +122406,7 @@ pub fn compute_region_network_endpoint_groups_detach_network_endpoints_builder<R
     project: &String,
     region: &String,
     networkEndpointGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -122550,7 +122552,7 @@ pub struct ComputeRegionNetworkEndpointGroupsDetachNetworkEndpointsArgs {
     /// Path parameter: networkEndpointGroup
     pub networkEndpointGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/networkEndpointGroups/{networkEndpointGroup}/detachNetworkEndpoints
@@ -122766,7 +122768,7 @@ pub fn compute_region_network_endpoint_groups_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -122908,7 +122910,7 @@ pub struct ComputeRegionNetworkEndpointGroupsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/networkEndpointGroups
@@ -122948,11 +122950,11 @@ pub fn compute_region_network_endpoint_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -123108,15 +123110,15 @@ pub struct ComputeRegionNetworkEndpointGroupsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/networkEndpointGroups
@@ -123163,11 +123165,11 @@ pub fn compute_region_network_endpoint_groups_list_network_endpoints_builder<R>(
     project: &String,
     region: &String,
     networkEndpointGroup: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -123329,15 +123331,15 @@ pub struct ComputeRegionNetworkEndpointGroupsListNetworkEndpointsArgs {
     /// Path parameter: networkEndpointGroup
     pub networkEndpointGroup: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/networkEndpointGroups/{networkEndpointGroup}/listNetworkEndpoints
@@ -123387,8 +123389,8 @@ pub fn compute_region_network_firewall_policies_add_association_builder<R>(
     project: &String,
     region: &String,
     firewallPolicy: &String,
-    replaceExistingAssociation: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    replaceExistingAssociation: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -123537,9 +123539,9 @@ pub struct ComputeRegionNetworkFirewallPoliciesAddAssociationArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: replaceExistingAssociation
-    pub replaceExistingAssociation: Option<Option<String>>,
+    pub replaceExistingAssociation: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/firewallPolicies/{firewallPolicy}/addAssociation
@@ -123582,9 +123584,9 @@ pub fn compute_region_network_firewall_policies_add_rule_builder<R>(
     project: &String,
     region: &String,
     firewallPolicy: &String,
-    maxPriority: &Option<Option<String>>,
-    minPriority: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    maxPriority: &Option<String>,
+    minPriority: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -123736,11 +123738,11 @@ pub struct ComputeRegionNetworkFirewallPoliciesAddRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: maxPriority
-    pub maxPriority: Option<Option<String>>,
+    pub maxPriority: Option<String>,
     /// Query parameter: minPriority
-    pub minPriority: Option<Option<String>>,
+    pub minPriority: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/firewallPolicies/{firewallPolicy}/addRule
@@ -123784,8 +123786,8 @@ pub fn compute_region_network_firewall_policies_clone_rules_builder<R>(
     project: &String,
     region: &String,
     firewallPolicy: &String,
-    requestId: &Option<Option<String>>,
-    sourceFirewallPolicy: &Option<Option<String>>,
+    requestId: &Option<String>,
+    sourceFirewallPolicy: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -123934,9 +123936,9 @@ pub struct ComputeRegionNetworkFirewallPoliciesCloneRulesArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: sourceFirewallPolicy
-    pub sourceFirewallPolicy: Option<Option<String>>,
+    pub sourceFirewallPolicy: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/firewallPolicies/{firewallPolicy}/cloneRules
@@ -123979,7 +123981,7 @@ pub fn compute_region_network_firewall_policies_delete_builder<R>(
     project: &String,
     region: &String,
     firewallPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -124123,7 +124125,7 @@ pub struct ComputeRegionNetworkFirewallPoliciesDeleteArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/firewallPolicies/{firewallPolicy}
@@ -124340,7 +124342,7 @@ pub fn compute_region_network_firewall_policies_get_association_builder<R>(
     project: &String,
     region: &String,
     firewallPolicy: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -124488,7 +124490,7 @@ pub struct ComputeRegionNetworkFirewallPoliciesGetAssociationArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/firewallPolicies/{firewallPolicy}/getAssociation
@@ -124531,7 +124533,7 @@ pub fn compute_region_network_firewall_policies_get_effective_firewalls_builder<
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    network: &Option<Option<String>>,
+    network: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -124685,7 +124687,7 @@ pub struct ComputeRegionNetworkFirewallPoliciesGetEffectiveFirewallsArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: network
-    pub network: Option<Option<String>>,
+    pub network: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/firewallPolicies/getEffectiveFirewalls
@@ -124733,7 +124735,7 @@ pub fn compute_region_network_firewall_policies_get_iam_policy_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -124879,7 +124881,7 @@ pub struct ComputeRegionNetworkFirewallPoliciesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/firewallPolicies/{resource}/getIamPolicy
@@ -124921,7 +124923,7 @@ pub fn compute_region_network_firewall_policies_get_rule_builder<R>(
     project: &String,
     region: &String,
     firewallPolicy: &String,
-    priority: &Option<Option<String>>,
+    priority: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -125069,7 +125071,7 @@ pub struct ComputeRegionNetworkFirewallPoliciesGetRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/firewallPolicies/{firewallPolicy}/getRule
@@ -125112,7 +125114,7 @@ pub fn compute_region_network_firewall_policies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -125254,7 +125256,7 @@ pub struct ComputeRegionNetworkFirewallPoliciesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/firewallPolicies
@@ -125294,11 +125296,11 @@ pub fn compute_region_network_firewall_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -125454,15 +125456,15 @@ pub struct ComputeRegionNetworkFirewallPoliciesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/firewallPolicies
@@ -125509,7 +125511,7 @@ pub fn compute_region_network_firewall_policies_patch_builder<R>(
     project: &String,
     region: &String,
     firewallPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -125653,7 +125655,7 @@ pub struct ComputeRegionNetworkFirewallPoliciesPatchArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/firewallPolicies/{firewallPolicy}
@@ -125695,8 +125697,8 @@ pub fn compute_region_network_firewall_policies_patch_rule_builder<R>(
     project: &String,
     region: &String,
     firewallPolicy: &String,
-    priority: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    priority: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -125845,9 +125847,9 @@ pub struct ComputeRegionNetworkFirewallPoliciesPatchRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/firewallPolicies/{firewallPolicy}/patchRule
@@ -125890,8 +125892,8 @@ pub fn compute_region_network_firewall_policies_remove_association_builder<R>(
     project: &String,
     region: &String,
     firewallPolicy: &String,
-    name: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    name: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -126040,9 +126042,9 @@ pub struct ComputeRegionNetworkFirewallPoliciesRemoveAssociationArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/firewallPolicies/{firewallPolicy}/removeAssociation
@@ -126085,8 +126087,8 @@ pub fn compute_region_network_firewall_policies_remove_rule_builder<R>(
     project: &String,
     region: &String,
     firewallPolicy: &String,
-    priority: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    priority: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -126235,9 +126237,9 @@ pub struct ComputeRegionNetworkFirewallPoliciesRemoveRuleArgs {
     /// Path parameter: firewallPolicy
     pub firewallPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/firewallPolicies/{firewallPolicy}/removeRule
@@ -126628,13 +126630,13 @@ pub fn compute_region_network_firewall_policies_test_iam_permissions(
 pub fn compute_region_notification_endpoints_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -126796,19 +126798,19 @@ pub struct ComputeRegionNotificationEndpointsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/notificationEndpoints
@@ -126858,7 +126860,7 @@ pub fn compute_region_notification_endpoints_delete_builder<R>(
     project: &String,
     region: &String,
     notificationEndpoint: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -127002,7 +127004,7 @@ pub struct ComputeRegionNotificationEndpointsDeleteArgs {
     /// Path parameter: notificationEndpoint
     pub notificationEndpoint: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/notificationEndpoints/{notificationEndpoint}
@@ -127218,7 +127220,7 @@ pub fn compute_region_notification_endpoints_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -127360,7 +127362,7 @@ pub struct ComputeRegionNotificationEndpointsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/notificationEndpoints
@@ -127400,11 +127402,11 @@ pub fn compute_region_notification_endpoints_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -127560,15 +127562,15 @@ pub struct ComputeRegionNotificationEndpointsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/notificationEndpoints
@@ -128130,11 +128132,11 @@ pub fn compute_region_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -128290,15 +128292,15 @@ pub struct ComputeRegionOperationsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/operations
@@ -128516,7 +128518,7 @@ pub fn compute_region_security_policies_add_rule_builder<R>(
     project: &String,
     region: &String,
     securityPolicy: &String,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -128662,7 +128664,7 @@ pub struct ComputeRegionSecurityPoliciesAddRuleArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/securityPolicies/{securityPolicy}/addRule
@@ -128704,7 +128706,7 @@ pub fn compute_region_security_policies_delete_builder<R>(
     project: &String,
     region: &String,
     securityPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -128848,7 +128850,7 @@ pub struct ComputeRegionSecurityPoliciesDeleteArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/securityPolicies/{securityPolicy}
@@ -129065,7 +129067,7 @@ pub fn compute_region_security_policies_get_rule_builder<R>(
     project: &String,
     region: &String,
     securityPolicy: &String,
-    priority: &Option<Option<String>>,
+    priority: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -129213,7 +129215,7 @@ pub struct ComputeRegionSecurityPoliciesGetRuleArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/securityPolicies/{securityPolicy}/getRule
@@ -129256,8 +129258,8 @@ pub fn compute_region_security_policies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -129402,9 +129404,9 @@ pub struct ComputeRegionSecurityPoliciesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/securityPolicies
@@ -129445,11 +129447,11 @@ pub fn compute_region_security_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -129605,15 +129607,15 @@ pub struct ComputeRegionSecurityPoliciesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/securityPolicies
@@ -129660,8 +129662,8 @@ pub fn compute_region_security_policies_patch_builder<R>(
     project: &String,
     region: &String,
     securityPolicy: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -129808,9 +129810,9 @@ pub struct ComputeRegionSecurityPoliciesPatchArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/securityPolicies/{securityPolicy}
@@ -129853,9 +129855,9 @@ pub fn compute_region_security_policies_patch_rule_builder<R>(
     project: &String,
     region: &String,
     securityPolicy: &String,
-    priority: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    priority: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -130007,11 +130009,11 @@ pub struct ComputeRegionSecurityPoliciesPatchRuleArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/securityPolicies/{securityPolicy}/patchRule
@@ -130055,7 +130057,7 @@ pub fn compute_region_security_policies_remove_rule_builder<R>(
     project: &String,
     region: &String,
     securityPolicy: &String,
-    priority: &Option<Option<String>>,
+    priority: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -130201,7 +130203,7 @@ pub struct ComputeRegionSecurityPoliciesRemoveRuleArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/securityPolicies/{securityPolicy}/removeRule
@@ -130243,7 +130245,7 @@ pub fn compute_region_security_policies_set_labels_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -130389,7 +130391,7 @@ pub struct ComputeRegionSecurityPoliciesSetLabelsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/securityPolicies/{resource}/setLabels
@@ -130598,8 +130600,8 @@ pub fn compute_region_snapshot_settings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -130744,9 +130746,9 @@ pub struct ComputeRegionSnapshotSettingsPatchArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/snapshotSettings
@@ -130788,7 +130790,7 @@ pub fn compute_region_snapshots_delete_builder<R>(
     project: &String,
     region: &String,
     snapshot: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -130932,7 +130934,7 @@ pub struct ComputeRegionSnapshotsDeleteArgs {
     /// Path parameter: snapshot
     pub snapshot: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/snapshots/{snapshot}
@@ -131141,7 +131143,7 @@ pub fn compute_region_snapshots_get_iam_policy_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -131287,7 +131289,7 @@ pub struct ComputeRegionSnapshotsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/snapshots/{resource}/getIamPolicy
@@ -131328,7 +131330,7 @@ pub fn compute_region_snapshots_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -131470,7 +131472,7 @@ pub struct ComputeRegionSnapshotsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/snapshots
@@ -131510,11 +131512,11 @@ pub fn compute_region_snapshots_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -131670,15 +131672,15 @@ pub struct ComputeRegionSnapshotsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/snapshots
@@ -131898,7 +131900,7 @@ pub fn compute_region_snapshots_set_labels_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -132042,7 +132044,7 @@ pub struct ComputeRegionSnapshotsSetLabelsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/snapshots/{resource}/setLabels
@@ -132261,7 +132263,7 @@ pub fn compute_region_snapshots_update_kms_key_builder<R>(
     project: &String,
     region: &String,
     snapshot: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -132407,7 +132409,7 @@ pub struct ComputeRegionSnapshotsUpdateKmsKeyArgs {
     /// Path parameter: snapshot
     pub snapshot: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/snapshots/{snapshot}/updateKmsKey
@@ -132449,7 +132451,7 @@ pub fn compute_region_ssl_certificates_delete_builder<R>(
     project: &String,
     region: &String,
     sslCertificate: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -132593,7 +132595,7 @@ pub struct ComputeRegionSslCertificatesDeleteArgs {
     /// Path parameter: sslCertificate
     pub sslCertificate: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/sslCertificates/{sslCertificate}
@@ -132809,7 +132811,7 @@ pub fn compute_region_ssl_certificates_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -132951,7 +132953,7 @@ pub struct ComputeRegionSslCertificatesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/sslCertificates
@@ -132991,11 +132993,11 @@ pub fn compute_region_ssl_certificates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -133151,15 +133153,15 @@ pub struct ComputeRegionSslCertificatesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/sslCertificates
@@ -133206,7 +133208,7 @@ pub fn compute_region_ssl_policies_delete_builder<R>(
     project: &String,
     region: &String,
     sslPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -133350,7 +133352,7 @@ pub struct ComputeRegionSslPoliciesDeleteArgs {
     /// Path parameter: sslPolicy
     pub sslPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/sslPolicies/{sslPolicy}
@@ -133562,7 +133564,7 @@ pub fn compute_region_ssl_policies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -133704,7 +133706,7 @@ pub struct ComputeRegionSslPoliciesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/sslPolicies
@@ -133744,11 +133746,11 @@ pub fn compute_region_ssl_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -133904,15 +133906,15 @@ pub struct ComputeRegionSslPoliciesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/sslPolicies
@@ -133958,11 +133960,11 @@ pub fn compute_region_ssl_policies_list_available_features_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -134121,15 +134123,15 @@ pub struct ComputeRegionSslPoliciesListAvailableFeaturesArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/sslPolicies/listAvailableFeatures
@@ -134178,7 +134180,7 @@ pub fn compute_region_ssl_policies_patch_builder<R>(
     project: &String,
     region: &String,
     sslPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -134322,7 +134324,7 @@ pub struct ComputeRegionSslPoliciesPatchArgs {
     /// Path parameter: sslPolicy
     pub sslPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/sslPolicies/{sslPolicy}
@@ -134364,7 +134366,7 @@ pub fn compute_region_target_http_proxies_delete_builder<R>(
     project: &String,
     region: &String,
     targetHttpProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -134508,7 +134510,7 @@ pub struct ComputeRegionTargetHttpProxiesDeleteArgs {
     /// Path parameter: targetHttpProxy
     pub targetHttpProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/targetHttpProxies/{targetHttpProxy}
@@ -134724,7 +134726,7 @@ pub fn compute_region_target_http_proxies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -134866,7 +134868,7 @@ pub struct ComputeRegionTargetHttpProxiesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetHttpProxies
@@ -134906,11 +134908,11 @@ pub fn compute_region_target_http_proxies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -135066,15 +135068,15 @@ pub struct ComputeRegionTargetHttpProxiesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/targetHttpProxies
@@ -135121,7 +135123,7 @@ pub fn compute_region_target_http_proxies_set_url_map_builder<R>(
     project: &String,
     region: &String,
     targetHttpProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -135267,7 +135269,7 @@ pub struct ComputeRegionTargetHttpProxiesSetUrlMapArgs {
     /// Path parameter: targetHttpProxy
     pub targetHttpProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetHttpProxies/{targetHttpProxy}/setUrlMap
@@ -135309,7 +135311,7 @@ pub fn compute_region_target_https_proxies_delete_builder<R>(
     project: &String,
     region: &String,
     targetHttpsProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -135453,7 +135455,7 @@ pub struct ComputeRegionTargetHttpsProxiesDeleteArgs {
     /// Path parameter: targetHttpsProxy
     pub targetHttpsProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/targetHttpsProxies/{targetHttpsProxy}
@@ -135669,7 +135671,7 @@ pub fn compute_region_target_https_proxies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -135811,7 +135813,7 @@ pub struct ComputeRegionTargetHttpsProxiesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetHttpsProxies
@@ -135851,11 +135853,11 @@ pub fn compute_region_target_https_proxies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -136011,15 +136013,15 @@ pub struct ComputeRegionTargetHttpsProxiesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/targetHttpsProxies
@@ -136066,7 +136068,7 @@ pub fn compute_region_target_https_proxies_patch_builder<R>(
     project: &String,
     region: &String,
     targetHttpsProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -136210,7 +136212,7 @@ pub struct ComputeRegionTargetHttpsProxiesPatchArgs {
     /// Path parameter: targetHttpsProxy
     pub targetHttpsProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/targetHttpsProxies/{targetHttpsProxy}
@@ -136252,7 +136254,7 @@ pub fn compute_region_target_https_proxies_set_ssl_certificates_builder<R>(
     project: &String,
     region: &String,
     targetHttpsProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -136398,7 +136400,7 @@ pub struct ComputeRegionTargetHttpsProxiesSetSslCertificatesArgs {
     /// Path parameter: targetHttpsProxy
     pub targetHttpsProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetHttpsProxies/{targetHttpsProxy}/setSslCertificates
@@ -136440,7 +136442,7 @@ pub fn compute_region_target_https_proxies_set_url_map_builder<R>(
     project: &String,
     region: &String,
     targetHttpsProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -136586,7 +136588,7 @@ pub struct ComputeRegionTargetHttpsProxiesSetUrlMapArgs {
     /// Path parameter: targetHttpsProxy
     pub targetHttpsProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetHttpsProxies/{targetHttpsProxy}/setUrlMap
@@ -136628,7 +136630,7 @@ pub fn compute_region_target_tcp_proxies_delete_builder<R>(
     project: &String,
     region: &String,
     targetTcpProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -136772,7 +136774,7 @@ pub struct ComputeRegionTargetTcpProxiesDeleteArgs {
     /// Path parameter: targetTcpProxy
     pub targetTcpProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/targetTcpProxies/{targetTcpProxy}
@@ -136988,7 +136990,7 @@ pub fn compute_region_target_tcp_proxies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -137130,7 +137132,7 @@ pub struct ComputeRegionTargetTcpProxiesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetTcpProxies
@@ -137170,11 +137172,11 @@ pub fn compute_region_target_tcp_proxies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -137330,15 +137332,15 @@ pub struct ComputeRegionTargetTcpProxiesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/targetTcpProxies
@@ -137385,7 +137387,7 @@ pub fn compute_region_url_maps_delete_builder<R>(
     project: &String,
     region: &String,
     urlMap: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -137529,7 +137531,7 @@ pub struct ComputeRegionUrlMapsDeleteArgs {
     /// Path parameter: urlMap
     pub urlMap: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/urlMaps/{urlMap}
@@ -137737,7 +137739,7 @@ pub fn compute_region_url_maps_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -137879,7 +137881,7 @@ pub struct ComputeRegionUrlMapsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/urlMaps
@@ -137919,11 +137921,11 @@ pub fn compute_region_url_maps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -138077,15 +138079,15 @@ pub struct ComputeRegionUrlMapsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/urlMaps
@@ -138130,7 +138132,7 @@ pub fn compute_region_url_maps_patch_builder<R>(
     project: &String,
     region: &String,
     urlMap: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -138274,7 +138276,7 @@ pub struct ComputeRegionUrlMapsPatchArgs {
     /// Path parameter: urlMap
     pub urlMap: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/urlMaps/{urlMap}
@@ -138316,7 +138318,7 @@ pub fn compute_region_url_maps_update_builder<R>(
     project: &String,
     region: &String,
     urlMap: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -138460,7 +138462,7 @@ pub struct ComputeRegionUrlMapsUpdateArgs {
     /// Path parameter: urlMap
     pub urlMap: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/regions/{region}/urlMaps/{urlMap}
@@ -138676,11 +138678,11 @@ pub fn compute_region_zones_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -138834,15 +138836,15 @@ pub struct ComputeRegionZonesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/zones
@@ -139048,11 +139050,11 @@ pub fn compute_regions_get(
 pub fn compute_regions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -139204,15 +139206,15 @@ pub struct ComputeRegionsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions
@@ -139257,7 +139259,7 @@ pub fn compute_reservation_blocks_get_builder<R>(
     zone: &String,
     reservation: &String,
     reservationBlock: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -139410,7 +139412,7 @@ pub struct ComputeReservationBlocksGetArgs {
     /// Path parameter: reservationBlock
     pub reservationBlock: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/reservations/{reservation}/reservationBlocks/{reservationBlock}
@@ -139458,7 +139460,7 @@ pub fn compute_reservation_blocks_get_iam_policy_builder<R>(
     zone: &String,
     parentResource: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -139607,7 +139609,7 @@ pub struct ComputeReservationBlocksGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/reservations/{parentResource}/reservationBlocks/{resource}/getIamPolicy
@@ -139650,11 +139652,11 @@ pub fn compute_reservation_blocks_list_builder<R>(
     project: &String,
     zone: &String,
     reservation: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -139816,15 +139818,15 @@ pub struct ComputeReservationBlocksListArgs {
     /// Path parameter: reservation
     pub reservation: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/reservations/{reservation}/reservationBlocks
@@ -139875,7 +139877,7 @@ pub fn compute_reservation_blocks_perform_maintenance_builder<R>(
     zone: &String,
     reservation: &String,
     reservationBlock: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -140024,7 +140026,7 @@ pub struct ComputeReservationBlocksPerformMaintenanceArgs {
     /// Path parameter: reservationBlock
     pub reservationBlock: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/reservations/{reservation}/reservationBlocks/{reservationBlock}/performMaintenance
@@ -140614,7 +140616,7 @@ pub fn compute_reservation_slots_get_version_builder<R>(
     zone: &String,
     parentName: &String,
     reservationSlot: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -140763,7 +140765,7 @@ pub struct ComputeReservationSlotsGetVersionArgs {
     /// Path parameter: reservationSlot
     pub reservationSlot: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/reservations/{reservationsId}/reservationBlocks/{reservationBlocksId}/reservationSubBlocks/{reservationSubBlocksId}/reservationSlots/{reservationSlot}/getVersion
@@ -140806,11 +140808,11 @@ pub fn compute_reservation_slots_list_builder<R>(
     project: &String,
     zone: &String,
     parentName: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -140972,15 +140974,15 @@ pub struct ComputeReservationSlotsListArgs {
     /// Path parameter: parentName
     pub parentName: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/reservations/{reservationsId}/reservationBlocks/{reservationBlocksId}/reservationSubBlocks/{reservationSubBlocksId}/reservationSlots
@@ -141031,7 +141033,7 @@ pub fn compute_reservation_slots_update_builder<R>(
     zone: &String,
     parentName: &String,
     reservationSlot: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -141180,7 +141182,7 @@ pub struct ComputeReservationSlotsUpdateArgs {
     /// Path parameter: reservationSlot
     pub reservationSlot: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/reservations/{reservationsId}/reservationBlocks/{reservationBlocksId}/reservationSubBlocks/{reservationSubBlocksId}/reservationSlots/{reservationSlot}
@@ -141224,7 +141226,7 @@ pub fn compute_reservation_sub_blocks_get_builder<R>(
     zone: &String,
     parentName: &String,
     reservationSubBlock: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -141377,7 +141379,7 @@ pub struct ComputeReservationSubBlocksGetArgs {
     /// Path parameter: reservationSubBlock
     pub reservationSubBlock: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/reservations/{reservationsId}/reservationBlocks/{reservationBlocksId}/reservationSubBlocks/{reservationSubBlock}
@@ -141425,7 +141427,7 @@ pub fn compute_reservation_sub_blocks_get_iam_policy_builder<R>(
     zone: &String,
     parentResource: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -141574,7 +141576,7 @@ pub struct ComputeReservationSubBlocksGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/reservations/{reservationsId}/reservationBlocks/{reservationBlocksId}/reservationSubBlocks/{resource}/getIamPolicy
@@ -141618,7 +141620,7 @@ pub fn compute_reservation_sub_blocks_get_version_builder<R>(
     zone: &String,
     parentName: &String,
     reservationSubBlock: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -141767,7 +141769,7 @@ pub struct ComputeReservationSubBlocksGetVersionArgs {
     /// Path parameter: reservationSubBlock
     pub reservationSubBlock: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/reservations/{reservationsId}/reservationBlocks/{reservationBlocksId}/reservationSubBlocks/{reservationSubBlock}/getVersion
@@ -141810,11 +141812,11 @@ pub fn compute_reservation_sub_blocks_list_builder<R>(
     project: &String,
     zone: &String,
     parentName: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -141976,15 +141978,15 @@ pub struct ComputeReservationSubBlocksListArgs {
     /// Path parameter: parentName
     pub parentName: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/reservations/{reservationsId}/reservationBlocks/{reservationBlocksId}/reservationSubBlocks
@@ -142035,7 +142037,7 @@ pub fn compute_reservation_sub_blocks_perform_maintenance_builder<R>(
     zone: &String,
     parentName: &String,
     reservationSubBlock: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -142184,7 +142186,7 @@ pub struct ComputeReservationSubBlocksPerformMaintenanceArgs {
     /// Path parameter: reservationSubBlock
     pub reservationSubBlock: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/reservations/{reservationsId}/reservationBlocks/{reservationBlocksId}/reservationSubBlocks/{reservationSubBlock}/performMaintenance
@@ -142228,7 +142230,7 @@ pub fn compute_reservation_sub_blocks_report_faulty_builder<R>(
     zone: &String,
     parentName: &String,
     reservationSubBlock: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -142377,7 +142379,7 @@ pub struct ComputeReservationSubBlocksReportFaultyArgs {
     /// Path parameter: reservationSubBlock
     pub reservationSubBlock: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/reservations/{reservationsId}/reservationBlocks/{reservationBlocksId}/reservationSubBlocks/{reservationSubBlock}/reportFaulty
@@ -142778,13 +142780,13 @@ pub fn compute_reservation_sub_blocks_test_iam_permissions(
 pub fn compute_reservations_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -142944,19 +142946,19 @@ pub struct ComputeReservationsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/reservations
@@ -143004,7 +143006,7 @@ pub fn compute_reservations_delete_builder<R>(
     project: &String,
     zone: &String,
     reservation: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -143148,7 +143150,7 @@ pub struct ComputeReservationsDeleteArgs {
     /// Path parameter: reservation
     pub reservation: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/reservations/{reservation}
@@ -143357,7 +143359,7 @@ pub fn compute_reservations_get_iam_policy_builder<R>(
     project: &String,
     zone: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -143503,7 +143505,7 @@ pub struct ComputeReservationsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/reservations/{resource}/getIamPolicy
@@ -143544,7 +143546,7 @@ pub fn compute_reservations_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -143686,7 +143688,7 @@ pub struct ComputeReservationsInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/reservations
@@ -143722,11 +143724,11 @@ pub fn compute_reservations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -143882,15 +143884,15 @@ pub struct ComputeReservationsListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/reservations
@@ -143937,7 +143939,7 @@ pub fn compute_reservations_perform_maintenance_builder<R>(
     project: &String,
     zone: &String,
     reservation: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -144083,7 +144085,7 @@ pub struct ComputeReservationsPerformMaintenanceArgs {
     /// Path parameter: reservation
     pub reservation: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/reservations/{reservation}/performMaintenance
@@ -144125,7 +144127,7 @@ pub fn compute_reservations_resize_builder<R>(
     project: &String,
     zone: &String,
     reservation: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -144269,7 +144271,7 @@ pub struct ComputeReservationsResizeArgs {
     /// Path parameter: reservation
     pub reservation: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/reservations/{reservation}/resize
@@ -144661,9 +144663,9 @@ pub fn compute_reservations_update_builder<R>(
     project: &String,
     zone: &String,
     reservation: &String,
-    paths: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    paths: &Option<String>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -144813,11 +144815,11 @@ pub struct ComputeReservationsUpdateArgs {
     /// Path parameter: reservation
     pub reservation: String,
     /// Query parameter: paths
-    pub paths: Option<Option<String>>,
+    pub paths: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/zones/{zone}/reservations/{reservation}
@@ -144859,13 +144861,13 @@ pub fn compute_reservations_update(
 pub fn compute_resource_policies_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -145027,19 +145029,19 @@ pub struct ComputeResourcePoliciesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/resourcePolicies
@@ -145089,7 +145091,7 @@ pub fn compute_resource_policies_delete_builder<R>(
     project: &String,
     region: &String,
     resourcePolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -145233,7 +145235,7 @@ pub struct ComputeResourcePoliciesDeleteArgs {
     /// Path parameter: resourcePolicy
     pub resourcePolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/resourcePolicies/{resourcePolicy}
@@ -145450,7 +145452,7 @@ pub fn compute_resource_policies_get_iam_policy_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -145596,7 +145598,7 @@ pub struct ComputeResourcePoliciesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/resourcePolicies/{resource}/getIamPolicy
@@ -145637,7 +145639,7 @@ pub fn compute_resource_policies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -145779,7 +145781,7 @@ pub struct ComputeResourcePoliciesInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/resourcePolicies
@@ -145819,11 +145821,11 @@ pub fn compute_resource_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -145979,15 +145981,15 @@ pub struct ComputeResourcePoliciesListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/resourcePolicies
@@ -146034,8 +146036,8 @@ pub fn compute_resource_policies_patch_builder<R>(
     project: &String,
     region: &String,
     resourcePolicy: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -146182,9 +146184,9 @@ pub struct ComputeResourcePoliciesPatchArgs {
     /// Path parameter: resourcePolicy
     pub resourcePolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/resourcePolicies/{resourcePolicy}
@@ -146575,13 +146577,13 @@ pub fn compute_resource_policies_test_iam_permissions(
 pub fn compute_routers_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -146741,19 +146743,19 @@ pub struct ComputeRoutersAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/routers
@@ -146801,7 +146803,7 @@ pub fn compute_routers_delete_builder<R>(
     project: &String,
     region: &String,
     router: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -146945,7 +146947,7 @@ pub struct ComputeRoutersDeleteArgs {
     /// Path parameter: router
     pub router: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/routers/{router}
@@ -146987,8 +146989,8 @@ pub fn compute_routers_delete_route_policy_builder<R>(
     project: &String,
     region: &String,
     router: &String,
-    policy: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    policy: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -147137,9 +147139,9 @@ pub struct ComputeRoutersDeleteRoutePolicyArgs {
     /// Path parameter: router
     pub router: String,
     /// Query parameter: policy
-    pub policy: Option<Option<String>>,
+    pub policy: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/routers/{router}/deleteRoutePolicy
@@ -147348,7 +147350,7 @@ pub fn compute_routers_get_nat_ip_info_builder<R>(
     project: &String,
     region: &String,
     router: &String,
-    natName: &Option<Option<String>>,
+    natName: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -147494,7 +147496,7 @@ pub struct ComputeRoutersGetNatIpInfoArgs {
     /// Path parameter: router
     pub router: String,
     /// Query parameter: natName
-    pub natName: Option<Option<String>>,
+    pub natName: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/routers/{router}/getNatIpInfo
@@ -147538,12 +147540,12 @@ pub fn compute_routers_get_nat_mapping_info_builder<R>(
     project: &String,
     region: &String,
     router: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    natName: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    natName: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -147706,17 +147708,17 @@ pub struct ComputeRoutersGetNatMappingInfoArgs {
     /// Path parameter: router
     pub router: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: natName
-    pub natName: Option<Option<String>>,
+    pub natName: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/routers/{router}/getNatMappingInfo
@@ -147765,7 +147767,7 @@ pub fn compute_routers_get_route_policy_builder<R>(
     project: &String,
     region: &String,
     router: &String,
-    policy: &Option<Option<String>>,
+    policy: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -147915,7 +147917,7 @@ pub struct ComputeRoutersGetRoutePolicyArgs {
     /// Path parameter: router
     pub router: String,
     /// Query parameter: policy
-    pub policy: Option<Option<String>>,
+    pub policy: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/routers/{router}/getRoutePolicy
@@ -148137,7 +148139,7 @@ pub fn compute_routers_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -148279,7 +148281,7 @@ pub struct ComputeRoutersInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/routers
@@ -148315,11 +148317,11 @@ pub fn compute_routers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -148473,15 +148475,15 @@ pub struct ComputeRoutersListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/routers
@@ -148526,16 +148528,16 @@ pub fn compute_routers_list_bgp_routes_builder<R>(
     project: &String,
     region: &String,
     router: &String,
-    addressFamily: &Option<Option<String>>,
-    destinationPrefix: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    peer: &Option<Option<String>>,
-    policyApplied: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    routeType: &Option<Option<String>>,
+    addressFamily: &Option<String>,
+    destinationPrefix: &Option<String>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    peer: &Option<String>,
+    policyApplied: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    routeType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -148708,25 +148710,25 @@ pub struct ComputeRoutersListBgpRoutesArgs {
     /// Path parameter: router
     pub router: String,
     /// Query parameter: addressFamily
-    pub addressFamily: Option<Option<String>>,
+    pub addressFamily: Option<String>,
     /// Query parameter: destinationPrefix
-    pub destinationPrefix: Option<Option<String>>,
+    pub destinationPrefix: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: peer
-    pub peer: Option<Option<String>>,
+    pub peer: Option<String>,
     /// Query parameter: policyApplied
-    pub policyApplied: Option<Option<String>>,
+    pub policyApplied: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: routeType
-    pub routeType: Option<Option<String>>,
+    pub routeType: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/routers/{router}/listBgpRoutes
@@ -148779,11 +148781,11 @@ pub fn compute_routers_list_route_policies_builder<R>(
     project: &String,
     region: &String,
     router: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -148943,15 +148945,15 @@ pub struct ComputeRoutersListRoutePoliciesArgs {
     /// Path parameter: router
     pub router: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/routers/{router}/listRoutePolicies
@@ -148999,7 +149001,7 @@ pub fn compute_routers_patch_builder<R>(
     project: &String,
     region: &String,
     router: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -149143,7 +149145,7 @@ pub struct ComputeRoutersPatchArgs {
     /// Path parameter: router
     pub router: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/routers/{router}
@@ -149185,7 +149187,7 @@ pub fn compute_routers_patch_route_policy_builder<R>(
     project: &String,
     region: &String,
     router: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -149331,7 +149333,7 @@ pub struct ComputeRoutersPatchRoutePolicyArgs {
     /// Path parameter: router
     pub router: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/routers/{router}/patchRoutePolicy
@@ -149544,7 +149546,7 @@ pub fn compute_routers_update_builder<R>(
     project: &String,
     region: &String,
     router: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -149688,7 +149690,7 @@ pub struct ComputeRoutersUpdateArgs {
     /// Path parameter: router
     pub router: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/regions/{region}/routers/{router}
@@ -149730,7 +149732,7 @@ pub fn compute_routers_update_route_policy_builder<R>(
     project: &String,
     region: &String,
     router: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -149876,7 +149878,7 @@ pub struct ComputeRoutersUpdateRoutePolicyArgs {
     /// Path parameter: router
     pub router: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/routers/{router}/updateRoutePolicy
@@ -149917,7 +149919,7 @@ pub fn compute_routes_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     route: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -150059,7 +150061,7 @@ pub struct ComputeRoutesDeleteArgs {
     /// Path parameter: route
     pub route: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/routes/{route}
@@ -150257,7 +150259,7 @@ pub fn compute_routes_get(
 pub fn compute_routes_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -150397,7 +150399,7 @@ pub struct ComputeRoutesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/routes
@@ -150431,11 +150433,11 @@ pub fn compute_routes_insert(
 pub fn compute_routes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -150587,15 +150589,15 @@ pub struct ComputeRoutesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/routes
@@ -150806,7 +150808,7 @@ pub fn compute_security_policies_add_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     securityPolicy: &String,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -150948,7 +150950,7 @@ pub struct ComputeSecurityPoliciesAddRuleArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST projects/{project}/global/securityPolicies/{securityPolicy}/addRule
@@ -150987,13 +150989,13 @@ pub fn compute_security_policies_add_rule(
 pub fn compute_security_policies_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -151155,19 +151157,19 @@ pub struct ComputeSecurityPoliciesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/securityPolicies
@@ -151216,7 +151218,7 @@ pub fn compute_security_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     securityPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -151358,7 +151360,7 @@ pub struct ComputeSecurityPoliciesDeleteArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/securityPolicies/{securityPolicy}
@@ -151566,7 +151568,7 @@ pub fn compute_security_policies_get_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     securityPolicy: &String,
-    priority: &Option<Option<String>>,
+    priority: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -151710,7 +151712,7 @@ pub struct ComputeSecurityPoliciesGetRuleArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
 }
 
 /// GET projects/{project}/global/securityPolicies/{securityPolicy}/getRule
@@ -151751,8 +151753,8 @@ pub fn compute_security_policies_get_rule(
 pub fn compute_security_policies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -151895,9 +151897,9 @@ pub struct ComputeSecurityPoliciesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST projects/{project}/global/securityPolicies
@@ -151936,11 +151938,11 @@ pub fn compute_security_policies_insert(
 pub fn compute_security_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -152094,15 +152096,15 @@ pub struct ComputeSecurityPoliciesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/securityPolicies
@@ -152146,11 +152148,11 @@ pub fn compute_security_policies_list(
 pub fn compute_security_policies_list_preconfigured_expression_sets_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -152313,15 +152315,15 @@ pub struct ComputeSecurityPoliciesListPreconfiguredExpressionSetsArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/securityPolicies/listPreconfiguredExpressionSets
@@ -152371,8 +152373,8 @@ pub fn compute_security_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     securityPolicy: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -152517,9 +152519,9 @@ pub struct ComputeSecurityPoliciesPatchArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/global/securityPolicies/{securityPolicy}
@@ -152560,9 +152562,9 @@ pub fn compute_security_policies_patch_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     securityPolicy: &String,
-    priority: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    priority: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -152711,11 +152713,11 @@ pub struct ComputeSecurityPoliciesPatchRuleArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST projects/{project}/global/securityPolicies/{securityPolicy}/patchRule
@@ -152757,7 +152759,7 @@ pub fn compute_security_policies_remove_rule_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     securityPolicy: &String,
-    priority: &Option<Option<String>>,
+    priority: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -152900,7 +152902,7 @@ pub struct ComputeSecurityPoliciesRemoveRuleArgs {
     /// Path parameter: securityPolicy
     pub securityPolicy: String,
     /// Query parameter: priority
-    pub priority: Option<Option<String>>,
+    pub priority: Option<String>,
 }
 
 /// POST projects/{project}/global/securityPolicies/{securityPolicy}/removeRule
@@ -153104,13 +153106,13 @@ pub fn compute_security_policies_set_labels(
 pub fn compute_service_attachments_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -153272,19 +153274,19 @@ pub struct ComputeServiceAttachmentsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/serviceAttachments
@@ -153334,7 +153336,7 @@ pub fn compute_service_attachments_delete_builder<R>(
     project: &String,
     region: &String,
     serviceAttachment: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -153478,7 +153480,7 @@ pub struct ComputeServiceAttachmentsDeleteArgs {
     /// Path parameter: serviceAttachment
     pub serviceAttachment: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/serviceAttachments/{serviceAttachment}
@@ -153520,7 +153522,7 @@ pub fn compute_service_attachments_get_builder<R>(
     project: &String,
     region: &String,
     serviceAttachment: &String,
-    showNatIps: &Option<Option<String>>,
+    showNatIps: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -153666,7 +153668,7 @@ pub struct ComputeServiceAttachmentsGetArgs {
     /// Path parameter: serviceAttachment
     pub serviceAttachment: String,
     /// Query parameter: showNatIps
-    pub showNatIps: Option<Option<String>>,
+    pub showNatIps: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/serviceAttachments/{serviceAttachment}
@@ -153710,7 +153712,7 @@ pub fn compute_service_attachments_get_iam_policy_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -153856,7 +153858,7 @@ pub struct ComputeServiceAttachmentsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/serviceAttachments/{resource}/getIamPolicy
@@ -153897,7 +153899,7 @@ pub fn compute_service_attachments_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -154039,7 +154041,7 @@ pub struct ComputeServiceAttachmentsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/serviceAttachments
@@ -154079,11 +154081,11 @@ pub fn compute_service_attachments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -154239,15 +154241,15 @@ pub struct ComputeServiceAttachmentsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/serviceAttachments
@@ -154294,7 +154296,7 @@ pub fn compute_service_attachments_patch_builder<R>(
     project: &String,
     region: &String,
     serviceAttachment: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -154438,7 +154440,7 @@ pub struct ComputeServiceAttachmentsPatchArgs {
     /// Path parameter: serviceAttachment
     pub serviceAttachment: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/serviceAttachments/{serviceAttachment}
@@ -154992,8 +154994,8 @@ pub fn compute_snapshot_settings_get(
 pub fn compute_snapshot_settings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -155136,9 +155138,9 @@ pub struct ComputeSnapshotSettingsPatchArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/global/snapshotSettings
@@ -155178,7 +155180,7 @@ pub fn compute_snapshots_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     snapshot: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -155320,7 +155322,7 @@ pub struct ComputeSnapshotsDeleteArgs {
     /// Path parameter: snapshot
     pub snapshot: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/snapshots/{snapshot}
@@ -155519,7 +155521,7 @@ pub fn compute_snapshots_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -155661,7 +155663,7 @@ pub struct ComputeSnapshotsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/global/snapshots/{resource}/getIamPolicy
@@ -155700,7 +155702,7 @@ pub fn compute_snapshots_get_iam_policy(
 pub fn compute_snapshots_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -155840,7 +155842,7 @@ pub struct ComputeSnapshotsInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/snapshots
@@ -155874,11 +155876,11 @@ pub fn compute_snapshots_insert(
 pub fn compute_snapshots_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -156032,15 +156034,15 @@ pub struct ComputeSnapshotsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/snapshots
@@ -156580,7 +156582,7 @@ pub fn compute_snapshots_update_kms_key_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     snapshot: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -156722,7 +156724,7 @@ pub struct ComputeSnapshotsUpdateKmsKeyArgs {
     /// Path parameter: snapshot
     pub snapshot: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/snapshots/{snapshot}/updateKmsKey
@@ -156761,13 +156763,13 @@ pub fn compute_snapshots_update_kms_key(
 pub fn compute_ssl_certificates_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -156929,19 +156931,19 @@ pub struct ComputeSslCertificatesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/sslCertificates
@@ -156990,7 +156992,7 @@ pub fn compute_ssl_certificates_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     sslCertificate: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -157132,7 +157134,7 @@ pub struct ComputeSslCertificatesDeleteArgs {
     /// Path parameter: sslCertificate
     pub sslCertificate: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/sslCertificates/{sslCertificate}
@@ -157339,7 +157341,7 @@ pub fn compute_ssl_certificates_get(
 pub fn compute_ssl_certificates_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -157479,7 +157481,7 @@ pub struct ComputeSslCertificatesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/sslCertificates
@@ -157513,11 +157515,11 @@ pub fn compute_ssl_certificates_insert(
 pub fn compute_ssl_certificates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -157671,15 +157673,15 @@ pub struct ComputeSslCertificatesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/sslCertificates
@@ -157723,13 +157725,13 @@ pub fn compute_ssl_certificates_list(
 pub fn compute_ssl_policies_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -157889,19 +157891,19 @@ pub struct ComputeSslPoliciesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/sslPolicies
@@ -157948,7 +157950,7 @@ pub fn compute_ssl_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     sslPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -158090,7 +158092,7 @@ pub struct ComputeSslPoliciesDeleteArgs {
     /// Path parameter: sslPolicy
     pub sslPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/sslPolicies/{sslPolicy}
@@ -158292,7 +158294,7 @@ pub fn compute_ssl_policies_get(
 pub fn compute_ssl_policies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -158432,7 +158434,7 @@ pub struct ComputeSslPoliciesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/sslPolicies
@@ -158466,11 +158468,11 @@ pub fn compute_ssl_policies_insert(
 pub fn compute_ssl_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -158624,15 +158626,15 @@ pub struct ComputeSslPoliciesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/sslPolicies
@@ -158676,11 +158678,11 @@ pub fn compute_ssl_policies_list(
 pub fn compute_ssl_policies_list_available_features_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -158836,15 +158838,15 @@ pub struct ComputeSslPoliciesListAvailableFeaturesArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/sslPolicies/listAvailableFeatures
@@ -158891,7 +158893,7 @@ pub fn compute_ssl_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     sslPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -159033,7 +159035,7 @@ pub struct ComputeSslPoliciesPatchArgs {
     /// Path parameter: sslPolicy
     pub sslPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/sslPolicies/{sslPolicy}
@@ -159072,13 +159074,13 @@ pub fn compute_ssl_policies_patch(
 pub fn compute_storage_pool_types_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -159240,19 +159242,19 @@ pub struct ComputeStoragePoolTypesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/storagePoolTypes
@@ -159476,11 +159478,11 @@ pub fn compute_storage_pool_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -159636,15 +159638,15 @@ pub struct ComputeStoragePoolTypesListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/storagePoolTypes
@@ -159689,13 +159691,13 @@ pub fn compute_storage_pool_types_list(
 pub fn compute_storage_pools_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -159855,19 +159857,19 @@ pub struct ComputeStoragePoolsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/storagePools
@@ -159915,7 +159917,7 @@ pub fn compute_storage_pools_delete_builder<R>(
     project: &String,
     zone: &String,
     storagePool: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -160059,7 +160061,7 @@ pub struct ComputeStoragePoolsDeleteArgs {
     /// Path parameter: storagePool
     pub storagePool: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/storagePools/{storagePool}
@@ -160268,7 +160270,7 @@ pub fn compute_storage_pools_get_iam_policy_builder<R>(
     project: &String,
     zone: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -160414,7 +160416,7 @@ pub struct ComputeStoragePoolsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/storagePools/{resource}/getIamPolicy
@@ -160455,7 +160457,7 @@ pub fn compute_storage_pools_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -160597,7 +160599,7 @@ pub struct ComputeStoragePoolsInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/storagePools
@@ -160633,11 +160635,11 @@ pub fn compute_storage_pools_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -160793,15 +160795,15 @@ pub struct ComputeStoragePoolsListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/storagePools
@@ -160848,11 +160850,11 @@ pub fn compute_storage_pools_list_disks_builder<R>(
     project: &String,
     zone: &String,
     storagePool: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -161010,15 +161012,15 @@ pub struct ComputeStoragePoolsListDisksArgs {
     /// Path parameter: storagePool
     pub storagePool: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/storagePools/{storagePool}/listDisks
@@ -161416,8 +161418,8 @@ pub fn compute_storage_pools_update_builder<R>(
     project: &String,
     zone: &String,
     storagePool: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -161564,9 +161566,9 @@ pub struct ComputeStoragePoolsUpdateArgs {
     /// Path parameter: storagePool
     pub storagePool: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH projects/{project}/zones/{zone}/storagePools/{storagePool}
@@ -161607,14 +161609,14 @@ pub fn compute_storage_pools_update(
 pub fn compute_subnetworks_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
-    views: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
+    views: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -161777,21 +161779,21 @@ pub struct ComputeSubnetworksAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
     /// Query parameter: views
-    pub views: Option<Option<String>>,
+    pub views: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/subnetworks
@@ -161840,7 +161842,7 @@ pub fn compute_subnetworks_delete_builder<R>(
     project: &String,
     region: &String,
     subnetwork: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -161984,7 +161986,7 @@ pub struct ComputeSubnetworksDeleteArgs {
     /// Path parameter: subnetwork
     pub subnetwork: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/subnetworks/{subnetwork}
@@ -162026,7 +162028,7 @@ pub fn compute_subnetworks_expand_ip_cidr_range_builder<R>(
     project: &String,
     region: &String,
     subnetwork: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -162172,7 +162174,7 @@ pub struct ComputeSubnetworksExpandIpCidrRangeArgs {
     /// Path parameter: subnetwork
     pub subnetwork: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/subnetworks/{subnetwork}/expandIpCidrRange
@@ -162214,7 +162216,7 @@ pub fn compute_subnetworks_get_builder<R>(
     project: &String,
     region: &String,
     subnetwork: &String,
-    views: &Option<Option<String>>,
+    views: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -162358,7 +162360,7 @@ pub struct ComputeSubnetworksGetArgs {
     /// Path parameter: subnetwork
     pub subnetwork: String,
     /// Query parameter: views
-    pub views: Option<Option<String>>,
+    pub views: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/subnetworks/{subnetwork}
@@ -162400,7 +162402,7 @@ pub fn compute_subnetworks_get_iam_policy_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    optionsRequestedPolicyVersion: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -162546,7 +162548,7 @@ pub struct ComputeSubnetworksGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<Option<String>>,
+    pub optionsRequestedPolicyVersion: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/subnetworks/{resource}/getIamPolicy
@@ -162587,7 +162589,7 @@ pub fn compute_subnetworks_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -162729,7 +162731,7 @@ pub struct ComputeSubnetworksInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/subnetworks
@@ -162765,12 +162767,12 @@ pub fn compute_subnetworks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    views: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    views: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -162929,17 +162931,17 @@ pub struct ComputeSubnetworksListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: views
-    pub views: Option<Option<String>>,
+    pub views: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/subnetworks
@@ -162985,12 +162987,12 @@ pub fn compute_subnetworks_list(
 pub fn compute_subnetworks_list_usable_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProject: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProject: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -163149,17 +163151,17 @@ pub struct ComputeSubnetworksListUsableArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProject
-    pub serviceProject: Option<Option<String>>,
+    pub serviceProject: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/subnetworks/listUsable
@@ -163208,8 +163210,8 @@ pub fn compute_subnetworks_patch_builder<R>(
     project: &String,
     region: &String,
     subnetwork: &String,
-    drainTimeoutSeconds: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    drainTimeoutSeconds: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -163356,9 +163358,9 @@ pub struct ComputeSubnetworksPatchArgs {
     /// Path parameter: subnetwork
     pub subnetwork: String,
     /// Query parameter: drainTimeoutSeconds
-    pub drainTimeoutSeconds: Option<Option<String>>,
+    pub drainTimeoutSeconds: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/regions/{region}/subnetworks/{subnetwork}
@@ -163574,7 +163576,7 @@ pub fn compute_subnetworks_set_private_ip_google_access_builder<R>(
     project: &String,
     region: &String,
     subnetwork: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -163720,7 +163722,7 @@ pub struct ComputeSubnetworksSetPrivateIpGoogleAccessArgs {
     /// Path parameter: subnetwork
     pub subnetwork: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/subnetworks/{subnetwork}/setPrivateIpGoogleAccess
@@ -163938,7 +163940,7 @@ pub fn compute_target_grpc_proxies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetGrpcProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -164080,7 +164082,7 @@ pub struct ComputeTargetGrpcProxiesDeleteArgs {
     /// Path parameter: targetGrpcProxy
     pub targetGrpcProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/targetGrpcProxies/{targetGrpcProxy}
@@ -164287,7 +164289,7 @@ pub fn compute_target_grpc_proxies_get(
 pub fn compute_target_grpc_proxies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -164427,7 +164429,7 @@ pub struct ComputeTargetGrpcProxiesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetGrpcProxies
@@ -164462,11 +164464,11 @@ pub fn compute_target_grpc_proxies_insert(
 pub fn compute_target_grpc_proxies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -164620,15 +164622,15 @@ pub struct ComputeTargetGrpcProxiesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/targetGrpcProxies
@@ -164673,7 +164675,7 @@ pub fn compute_target_grpc_proxies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetGrpcProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -164815,7 +164817,7 @@ pub struct ComputeTargetGrpcProxiesPatchArgs {
     /// Path parameter: targetGrpcProxy
     pub targetGrpcProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/targetGrpcProxies/{targetGrpcProxy}
@@ -164854,13 +164856,13 @@ pub fn compute_target_grpc_proxies_patch(
 pub fn compute_target_http_proxies_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -165022,19 +165024,19 @@ pub struct ComputeTargetHttpProxiesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/targetHttpProxies
@@ -165083,7 +165085,7 @@ pub fn compute_target_http_proxies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -165225,7 +165227,7 @@ pub struct ComputeTargetHttpProxiesDeleteArgs {
     /// Path parameter: targetHttpProxy
     pub targetHttpProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/targetHttpProxies/{targetHttpProxy}
@@ -165432,7 +165434,7 @@ pub fn compute_target_http_proxies_get(
 pub fn compute_target_http_proxies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -165572,7 +165574,7 @@ pub struct ComputeTargetHttpProxiesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetHttpProxies
@@ -165607,11 +165609,11 @@ pub fn compute_target_http_proxies_insert(
 pub fn compute_target_http_proxies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -165765,15 +165767,15 @@ pub struct ComputeTargetHttpProxiesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/targetHttpProxies
@@ -165818,7 +165820,7 @@ pub fn compute_target_http_proxies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -165960,7 +165962,7 @@ pub struct ComputeTargetHttpProxiesPatchArgs {
     /// Path parameter: targetHttpProxy
     pub targetHttpProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/targetHttpProxies/{targetHttpProxy}
@@ -166000,7 +166002,7 @@ pub fn compute_target_http_proxies_set_url_map_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -166142,7 +166144,7 @@ pub struct ComputeTargetHttpProxiesSetUrlMapArgs {
     /// Path parameter: targetHttpProxy
     pub targetHttpProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/targetHttpProxies/{targetHttpProxy}/setUrlMap
@@ -166181,13 +166183,13 @@ pub fn compute_target_http_proxies_set_url_map(
 pub fn compute_target_https_proxies_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -166349,19 +166351,19 @@ pub struct ComputeTargetHttpsProxiesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/targetHttpsProxies
@@ -166410,7 +166412,7 @@ pub fn compute_target_https_proxies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -166552,7 +166554,7 @@ pub struct ComputeTargetHttpsProxiesDeleteArgs {
     /// Path parameter: targetHttpsProxy
     pub targetHttpsProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/targetHttpsProxies/{targetHttpsProxy}
@@ -166759,7 +166761,7 @@ pub fn compute_target_https_proxies_get(
 pub fn compute_target_https_proxies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -166899,7 +166901,7 @@ pub struct ComputeTargetHttpsProxiesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetHttpsProxies
@@ -166934,11 +166936,11 @@ pub fn compute_target_https_proxies_insert(
 pub fn compute_target_https_proxies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -167092,15 +167094,15 @@ pub struct ComputeTargetHttpsProxiesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/targetHttpsProxies
@@ -167145,7 +167147,7 @@ pub fn compute_target_https_proxies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -167287,7 +167289,7 @@ pub struct ComputeTargetHttpsProxiesPatchArgs {
     /// Path parameter: targetHttpsProxy
     pub targetHttpsProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/targetHttpsProxies/{targetHttpsProxy}
@@ -167327,7 +167329,7 @@ pub fn compute_target_https_proxies_set_certificate_map_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -167470,7 +167472,7 @@ pub struct ComputeTargetHttpsProxiesSetCertificateMapArgs {
     /// Path parameter: targetHttpsProxy
     pub targetHttpsProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetHttpsProxies/{targetHttpsProxy}/setCertificateMap
@@ -167510,7 +167512,7 @@ pub fn compute_target_https_proxies_set_quic_override_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -167653,7 +167655,7 @@ pub struct ComputeTargetHttpsProxiesSetQuicOverrideArgs {
     /// Path parameter: targetHttpsProxy
     pub targetHttpsProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetHttpsProxies/{targetHttpsProxy}/setQuicOverride
@@ -167693,7 +167695,7 @@ pub fn compute_target_https_proxies_set_ssl_certificates_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -167836,7 +167838,7 @@ pub struct ComputeTargetHttpsProxiesSetSslCertificatesArgs {
     /// Path parameter: targetHttpsProxy
     pub targetHttpsProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/targetHttpsProxies/{targetHttpsProxy}/setSslCertificates
@@ -167876,7 +167878,7 @@ pub fn compute_target_https_proxies_set_ssl_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -168019,7 +168021,7 @@ pub struct ComputeTargetHttpsProxiesSetSslPolicyArgs {
     /// Path parameter: targetHttpsProxy
     pub targetHttpsProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetHttpsProxies/{targetHttpsProxy}/setSslPolicy
@@ -168059,7 +168061,7 @@ pub fn compute_target_https_proxies_set_url_map_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetHttpsProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -168201,7 +168203,7 @@ pub struct ComputeTargetHttpsProxiesSetUrlMapArgs {
     /// Path parameter: targetHttpsProxy
     pub targetHttpsProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/targetHttpsProxies/{targetHttpsProxy}/setUrlMap
@@ -168240,13 +168242,13 @@ pub fn compute_target_https_proxies_set_url_map(
 pub fn compute_target_instances_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -168408,19 +168410,19 @@ pub struct ComputeTargetInstancesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/targetInstances
@@ -168470,7 +168472,7 @@ pub fn compute_target_instances_delete_builder<R>(
     project: &String,
     zone: &String,
     targetInstance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -168614,7 +168616,7 @@ pub struct ComputeTargetInstancesDeleteArgs {
     /// Path parameter: targetInstance
     pub targetInstance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/targetInstances/{targetInstance}
@@ -168830,7 +168832,7 @@ pub fn compute_target_instances_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -168972,7 +168974,7 @@ pub struct ComputeTargetInstancesInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/targetInstances
@@ -169012,11 +169014,11 @@ pub fn compute_target_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -169172,15 +169174,15 @@ pub struct ComputeTargetInstancesListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/targetInstances
@@ -169227,7 +169229,7 @@ pub fn compute_target_instances_set_security_policy_builder<R>(
     project: &String,
     zone: &String,
     targetInstance: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -169373,7 +169375,7 @@ pub struct ComputeTargetInstancesSetSecurityPolicyArgs {
     /// Path parameter: targetInstance
     pub targetInstance: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/targetInstances/{targetInstance}/setSecurityPolicy
@@ -169592,7 +169594,7 @@ pub fn compute_target_pools_add_health_check_builder<R>(
     project: &String,
     region: &String,
     targetPool: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -169738,7 +169740,7 @@ pub struct ComputeTargetPoolsAddHealthCheckArgs {
     /// Path parameter: targetPool
     pub targetPool: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetPools/{targetPool}/addHealthCheck
@@ -169780,7 +169782,7 @@ pub fn compute_target_pools_add_instance_builder<R>(
     project: &String,
     region: &String,
     targetPool: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -169926,7 +169928,7 @@ pub struct ComputeTargetPoolsAddInstanceArgs {
     /// Path parameter: targetPool
     pub targetPool: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetPools/{targetPool}/addInstance
@@ -169966,13 +169968,13 @@ pub fn compute_target_pools_add_instance(
 pub fn compute_target_pools_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -170132,19 +170134,19 @@ pub struct ComputeTargetPoolsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/targetPools
@@ -170192,7 +170194,7 @@ pub fn compute_target_pools_delete_builder<R>(
     project: &String,
     region: &String,
     targetPool: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -170336,7 +170338,7 @@ pub struct ComputeTargetPoolsDeleteArgs {
     /// Path parameter: targetPool
     pub targetPool: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/targetPools/{targetPool}
@@ -170719,7 +170721,7 @@ pub fn compute_target_pools_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -170861,7 +170863,7 @@ pub struct ComputeTargetPoolsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetPools
@@ -170897,11 +170899,11 @@ pub fn compute_target_pools_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -171057,15 +171059,15 @@ pub struct ComputeTargetPoolsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/targetPools
@@ -171112,7 +171114,7 @@ pub fn compute_target_pools_remove_health_check_builder<R>(
     project: &String,
     region: &String,
     targetPool: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -171258,7 +171260,7 @@ pub struct ComputeTargetPoolsRemoveHealthCheckArgs {
     /// Path parameter: targetPool
     pub targetPool: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetPools/{targetPool}/removeHealthCheck
@@ -171300,7 +171302,7 @@ pub fn compute_target_pools_remove_instance_builder<R>(
     project: &String,
     region: &String,
     targetPool: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -171446,7 +171448,7 @@ pub struct ComputeTargetPoolsRemoveInstanceArgs {
     /// Path parameter: targetPool
     pub targetPool: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetPools/{targetPool}/removeInstance
@@ -171488,8 +171490,8 @@ pub fn compute_target_pools_set_backup_builder<R>(
     project: &String,
     region: &String,
     targetPool: &String,
-    failoverRatio: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    failoverRatio: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -171636,9 +171638,9 @@ pub struct ComputeTargetPoolsSetBackupArgs {
     /// Path parameter: targetPool
     pub targetPool: String,
     /// Query parameter: failoverRatio
-    pub failoverRatio: Option<Option<String>>,
+    pub failoverRatio: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetPools/{targetPool}/setBackup
@@ -171681,7 +171683,7 @@ pub fn compute_target_pools_set_security_policy_builder<R>(
     project: &String,
     region: &String,
     targetPool: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -171827,7 +171829,7 @@ pub struct ComputeTargetPoolsSetSecurityPolicyArgs {
     /// Path parameter: targetPool
     pub targetPool: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetPools/{targetPool}/setSecurityPolicy
@@ -172045,7 +172047,7 @@ pub fn compute_target_ssl_proxies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetSslProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -172187,7 +172189,7 @@ pub struct ComputeTargetSslProxiesDeleteArgs {
     /// Path parameter: targetSslProxy
     pub targetSslProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/targetSslProxies/{targetSslProxy}
@@ -172394,7 +172396,7 @@ pub fn compute_target_ssl_proxies_get(
 pub fn compute_target_ssl_proxies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -172534,7 +172536,7 @@ pub struct ComputeTargetSslProxiesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetSslProxies
@@ -172569,11 +172571,11 @@ pub fn compute_target_ssl_proxies_insert(
 pub fn compute_target_ssl_proxies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -172727,15 +172729,15 @@ pub struct ComputeTargetSslProxiesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/targetSslProxies
@@ -172780,7 +172782,7 @@ pub fn compute_target_ssl_proxies_set_backend_service_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetSslProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -172923,7 +172925,7 @@ pub struct ComputeTargetSslProxiesSetBackendServiceArgs {
     /// Path parameter: targetSslProxy
     pub targetSslProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetSslProxies/{targetSslProxy}/setBackendService
@@ -172963,7 +172965,7 @@ pub fn compute_target_ssl_proxies_set_certificate_map_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetSslProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -173106,7 +173108,7 @@ pub struct ComputeTargetSslProxiesSetCertificateMapArgs {
     /// Path parameter: targetSslProxy
     pub targetSslProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetSslProxies/{targetSslProxy}/setCertificateMap
@@ -173146,7 +173148,7 @@ pub fn compute_target_ssl_proxies_set_proxy_header_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetSslProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -173289,7 +173291,7 @@ pub struct ComputeTargetSslProxiesSetProxyHeaderArgs {
     /// Path parameter: targetSslProxy
     pub targetSslProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetSslProxies/{targetSslProxy}/setProxyHeader
@@ -173329,7 +173331,7 @@ pub fn compute_target_ssl_proxies_set_ssl_certificates_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetSslProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -173472,7 +173474,7 @@ pub struct ComputeTargetSslProxiesSetSslCertificatesArgs {
     /// Path parameter: targetSslProxy
     pub targetSslProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetSslProxies/{targetSslProxy}/setSslCertificates
@@ -173512,7 +173514,7 @@ pub fn compute_target_ssl_proxies_set_ssl_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetSslProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -173655,7 +173657,7 @@ pub struct ComputeTargetSslProxiesSetSslPolicyArgs {
     /// Path parameter: targetSslProxy
     pub targetSslProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetSslProxies/{targetSslProxy}/setSslPolicy
@@ -173866,13 +173868,13 @@ pub fn compute_target_ssl_proxies_test_iam_permissions(
 pub fn compute_target_tcp_proxies_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -174034,19 +174036,19 @@ pub struct ComputeTargetTcpProxiesAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/targetTcpProxies
@@ -174095,7 +174097,7 @@ pub fn compute_target_tcp_proxies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetTcpProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -174237,7 +174239,7 @@ pub struct ComputeTargetTcpProxiesDeleteArgs {
     /// Path parameter: targetTcpProxy
     pub targetTcpProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/targetTcpProxies/{targetTcpProxy}
@@ -174444,7 +174446,7 @@ pub fn compute_target_tcp_proxies_get(
 pub fn compute_target_tcp_proxies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -174584,7 +174586,7 @@ pub struct ComputeTargetTcpProxiesInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetTcpProxies
@@ -174619,11 +174621,11 @@ pub fn compute_target_tcp_proxies_insert(
 pub fn compute_target_tcp_proxies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -174777,15 +174779,15 @@ pub struct ComputeTargetTcpProxiesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/targetTcpProxies
@@ -174830,7 +174832,7 @@ pub fn compute_target_tcp_proxies_set_backend_service_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetTcpProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -174973,7 +174975,7 @@ pub struct ComputeTargetTcpProxiesSetBackendServiceArgs {
     /// Path parameter: targetTcpProxy
     pub targetTcpProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetTcpProxies/{targetTcpProxy}/setBackendService
@@ -175013,7 +175015,7 @@ pub fn compute_target_tcp_proxies_set_proxy_header_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     targetTcpProxy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -175156,7 +175158,7 @@ pub struct ComputeTargetTcpProxiesSetProxyHeaderArgs {
     /// Path parameter: targetTcpProxy
     pub targetTcpProxy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/targetTcpProxies/{targetTcpProxy}/setProxyHeader
@@ -175367,13 +175369,13 @@ pub fn compute_target_tcp_proxies_test_iam_permissions(
 pub fn compute_target_vpn_gateways_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -175535,19 +175537,19 @@ pub struct ComputeTargetVpnGatewaysAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/targetVpnGateways
@@ -175597,7 +175599,7 @@ pub fn compute_target_vpn_gateways_delete_builder<R>(
     project: &String,
     region: &String,
     targetVpnGateway: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -175741,7 +175743,7 @@ pub struct ComputeTargetVpnGatewaysDeleteArgs {
     /// Path parameter: targetVpnGateway
     pub targetVpnGateway: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/targetVpnGateways/{targetVpnGateway}
@@ -175957,7 +175959,7 @@ pub fn compute_target_vpn_gateways_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -176099,7 +176101,7 @@ pub struct ComputeTargetVpnGatewaysInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetVpnGateways
@@ -176139,11 +176141,11 @@ pub fn compute_target_vpn_gateways_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -176299,15 +176301,15 @@ pub struct ComputeTargetVpnGatewaysListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/targetVpnGateways
@@ -176354,7 +176356,7 @@ pub fn compute_target_vpn_gateways_set_labels_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -176500,7 +176502,7 @@ pub struct ComputeTargetVpnGatewaysSetLabelsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/targetVpnGateways/{resource}/setLabels
@@ -176540,13 +176542,13 @@ pub fn compute_target_vpn_gateways_set_labels(
 pub fn compute_url_maps_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -176706,19 +176708,19 @@ pub struct ComputeUrlMapsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/urlMaps
@@ -176765,7 +176767,7 @@ pub fn compute_url_maps_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     urlMap: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -176907,7 +176909,7 @@ pub struct ComputeUrlMapsDeleteArgs {
     /// Path parameter: urlMap
     pub urlMap: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/urlMaps/{urlMap}
@@ -177105,7 +177107,7 @@ pub fn compute_url_maps_get(
 pub fn compute_url_maps_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -177245,7 +177247,7 @@ pub struct ComputeUrlMapsInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/urlMaps
@@ -177280,7 +177282,7 @@ pub fn compute_url_maps_invalidate_cache_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     urlMap: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -177422,7 +177424,7 @@ pub struct ComputeUrlMapsInvalidateCacheArgs {
     /// Path parameter: urlMap
     pub urlMap: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/global/urlMaps/{urlMap}/invalidateCache
@@ -177461,11 +177463,11 @@ pub fn compute_url_maps_invalidate_cache(
 pub fn compute_url_maps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -177617,15 +177619,15 @@ pub struct ComputeUrlMapsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/urlMaps
@@ -177668,7 +177670,7 @@ pub fn compute_url_maps_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     urlMap: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -177810,7 +177812,7 @@ pub struct ComputeUrlMapsPatchArgs {
     /// Path parameter: urlMap
     pub urlMap: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/global/urlMaps/{urlMap}
@@ -178015,7 +178017,7 @@ pub fn compute_url_maps_update_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     urlMap: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -178157,7 +178159,7 @@ pub struct ComputeUrlMapsUpdateArgs {
     /// Path parameter: urlMap
     pub urlMap: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PUT projects/{project}/global/urlMaps/{urlMap}
@@ -178359,13 +178361,13 @@ pub fn compute_url_maps_validate(
 pub fn compute_vpn_gateways_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -178525,19 +178527,19 @@ pub struct ComputeVpnGatewaysAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/vpnGateways
@@ -178585,7 +178587,7 @@ pub fn compute_vpn_gateways_delete_builder<R>(
     project: &String,
     region: &String,
     vpnGateway: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -178729,7 +178731,7 @@ pub struct ComputeVpnGatewaysDeleteArgs {
     /// Path parameter: vpnGateway
     pub vpnGateway: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/vpnGateways/{vpnGateway}
@@ -179116,7 +179118,7 @@ pub fn compute_vpn_gateways_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -179258,7 +179260,7 @@ pub struct ComputeVpnGatewaysInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/vpnGateways
@@ -179294,11 +179296,11 @@ pub fn compute_vpn_gateways_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -179454,15 +179456,15 @@ pub struct ComputeVpnGatewaysListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/vpnGateways
@@ -179509,7 +179511,7 @@ pub fn compute_vpn_gateways_set_labels_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -179653,7 +179655,7 @@ pub struct ComputeVpnGatewaysSetLabelsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/vpnGateways/{resource}/setLabels
@@ -179870,13 +179872,13 @@ pub fn compute_vpn_gateways_test_iam_permissions(
 pub fn compute_vpn_tunnels_aggregated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    includeAllScopes: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
-    serviceProjectNumber: &Option<Option<String>>,
+    filter: &Option<String>,
+    includeAllScopes: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
+    serviceProjectNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -180036,19 +180038,19 @@ pub struct ComputeVpnTunnelsAggregatedListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: includeAllScopes
-    pub includeAllScopes: Option<Option<String>>,
+    pub includeAllScopes: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
     /// Query parameter: serviceProjectNumber
-    pub serviceProjectNumber: Option<Option<String>>,
+    pub serviceProjectNumber: Option<String>,
 }
 
 /// GET projects/{project}/aggregated/vpnTunnels
@@ -180096,7 +180098,7 @@ pub fn compute_vpn_tunnels_delete_builder<R>(
     project: &String,
     region: &String,
     vpnTunnel: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -180240,7 +180242,7 @@ pub struct ComputeVpnTunnelsDeleteArgs {
     /// Path parameter: vpnTunnel
     pub vpnTunnel: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/regions/{region}/vpnTunnels/{vpnTunnel}
@@ -180448,7 +180450,7 @@ pub fn compute_vpn_tunnels_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -180590,7 +180592,7 @@ pub struct ComputeVpnTunnelsInsertArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/vpnTunnels
@@ -180626,11 +180628,11 @@ pub fn compute_vpn_tunnels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -180786,15 +180788,15 @@ pub struct ComputeVpnTunnelsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/regions/{region}/vpnTunnels
@@ -180841,7 +180843,7 @@ pub fn compute_vpn_tunnels_set_labels_builder<R>(
     project: &String,
     region: &String,
     resource: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -180985,7 +180987,7 @@ pub struct ComputeVpnTunnelsSetLabelsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/regions/{region}/vpnTunnels/{resource}/setLabels
@@ -181027,7 +181029,7 @@ pub fn compute_wire_groups_delete_builder<R>(
     project: &String,
     crossSiteNetwork: &String,
     wireGroup: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -181173,7 +181175,7 @@ pub struct ComputeWireGroupsDeleteArgs {
     /// Path parameter: wireGroup
     pub wireGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/global/crossSiteNetworks/{crossSiteNetwork}/wireGroups/{wireGroup}
@@ -181387,8 +181389,8 @@ pub fn compute_wire_groups_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     crossSiteNetwork: &String,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -181534,9 +181536,9 @@ pub struct ComputeWireGroupsInsertArgs {
     /// Path parameter: crossSiteNetwork
     pub crossSiteNetwork: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST projects/{project}/global/crossSiteNetworks/{crossSiteNetwork}/wireGroups
@@ -181577,11 +181579,11 @@ pub fn compute_wire_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     crossSiteNetwork: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -181738,15 +181740,15 @@ pub struct ComputeWireGroupsListArgs {
     /// Path parameter: crossSiteNetwork
     pub crossSiteNetwork: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/global/crossSiteNetworks/{crossSiteNetwork}/wireGroups
@@ -181793,9 +181795,9 @@ pub fn compute_wire_groups_patch_builder<R>(
     project: &String,
     crossSiteNetwork: &String,
     wireGroup: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -181947,11 +181949,11 @@ pub struct ComputeWireGroupsPatchArgs {
     /// Path parameter: wireGroup
     pub wireGroup: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH projects/{project}/global/crossSiteNetworks/{crossSiteNetwork}/wireGroups/{wireGroup}
@@ -182325,11 +182327,11 @@ pub fn compute_zone_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -182485,15 +182487,15 @@ pub struct ComputeZoneOperationsListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/operations
@@ -182707,7 +182709,7 @@ pub fn compute_zone_vm_extension_policies_delete_builder<R>(
     project: &String,
     zone: &String,
     vmExtensionPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -182851,7 +182853,7 @@ pub struct ComputeZoneVmExtensionPoliciesDeleteArgs {
     /// Path parameter: vmExtensionPolicy
     pub vmExtensionPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE projects/{project}/zones/{zone}/vmExtensionPolicies/{vmExtensionPolicy}
@@ -183067,7 +183069,7 @@ pub fn compute_zone_vm_extension_policies_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -183209,7 +183211,7 @@ pub struct ComputeZoneVmExtensionPoliciesInsertArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST projects/{project}/zones/{zone}/vmExtensionPolicies
@@ -183249,11 +183251,11 @@ pub fn compute_zone_vm_extension_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
     zone: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -183409,15 +183411,15 @@ pub struct ComputeZoneVmExtensionPoliciesListArgs {
     /// Path parameter: zone
     pub zone: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones/{zone}/vmExtensionPolicies
@@ -183464,7 +183466,7 @@ pub fn compute_zone_vm_extension_policies_update_builder<R>(
     project: &String,
     zone: &String,
     vmExtensionPolicy: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -183608,7 +183610,7 @@ pub struct ComputeZoneVmExtensionPoliciesUpdateArgs {
     /// Path parameter: vmExtensionPolicy
     pub vmExtensionPolicy: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// PATCH projects/{project}/zones/{zone}/vmExtensionPolicies/{vmExtensionPolicy}
@@ -183811,11 +183813,11 @@ pub fn compute_zones_get(
 pub fn compute_zones_list_builder<R>(
     client: &SimpleHttpClient<R>,
     project: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -183967,15 +183969,15 @@ pub struct ComputeZonesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET projects/{project}/zones

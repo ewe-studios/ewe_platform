@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,9 +192,9 @@ pub fn meet_conference_records_get(
 
 pub fn meet_conference_records_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -337,11 +339,11 @@ pub fn meet_conference_records_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MeetConferenceRecordsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/conferenceRecords
@@ -544,9 +546,9 @@ pub fn meet_conference_records_participants_get(
 pub fn meet_conference_records_participants_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -694,11 +696,11 @@ pub struct MeetConferenceRecordsParticipantsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants
@@ -905,9 +907,9 @@ pub fn meet_conference_records_participants_participant_sessions_get(
 pub fn meet_conference_records_participants_participant_sessions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1057,11 +1059,11 @@ pub struct MeetConferenceRecordsParticipantsParticipantSessionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions
@@ -1265,8 +1267,8 @@ pub fn meet_conference_records_recordings_get(
 pub fn meet_conference_records_recordings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1411,9 +1413,9 @@ pub struct MeetConferenceRecordsRecordingsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/recordings
@@ -1614,8 +1616,8 @@ pub fn meet_conference_records_smart_notes_get(
 pub fn meet_conference_records_smart_notes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1760,9 +1762,9 @@ pub struct MeetConferenceRecordsSmartNotesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/smartNotes
@@ -1963,8 +1965,8 @@ pub fn meet_conference_records_transcripts_get(
 pub fn meet_conference_records_transcripts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2109,9 +2111,9 @@ pub struct MeetConferenceRecordsTranscriptsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts
@@ -2316,8 +2318,8 @@ pub fn meet_conference_records_transcripts_entries_get(
 pub fn meet_conference_records_transcripts_entries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2464,9 +2466,9 @@ pub struct MeetConferenceRecordsTranscriptsEntriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}/entries
@@ -2974,7 +2976,7 @@ pub fn meet_spaces_get(
 pub fn meet_spaces_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3111,7 +3113,7 @@ pub struct MeetSpacesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/spaces/{spacesId}
@@ -3472,29 +3474,6 @@ impl ResourceIdentifier<MeetConferenceRecordsTranscriptsEntriesListArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::meet::ListTranscriptEntriesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Space
-// =============================================================================
-
-/// ResourceIdentifier implementation for Space with MeetSpacesCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<MeetSpacesCreateArgs> for Space {
-    fn generate_resource_id(&self, input: &MeetSpacesCreateArgs) -> String {
-        "gcp::meet::Space".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::meet::Space"
     }
 
     fn provider(&self) -> &'static str {

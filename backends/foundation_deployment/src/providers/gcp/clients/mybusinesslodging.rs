@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,7 +32,7 @@ use serde::Serialize;
 pub fn mybusinesslodging_locations_get_lodging_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -170,7 +172,7 @@ pub struct MybusinesslodgingLocationsGetLodgingArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/locations/{locationsId}/lodging
@@ -205,7 +207,7 @@ pub fn mybusinesslodging_locations_get_lodging(
 pub fn mybusinesslodging_locations_update_lodging_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -345,7 +347,7 @@ pub struct MybusinesslodgingLocationsUpdateLodgingArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/locations/{locationsId}/lodging
@@ -380,7 +382,7 @@ pub fn mybusinesslodging_locations_update_lodging(
 pub fn mybusinesslodging_locations_lodging_get_google_updated_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -524,7 +526,7 @@ pub struct MybusinesslodgingLocationsLodgingGetGoogleUpdatedArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/locations/{locationsId}/lodging:getGoogleUpdated

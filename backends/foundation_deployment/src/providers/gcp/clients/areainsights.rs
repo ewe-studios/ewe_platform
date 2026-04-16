@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -171,27 +173,4 @@ pub fn areainsights_compute_insights(
 > {
     let builder = areainsights_compute_insights_builder(client)?;
     areainsights_compute_insights_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ComputeInsightsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ComputeInsightsResponse with AreainsightsComputeInsightsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AreainsightsComputeInsightsArgs> for ComputeInsightsResponse {
-    fn generate_resource_id(&self, input: &AreainsightsComputeInsightsArgs) -> String {
-        "gcp::areainsights::ComputeInsightsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::areainsights::ComputeInsightsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }

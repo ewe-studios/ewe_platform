@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn networkservices_projects_locations_get(
 pub fn networkservices_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct NetworkservicesProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,8 +395,8 @@ pub fn networkservices_projects_locations_list(
 pub fn networkservices_projects_locations_authz_extensions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    authzExtensionId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    authzExtensionId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -537,9 +539,9 @@ pub struct NetworkservicesProjectsLocationsAuthzExtensionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: authzExtensionId
-    pub authzExtensionId: Option<Option<String>>,
+    pub authzExtensionId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/authzExtensions
@@ -578,7 +580,7 @@ pub fn networkservices_projects_locations_authz_extensions_create(
 pub fn networkservices_projects_locations_authz_extensions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -718,7 +720,7 @@ pub struct NetworkservicesProjectsLocationsAuthzExtensionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
@@ -921,10 +923,10 @@ pub fn networkservices_projects_locations_authz_extensions_get(
 pub fn networkservices_projects_locations_authz_extensions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1077,13 +1079,13 @@ pub struct NetworkservicesProjectsLocationsAuthzExtensionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authzExtensions
@@ -1128,8 +1130,8 @@ pub fn networkservices_projects_locations_authz_extensions_list(
 pub fn networkservices_projects_locations_authz_extensions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1272,9 +1274,9 @@ pub struct NetworkservicesProjectsLocationsAuthzExtensionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/authzExtensions/{authzExtensionsId}
@@ -1313,7 +1315,7 @@ pub fn networkservices_projects_locations_authz_extensions_patch(
 pub fn networkservices_projects_locations_edge_cache_keysets_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1453,7 +1455,7 @@ pub struct NetworkservicesProjectsLocationsEdgeCacheKeysetsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheKeysets/{edgeCacheKeysetsId}:getIamPolicy
@@ -1827,7 +1829,7 @@ pub fn networkservices_projects_locations_edge_cache_keysets_test_iam_permission
 pub fn networkservices_projects_locations_edge_cache_origins_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1967,7 +1969,7 @@ pub struct NetworkservicesProjectsLocationsEdgeCacheOriginsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheOrigins/{edgeCacheOriginsId}:getIamPolicy
@@ -2341,7 +2343,7 @@ pub fn networkservices_projects_locations_edge_cache_origins_test_iam_permission
 pub fn networkservices_projects_locations_edge_cache_services_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2481,7 +2483,7 @@ pub struct NetworkservicesProjectsLocationsEdgeCacheServicesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/edgeCacheServices/{edgeCacheServicesId}:getIamPolicy
@@ -2855,7 +2857,7 @@ pub fn networkservices_projects_locations_edge_cache_services_test_iam_permissio
 pub fn networkservices_projects_locations_endpoint_policies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    endpointPolicyId: &Option<Option<String>>,
+    endpointPolicyId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2995,7 +2997,7 @@ pub struct NetworkservicesProjectsLocationsEndpointPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: endpointPolicyId
-    pub endpointPolicyId: Option<Option<String>>,
+    pub endpointPolicyId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies
@@ -3359,9 +3361,9 @@ pub fn networkservices_projects_locations_endpoint_policies_get(
 pub fn networkservices_projects_locations_endpoint_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3511,11 +3513,11 @@ pub struct NetworkservicesProjectsLocationsEndpointPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies
@@ -3559,7 +3561,7 @@ pub fn networkservices_projects_locations_endpoint_policies_list(
 pub fn networkservices_projects_locations_endpoint_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3699,7 +3701,7 @@ pub struct NetworkservicesProjectsLocationsEndpointPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/endpointPolicies/{endpointPoliciesId}
@@ -3737,7 +3739,7 @@ pub fn networkservices_projects_locations_endpoint_policies_patch(
 pub fn networkservices_projects_locations_gateways_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    gatewayId: &Option<Option<String>>,
+    gatewayId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3877,7 +3879,7 @@ pub struct NetworkservicesProjectsLocationsGatewaysCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: gatewayId
-    pub gatewayId: Option<Option<String>>,
+    pub gatewayId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/gateways
@@ -4235,8 +4237,8 @@ pub fn networkservices_projects_locations_gateways_get(
 pub fn networkservices_projects_locations_gateways_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4381,9 +4383,9 @@ pub struct NetworkservicesProjectsLocationsGatewaysListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways
@@ -4424,7 +4426,7 @@ pub fn networkservices_projects_locations_gateways_list(
 pub fn networkservices_projects_locations_gateways_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4564,7 +4566,7 @@ pub struct NetworkservicesProjectsLocationsGatewaysPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
@@ -4767,8 +4769,8 @@ pub fn networkservices_projects_locations_gateways_route_views_get(
 pub fn networkservices_projects_locations_gateways_route_views_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4915,9 +4917,9 @@ pub struct NetworkservicesProjectsLocationsGatewaysRouteViewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}/routeViews
@@ -4960,7 +4962,7 @@ pub fn networkservices_projects_locations_gateways_route_views_list(
 pub fn networkservices_projects_locations_grpc_routes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    grpcRouteId: &Option<Option<String>>,
+    grpcRouteId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5100,7 +5102,7 @@ pub struct NetworkservicesProjectsLocationsGrpcRoutesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: grpcRouteId
-    pub grpcRouteId: Option<Option<String>>,
+    pub grpcRouteId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes
@@ -5459,9 +5461,9 @@ pub fn networkservices_projects_locations_grpc_routes_get(
 pub fn networkservices_projects_locations_grpc_routes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5609,11 +5611,11 @@ pub struct NetworkservicesProjectsLocationsGrpcRoutesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes
@@ -5655,7 +5657,7 @@ pub fn networkservices_projects_locations_grpc_routes_list(
 pub fn networkservices_projects_locations_grpc_routes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5795,7 +5797,7 @@ pub struct NetworkservicesProjectsLocationsGrpcRoutesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/grpcRoutes/{grpcRoutesId}
@@ -5833,7 +5835,7 @@ pub fn networkservices_projects_locations_grpc_routes_patch(
 pub fn networkservices_projects_locations_http_routes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    httpRouteId: &Option<Option<String>>,
+    httpRouteId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5973,7 +5975,7 @@ pub struct NetworkservicesProjectsLocationsHttpRoutesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: httpRouteId
-    pub httpRouteId: Option<Option<String>>,
+    pub httpRouteId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/httpRoutes
@@ -6332,9 +6334,9 @@ pub fn networkservices_projects_locations_http_routes_get(
 pub fn networkservices_projects_locations_http_routes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6482,11 +6484,11 @@ pub struct NetworkservicesProjectsLocationsHttpRoutesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/httpRoutes
@@ -6528,7 +6530,7 @@ pub fn networkservices_projects_locations_http_routes_list(
 pub fn networkservices_projects_locations_http_routes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6668,7 +6670,7 @@ pub struct NetworkservicesProjectsLocationsHttpRoutesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/httpRoutes/{httpRoutesId}
@@ -6706,8 +6708,8 @@ pub fn networkservices_projects_locations_http_routes_patch(
 pub fn networkservices_projects_locations_lb_edge_extensions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    lbEdgeExtensionId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    lbEdgeExtensionId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6850,9 +6852,9 @@ pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: lbEdgeExtensionId
-    pub lbEdgeExtensionId: Option<Option<String>>,
+    pub lbEdgeExtensionId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions
@@ -6891,7 +6893,7 @@ pub fn networkservices_projects_locations_lb_edge_extensions_create(
 pub fn networkservices_projects_locations_lb_edge_extensions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7031,7 +7033,7 @@ pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
@@ -7234,10 +7236,10 @@ pub fn networkservices_projects_locations_lb_edge_extensions_get(
 pub fn networkservices_projects_locations_lb_edge_extensions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7390,13 +7392,13 @@ pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions
@@ -7441,8 +7443,8 @@ pub fn networkservices_projects_locations_lb_edge_extensions_list(
 pub fn networkservices_projects_locations_lb_edge_extensions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7585,9 +7587,9 @@ pub struct NetworkservicesProjectsLocationsLbEdgeExtensionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbEdgeExtensions/{lbEdgeExtensionsId}
@@ -7626,8 +7628,8 @@ pub fn networkservices_projects_locations_lb_edge_extensions_patch(
 pub fn networkservices_projects_locations_lb_route_extensions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    lbRouteExtensionId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    lbRouteExtensionId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7770,9 +7772,9 @@ pub struct NetworkservicesProjectsLocationsLbRouteExtensionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: lbRouteExtensionId
-    pub lbRouteExtensionId: Option<Option<String>>,
+    pub lbRouteExtensionId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions
@@ -7811,7 +7813,7 @@ pub fn networkservices_projects_locations_lb_route_extensions_create(
 pub fn networkservices_projects_locations_lb_route_extensions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7951,7 +7953,7 @@ pub struct NetworkservicesProjectsLocationsLbRouteExtensionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
@@ -8154,10 +8156,10 @@ pub fn networkservices_projects_locations_lb_route_extensions_get(
 pub fn networkservices_projects_locations_lb_route_extensions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8310,13 +8312,13 @@ pub struct NetworkservicesProjectsLocationsLbRouteExtensionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions
@@ -8361,8 +8363,8 @@ pub fn networkservices_projects_locations_lb_route_extensions_list(
 pub fn networkservices_projects_locations_lb_route_extensions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8505,9 +8507,9 @@ pub struct NetworkservicesProjectsLocationsLbRouteExtensionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbRouteExtensions/{lbRouteExtensionsId}
@@ -8546,8 +8548,8 @@ pub fn networkservices_projects_locations_lb_route_extensions_patch(
 pub fn networkservices_projects_locations_lb_traffic_extensions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    lbTrafficExtensionId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    lbTrafficExtensionId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8690,9 +8692,9 @@ pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: lbTrafficExtensionId
-    pub lbTrafficExtensionId: Option<Option<String>>,
+    pub lbTrafficExtensionId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions
@@ -8731,7 +8733,7 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_create(
 pub fn networkservices_projects_locations_lb_traffic_extensions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8871,7 +8873,7 @@ pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
@@ -9074,10 +9076,10 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_get(
 pub fn networkservices_projects_locations_lb_traffic_extensions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9230,13 +9232,13 @@ pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions
@@ -9281,8 +9283,8 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_list(
 pub fn networkservices_projects_locations_lb_traffic_extensions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9425,9 +9427,9 @@ pub struct NetworkservicesProjectsLocationsLbTrafficExtensionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/lbTrafficExtensions/{lbTrafficExtensionsId}
@@ -9466,7 +9468,7 @@ pub fn networkservices_projects_locations_lb_traffic_extensions_patch(
 pub fn networkservices_projects_locations_meshes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    meshId: &Option<Option<String>>,
+    meshId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9606,7 +9608,7 @@ pub struct NetworkservicesProjectsLocationsMeshesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: meshId
-    pub meshId: Option<Option<String>>,
+    pub meshId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/meshes
@@ -9964,9 +9966,9 @@ pub fn networkservices_projects_locations_meshes_get(
 pub fn networkservices_projects_locations_meshes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10114,11 +10116,11 @@ pub struct NetworkservicesProjectsLocationsMeshesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/meshes
@@ -10160,7 +10162,7 @@ pub fn networkservices_projects_locations_meshes_list(
 pub fn networkservices_projects_locations_meshes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10300,7 +10302,7 @@ pub struct NetworkservicesProjectsLocationsMeshesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}
@@ -10503,8 +10505,8 @@ pub fn networkservices_projects_locations_meshes_route_views_get(
 pub fn networkservices_projects_locations_meshes_route_views_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10651,9 +10653,9 @@ pub struct NetworkservicesProjectsLocationsMeshesRouteViewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/meshes/{meshesId}/routeViews
@@ -11176,10 +11178,10 @@ pub fn networkservices_projects_locations_operations_get(
 pub fn networkservices_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11330,13 +11332,13 @@ pub struct NetworkservicesProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -11379,7 +11381,7 @@ pub fn networkservices_projects_locations_operations_list(
 pub fn networkservices_projects_locations_service_bindings_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    serviceBindingId: &Option<Option<String>>,
+    serviceBindingId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11519,7 +11521,7 @@ pub struct NetworkservicesProjectsLocationsServiceBindingsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: serviceBindingId
-    pub serviceBindingId: Option<Option<String>>,
+    pub serviceBindingId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/serviceBindings
@@ -11883,8 +11885,8 @@ pub fn networkservices_projects_locations_service_bindings_get(
 pub fn networkservices_projects_locations_service_bindings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12031,9 +12033,9 @@ pub struct NetworkservicesProjectsLocationsServiceBindingsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceBindings
@@ -12076,7 +12078,7 @@ pub fn networkservices_projects_locations_service_bindings_list(
 pub fn networkservices_projects_locations_service_bindings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12216,7 +12218,7 @@ pub struct NetworkservicesProjectsLocationsServiceBindingsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/serviceBindings/{serviceBindingsId}
@@ -12254,7 +12256,7 @@ pub fn networkservices_projects_locations_service_bindings_patch(
 pub fn networkservices_projects_locations_service_lb_policies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    serviceLbPolicyId: &Option<Option<String>>,
+    serviceLbPolicyId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12394,7 +12396,7 @@ pub struct NetworkservicesProjectsLocationsServiceLbPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: serviceLbPolicyId
-    pub serviceLbPolicyId: Option<Option<String>>,
+    pub serviceLbPolicyId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies
@@ -12758,8 +12760,8 @@ pub fn networkservices_projects_locations_service_lb_policies_get(
 pub fn networkservices_projects_locations_service_lb_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12906,9 +12908,9 @@ pub struct NetworkservicesProjectsLocationsServiceLbPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies
@@ -12951,7 +12953,7 @@ pub fn networkservices_projects_locations_service_lb_policies_list(
 pub fn networkservices_projects_locations_service_lb_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13091,7 +13093,7 @@ pub struct NetworkservicesProjectsLocationsServiceLbPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/serviceLbPolicies/{serviceLbPoliciesId}
@@ -13129,7 +13131,7 @@ pub fn networkservices_projects_locations_service_lb_policies_patch(
 pub fn networkservices_projects_locations_tcp_routes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    tcpRouteId: &Option<Option<String>>,
+    tcpRouteId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13269,7 +13271,7 @@ pub struct NetworkservicesProjectsLocationsTcpRoutesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: tcpRouteId
-    pub tcpRouteId: Option<Option<String>>,
+    pub tcpRouteId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes
@@ -13627,9 +13629,9 @@ pub fn networkservices_projects_locations_tcp_routes_get(
 pub fn networkservices_projects_locations_tcp_routes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13777,11 +13779,11 @@ pub struct NetworkservicesProjectsLocationsTcpRoutesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes
@@ -13823,7 +13825,7 @@ pub fn networkservices_projects_locations_tcp_routes_list(
 pub fn networkservices_projects_locations_tcp_routes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13963,7 +13965,7 @@ pub struct NetworkservicesProjectsLocationsTcpRoutesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tcpRoutes/{tcpRoutesId}
@@ -14001,7 +14003,7 @@ pub fn networkservices_projects_locations_tcp_routes_patch(
 pub fn networkservices_projects_locations_tls_routes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    tlsRouteId: &Option<Option<String>>,
+    tlsRouteId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14141,7 +14143,7 @@ pub struct NetworkservicesProjectsLocationsTlsRoutesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: tlsRouteId
-    pub tlsRouteId: Option<Option<String>>,
+    pub tlsRouteId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes
@@ -14499,9 +14501,9 @@ pub fn networkservices_projects_locations_tls_routes_get(
 pub fn networkservices_projects_locations_tls_routes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14649,11 +14651,11 @@ pub struct NetworkservicesProjectsLocationsTlsRoutesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes
@@ -14695,7 +14697,7 @@ pub fn networkservices_projects_locations_tls_routes_list(
 pub fn networkservices_projects_locations_tls_routes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14835,7 +14837,7 @@ pub struct NetworkservicesProjectsLocationsTlsRoutesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tlsRoutes/{tlsRoutesId}
@@ -14873,7 +14875,7 @@ pub fn networkservices_projects_locations_tls_routes_patch(
 pub fn networkservices_projects_locations_wasm_plugins_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    wasmPluginId: &Option<Option<String>>,
+    wasmPluginId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15013,7 +15015,7 @@ pub struct NetworkservicesProjectsLocationsWasmPluginsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: wasmPluginId
-    pub wasmPluginId: Option<Option<String>>,
+    pub wasmPluginId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins
@@ -15212,7 +15214,7 @@ pub fn networkservices_projects_locations_wasm_plugins_delete(
 pub fn networkservices_projects_locations_wasm_plugins_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15352,7 +15354,7 @@ pub struct NetworkservicesProjectsLocationsWasmPluginsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
@@ -15388,8 +15390,8 @@ pub fn networkservices_projects_locations_wasm_plugins_get(
 pub fn networkservices_projects_locations_wasm_plugins_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15534,9 +15536,9 @@ pub struct NetworkservicesProjectsLocationsWasmPluginsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins
@@ -15577,7 +15579,7 @@ pub fn networkservices_projects_locations_wasm_plugins_list(
 pub fn networkservices_projects_locations_wasm_plugins_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15717,7 +15719,7 @@ pub struct NetworkservicesProjectsLocationsWasmPluginsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}
@@ -15755,7 +15757,7 @@ pub fn networkservices_projects_locations_wasm_plugins_patch(
 pub fn networkservices_projects_locations_wasm_plugins_versions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    wasmPluginVersionId: &Option<Option<String>>,
+    wasmPluginVersionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15895,7 +15897,7 @@ pub struct NetworkservicesProjectsLocationsWasmPluginsVersionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: wasmPluginVersionId
-    pub wasmPluginVersionId: Option<Option<String>>,
+    pub wasmPluginVersionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions
@@ -16260,8 +16262,8 @@ pub fn networkservices_projects_locations_wasm_plugins_versions_get(
 pub fn networkservices_projects_locations_wasm_plugins_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16408,9 +16410,9 @@ pub struct NetworkservicesProjectsLocationsWasmPluginsVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/wasmPlugins/{wasmPluginsId}/versions

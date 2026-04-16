@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -194,7 +196,7 @@ pub fn storagetransfer_google_service_accounts_get(
 pub fn storagetransfer_projects_agent_pools_create_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    agentPoolId: &Option<Option<String>>,
+    agentPoolId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -334,7 +336,7 @@ pub struct StoragetransferProjectsAgentPoolsCreateArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: agentPoolId
-    pub agentPoolId: Option<Option<String>>,
+    pub agentPoolId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/agentPools
@@ -692,9 +694,9 @@ pub fn storagetransfer_projects_agent_pools_get(
 pub fn storagetransfer_projects_agent_pools_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -842,11 +844,11 @@ pub struct StoragetransferProjectsAgentPoolsListArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/agentPools
@@ -888,7 +890,7 @@ pub fn storagetransfer_projects_agent_pools_list(
 pub fn storagetransfer_projects_agent_pools_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1028,7 +1030,7 @@ pub struct StoragetransferProjectsAgentPoolsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/agentPools/{agentPoolsId}
@@ -1211,7 +1213,7 @@ pub fn storagetransfer_transfer_jobs_create(
 pub fn storagetransfer_transfer_jobs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     jobName: &String,
-    projectId: &Option<Option<String>>,
+    projectId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1351,7 +1353,7 @@ pub struct StoragetransferTransferJobsDeleteArgs {
     /// Path parameter: jobName
     pub jobName: String,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
 }
 
 /// DELETE v1/transferJobs/{transferJobsId}
@@ -1386,7 +1388,7 @@ pub fn storagetransfer_transfer_jobs_delete(
 pub fn storagetransfer_transfer_jobs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     jobName: &String,
-    projectId: &Option<Option<String>>,
+    projectId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1526,7 +1528,7 @@ pub struct StoragetransferTransferJobsGetArgs {
     /// Path parameter: jobName
     pub jobName: String,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
 }
 
 /// GET v1/transferJobs/{transferJobsId}
@@ -1560,9 +1562,9 @@ pub fn storagetransfer_transfer_jobs_get(
 
 pub fn storagetransfer_transfer_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1705,11 +1707,11 @@ pub fn storagetransfer_transfer_jobs_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StoragetransferTransferJobsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/transferJobs
@@ -2389,10 +2391,10 @@ pub fn storagetransfer_transfer_operations_get(
 
 pub fn storagetransfer_transfer_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2538,13 +2540,13 @@ pub fn storagetransfer_transfer_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StoragetransferTransferOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/transferOperations
@@ -3034,29 +3036,6 @@ impl ResourceIdentifier<StoragetransferProjectsAgentPoolsPatchArgs> for AgentPoo
 
     fn resource_kind(&self) -> &'static str {
         "gcp::storagetransfer::AgentPool"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TransferJob
-// =============================================================================
-
-/// ResourceIdentifier implementation for TransferJob with StoragetransferTransferJobsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<StoragetransferTransferJobsCreateArgs> for TransferJob {
-    fn generate_resource_id(&self, input: &StoragetransferTransferJobsCreateArgs) -> String {
-        "gcp::storagetransfer::TransferJob".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::storagetransfer::TransferJob"
     }
 
     fn provider(&self) -> &'static str {

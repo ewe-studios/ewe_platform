@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -362,7 +364,7 @@ pub fn cloudkms_folders_get_kaj_policy_config(
 pub fn cloudkms_folders_update_autokey_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -504,7 +506,7 @@ pub struct CloudkmsFoldersUpdateAutokeyConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/folders/{foldersId}/autokeyConfig
@@ -541,7 +543,7 @@ pub fn cloudkms_folders_update_autokey_config(
 pub fn cloudkms_folders_update_kaj_policy_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -685,7 +687,7 @@ pub struct CloudkmsFoldersUpdateKajPolicyConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/folders/{foldersId}/kajPolicyConfig
@@ -892,7 +894,7 @@ pub fn cloudkms_organizations_get_kaj_policy_config(
 pub fn cloudkms_organizations_update_kaj_policy_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1036,7 +1038,7 @@ pub struct CloudkmsOrganizationsUpdateKajPolicyConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/kajPolicyConfig
@@ -1943,7 +1945,7 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_policy_config(
 pub fn cloudkms_projects_update_autokey_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2085,7 +2087,7 @@ pub struct CloudkmsProjectsUpdateAutokeyConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/autokeyConfig
@@ -2122,7 +2124,7 @@ pub fn cloudkms_projects_update_autokey_config(
 pub fn cloudkms_projects_update_kaj_policy_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2266,7 +2268,7 @@ pub struct CloudkmsProjectsUpdateKajPolicyConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/kajPolicyConfig
@@ -2794,10 +2796,10 @@ pub fn cloudkms_projects_locations_get_ekm_config(
 pub fn cloudkms_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2948,13 +2950,13 @@ pub struct CloudkmsProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -2997,7 +2999,7 @@ pub fn cloudkms_projects_locations_list(
 pub fn cloudkms_projects_locations_update_ekm_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3137,7 +3139,7 @@ pub struct CloudkmsProjectsLocationsUpdateEkmConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/ekmConfig
@@ -3175,7 +3177,7 @@ pub fn cloudkms_projects_locations_update_ekm_config(
 pub fn cloudkms_projects_locations_ekm_config_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3315,7 +3317,7 @@ pub struct CloudkmsProjectsLocationsEkmConfigGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConfig:getIamPolicy
@@ -3685,7 +3687,7 @@ pub fn cloudkms_projects_locations_ekm_config_test_iam_permissions(
 pub fn cloudkms_projects_locations_ekm_connections_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    ekmConnectionId: &Option<Option<String>>,
+    ekmConnectionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3827,7 +3829,7 @@ pub struct CloudkmsProjectsLocationsEkmConnectionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: ekmConnectionId
-    pub ekmConnectionId: Option<Option<String>>,
+    pub ekmConnectionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/ekmConnections
@@ -4031,7 +4033,7 @@ pub fn cloudkms_projects_locations_ekm_connections_get(
 pub fn cloudkms_projects_locations_ekm_connections_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4171,7 +4173,7 @@ pub struct CloudkmsProjectsLocationsEkmConnectionsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}:getIamPolicy
@@ -4209,10 +4211,10 @@ pub fn cloudkms_projects_locations_ekm_connections_get_iam_policy(
 pub fn cloudkms_projects_locations_ekm_connections_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4365,13 +4367,13 @@ pub struct CloudkmsProjectsLocationsEkmConnectionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConnections
@@ -4416,7 +4418,7 @@ pub fn cloudkms_projects_locations_ekm_connections_list(
 pub fn cloudkms_projects_locations_ekm_connections_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4558,7 +4560,7 @@ pub struct CloudkmsProjectsLocationsEkmConnectionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}
@@ -5100,7 +5102,7 @@ pub fn cloudkms_projects_locations_ekm_connections_verify_connectivity(
 pub fn cloudkms_projects_locations_key_handles_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    keyHandleId: &Option<Option<String>>,
+    keyHandleId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5240,7 +5242,7 @@ pub struct CloudkmsProjectsLocationsKeyHandlesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: keyHandleId
-    pub keyHandleId: Option<Option<String>>,
+    pub keyHandleId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/keyHandles
@@ -5438,9 +5440,9 @@ pub fn cloudkms_projects_locations_key_handles_get(
 pub fn cloudkms_projects_locations_key_handles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5588,11 +5590,11 @@ pub struct CloudkmsProjectsLocationsKeyHandlesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyHandles
@@ -5634,7 +5636,7 @@ pub fn cloudkms_projects_locations_key_handles_list(
 pub fn cloudkms_projects_locations_key_rings_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    keyRingId: &Option<Option<String>>,
+    keyRingId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5774,7 +5776,7 @@ pub struct CloudkmsProjectsLocationsKeyRingsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: keyRingId
-    pub keyRingId: Option<Option<String>>,
+    pub keyRingId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/keyRings
@@ -5972,7 +5974,7 @@ pub fn cloudkms_projects_locations_key_rings_get(
 pub fn cloudkms_projects_locations_key_rings_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6112,7 +6114,7 @@ pub struct CloudkmsProjectsLocationsKeyRingsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}:getIamPolicy
@@ -6150,10 +6152,10 @@ pub fn cloudkms_projects_locations_key_rings_get_iam_policy(
 pub fn cloudkms_projects_locations_key_rings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6304,13 +6306,13 @@ pub struct CloudkmsProjectsLocationsKeyRingsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings
@@ -6683,8 +6685,8 @@ pub fn cloudkms_projects_locations_key_rings_test_iam_permissions(
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    cryptoKeyId: &Option<Option<String>>,
-    skipInitialVersionCreation: &Option<Option<String>>,
+    cryptoKeyId: &Option<String>,
+    skipInitialVersionCreation: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6827,9 +6829,9 @@ pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: cryptoKeyId
-    pub cryptoKeyId: Option<Option<String>>,
+    pub cryptoKeyId: Option<String>,
     /// Query parameter: skipInitialVersionCreation
-    pub skipInitialVersionCreation: Option<Option<String>>,
+    pub skipInitialVersionCreation: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys
@@ -7520,7 +7522,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_get(
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7660,7 +7662,7 @@ pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}:getIamPolicy
@@ -7698,11 +7700,11 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_get_iam_policy(
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    versionView: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    versionView: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7856,15 +7858,15 @@ pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: versionView
-    pub versionView: Option<Option<String>>,
+    pub versionView: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys
@@ -7908,7 +7910,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_list(
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8048,7 +8050,7 @@ pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}
@@ -9769,7 +9771,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    publicKeyFormat: &Option<Option<String>>,
+    publicKeyFormat: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9912,7 +9914,7 @@ pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsGetPublic
     /// Path parameter: name
     pub name: String,
     /// Query parameter: publicKeyFormat
-    pub publicKeyFormat: Option<Option<String>>,
+    pub publicKeyFormat: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}/publicKey
@@ -10117,11 +10119,11 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_imp
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10278,15 +10280,15 @@ pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions
@@ -10674,7 +10676,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10817,7 +10819,7 @@ pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsPatchArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}
@@ -11375,7 +11377,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_res
 pub fn cloudkms_projects_locations_key_rings_import_jobs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    importJobId: &Option<Option<String>>,
+    importJobId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11515,7 +11517,7 @@ pub struct CloudkmsProjectsLocationsKeyRingsImportJobsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: importJobId
-    pub importJobId: Option<Option<String>>,
+    pub importJobId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs
@@ -11714,7 +11716,7 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_get(
 pub fn cloudkms_projects_locations_key_rings_import_jobs_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11854,7 +11856,7 @@ pub struct CloudkmsProjectsLocationsKeyRingsImportJobsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs/{importJobsId}:getIamPolicy
@@ -11892,10 +11894,10 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_get_iam_policy(
 pub fn cloudkms_projects_locations_key_rings_import_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12046,13 +12048,13 @@ pub struct CloudkmsProjectsLocationsKeyRingsImportJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs
@@ -12754,8 +12756,8 @@ pub fn cloudkms_projects_locations_retired_resources_get(
 pub fn cloudkms_projects_locations_retired_resources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12902,9 +12904,9 @@ pub struct CloudkmsProjectsLocationsRetiredResourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/retiredResources
@@ -12947,7 +12949,7 @@ pub fn cloudkms_projects_locations_retired_resources_list(
 pub fn cloudkms_projects_locations_single_tenant_hsm_instances_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    singleTenantHsmInstanceId: &Option<Option<String>>,
+    singleTenantHsmInstanceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13087,7 +13089,7 @@ pub struct CloudkmsProjectsLocationsSingleTenantHsmInstancesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: singleTenantHsmInstanceId
-    pub singleTenantHsmInstanceId: Option<Option<String>>,
+    pub singleTenantHsmInstanceId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/singleTenantHsmInstances
@@ -13290,11 +13292,11 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_get(
 pub fn cloudkms_projects_locations_single_tenant_hsm_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13450,15 +13452,15 @@ pub struct CloudkmsProjectsLocationsSingleTenantHsmInstancesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/singleTenantHsmInstances
@@ -13677,7 +13679,7 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_approve
 pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    singleTenantHsmInstanceProposalId: &Option<Option<String>>,
+    singleTenantHsmInstanceProposalId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13818,7 +13820,7 @@ pub struct CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsCreateArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: singleTenantHsmInstanceProposalId
-    pub singleTenantHsmInstanceProposalId: Option<Option<String>>,
+    pub singleTenantHsmInstanceProposalId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals
@@ -14353,11 +14355,11 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_get(
 pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14515,15 +14517,15 @@ pub struct CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals

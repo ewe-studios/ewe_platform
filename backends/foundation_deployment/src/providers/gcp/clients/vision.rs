@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -1271,10 +1273,10 @@ pub fn vision_operations_get(
 
 pub fn vision_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1420,13 +1422,13 @@ pub fn vision_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VisionOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/operations
@@ -3102,7 +3104,7 @@ pub fn vision_projects_locations_product_sets_add_product(
 pub fn vision_projects_locations_product_sets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    productSetId: &Option<Option<String>>,
+    productSetId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3242,7 +3244,7 @@ pub struct VisionProjectsLocationsProductSetsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: productSetId
-    pub productSetId: Option<Option<String>>,
+    pub productSetId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/productSets
@@ -3760,8 +3762,8 @@ pub fn vision_projects_locations_product_sets_import(
 pub fn vision_projects_locations_product_sets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3906,9 +3908,9 @@ pub struct VisionProjectsLocationsProductSetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/productSets
@@ -3949,7 +3951,7 @@ pub fn vision_projects_locations_product_sets_list(
 pub fn vision_projects_locations_product_sets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4089,7 +4091,7 @@ pub struct VisionProjectsLocationsProductSetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}
@@ -4285,8 +4287,8 @@ pub fn vision_projects_locations_product_sets_remove_product(
 pub fn vision_projects_locations_product_sets_products_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4433,9 +4435,9 @@ pub struct VisionProjectsLocationsProductSetsProductsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/productSets/{productSetsId}/products
@@ -4478,7 +4480,7 @@ pub fn vision_projects_locations_product_sets_products_list(
 pub fn vision_projects_locations_products_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    productId: &Option<Option<String>>,
+    productId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4618,7 +4620,7 @@ pub struct VisionProjectsLocationsProductsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: productId
-    pub productId: Option<Option<String>>,
+    pub productId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/products
@@ -4973,8 +4975,8 @@ pub fn vision_projects_locations_products_get(
 pub fn vision_projects_locations_products_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5119,9 +5121,9 @@ pub struct VisionProjectsLocationsProductsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products
@@ -5162,7 +5164,7 @@ pub fn vision_projects_locations_products_list(
 pub fn vision_projects_locations_products_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5302,7 +5304,7 @@ pub struct VisionProjectsLocationsProductsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}
@@ -5497,7 +5499,7 @@ pub fn vision_projects_locations_products_purge(
 pub fn vision_projects_locations_products_reference_images_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    referenceImageId: &Option<Option<String>>,
+    referenceImageId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5639,7 +5641,7 @@ pub struct VisionProjectsLocationsProductsReferenceImagesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: referenceImageId
-    pub referenceImageId: Option<Option<String>>,
+    pub referenceImageId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages
@@ -6005,8 +6007,8 @@ pub fn vision_projects_locations_products_reference_images_get(
 pub fn vision_projects_locations_products_reference_images_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6153,9 +6155,9 @@ pub struct VisionProjectsLocationsProductsReferenceImagesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/referenceImages
@@ -6347,98 +6349,6 @@ pub fn vision_projects_operations_get(
 > {
     let builder = vision_projects_operations_get_builder(client, &args.name)?;
     vision_projects_operations_get_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BatchAnnotateFilesResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for BatchAnnotateFilesResponse with VisionFilesAnnotateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<VisionFilesAnnotateArgs> for BatchAnnotateFilesResponse {
-    fn generate_resource_id(&self, input: &VisionFilesAnnotateArgs) -> String {
-        "gcp::vision::BatchAnnotateFilesResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::vision::BatchAnnotateFilesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Operation with VisionFilesAsyncBatchAnnotateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<VisionFilesAsyncBatchAnnotateArgs> for Operation {
-    fn generate_resource_id(&self, input: &VisionFilesAsyncBatchAnnotateArgs) -> String {
-        "gcp::vision::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::vision::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BatchAnnotateImagesResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for BatchAnnotateImagesResponse with VisionImagesAnnotateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<VisionImagesAnnotateArgs> for BatchAnnotateImagesResponse {
-    fn generate_resource_id(&self, input: &VisionImagesAnnotateArgs) -> String {
-        "gcp::vision::BatchAnnotateImagesResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::vision::BatchAnnotateImagesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Operation with VisionImagesAsyncBatchAnnotateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<VisionImagesAsyncBatchAnnotateArgs> for Operation {
-    fn generate_resource_id(&self, input: &VisionImagesAsyncBatchAnnotateArgs) -> String {
-        "gcp::vision::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::vision::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================

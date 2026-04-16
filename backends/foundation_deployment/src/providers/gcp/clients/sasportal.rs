@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -193,8 +195,8 @@ pub fn sasportal_customers_get(
 
 pub fn sasportal_customers_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -336,9 +338,9 @@ pub fn sasportal_customers_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SasportalCustomersListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/customers
@@ -844,7 +846,7 @@ pub fn sasportal_customers_migrate_organization(
 pub fn sasportal_customers_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -986,7 +988,7 @@ pub struct SasportalCustomersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1alpha1/customers/{customersId}
@@ -1824,9 +1826,9 @@ pub fn sasportal_customers_deployments_get(
 pub fn sasportal_customers_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1976,11 +1978,11 @@ pub struct SasportalCustomersDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/customers/{customersId}/deployments
@@ -2188,7 +2190,7 @@ pub fn sasportal_customers_deployments_move(
 pub fn sasportal_customers_deployments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2330,7 +2332,7 @@ pub struct SasportalCustomersDeploymentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1alpha1/customers/{customersId}/deployments/{deploymentsId}
@@ -2696,9 +2698,9 @@ pub fn sasportal_customers_deployments_devices_create_signed(
 pub fn sasportal_customers_deployments_devices_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2848,11 +2850,11 @@ pub struct SasportalCustomersDeploymentsDevicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices
@@ -3552,9 +3554,9 @@ pub fn sasportal_customers_devices_get(
 pub fn sasportal_customers_devices_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3704,11 +3706,11 @@ pub struct SasportalCustomersDevicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/customers/{customersId}/devices
@@ -3916,7 +3918,7 @@ pub fn sasportal_customers_devices_move(
 pub fn sasportal_customers_devices_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4058,7 +4060,7 @@ pub struct SasportalCustomersDevicesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1alpha1/customers/{customersId}/devices/{devicesId}
@@ -4914,9 +4916,9 @@ pub fn sasportal_customers_nodes_get(
 pub fn sasportal_customers_nodes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5066,11 +5068,11 @@ pub struct SasportalCustomersNodesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/customers/{customersId}/nodes
@@ -5278,7 +5280,7 @@ pub fn sasportal_customers_nodes_move(
 pub fn sasportal_customers_nodes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5420,7 +5422,7 @@ pub struct SasportalCustomersNodesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1alpha1/customers/{customersId}/nodes/{nodesId}
@@ -5620,9 +5622,9 @@ pub fn sasportal_customers_nodes_deployments_create(
 pub fn sasportal_customers_nodes_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5772,11 +5774,11 @@ pub struct SasportalCustomersNodesDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/deployments
@@ -6148,9 +6150,9 @@ pub fn sasportal_customers_nodes_devices_create_signed(
 pub fn sasportal_customers_nodes_devices_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6300,11 +6302,11 @@ pub struct SasportalCustomersNodesDevicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/devices
@@ -6512,9 +6514,9 @@ pub fn sasportal_customers_nodes_nodes_create(
 pub fn sasportal_customers_nodes_nodes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6664,11 +6666,11 @@ pub struct SasportalCustomersNodesNodesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/nodes
@@ -7368,7 +7370,7 @@ pub fn sasportal_deployments_devices_move(
 pub fn sasportal_deployments_devices_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7510,7 +7512,7 @@ pub struct SasportalDeploymentsDevicesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
@@ -8677,9 +8679,9 @@ pub fn sasportal_nodes_deployments_get(
 pub fn sasportal_nodes_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8829,11 +8831,11 @@ pub struct SasportalNodesDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/nodes/{nodesId}/deployments
@@ -9041,7 +9043,7 @@ pub fn sasportal_nodes_deployments_move(
 pub fn sasportal_nodes_deployments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9183,7 +9185,7 @@ pub struct SasportalNodesDeploymentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
@@ -9547,9 +9549,9 @@ pub fn sasportal_nodes_deployments_devices_create_signed(
 pub fn sasportal_nodes_deployments_devices_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9699,11 +9701,11 @@ pub struct SasportalNodesDeploymentsDevicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices
@@ -10403,9 +10405,9 @@ pub fn sasportal_nodes_devices_get(
 pub fn sasportal_nodes_devices_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10555,11 +10557,11 @@ pub struct SasportalNodesDevicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/nodes/{nodesId}/devices
@@ -10767,7 +10769,7 @@ pub fn sasportal_nodes_devices_move(
 pub fn sasportal_nodes_devices_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10909,7 +10911,7 @@ pub struct SasportalNodesDevicesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1alpha1/nodes/{nodesId}/devices/{devicesId}
@@ -11765,9 +11767,9 @@ pub fn sasportal_nodes_nodes_get(
 pub fn sasportal_nodes_nodes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11917,11 +11919,11 @@ pub struct SasportalNodesNodesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/nodes/{nodesId}/nodes
@@ -12129,7 +12131,7 @@ pub fn sasportal_nodes_nodes_move(
 pub fn sasportal_nodes_nodes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12271,7 +12273,7 @@ pub struct SasportalNodesNodesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
@@ -12471,9 +12473,9 @@ pub fn sasportal_nodes_nodes_deployments_create(
 pub fn sasportal_nodes_nodes_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12623,11 +12625,11 @@ pub struct SasportalNodesNodesDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/deployments
@@ -12999,9 +13001,9 @@ pub fn sasportal_nodes_nodes_devices_create_signed(
 pub fn sasportal_nodes_nodes_devices_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13151,11 +13153,11 @@ pub struct SasportalNodesNodesDevicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices
@@ -13363,9 +13365,9 @@ pub fn sasportal_nodes_nodes_nodes_create(
 pub fn sasportal_nodes_nodes_nodes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13515,11 +13517,11 @@ pub struct SasportalNodesNodesNodesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/nodes
@@ -14061,85 +14063,6 @@ impl ResourceIdentifier<SasportalCustomersListArgs> for SasPortalListCustomersRe
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for SasPortalListGcpProjectDeploymentsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SasPortalListGcpProjectDeploymentsResponse with SasportalCustomersListGcpProjectDeploymentsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SasportalCustomersListGcpProjectDeploymentsArgs>
-    for SasPortalListGcpProjectDeploymentsResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &SasportalCustomersListGcpProjectDeploymentsArgs,
-    ) -> String {
-        "gcp::sasportal::SasPortalListGcpProjectDeploymentsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::sasportal::SasPortalListGcpProjectDeploymentsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SasPortalListLegacyOrganizationsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SasPortalListLegacyOrganizationsResponse with SasportalCustomersListLegacyOrganizationsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SasportalCustomersListLegacyOrganizationsArgs>
-    for SasPortalListLegacyOrganizationsResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &SasportalCustomersListLegacyOrganizationsArgs,
-    ) -> String {
-        "gcp::sasportal::SasPortalListLegacyOrganizationsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::sasportal::SasPortalListLegacyOrganizationsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SasPortalOperation
-// =============================================================================
-
-/// ResourceIdentifier implementation for SasPortalOperation with SasportalCustomersMigrateOrganizationArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SasportalCustomersMigrateOrganizationArgs> for SasPortalOperation {
-    fn generate_resource_id(&self, input: &SasportalCustomersMigrateOrganizationArgs) -> String {
-        "gcp::sasportal::SasPortalOperation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::sasportal::SasPortalOperation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for SasPortalCustomer
 // =============================================================================
 
@@ -14155,54 +14078,6 @@ impl ResourceIdentifier<SasportalCustomersPatchArgs> for SasPortalCustomer {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::sasportal::SasPortalCustomer"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SasPortalProvisionDeploymentResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SasPortalProvisionDeploymentResponse with SasportalCustomersProvisionDeploymentArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SasportalCustomersProvisionDeploymentArgs>
-    for SasPortalProvisionDeploymentResponse
-{
-    fn generate_resource_id(&self, input: &SasportalCustomersProvisionDeploymentArgs) -> String {
-        "gcp::sasportal::SasPortalProvisionDeploymentResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::sasportal::SasPortalProvisionDeploymentResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SasPortalOperation
-// =============================================================================
-
-/// ResourceIdentifier implementation for SasPortalOperation with SasportalCustomersSetupSasAnalyticsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SasportalCustomersSetupSasAnalyticsArgs> for SasPortalOperation {
-    fn generate_resource_id(&self, input: &SasportalCustomersSetupSasAnalyticsArgs) -> String {
-        "gcp::sasportal::SasPortalOperation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::sasportal::SasPortalOperation"
     }
 
     fn provider(&self) -> &'static str {
@@ -15121,52 +14996,6 @@ impl ResourceIdentifier<SasportalDeploymentsDevicesUpdateSignedArgs> for SasPort
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for SasPortalGenerateSecretResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SasPortalGenerateSecretResponse with SasportalInstallerGenerateSecretArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SasportalInstallerGenerateSecretArgs> for SasPortalGenerateSecretResponse {
-    fn generate_resource_id(&self, input: &SasportalInstallerGenerateSecretArgs) -> String {
-        "gcp::sasportal::SasPortalGenerateSecretResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::sasportal::SasPortalGenerateSecretResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SasPortalValidateInstallerResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SasPortalValidateInstallerResponse with SasportalInstallerValidateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SasportalInstallerValidateArgs> for SasPortalValidateInstallerResponse {
-    fn generate_resource_id(&self, input: &SasportalInstallerValidateArgs) -> String {
-        "gcp::sasportal::SasPortalValidateInstallerResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::sasportal::SasPortalValidateInstallerResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for SasPortalNode
 // =============================================================================
 
@@ -15898,75 +15727,6 @@ impl ResourceIdentifier<SasportalNodesNodesNodesListArgs> for SasPortalListNodes
 
     fn resource_kind(&self) -> &'static str {
         "gcp::sasportal::SasPortalListNodesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SasPortalPolicy
-// =============================================================================
-
-/// ResourceIdentifier implementation for SasPortalPolicy with SasportalPoliciesGetArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SasportalPoliciesGetArgs> for SasPortalPolicy {
-    fn generate_resource_id(&self, input: &SasportalPoliciesGetArgs) -> String {
-        "gcp::sasportal::SasPortalPolicy".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::sasportal::SasPortalPolicy"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SasPortalPolicy
-// =============================================================================
-
-/// ResourceIdentifier implementation for SasPortalPolicy with SasportalPoliciesSetArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SasportalPoliciesSetArgs> for SasPortalPolicy {
-    fn generate_resource_id(&self, input: &SasportalPoliciesSetArgs) -> String {
-        "gcp::sasportal::SasPortalPolicy".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::sasportal::SasPortalPolicy"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SasPortalTestPermissionsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SasPortalTestPermissionsResponse with SasportalPoliciesTestArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SasportalPoliciesTestArgs> for SasPortalTestPermissionsResponse {
-    fn generate_resource_id(&self, input: &SasportalPoliciesTestArgs) -> String {
-        "gcp::sasportal::SasPortalTestPermissionsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::sasportal::SasPortalTestPermissionsResponse"
     }
 
     fn provider(&self) -> &'static str {

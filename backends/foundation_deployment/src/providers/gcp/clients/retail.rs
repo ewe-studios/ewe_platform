@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,14 +32,14 @@ use serde::Serialize;
 pub fn retail_projects_locations_catalogs_complete_query_builder<R>(
     client: &SimpleHttpClient<R>,
     catalog: &String,
-    dataset: &Option<Option<String>>,
-    deviceType: &Option<Option<String>>,
-    enableAttributeSuggestions: &Option<Option<String>>,
-    entity: &Option<Option<String>>,
-    languageCodes: &Option<Option<String>>,
-    maxSuggestions: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    visitorId: &Option<Option<String>>,
+    dataset: &Option<String>,
+    deviceType: &Option<String>,
+    enableAttributeSuggestions: &Option<String>,
+    entity: &Option<String>,
+    languageCodes: &Option<String>,
+    maxSuggestions: &Option<String>,
+    query: &Option<String>,
+    visitorId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -202,21 +204,21 @@ pub struct RetailProjectsLocationsCatalogsCompleteQueryArgs {
     /// Path parameter: catalog
     pub catalog: String,
     /// Query parameter: dataset
-    pub dataset: Option<Option<String>>,
+    pub dataset: Option<String>,
     /// Query parameter: deviceType
-    pub deviceType: Option<Option<String>>,
+    pub deviceType: Option<String>,
     /// Query parameter: enableAttributeSuggestions
-    pub enableAttributeSuggestions: Option<Option<String>>,
+    pub enableAttributeSuggestions: Option<String>,
     /// Query parameter: entity
-    pub entity: Option<Option<String>>,
+    pub entity: Option<String>,
     /// Query parameter: languageCodes
-    pub languageCodes: Option<Option<String>>,
+    pub languageCodes: Option<String>,
     /// Query parameter: maxSuggestions
-    pub maxSuggestions: Option<Option<String>>,
+    pub maxSuggestions: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: visitorId
-    pub visitorId: Option<Option<String>>,
+    pub visitorId: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}:completeQuery
@@ -1305,8 +1307,8 @@ pub fn retail_projects_locations_catalogs_get_generative_question_feature(
 pub fn retail_projects_locations_catalogs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1454,9 +1456,9 @@ pub struct RetailProjectsLocationsCatalogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs
@@ -1499,7 +1501,7 @@ pub fn retail_projects_locations_catalogs_list(
 pub fn retail_projects_locations_catalogs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1643,7 +1645,7 @@ pub struct RetailProjectsLocationsCatalogsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}
@@ -1847,7 +1849,7 @@ pub fn retail_projects_locations_catalogs_set_default_branch(
 pub fn retail_projects_locations_catalogs_update_attributes_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1991,7 +1993,7 @@ pub struct RetailProjectsLocationsCatalogsUpdateAttributesConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/attributesConfig
@@ -2033,7 +2035,7 @@ pub fn retail_projects_locations_catalogs_update_attributes_config(
 pub fn retail_projects_locations_catalogs_update_completion_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2177,7 +2179,7 @@ pub struct RetailProjectsLocationsCatalogsUpdateCompletionConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/completionConfig
@@ -2221,7 +2223,7 @@ pub fn retail_projects_locations_catalogs_update_conversational_search_customiza
 >(
     client: &SimpleHttpClient<R>,
     catalog: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2375,7 +2377,7 @@ pub struct RetailProjectsLocationsCatalogsUpdateConversationalSearchCustomizatio
     /// Path parameter: catalog
     pub catalog: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/conversationalSearchCustomizationConfig
@@ -2418,7 +2420,7 @@ pub fn retail_projects_locations_catalogs_update_conversational_search_customiza
 pub fn retail_projects_locations_catalogs_update_generative_question_builder<R>(
     client: &SimpleHttpClient<R>,
     catalog: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2563,7 +2565,7 @@ pub struct RetailProjectsLocationsCatalogsUpdateGenerativeQuestionArgs {
     /// Path parameter: catalog
     pub catalog: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/generativeQuestion
@@ -2605,7 +2607,7 @@ pub fn retail_projects_locations_catalogs_update_generative_question(
 pub fn retail_projects_locations_catalogs_update_generative_question_feature_builder<R>(
     client: &SimpleHttpClient<R>,
     catalog: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2753,7 +2755,7 @@ pub struct RetailProjectsLocationsCatalogsUpdateGenerativeQuestionFeatureArgs {
     /// Path parameter: catalog
     pub catalog: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/generativeQuestionFeature
@@ -3831,7 +3833,7 @@ pub fn retail_projects_locations_catalogs_branches_products_add_local_inventorie
 pub fn retail_projects_locations_catalogs_branches_products_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    productId: &Option<Option<String>>,
+    productId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3975,7 +3977,7 @@ pub struct RetailProjectsLocationsCatalogsBranchesProductsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: productId
-    pub productId: Option<Option<String>>,
+    pub productId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products
@@ -4520,10 +4522,10 @@ pub fn retail_projects_locations_catalogs_branches_products_import(
 pub fn retail_projects_locations_catalogs_branches_products_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4677,13 +4679,13 @@ pub struct RetailProjectsLocationsCatalogsBranchesProductsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products
@@ -4728,8 +4730,8 @@ pub fn retail_projects_locations_catalogs_branches_products_list(
 pub fn retail_projects_locations_catalogs_branches_products_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4876,9 +4878,9 @@ pub struct RetailProjectsLocationsCatalogsBranchesProductsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}
@@ -5777,7 +5779,7 @@ pub fn retail_projects_locations_catalogs_completion_data_import(
 pub fn retail_projects_locations_catalogs_controls_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    controlId: &Option<Option<String>>,
+    controlId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5921,7 +5923,7 @@ pub struct RetailProjectsLocationsCatalogsControlsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: controlId
-    pub controlId: Option<Option<String>>,
+    pub controlId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/controls
@@ -6295,9 +6297,9 @@ pub fn retail_projects_locations_catalogs_controls_get(
 pub fn retail_projects_locations_catalogs_controls_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6448,11 +6450,11 @@ pub struct RetailProjectsLocationsCatalogsControlsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/controls
@@ -6496,7 +6498,7 @@ pub fn retail_projects_locations_catalogs_controls_list(
 pub fn retail_projects_locations_catalogs_controls_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6640,7 +6642,7 @@ pub struct RetailProjectsLocationsCatalogsControlsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/controls/{controlsId}
@@ -7042,7 +7044,7 @@ pub fn retail_projects_locations_catalogs_generative_questions_list(
 pub fn retail_projects_locations_catalogs_models_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dryRun: &Option<Option<String>>,
+    dryRun: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7186,7 +7188,7 @@ pub struct RetailProjectsLocationsCatalogsModelsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dryRun
-    pub dryRun: Option<Option<String>>,
+    pub dryRun: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/models
@@ -7556,8 +7558,8 @@ pub fn retail_projects_locations_catalogs_models_get(
 pub fn retail_projects_locations_catalogs_models_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7704,9 +7706,9 @@ pub struct RetailProjectsLocationsCatalogsModelsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/models
@@ -7749,7 +7751,7 @@ pub fn retail_projects_locations_catalogs_models_list(
 pub fn retail_projects_locations_catalogs_models_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7891,7 +7893,7 @@ pub struct RetailProjectsLocationsCatalogsModelsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/models/{modelsId}
@@ -8595,10 +8597,10 @@ pub fn retail_projects_locations_catalogs_operations_get(
 pub fn retail_projects_locations_catalogs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8752,13 +8754,13 @@ pub struct RetailProjectsLocationsCatalogsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations
@@ -9657,7 +9659,7 @@ pub fn retail_projects_locations_catalogs_serving_configs_conversational_search(
 pub fn retail_projects_locations_catalogs_serving_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    servingConfigId: &Option<Option<String>>,
+    servingConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9801,7 +9803,7 @@ pub struct RetailProjectsLocationsCatalogsServingConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: servingConfigId
-    pub servingConfigId: Option<Option<String>>,
+    pub servingConfigId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs
@@ -10177,8 +10179,8 @@ pub fn retail_projects_locations_catalogs_serving_configs_get(
 pub fn retail_projects_locations_catalogs_serving_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10326,9 +10328,9 @@ pub struct RetailProjectsLocationsCatalogsServingConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs
@@ -10371,7 +10373,7 @@ pub fn retail_projects_locations_catalogs_serving_configs_list(
 pub fn retail_projects_locations_catalogs_serving_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10515,7 +10517,7 @@ pub struct RetailProjectsLocationsCatalogsServingConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}
@@ -11740,7 +11742,7 @@ pub fn retail_projects_locations_catalogs_user_events_rejoin(
 pub fn retail_projects_locations_catalogs_user_events_write_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    writeAsync: &Option<Option<String>>,
+    writeAsync: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11884,7 +11886,7 @@ pub struct RetailProjectsLocationsCatalogsUserEventsWriteArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: writeAsync
-    pub writeAsync: Option<Option<String>>,
+    pub writeAsync: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/userEvents:write
@@ -12094,10 +12096,10 @@ pub fn retail_projects_locations_operations_get(
 pub fn retail_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12251,13 +12253,13 @@ pub struct RetailProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
@@ -12470,10 +12472,10 @@ pub fn retail_projects_operations_get(
 pub fn retail_projects_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12627,13 +12629,13 @@ pub struct RetailProjectsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/operations

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -307,50 +309,4 @@ pub fn oauth2_userinfo_v2_me_get(
 > {
     let builder = oauth2_userinfo_v2_me_get_builder(client)?;
     oauth2_userinfo_v2_me_get_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Userinfo
-// =============================================================================
-
-/// ResourceIdentifier implementation for Userinfo with Oauth2UserinfoGetArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<Oauth2UserinfoGetArgs> for Userinfo {
-    fn generate_resource_id(&self, input: &Oauth2UserinfoGetArgs) -> String {
-        "gcp::oauth2::Userinfo".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::oauth2::Userinfo"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Userinfo
-// =============================================================================
-
-/// ResourceIdentifier implementation for Userinfo with Oauth2UserinfoV2MeGetArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<Oauth2UserinfoV2MeGetArgs> for Userinfo {
-    fn generate_resource_id(&self, input: &Oauth2UserinfoV2MeGetArgs) -> String {
-        "gcp::oauth2::Userinfo".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::oauth2::Userinfo"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }

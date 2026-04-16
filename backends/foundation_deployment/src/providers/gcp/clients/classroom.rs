@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -655,11 +657,11 @@ pub fn classroom_courses_get_grading_period_settings(
 
 pub fn classroom_courses_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    courseStates: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    studentId: &Option<Option<String>>,
-    teacherId: &Option<Option<String>>,
+    courseStates: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    studentId: &Option<String>,
+    teacherId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -808,15 +810,15 @@ pub fn classroom_courses_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ClassroomCoursesListArgs {
     /// Query parameter: courseStates
-    pub courseStates: Option<Option<String>>,
+    pub courseStates: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: studentId
-    pub studentId: Option<Option<String>>,
+    pub studentId: Option<String>,
     /// Query parameter: teacherId
-    pub teacherId: Option<Option<String>>,
+    pub teacherId: Option<String>,
 }
 
 /// GET v1/courses
@@ -859,7 +861,7 @@ pub fn classroom_courses_list(
 pub fn classroom_courses_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -996,7 +998,7 @@ pub struct ClassroomCoursesPatchArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{id}
@@ -1187,7 +1189,7 @@ pub fn classroom_courses_update(
 pub fn classroom_courses_update_grading_period_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1329,7 +1331,7 @@ pub struct ClassroomCoursesUpdateGradingPeriodSettingsArgs {
     /// Path parameter: courseId
     pub courseId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/gradingPeriodSettings
@@ -1692,8 +1694,8 @@ pub fn classroom_courses_aliases_delete(
 pub fn classroom_courses_aliases_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1838,9 +1840,9 @@ pub struct ClassroomCoursesAliasesListArgs {
     /// Path parameter: courseId
     pub courseId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/aliases
@@ -2376,9 +2378,9 @@ pub fn classroom_courses_announcements_get_add_on_context_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
-    addOnToken: &Option<Option<String>>,
-    attachmentId: &Option<Option<String>>,
-    postId: &Option<Option<String>>,
+    addOnToken: &Option<String>,
+    attachmentId: &Option<String>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2528,11 +2530,11 @@ pub struct ClassroomCoursesAnnouncementsGetAddOnContextArgs {
     /// Path parameter: itemId
     pub itemId: String,
     /// Query parameter: addOnToken
-    pub addOnToken: Option<Option<String>>,
+    pub addOnToken: Option<String>,
     /// Query parameter: attachmentId
-    pub attachmentId: Option<Option<String>>,
+    pub attachmentId: Option<String>,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/announcements/{itemId}/addOnContext
@@ -2575,10 +2577,10 @@ pub fn classroom_courses_announcements_get_add_on_context(
 pub fn classroom_courses_announcements_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
-    announcementStates: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    announcementStates: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2729,13 +2731,13 @@ pub struct ClassroomCoursesAnnouncementsListArgs {
     /// Path parameter: courseId
     pub courseId: String,
     /// Query parameter: announcementStates
-    pub announcementStates: Option<Option<String>>,
+    pub announcementStates: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/announcements
@@ -2947,7 +2949,7 @@ pub fn classroom_courses_announcements_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3091,7 +3093,7 @@ pub struct ClassroomCoursesAnnouncementsPatchArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/announcements/{id}
@@ -3133,8 +3135,8 @@ pub fn classroom_courses_announcements_add_on_attachments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
-    addOnToken: &Option<Option<String>>,
-    postId: &Option<Option<String>>,
+    addOnToken: &Option<String>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3281,9 +3283,9 @@ pub struct ClassroomCoursesAnnouncementsAddOnAttachmentsCreateArgs {
     /// Path parameter: itemId
     pub itemId: String,
     /// Query parameter: addOnToken
-    pub addOnToken: Option<Option<String>>,
+    pub addOnToken: Option<String>,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// POST v1/courses/{courseId}/announcements/{itemId}/addOnAttachments
@@ -3327,7 +3329,7 @@ pub fn classroom_courses_announcements_add_on_attachments_delete_builder<R>(
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
-    postId: &Option<Option<String>>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3471,7 +3473,7 @@ pub struct ClassroomCoursesAnnouncementsAddOnAttachmentsDeleteArgs {
     /// Path parameter: attachmentId
     pub attachmentId: String,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// DELETE v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
@@ -3513,7 +3515,7 @@ pub fn classroom_courses_announcements_add_on_attachments_get_builder<R>(
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
-    postId: &Option<Option<String>>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3659,7 +3661,7 @@ pub struct ClassroomCoursesAnnouncementsAddOnAttachmentsGetArgs {
     /// Path parameter: attachmentId
     pub attachmentId: String,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
@@ -3702,9 +3704,9 @@ pub fn classroom_courses_announcements_add_on_attachments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    postId: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3856,11 +3858,11 @@ pub struct ClassroomCoursesAnnouncementsAddOnAttachmentsListArgs {
     /// Path parameter: itemId
     pub itemId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/announcements/{itemId}/addOnAttachments
@@ -3907,8 +3909,8 @@ pub fn classroom_courses_announcements_add_on_attachments_patch_builder<R>(
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
-    postId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    postId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4057,9 +4059,9 @@ pub struct ClassroomCoursesAnnouncementsAddOnAttachmentsPatchArgs {
     /// Path parameter: attachmentId
     pub attachmentId: String,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/announcements/{itemId}/addOnAttachments/{attachmentId}
@@ -4589,9 +4591,9 @@ pub fn classroom_courses_course_work_get_add_on_context_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
-    addOnToken: &Option<Option<String>>,
-    attachmentId: &Option<Option<String>>,
-    postId: &Option<Option<String>>,
+    addOnToken: &Option<String>,
+    attachmentId: &Option<String>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4741,11 +4743,11 @@ pub struct ClassroomCoursesCourseWorkGetAddOnContextArgs {
     /// Path parameter: itemId
     pub itemId: String,
     /// Query parameter: addOnToken
-    pub addOnToken: Option<Option<String>>,
+    pub addOnToken: Option<String>,
     /// Query parameter: attachmentId
-    pub attachmentId: Option<Option<String>>,
+    pub attachmentId: Option<String>,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnContext
@@ -4788,10 +4790,10 @@ pub fn classroom_courses_course_work_get_add_on_context(
 pub fn classroom_courses_course_work_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
-    courseWorkStates: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    courseWorkStates: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4942,13 +4944,13 @@ pub struct ClassroomCoursesCourseWorkListArgs {
     /// Path parameter: courseId
     pub courseId: String,
     /// Query parameter: courseWorkStates
-    pub courseWorkStates: Option<Option<String>>,
+    pub courseWorkStates: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/courseWork
@@ -5156,7 +5158,7 @@ pub fn classroom_courses_course_work_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5298,7 +5300,7 @@ pub struct ClassroomCoursesCourseWorkPatchArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/courseWork/{id}
@@ -5338,8 +5340,8 @@ pub fn classroom_courses_course_work_update_rubric_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
-    id: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    id: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5484,9 +5486,9 @@ pub struct ClassroomCoursesCourseWorkUpdateRubricArgs {
     /// Path parameter: courseWorkId
     pub courseWorkId: String,
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/courseWork/{courseWorkId}/rubric
@@ -5527,8 +5529,8 @@ pub fn classroom_courses_course_work_add_on_attachments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
-    addOnToken: &Option<Option<String>>,
-    postId: &Option<Option<String>>,
+    addOnToken: &Option<String>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5675,9 +5677,9 @@ pub struct ClassroomCoursesCourseWorkAddOnAttachmentsCreateArgs {
     /// Path parameter: itemId
     pub itemId: String,
     /// Query parameter: addOnToken
-    pub addOnToken: Option<Option<String>>,
+    pub addOnToken: Option<String>,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// POST v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments
@@ -5721,7 +5723,7 @@ pub fn classroom_courses_course_work_add_on_attachments_delete_builder<R>(
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
-    postId: &Option<Option<String>>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5865,7 +5867,7 @@ pub struct ClassroomCoursesCourseWorkAddOnAttachmentsDeleteArgs {
     /// Path parameter: attachmentId
     pub attachmentId: String,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// DELETE v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
@@ -5907,7 +5909,7 @@ pub fn classroom_courses_course_work_add_on_attachments_get_builder<R>(
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
-    postId: &Option<Option<String>>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6053,7 +6055,7 @@ pub struct ClassroomCoursesCourseWorkAddOnAttachmentsGetArgs {
     /// Path parameter: attachmentId
     pub attachmentId: String,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
@@ -6096,9 +6098,9 @@ pub fn classroom_courses_course_work_add_on_attachments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    postId: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6250,11 +6252,11 @@ pub struct ClassroomCoursesCourseWorkAddOnAttachmentsListArgs {
     /// Path parameter: itemId
     pub itemId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments
@@ -6301,8 +6303,8 @@ pub fn classroom_courses_course_work_add_on_attachments_patch_builder<R>(
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
-    postId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    postId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6451,9 +6453,9 @@ pub struct ClassroomCoursesCourseWorkAddOnAttachmentsPatchArgs {
     /// Path parameter: attachmentId
     pub attachmentId: String,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}
@@ -6499,7 +6501,7 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_get_
     itemId: &String,
     attachmentId: &String,
     submissionId: &String,
-    postId: &Option<Option<String>>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6653,7 +6655,7 @@ pub struct ClassroomCoursesCourseWorkAddOnAttachmentsStudentSubmissionsGetArgs {
     /// Path parameter: submissionId
     pub submissionId: String,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
@@ -6701,8 +6703,8 @@ pub fn classroom_courses_course_work_add_on_attachments_student_submissions_patc
     itemId: &String,
     attachmentId: &String,
     submissionId: &String,
-    postId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    postId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6859,9 +6861,9 @@ pub struct ClassroomCoursesCourseWorkAddOnAttachmentsStudentSubmissionsPatchArgs
     /// Path parameter: submissionId
     pub submissionId: String,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/courseWork/{itemId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
@@ -7418,8 +7420,8 @@ pub fn classroom_courses_course_work_rubrics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7566,9 +7568,9 @@ pub struct ClassroomCoursesCourseWorkRubricsListArgs {
     /// Path parameter: courseWorkId
     pub courseWorkId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics
@@ -7612,7 +7614,7 @@ pub fn classroom_courses_course_work_rubrics_patch_builder<R>(
     courseId: &String,
     courseWorkId: &String,
     id: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7756,7 +7758,7 @@ pub struct ClassroomCoursesCourseWorkRubricsPatchArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/courseWork/{courseWorkId}/rubrics/{id}
@@ -7972,11 +7974,11 @@ pub fn classroom_courses_course_work_student_submissions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     courseWorkId: &String,
-    late: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    states: &Option<Option<String>>,
-    userId: &Option<Option<String>>,
+    late: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    states: &Option<String>,
+    userId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8134,15 +8136,15 @@ pub struct ClassroomCoursesCourseWorkStudentSubmissionsListArgs {
     /// Path parameter: courseWorkId
     pub courseWorkId: String,
     /// Query parameter: late
-    pub late: Option<Option<String>>,
+    pub late: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: states
-    pub states: Option<Option<String>>,
+    pub states: Option<String>,
     /// Query parameter: userId
-    pub userId: Option<Option<String>>,
+    pub userId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions
@@ -8368,7 +8370,7 @@ pub fn classroom_courses_course_work_student_submissions_patch_builder<R>(
     courseId: &String,
     courseWorkId: &String,
     id: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8514,7 +8516,7 @@ pub struct ClassroomCoursesCourseWorkStudentSubmissionsPatchArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/courseWork/{courseWorkId}/studentSubmissions/{id}
@@ -9568,9 +9570,9 @@ pub fn classroom_courses_course_work_materials_get_add_on_context_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
-    addOnToken: &Option<Option<String>>,
-    attachmentId: &Option<Option<String>>,
-    postId: &Option<Option<String>>,
+    addOnToken: &Option<String>,
+    attachmentId: &Option<String>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9720,11 +9722,11 @@ pub struct ClassroomCoursesCourseWorkMaterialsGetAddOnContextArgs {
     /// Path parameter: itemId
     pub itemId: String,
     /// Query parameter: addOnToken
-    pub addOnToken: Option<Option<String>>,
+    pub addOnToken: Option<String>,
     /// Query parameter: attachmentId
-    pub attachmentId: Option<Option<String>>,
+    pub attachmentId: Option<String>,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnContext
@@ -9767,12 +9769,12 @@ pub fn classroom_courses_course_work_materials_get_add_on_context(
 pub fn classroom_courses_course_work_materials_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
-    courseWorkMaterialStates: &Option<Option<String>>,
-    materialDriveId: &Option<Option<String>>,
-    materialLink: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    courseWorkMaterialStates: &Option<String>,
+    materialDriveId: &Option<String>,
+    materialLink: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9931,17 +9933,17 @@ pub struct ClassroomCoursesCourseWorkMaterialsListArgs {
     /// Path parameter: courseId
     pub courseId: String,
     /// Query parameter: courseWorkMaterialStates
-    pub courseWorkMaterialStates: Option<Option<String>>,
+    pub courseWorkMaterialStates: Option<String>,
     /// Query parameter: materialDriveId
-    pub materialDriveId: Option<Option<String>>,
+    pub materialDriveId: Option<String>,
     /// Query parameter: materialLink
-    pub materialLink: Option<Option<String>>,
+    pub materialLink: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/courseWorkMaterials
@@ -9989,7 +9991,7 @@ pub fn classroom_courses_course_work_materials_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10133,7 +10135,7 @@ pub struct ClassroomCoursesCourseWorkMaterialsPatchArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/courseWorkMaterials/{id}
@@ -10175,8 +10177,8 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_create_builder
     client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
-    addOnToken: &Option<Option<String>>,
-    postId: &Option<Option<String>>,
+    addOnToken: &Option<String>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10323,9 +10325,9 @@ pub struct ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsCreateArgs {
     /// Path parameter: itemId
     pub itemId: String,
     /// Query parameter: addOnToken
-    pub addOnToken: Option<Option<String>>,
+    pub addOnToken: Option<String>,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// POST v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments
@@ -10369,7 +10371,7 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_delete_builder
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
-    postId: &Option<Option<String>>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10513,7 +10515,7 @@ pub struct ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsDeleteArgs {
     /// Path parameter: attachmentId
     pub attachmentId: String,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// DELETE v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
@@ -10555,7 +10557,7 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_get_builder<R>
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
-    postId: &Option<Option<String>>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10701,7 +10703,7 @@ pub struct ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsGetArgs {
     /// Path parameter: attachmentId
     pub attachmentId: String,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
@@ -10744,9 +10746,9 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_list_builder<R
     client: &SimpleHttpClient<R>,
     courseId: &String,
     itemId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    postId: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    postId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10898,11 +10900,11 @@ pub struct ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsListArgs {
     /// Path parameter: itemId
     pub itemId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments
@@ -10949,8 +10951,8 @@ pub fn classroom_courses_course_work_materials_add_on_attachments_patch_builder<
     courseId: &String,
     itemId: &String,
     attachmentId: &String,
-    postId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    postId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11099,9 +11101,9 @@ pub struct ClassroomCoursesCourseWorkMaterialsAddOnAttachmentsPatchArgs {
     /// Path parameter: attachmentId
     pub attachmentId: String,
     /// Query parameter: postId
-    pub postId: Option<Option<String>>,
+    pub postId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/courseWorkMaterials/{itemId}/addOnAttachments/{attachmentId}
@@ -11145,9 +11147,9 @@ pub fn classroom_courses_posts_get_add_on_context_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     postId: &String,
-    addOnToken: &Option<Option<String>>,
-    attachmentId: &Option<Option<String>>,
-    itemId: &Option<Option<String>>,
+    addOnToken: &Option<String>,
+    attachmentId: &Option<String>,
+    itemId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11297,11 +11299,11 @@ pub struct ClassroomCoursesPostsGetAddOnContextArgs {
     /// Path parameter: postId
     pub postId: String,
     /// Query parameter: addOnToken
-    pub addOnToken: Option<Option<String>>,
+    pub addOnToken: Option<String>,
     /// Query parameter: attachmentId
-    pub attachmentId: Option<Option<String>>,
+    pub attachmentId: Option<String>,
     /// Query parameter: itemId
-    pub itemId: Option<Option<String>>,
+    pub itemId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/posts/{postId}/addOnContext
@@ -11345,8 +11347,8 @@ pub fn classroom_courses_posts_add_on_attachments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     postId: &String,
-    addOnToken: &Option<Option<String>>,
-    itemId: &Option<Option<String>>,
+    addOnToken: &Option<String>,
+    itemId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11493,9 +11495,9 @@ pub struct ClassroomCoursesPostsAddOnAttachmentsCreateArgs {
     /// Path parameter: postId
     pub postId: String,
     /// Query parameter: addOnToken
-    pub addOnToken: Option<Option<String>>,
+    pub addOnToken: Option<String>,
     /// Query parameter: itemId
-    pub itemId: Option<Option<String>>,
+    pub itemId: Option<String>,
 }
 
 /// POST v1/courses/{courseId}/posts/{postId}/addOnAttachments
@@ -11539,7 +11541,7 @@ pub fn classroom_courses_posts_add_on_attachments_delete_builder<R>(
     courseId: &String,
     postId: &String,
     attachmentId: &String,
-    itemId: &Option<Option<String>>,
+    itemId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11683,7 +11685,7 @@ pub struct ClassroomCoursesPostsAddOnAttachmentsDeleteArgs {
     /// Path parameter: attachmentId
     pub attachmentId: String,
     /// Query parameter: itemId
-    pub itemId: Option<Option<String>>,
+    pub itemId: Option<String>,
 }
 
 /// DELETE v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
@@ -11725,7 +11727,7 @@ pub fn classroom_courses_posts_add_on_attachments_get_builder<R>(
     courseId: &String,
     postId: &String,
     attachmentId: &String,
-    itemId: &Option<Option<String>>,
+    itemId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11871,7 +11873,7 @@ pub struct ClassroomCoursesPostsAddOnAttachmentsGetArgs {
     /// Path parameter: attachmentId
     pub attachmentId: String,
     /// Query parameter: itemId
-    pub itemId: Option<Option<String>>,
+    pub itemId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
@@ -11914,9 +11916,9 @@ pub fn classroom_courses_posts_add_on_attachments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     postId: &String,
-    itemId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    itemId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12068,11 +12070,11 @@ pub struct ClassroomCoursesPostsAddOnAttachmentsListArgs {
     /// Path parameter: postId
     pub postId: String,
     /// Query parameter: itemId
-    pub itemId: Option<Option<String>>,
+    pub itemId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments
@@ -12119,8 +12121,8 @@ pub fn classroom_courses_posts_add_on_attachments_patch_builder<R>(
     courseId: &String,
     postId: &String,
     attachmentId: &String,
-    itemId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    itemId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12269,9 +12271,9 @@ pub struct ClassroomCoursesPostsAddOnAttachmentsPatchArgs {
     /// Path parameter: attachmentId
     pub attachmentId: String,
     /// Query parameter: itemId
-    pub itemId: Option<Option<String>>,
+    pub itemId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}
@@ -12317,7 +12319,7 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_get_builde
     postId: &String,
     attachmentId: &String,
     submissionId: &String,
-    itemId: &Option<Option<String>>,
+    itemId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12470,7 +12472,7 @@ pub struct ClassroomCoursesPostsAddOnAttachmentsStudentSubmissionsGetArgs {
     /// Path parameter: submissionId
     pub submissionId: String,
     /// Query parameter: itemId
-    pub itemId: Option<Option<String>>,
+    pub itemId: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
@@ -12518,8 +12520,8 @@ pub fn classroom_courses_posts_add_on_attachments_student_submissions_patch_buil
     postId: &String,
     attachmentId: &String,
     submissionId: &String,
-    itemId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    itemId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12675,9 +12677,9 @@ pub struct ClassroomCoursesPostsAddOnAttachmentsStudentSubmissionsPatchArgs {
     /// Path parameter: submissionId
     pub submissionId: String,
     /// Query parameter: itemId
-    pub itemId: Option<Option<String>>,
+    pub itemId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/posts/{postId}/addOnAttachments/{attachmentId}/studentSubmissions/{submissionId}
@@ -13051,8 +13053,8 @@ pub fn classroom_courses_student_groups_delete(
 pub fn classroom_courses_student_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13197,9 +13199,9 @@ pub struct ClassroomCoursesStudentGroupsListArgs {
     /// Path parameter: courseId
     pub courseId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/studentGroups
@@ -13241,7 +13243,7 @@ pub fn classroom_courses_student_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13385,7 +13387,7 @@ pub struct ClassroomCoursesStudentGroupsPatchArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/studentGroups/{id}
@@ -13769,8 +13771,8 @@ pub fn classroom_courses_student_groups_student_group_members_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     studentGroupId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13919,9 +13921,9 @@ pub struct ClassroomCoursesStudentGroupsStudentGroupMembersListArgs {
     /// Path parameter: studentGroupId
     pub studentGroupId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/studentGroups/{studentGroupId}/studentGroupMembers
@@ -13965,7 +13967,7 @@ pub fn classroom_courses_student_groups_student_group_members_list(
 pub fn classroom_courses_students_create_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
-    enrollmentCode: &Option<Option<String>>,
+    enrollmentCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14105,7 +14107,7 @@ pub struct ClassroomCoursesStudentsCreateArgs {
     /// Path parameter: courseId
     pub courseId: String,
     /// Query parameter: enrollmentCode
-    pub enrollmentCode: Option<Option<String>>,
+    pub enrollmentCode: Option<String>,
 }
 
 /// POST v1/courses/{courseId}/students
@@ -14466,8 +14468,8 @@ pub fn classroom_courses_students_get(
 pub fn classroom_courses_students_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14612,9 +14614,9 @@ pub struct ClassroomCoursesStudentsListArgs {
     /// Path parameter: courseId
     pub courseId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/students
@@ -15141,8 +15143,8 @@ pub fn classroom_courses_teachers_get(
 pub fn classroom_courses_teachers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15287,9 +15289,9 @@ pub struct ClassroomCoursesTeachersListArgs {
     /// Path parameter: courseId
     pub courseId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/teachers
@@ -15816,8 +15818,8 @@ pub fn classroom_courses_topics_get(
 pub fn classroom_courses_topics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15962,9 +15964,9 @@ pub struct ClassroomCoursesTopicsListArgs {
     /// Path parameter: courseId
     pub courseId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/courses/{courseId}/topics
@@ -16006,7 +16008,7 @@ pub fn classroom_courses_topics_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     courseId: &String,
     id: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16148,7 +16150,7 @@ pub struct ClassroomCoursesTopicsPatchArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/courses/{courseId}/topics/{id}
@@ -16804,10 +16806,10 @@ pub fn classroom_invitations_get(
 
 pub fn classroom_invitations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    courseId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    userId: &Option<Option<String>>,
+    courseId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    userId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16953,13 +16955,13 @@ pub fn classroom_invitations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ClassroomInvitationsListArgs {
     /// Query parameter: courseId
-    pub courseId: Option<Option<String>>,
+    pub courseId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: userId
-    pub userId: Option<Option<String>>,
+    pub userId: Option<String>,
 }
 
 /// GET v1/invitations
@@ -17809,10 +17811,10 @@ pub fn classroom_user_profiles_guardian_invitations_get(
 pub fn classroom_user_profiles_guardian_invitations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     studentId: &String,
-    invitedEmailAddress: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    states: &Option<Option<String>>,
+    invitedEmailAddress: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    states: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17965,13 +17967,13 @@ pub struct ClassroomUserProfilesGuardianInvitationsListArgs {
     /// Path parameter: studentId
     pub studentId: String,
     /// Query parameter: invitedEmailAddress
-    pub invitedEmailAddress: Option<Option<String>>,
+    pub invitedEmailAddress: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: states
-    pub states: Option<Option<String>>,
+    pub states: Option<String>,
 }
 
 /// GET v1/userProfiles/{studentId}/guardianInvitations
@@ -18017,7 +18019,7 @@ pub fn classroom_user_profiles_guardian_invitations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     studentId: &String,
     invitationId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18161,7 +18163,7 @@ pub struct ClassroomUserProfilesGuardianInvitationsPatchArgs {
     /// Path parameter: invitationId
     pub invitationId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/userProfiles/{studentId}/guardianInvitations/{invitationId}
@@ -18533,9 +18535,9 @@ pub fn classroom_user_profiles_guardians_get(
 pub fn classroom_user_profiles_guardians_list_builder<R>(
     client: &SimpleHttpClient<R>,
     studentId: &String,
-    invitedEmailAddress: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    invitedEmailAddress: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18683,11 +18685,11 @@ pub struct ClassroomUserProfilesGuardiansListArgs {
     /// Path parameter: studentId
     pub studentId: String,
     /// Query parameter: invitedEmailAddress
-    pub invitedEmailAddress: Option<Option<String>>,
+    pub invitedEmailAddress: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/userProfiles/{studentId}/guardians
@@ -18718,29 +18720,6 @@ pub fn classroom_user_profiles_guardians_list(
         &args.pageToken,
     )?;
     classroom_user_profiles_guardians_list_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Course
-// =============================================================================
-
-/// ResourceIdentifier implementation for Course with ClassroomCoursesCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ClassroomCoursesCreateArgs> for Course {
-    fn generate_resource_id(&self, input: &ClassroomCoursesCreateArgs) -> String {
-        "gcp::classroom::Course".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::classroom::Course"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================
@@ -21120,29 +21099,6 @@ impl ResourceIdentifier<ClassroomInvitationsAcceptArgs> for Empty {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for Invitation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Invitation with ClassroomInvitationsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ClassroomInvitationsCreateArgs> for Invitation {
-    fn generate_resource_id(&self, input: &ClassroomInvitationsCreateArgs) -> String {
-        "gcp::classroom::Invitation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::classroom::Invitation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for Empty
 // =============================================================================
 
@@ -21204,29 +21160,6 @@ impl ResourceIdentifier<ClassroomInvitationsListArgs> for ListInvitationsRespons
 
     fn resource_kind(&self) -> &'static str {
         "gcp::classroom::ListInvitationsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Registration
-// =============================================================================
-
-/// ResourceIdentifier implementation for Registration with ClassroomRegistrationsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ClassroomRegistrationsCreateArgs> for Registration {
-    fn generate_resource_id(&self, input: &ClassroomRegistrationsCreateArgs) -> String {
-        "gcp::classroom::Registration".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::classroom::Registration"
     }
 
     fn provider(&self) -> &'static str {

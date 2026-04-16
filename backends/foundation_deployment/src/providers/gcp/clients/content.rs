@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -184,7 +186,7 @@ pub fn content_accounts_claimwebsite_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-    overwrite: &Option<Option<String>>,
+    overwrite: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -330,7 +332,7 @@ pub struct ContentAccountsClaimwebsiteArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: overwrite
-    pub overwrite: Option<Option<String>>,
+    pub overwrite: Option<String>,
 }
 
 /// POST {merchantId}/accounts/{accountId}/claimwebsite
@@ -531,7 +533,7 @@ pub fn content_accounts_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -670,7 +672,7 @@ pub struct ContentAccountsDeleteArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE {merchantId}/accounts/{accountId}
@@ -706,7 +708,7 @@ pub fn content_accounts_get_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -848,7 +850,7 @@ pub struct ContentAccountsGetArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET {merchantId}/accounts/{accountId}
@@ -1210,11 +1212,11 @@ pub fn content_accounts_link(
 pub fn content_accounts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    label: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    label: &Option<String>,
+    maxResults: &Option<String>,
+    name: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1368,15 +1370,15 @@ pub struct ContentAccountsListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: label
-    pub label: Option<Option<String>>,
+    pub label: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET {merchantId}/accounts
@@ -1421,8 +1423,8 @@ pub fn content_accounts_listlinks_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1569,9 +1571,9 @@ pub struct ContentAccountsListlinksArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/accounts/{accountId}/listlinks
@@ -2779,8 +2781,8 @@ pub fn content_accounts_labels_delete(
 pub fn content_accounts_labels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     accountId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2925,9 +2927,9 @@ pub struct ContentAccountsLabelsListArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET accounts/{accountId}/labels
@@ -3960,7 +3962,7 @@ pub fn content_accountstatuses_get_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-    destinations: &Option<Option<String>>,
+    destinations: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4104,7 +4106,7 @@ pub struct ContentAccountstatusesGetArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: destinations
-    pub destinations: Option<Option<String>>,
+    pub destinations: Option<String>,
 }
 
 /// GET {merchantId}/accountstatuses/{accountId}
@@ -4145,10 +4147,10 @@ pub fn content_accountstatuses_get(
 pub fn content_accountstatuses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    destinations: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    destinations: &Option<String>,
+    maxResults: &Option<String>,
+    name: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4301,13 +4303,13 @@ pub struct ContentAccountstatusesListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: destinations
-    pub destinations: Option<Option<String>>,
+    pub destinations: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/accountstatuses
@@ -4672,8 +4674,8 @@ pub fn content_accounttax_get(
 pub fn content_accounttax_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4818,9 +4820,9 @@ pub struct ContentAccounttaxListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/accounttax
@@ -5507,8 +5509,8 @@ pub fn content_collections_get(
 pub fn content_collections_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5653,9 +5655,9 @@ pub struct ContentCollectionsListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/collections
@@ -5864,8 +5866,8 @@ pub fn content_collectionstatuses_get(
 pub fn content_collectionstatuses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6012,9 +6014,9 @@ pub struct ContentCollectionstatusesListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/collectionstatuses
@@ -6553,9 +6555,9 @@ pub fn content_conversionsources_get(
 pub fn content_conversionsources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6705,11 +6707,11 @@ pub struct ContentConversionsourcesListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET {merchantId}/conversionsources
@@ -6754,7 +6756,7 @@ pub fn content_conversionsources_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     conversionSourceId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6898,7 +6900,7 @@ pub struct ContentConversionsourcesPatchArgs {
     /// Path parameter: conversionSourceId
     pub conversionSourceId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH {merchantId}/conversionsources/{conversionSourceId}
@@ -7266,8 +7268,8 @@ pub fn content_csses_get(
 pub fn content_csses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     cssGroupId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7412,9 +7414,9 @@ pub struct ContentCssesListArgs {
     /// Path parameter: cssGroupId
     pub cssGroupId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {cssGroupId}/csses
@@ -8421,8 +8423,8 @@ pub fn content_datafeeds_insert(
 pub fn content_datafeeds_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8567,9 +8569,9 @@ pub struct ContentDatafeedsListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/datafeeds
@@ -8931,9 +8933,9 @@ pub fn content_datafeedstatuses_get_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     datafeedId: &String,
-    country: &Option<Option<String>>,
-    feedLabel: &Option<Option<String>>,
-    language: &Option<Option<String>>,
+    country: &Option<String>,
+    feedLabel: &Option<String>,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9083,11 +9085,11 @@ pub struct ContentDatafeedstatusesGetArgs {
     /// Path parameter: datafeedId
     pub datafeedId: String,
     /// Query parameter: country
-    pub country: Option<Option<String>>,
+    pub country: Option<String>,
     /// Query parameter: feedLabel
-    pub feedLabel: Option<Option<String>>,
+    pub feedLabel: Option<String>,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
 }
 
 /// GET {merchantId}/datafeedstatuses/{datafeedId}
@@ -9130,8 +9132,8 @@ pub fn content_datafeedstatuses_get(
 pub fn content_datafeedstatuses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9278,9 +9280,9 @@ pub struct ContentDatafeedstatusesListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/datafeedstatuses
@@ -10629,8 +10631,8 @@ pub fn content_liasettings_getaccessiblegmbaccounts(
 pub fn content_liasettings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10775,9 +10777,9 @@ pub struct ContentLiasettingsListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/liasettings
@@ -10978,7 +10980,7 @@ pub fn content_liasettings_requestgmbaccess_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-    gmbEmail: &Option<Option<String>>,
+    gmbEmail: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11124,7 +11126,7 @@ pub struct ContentLiasettingsRequestgmbaccessArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: gmbEmail
-    pub gmbEmail: Option<Option<String>>,
+    pub gmbEmail: Option<String>,
 }
 
 /// POST {merchantId}/liasettings/{accountId}/requestgmbaccess
@@ -11350,10 +11352,10 @@ pub fn content_liasettings_setinventoryverificationcontact_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-    contactEmail: &Option<Option<String>>,
-    contactName: &Option<Option<String>>,
-    country: &Option<Option<String>>,
-    language: &Option<Option<String>>,
+    contactEmail: &Option<String>,
+    contactName: &Option<String>,
+    country: &Option<String>,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11513,13 +11515,13 @@ pub struct ContentLiasettingsSetinventoryverificationcontactArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: contactEmail
-    pub contactEmail: Option<Option<String>>,
+    pub contactEmail: Option<String>,
     /// Query parameter: contactName
-    pub contactName: Option<Option<String>>,
+    pub contactName: Option<String>,
     /// Query parameter: country
-    pub country: Option<Option<String>>,
+    pub country: Option<String>,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
 }
 
 /// POST {merchantId}/liasettings/{accountId}/setinventoryverificationcontact
@@ -11566,9 +11568,9 @@ pub fn content_liasettings_setomnichannelexperience_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-    country: &Option<Option<String>>,
-    lsfType: &Option<Option<String>>,
-    pickupTypes: &Option<Option<String>>,
+    country: &Option<String>,
+    lsfType: &Option<String>,
+    pickupTypes: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11719,11 +11721,11 @@ pub struct ContentLiasettingsSetomnichannelexperienceArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: country
-    pub country: Option<Option<String>>,
+    pub country: Option<String>,
     /// Query parameter: lsfType
-    pub lsfType: Option<Option<String>>,
+    pub lsfType: Option<String>,
     /// Query parameter: pickupTypes
-    pub pickupTypes: Option<Option<String>>,
+    pub pickupTypes: Option<String>,
 }
 
 /// POST {merchantId}/liasettings/{accountId}/setomnichannelexperience
@@ -11767,9 +11769,9 @@ pub fn content_liasettings_setposdataprovider_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     accountId: &String,
-    country: &Option<Option<String>>,
-    posDataProviderId: &Option<Option<String>>,
-    posExternalAccountId: &Option<Option<String>>,
+    country: &Option<String>,
+    posDataProviderId: &Option<String>,
+    posExternalAccountId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11921,11 +11923,11 @@ pub struct ContentLiasettingsSetposdataproviderArgs {
     /// Path parameter: accountId
     pub accountId: String,
     /// Query parameter: country
-    pub country: Option<Option<String>>,
+    pub country: Option<String>,
     /// Query parameter: posDataProviderId
-    pub posDataProviderId: Option<Option<String>>,
+    pub posDataProviderId: Option<String>,
     /// Query parameter: posExternalAccountId
-    pub posExternalAccountId: Option<Option<String>>,
+    pub posExternalAccountId: Option<String>,
 }
 
 /// POST {merchantId}/liasettings/{accountId}/setposdataprovider
@@ -12457,8 +12459,8 @@ pub fn content_localinventory_insert(
 pub fn content_merchantsupport_renderaccountissues_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    languageCode: &Option<Option<String>>,
-    timeZone: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    timeZone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12605,9 +12607,9 @@ pub struct ContentMerchantsupportRenderaccountissuesArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: timeZone
-    pub timeZone: Option<Option<String>>,
+    pub timeZone: Option<String>,
 }
 
 /// POST {merchantId}/merchantsupport/renderaccountissues
@@ -12651,8 +12653,8 @@ pub fn content_merchantsupport_renderproductissues_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     productId: &String,
-    languageCode: &Option<Option<String>>,
-    timeZone: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    timeZone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12802,9 +12804,9 @@ pub struct ContentMerchantsupportRenderproductissuesArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: timeZone
-    pub timeZone: Option<Option<String>>,
+    pub timeZone: Option<String>,
 }
 
 /// POST {merchantId}/merchantsupport/renderproductissues/{productId}
@@ -12848,7 +12850,7 @@ pub fn content_merchantsupport_renderproductissues(
 pub fn content_merchantsupport_triggeraction_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12990,7 +12992,7 @@ pub struct ContentMerchantsupportTriggeractionArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// POST {merchantId}/merchantsupport/triggeraction
@@ -15000,7 +15002,7 @@ pub fn content_products_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     productId: &String,
-    feedId: &Option<Option<String>>,
+    feedId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15139,7 +15141,7 @@ pub struct ContentProductsDeleteArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: feedId
-    pub feedId: Option<Option<String>>,
+    pub feedId: Option<String>,
 }
 
 /// DELETE {merchantId}/products/{productId}
@@ -15337,7 +15339,7 @@ pub fn content_products_get(
 pub fn content_products_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    feedId: &Option<Option<String>>,
+    feedId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15477,7 +15479,7 @@ pub struct ContentProductsInsertArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: feedId
-    pub feedId: Option<Option<String>>,
+    pub feedId: Option<String>,
 }
 
 /// POST {merchantId}/products
@@ -15511,8 +15513,8 @@ pub fn content_products_insert(
 pub fn content_products_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15657,9 +15659,9 @@ pub struct ContentProductsListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/products
@@ -15697,7 +15699,7 @@ pub fn content_products_update_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     productId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15839,7 +15841,7 @@ pub struct ContentProductsUpdateArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH {merchantId}/products/{productId}
@@ -16036,7 +16038,7 @@ pub fn content_productstatuses_get_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     productId: &String,
-    destinations: &Option<Option<String>>,
+    destinations: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16180,7 +16182,7 @@ pub struct ContentProductstatusesGetArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: destinations
-    pub destinations: Option<Option<String>>,
+    pub destinations: Option<String>,
 }
 
 /// GET {merchantId}/productstatuses/{productId}
@@ -16221,9 +16223,9 @@ pub fn content_productstatuses_get(
 pub fn content_productstatuses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    destinations: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    destinations: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16373,11 +16375,11 @@ pub struct ContentProductstatusesListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: destinations
-    pub destinations: Option<Option<String>>,
+    pub destinations: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/productstatuses
@@ -16744,10 +16746,10 @@ pub fn content_promotions_get(
 pub fn content_promotions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    countryCode: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    countryCode: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16898,13 +16900,13 @@ pub struct ContentPromotionsListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: countryCode
-    pub countryCode: Option<Option<String>>,
+    pub countryCode: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/promotions
@@ -17283,8 +17285,8 @@ pub fn content_pubsubnotificationsettings_update(
 pub fn content_quotas_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17429,9 +17431,9 @@ pub struct ContentQuotasListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/quotas
@@ -17468,8 +17470,8 @@ pub fn content_quotas_list(
 pub fn content_recommendations_generate_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    allowedTag: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
+    allowedTag: &Option<String>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17616,9 +17618,9 @@ pub struct ContentRecommendationsGenerateArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: allowedTag
-    pub allowedTag: Option<Option<String>>,
+    pub allowedTag: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET {merchantId}/recommendations/generate
@@ -18143,7 +18145,7 @@ pub fn content_regionalinventory_insert(
 pub fn content_regions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    regionId: &Option<Option<String>>,
+    regionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18283,7 +18285,7 @@ pub struct ContentRegionsCreateArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: regionId
-    pub regionId: Option<Option<String>>,
+    pub regionId: Option<String>,
 }
 
 /// POST {merchantId}/regions
@@ -18640,8 +18642,8 @@ pub fn content_regions_get(
 pub fn content_regions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18786,9 +18788,9 @@ pub struct ContentRegionsListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/regions
@@ -18826,7 +18828,7 @@ pub fn content_regions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
     regionId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18968,7 +18970,7 @@ pub struct ContentRegionsPatchArgs {
     /// Path parameter: regionId
     pub regionId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH {merchantId}/regions/{regionId}
@@ -20831,8 +20833,8 @@ pub fn content_shippingsettings_getsupportedpickupservices(
 pub fn content_shippingsettings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     merchantId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20979,9 +20981,9 @@ pub struct ContentShippingsettingsListArgs {
     /// Path parameter: merchantId
     pub merchantId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET {merchantId}/shippingsettings
@@ -21505,29 +21507,6 @@ pub fn content_shoppingadsprogram_requestreview(
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for AccountsAuthInfoResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for AccountsAuthInfoResponse with ContentAccountsAuthinfoArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentAccountsAuthinfoArgs> for AccountsAuthInfoResponse {
-    fn generate_resource_id(&self, input: &ContentAccountsAuthinfoArgs) -> String {
-        "gcp::content::AccountsAuthInfoResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::AccountsAuthInfoResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for AccountsClaimWebsiteResponse
 // =============================================================================
 
@@ -21546,29 +21525,6 @@ impl ResourceIdentifier<ContentAccountsClaimwebsiteArgs> for AccountsClaimWebsit
 
     fn resource_kind(&self) -> &'static str {
         "gcp::content::AccountsClaimWebsiteResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for AccountsCustomBatchResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for AccountsCustomBatchResponse with ContentAccountsCustombatchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentAccountsCustombatchArgs> for AccountsCustomBatchResponse {
-    fn generate_resource_id(&self, input: &ContentAccountsCustombatchArgs) -> String {
-        "gcp::content::AccountsCustomBatchResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::AccountsCustomBatchResponse"
     }
 
     fn provider(&self) -> &'static str {
@@ -21980,31 +21936,6 @@ impl ResourceIdentifier<ContentAccountsReturncarrierPatchArgs> for AccountReturn
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for AccountstatusesCustomBatchResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for AccountstatusesCustomBatchResponse with ContentAccountstatusesCustombatchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentAccountstatusesCustombatchArgs>
-    for AccountstatusesCustomBatchResponse
-{
-    fn generate_resource_id(&self, input: &ContentAccountstatusesCustombatchArgs) -> String {
-        "gcp::content::AccountstatusesCustomBatchResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::AccountstatusesCustomBatchResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for AccountStatus
 // =============================================================================
 
@@ -22049,29 +21980,6 @@ impl ResourceIdentifier<ContentAccountstatusesListArgs> for AccountstatusesListR
 
     fn resource_kind(&self) -> &'static str {
         "gcp::content::AccountstatusesListResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for AccounttaxCustomBatchResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for AccounttaxCustomBatchResponse with ContentAccounttaxCustombatchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentAccounttaxCustombatchArgs> for AccounttaxCustomBatchResponse {
-    fn generate_resource_id(&self, input: &ContentAccounttaxCustombatchArgs) -> String {
-        "gcp::content::AccounttaxCustomBatchResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::AccounttaxCustomBatchResponse"
     }
 
     fn provider(&self) -> &'static str {
@@ -22455,29 +22363,6 @@ impl ResourceIdentifier<ContentCssesUpdatelabelsArgs> for Css {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for DatafeedsCustomBatchResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for DatafeedsCustomBatchResponse with ContentDatafeedsCustombatchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentDatafeedsCustombatchArgs> for DatafeedsCustomBatchResponse {
-    fn generate_resource_id(&self, input: &ContentDatafeedsCustombatchArgs) -> String {
-        "gcp::content::DatafeedsCustomBatchResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::DatafeedsCustomBatchResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for DatafeedsFetchNowResponse
 // =============================================================================
 
@@ -22594,31 +22479,6 @@ impl ResourceIdentifier<ContentDatafeedsUpdateArgs> for Datafeed {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::content::Datafeed"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for DatafeedstatusesCustomBatchResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for DatafeedstatusesCustomBatchResponse with ContentDatafeedstatusesCustombatchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentDatafeedstatusesCustombatchArgs>
-    for DatafeedstatusesCustomBatchResponse
-{
-    fn generate_resource_id(&self, input: &ContentDatafeedstatusesCustombatchArgs) -> String {
-        "gcp::content::DatafeedstatusesCustomBatchResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::DatafeedstatusesCustomBatchResponse"
     }
 
     fn provider(&self) -> &'static str {
@@ -22757,29 +22617,6 @@ impl ResourceIdentifier<ContentFreelistingsprogramCheckoutsettingsInsertArgs> fo
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for LiasettingsCustomBatchResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for LiasettingsCustomBatchResponse with ContentLiasettingsCustombatchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentLiasettingsCustombatchArgs> for LiasettingsCustomBatchResponse {
-    fn generate_resource_id(&self, input: &ContentLiasettingsCustombatchArgs) -> String {
-        "gcp::content::LiasettingsCustomBatchResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::LiasettingsCustomBatchResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for LiaSettings
 // =============================================================================
 
@@ -22852,31 +22689,6 @@ impl ResourceIdentifier<ContentLiasettingsListArgs> for LiasettingsListResponse 
 
     fn resource_kind(&self) -> &'static str {
         "gcp::content::LiasettingsListResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for LiasettingsListPosDataProvidersResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for LiasettingsListPosDataProvidersResponse with ContentLiasettingsListposdataprovidersArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentLiasettingsListposdataprovidersArgs>
-    for LiasettingsListPosDataProvidersResponse
-{
-    fn generate_resource_id(&self, input: &ContentLiasettingsListposdataprovidersArgs) -> String {
-        "gcp::content::LiasettingsListPosDataProvidersResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::LiasettingsListPosDataProvidersResponse"
     }
 
     fn provider(&self) -> &'static str {
@@ -23060,31 +22872,6 @@ impl ResourceIdentifier<ContentLiasettingsUpdateArgs> for LiaSettings {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for LocalinventoryCustomBatchResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for LocalinventoryCustomBatchResponse with ContentLocalinventoryCustombatchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentLocalinventoryCustombatchArgs>
-    for LocalinventoryCustomBatchResponse
-{
-    fn generate_resource_id(&self, input: &ContentLocalinventoryCustombatchArgs) -> String {
-        "gcp::content::LocalinventoryCustomBatchResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::LocalinventoryCustomBatchResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for LocalInventory
 // =============================================================================
 
@@ -23211,29 +22998,6 @@ impl ResourceIdentifier<ContentOrdertrackingsignalsCreateArgs> for OrderTracking
 
     fn resource_kind(&self) -> &'static str {
         "gcp::content::OrderTrackingSignal"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for PosCustomBatchResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for PosCustomBatchResponse with ContentPosCustombatchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentPosCustombatchArgs> for PosCustomBatchResponse {
-    fn generate_resource_id(&self, input: &ContentPosCustombatchArgs) -> String {
-        "gcp::content::PosCustomBatchResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::PosCustomBatchResponse"
     }
 
     fn provider(&self) -> &'static str {
@@ -23421,29 +23185,6 @@ impl ResourceIdentifier<ContentProductdeliverytimeGetArgs> for ProductDeliveryTi
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for ProductsCustomBatchResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ProductsCustomBatchResponse with ContentProductsCustombatchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentProductsCustombatchArgs> for ProductsCustomBatchResponse {
-    fn generate_resource_id(&self, input: &ContentProductsCustombatchArgs) -> String {
-        "gcp::content::ProductsCustomBatchResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::ProductsCustomBatchResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for Product
 // =============================================================================
 
@@ -23534,31 +23275,6 @@ impl ResourceIdentifier<ContentProductsUpdateArgs> for Product {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::content::Product"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ProductstatusesCustomBatchResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ProductstatusesCustomBatchResponse with ContentProductstatusesCustombatchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentProductstatusesCustombatchArgs>
-    for ProductstatusesCustomBatchResponse
-{
-    fn generate_resource_id(&self, input: &ContentProductstatusesCustombatchArgs) -> String {
-        "gcp::content::ProductstatusesCustomBatchResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::ProductstatusesCustomBatchResponse"
     }
 
     fn provider(&self) -> &'static str {
@@ -23786,31 +23502,6 @@ impl ResourceIdentifier<ContentRecommendationsGenerateArgs> for GenerateRecommen
 
     fn resource_kind(&self) -> &'static str {
         "gcp::content::GenerateRecommendationsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for RegionalinventoryCustomBatchResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for RegionalinventoryCustomBatchResponse with ContentRegionalinventoryCustombatchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentRegionalinventoryCustombatchArgs>
-    for RegionalinventoryCustomBatchResponse
-{
-    fn generate_resource_id(&self, input: &ContentRegionalinventoryCustombatchArgs) -> String {
-        "gcp::content::RegionalinventoryCustomBatchResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::RegionalinventoryCustomBatchResponse"
     }
 
     fn provider(&self) -> &'static str {
@@ -24059,31 +23750,6 @@ impl ResourceIdentifier<ContentReturnpolicyonlinePatchArgs> for ReturnPolicyOnli
 
     fn resource_kind(&self) -> &'static str {
         "gcp::content::ReturnPolicyOnline"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ShippingsettingsCustomBatchResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ShippingsettingsCustomBatchResponse with ContentShippingsettingsCustombatchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ContentShippingsettingsCustombatchArgs>
-    for ShippingsettingsCustomBatchResponse
-{
-    fn generate_resource_id(&self, input: &ContentShippingsettingsCustombatchArgs) -> String {
-        "gcp::content::ShippingsettingsCustomBatchResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::content::ShippingsettingsCustomBatchResponse"
     }
 
     fn provider(&self) -> &'static str {

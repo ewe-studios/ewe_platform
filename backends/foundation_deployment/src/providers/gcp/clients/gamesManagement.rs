@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -803,8 +805,8 @@ pub fn games_management_achievements_reset_multiple_for_all_players(
 pub fn games_management_applications_list_hidden_builder<R>(
     client: &SimpleHttpClient<R>,
     applicationId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -949,9 +951,9 @@ pub struct GamesManagementApplicationsListHiddenArgs {
     /// Path parameter: applicationId
     pub applicationId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET games/v1management/applications/{applicationId}/players/hidden
@@ -2861,29 +2863,6 @@ impl ResourceIdentifier<GamesManagementAchievementsResetArgs> for AchievementRes
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for AchievementResetAllResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for AchievementResetAllResponse with GamesManagementAchievementsResetAllArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GamesManagementAchievementsResetAllArgs> for AchievementResetAllResponse {
-    fn generate_resource_id(&self, input: &GamesManagementAchievementsResetAllArgs) -> String {
-        "gcp::gamesManagement::AchievementResetAllResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::gamesManagement::AchievementResetAllResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for HiddenPlayerList
 // =============================================================================
 
@@ -2928,29 +2907,6 @@ impl ResourceIdentifier<GamesManagementScoresResetArgs> for PlayerScoreResetResp
 
     fn resource_kind(&self) -> &'static str {
         "gcp::gamesManagement::PlayerScoreResetResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for PlayerScoreResetAllResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for PlayerScoreResetAllResponse with GamesManagementScoresResetAllArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GamesManagementScoresResetAllArgs> for PlayerScoreResetAllResponse {
-    fn generate_resource_id(&self, input: &GamesManagementScoresResetAllArgs) -> String {
-        "gcp::gamesManagement::PlayerScoreResetAllResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::gamesManagement::PlayerScoreResetAllResponse"
     }
 
     fn provider(&self) -> &'static str {

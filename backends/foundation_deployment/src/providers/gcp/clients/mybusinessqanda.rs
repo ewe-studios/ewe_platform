@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -350,11 +352,11 @@ pub fn mybusinessqanda_locations_questions_delete(
 pub fn mybusinessqanda_locations_questions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    answersPerQuestion: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    answersPerQuestion: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -508,15 +510,15 @@ pub struct MybusinessqandaLocationsQuestionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: answersPerQuestion
-    pub answersPerQuestion: Option<Option<String>>,
+    pub answersPerQuestion: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/locations/{locationsId}/questions
@@ -560,7 +562,7 @@ pub fn mybusinessqanda_locations_questions_list(
 pub fn mybusinessqanda_locations_questions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -700,7 +702,7 @@ pub struct MybusinessqandaLocationsQuestionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/locations/{locationsId}/questions/{questionsId}
@@ -895,9 +897,9 @@ pub fn mybusinessqanda_locations_questions_answers_delete(
 pub fn mybusinessqanda_locations_questions_answers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1045,11 +1047,11 @@ pub struct MybusinessqandaLocationsQuestionsAnswersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/locations/{locationsId}/questions/{questionsId}/answers

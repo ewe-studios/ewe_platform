@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -172,27 +174,4 @@ pub fn trafficdirector_discovery_client_status(
 > {
     let builder = trafficdirector_discovery_client_status_builder(client)?;
     trafficdirector_discovery_client_status_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ClientStatusResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ClientStatusResponse with TrafficdirectorDiscoveryClientStatusArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<TrafficdirectorDiscoveryClientStatusArgs> for ClientStatusResponse {
-    fn generate_resource_id(&self, input: &TrafficdirectorDiscoveryClientStatusArgs) -> String {
-        "gcp::trafficdirector::ClientStatusResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::trafficdirector::ClientStatusResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }

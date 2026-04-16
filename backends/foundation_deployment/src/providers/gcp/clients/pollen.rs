@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,13 +31,13 @@ use serde::Serialize;
 
 pub fn pollen_forecast_lookup_builder<R>(
     client: &SimpleHttpClient<R>,
-    days: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    location_latitude: &Option<Option<String>>,
-    location_longitude: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    plantsDescription: &Option<Option<String>>,
+    days: &Option<String>,
+    languageCode: &Option<String>,
+    location_latitude: &Option<String>,
+    location_longitude: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    plantsDescription: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -190,19 +192,19 @@ pub fn pollen_forecast_lookup_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PollenForecastLookupArgs {
     /// Query parameter: days
-    pub days: Option<Option<String>>,
+    pub days: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: location_latitude
-    pub location_latitude: Option<Option<String>>,
+    pub location_latitude: Option<String>,
     /// Query parameter: location_longitude
-    pub location_longitude: Option<Option<String>>,
+    pub location_longitude: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: plantsDescription
-    pub plantsDescription: Option<Option<String>>,
+    pub plantsDescription: Option<String>,
 }
 
 /// GET v1/forecast:lookup

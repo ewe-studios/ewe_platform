@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -356,32 +358,6 @@ impl ResourceIdentifier<AbusiveexperiencereportSitesGetArgs> for SiteSummaryResp
 
     fn resource_kind(&self) -> &'static str {
         "gcp::abusiveexperiencereport::SiteSummaryResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ViolatingSitesResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ViolatingSitesResponse with AbusiveexperiencereportViolatingSitesListArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AbusiveexperiencereportViolatingSitesListArgs> for ViolatingSitesResponse {
-    fn generate_resource_id(
-        &self,
-        input: &AbusiveexperiencereportViolatingSitesListArgs,
-    ) -> String {
-        "gcp::abusiveexperiencereport::ViolatingSitesResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::abusiveexperiencereport::ViolatingSitesResponse"
     }
 
     fn provider(&self) -> &'static str {

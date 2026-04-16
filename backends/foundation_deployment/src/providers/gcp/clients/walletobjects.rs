@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -514,9 +516,9 @@ pub fn walletobjects_eventticketclass_insert(
 
 pub fn walletobjects_eventticketclass_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    issuerId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    issuerId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -662,11 +664,11 @@ pub fn walletobjects_eventticketclass_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsEventticketclassListArgs {
     /// Query parameter: issuerId
-    pub issuerId: Option<Option<String>>,
+    pub issuerId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/eventTicketClass
@@ -1521,9 +1523,9 @@ pub fn walletobjects_eventticketobject_insert(
 
 pub fn walletobjects_eventticketobject_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    classId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    classId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1669,11 +1671,11 @@ pub fn walletobjects_eventticketobject_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsEventticketobjectListArgs {
     /// Query parameter: classId
-    pub classId: Option<Option<String>>,
+    pub classId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/eventTicketObject
@@ -2685,9 +2687,9 @@ pub fn walletobjects_flightclass_insert(
 
 pub fn walletobjects_flightclass_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    issuerId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    issuerId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2831,11 +2833,11 @@ pub fn walletobjects_flightclass_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsFlightclassListArgs {
     /// Query parameter: issuerId
-    pub issuerId: Option<Option<String>>,
+    pub issuerId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/flightClass
@@ -3680,9 +3682,9 @@ pub fn walletobjects_flightobject_insert(
 
 pub fn walletobjects_flightobject_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    classId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    classId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3826,11 +3828,11 @@ pub fn walletobjects_flightobject_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsFlightobjectListArgs {
     /// Query parameter: classId
-    pub classId: Option<Option<String>>,
+    pub classId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/flightObject
@@ -4683,9 +4685,9 @@ pub fn walletobjects_genericclass_insert(
 
 pub fn walletobjects_genericclass_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    issuerId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    issuerId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4829,11 +4831,11 @@ pub fn walletobjects_genericclass_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsGenericclassListArgs {
     /// Query parameter: issuerId
-    pub issuerId: Option<Option<String>>,
+    pub issuerId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/genericClass
@@ -5686,9 +5688,9 @@ pub fn walletobjects_genericobject_insert(
 
 pub fn walletobjects_genericobject_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    classId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    classId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5832,11 +5834,11 @@ pub fn walletobjects_genericobject_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsGenericobjectListArgs {
     /// Query parameter: classId
-    pub classId: Option<Option<String>>,
+    pub classId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/genericObject
@@ -6689,9 +6691,9 @@ pub fn walletobjects_giftcardclass_insert(
 
 pub fn walletobjects_giftcardclass_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    issuerId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    issuerId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6835,11 +6837,11 @@ pub fn walletobjects_giftcardclass_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsGiftcardclassListArgs {
     /// Query parameter: issuerId
-    pub issuerId: Option<Option<String>>,
+    pub issuerId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/giftCardClass
@@ -7692,9 +7694,9 @@ pub fn walletobjects_giftcardobject_insert(
 
 pub fn walletobjects_giftcardobject_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    classId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    classId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7840,11 +7842,11 @@ pub fn walletobjects_giftcardobject_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsGiftcardobjectListArgs {
     /// Query parameter: classId
-    pub classId: Option<Option<String>>,
+    pub classId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/giftCardObject
@@ -9631,9 +9633,9 @@ pub fn walletobjects_loyaltyclass_insert(
 
 pub fn walletobjects_loyaltyclass_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    issuerId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    issuerId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9777,11 +9779,11 @@ pub fn walletobjects_loyaltyclass_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsLoyaltyclassListArgs {
     /// Query parameter: issuerId
-    pub issuerId: Option<Option<String>>,
+    pub issuerId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/loyaltyClass
@@ -10634,9 +10636,9 @@ pub fn walletobjects_loyaltyobject_insert(
 
 pub fn walletobjects_loyaltyobject_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    classId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    classId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10780,11 +10782,11 @@ pub fn walletobjects_loyaltyobject_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsLoyaltyobjectListArgs {
     /// Query parameter: classId
-    pub classId: Option<Option<String>>,
+    pub classId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/loyaltyObject
@@ -12122,9 +12124,9 @@ pub fn walletobjects_offerclass_insert(
 
 pub fn walletobjects_offerclass_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    issuerId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    issuerId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12267,11 +12269,11 @@ pub fn walletobjects_offerclass_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsOfferclassListArgs {
     /// Query parameter: issuerId
-    pub issuerId: Option<Option<String>>,
+    pub issuerId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/offerClass
@@ -13108,9 +13110,9 @@ pub fn walletobjects_offerobject_insert(
 
 pub fn walletobjects_offerobject_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    classId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    classId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13254,11 +13256,11 @@ pub fn walletobjects_offerobject_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsOfferobjectListArgs {
     /// Query parameter: classId
-    pub classId: Option<Option<String>>,
+    pub classId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/offerObject
@@ -14571,9 +14573,9 @@ pub fn walletobjects_transitclass_insert(
 
 pub fn walletobjects_transitclass_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    issuerId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    issuerId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14717,11 +14719,11 @@ pub fn walletobjects_transitclass_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsTransitclassListArgs {
     /// Query parameter: issuerId
-    pub issuerId: Option<Option<String>>,
+    pub issuerId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/transitClass
@@ -15574,9 +15576,9 @@ pub fn walletobjects_transitobject_insert(
 
 pub fn walletobjects_transitobject_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    classId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    classId: &Option<String>,
+    maxResults: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15720,11 +15722,11 @@ pub fn walletobjects_transitobject_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WalletobjectsTransitobjectListArgs {
     /// Query parameter: classId
-    pub classId: Option<Option<String>>,
+    pub classId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET walletobjects/v1/transitObject
@@ -16295,29 +16297,6 @@ impl ResourceIdentifier<WalletobjectsEventticketclassGetArgs> for EventTicketCla
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for EventTicketClass
-// =============================================================================
-
-/// ResourceIdentifier implementation for EventTicketClass with WalletobjectsEventticketclassInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsEventticketclassInsertArgs> for EventTicketClass {
-    fn generate_resource_id(&self, input: &WalletobjectsEventticketclassInsertArgs) -> String {
-        "gcp::walletobjects::EventTicketClass".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::EventTicketClass"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for EventTicketClassListResponse
 // =============================================================================
 
@@ -16426,29 +16405,6 @@ impl ResourceIdentifier<WalletobjectsEventticketobjectAddmessageArgs>
 impl ResourceIdentifier<WalletobjectsEventticketobjectGetArgs> for EventTicketObject {
     fn generate_resource_id(&self, input: &WalletobjectsEventticketobjectGetArgs) -> String {
         format!("gcp::walletobjects::EventTicketObject/{}", input.resourceId)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::EventTicketObject"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for EventTicketObject
-// =============================================================================
-
-/// ResourceIdentifier implementation for EventTicketObject with WalletobjectsEventticketobjectInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsEventticketobjectInsertArgs> for EventTicketObject {
-    fn generate_resource_id(&self, input: &WalletobjectsEventticketobjectInsertArgs) -> String {
-        "gcp::walletobjects::EventTicketObject".to_string()
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -16607,29 +16563,6 @@ impl ResourceIdentifier<WalletobjectsFlightclassGetArgs> for FlightClass {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for FlightClass
-// =============================================================================
-
-/// ResourceIdentifier implementation for FlightClass with WalletobjectsFlightclassInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsFlightclassInsertArgs> for FlightClass {
-    fn generate_resource_id(&self, input: &WalletobjectsFlightclassInsertArgs) -> String {
-        "gcp::walletobjects::FlightClass".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::FlightClass"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for FlightClassListResponse
 // =============================================================================
 
@@ -16738,29 +16671,6 @@ impl ResourceIdentifier<WalletobjectsFlightobjectAddmessageArgs>
 impl ResourceIdentifier<WalletobjectsFlightobjectGetArgs> for FlightObject {
     fn generate_resource_id(&self, input: &WalletobjectsFlightobjectGetArgs) -> String {
         format!("gcp::walletobjects::FlightObject/{}", input.resourceId)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::FlightObject"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for FlightObject
-// =============================================================================
-
-/// ResourceIdentifier implementation for FlightObject with WalletobjectsFlightobjectInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsFlightobjectInsertArgs> for FlightObject {
-    fn generate_resource_id(&self, input: &WalletobjectsFlightobjectInsertArgs) -> String {
-        "gcp::walletobjects::FlightObject".to_string()
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -16893,29 +16803,6 @@ impl ResourceIdentifier<WalletobjectsGenericclassGetArgs> for GenericClass {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for GenericClass
-// =============================================================================
-
-/// ResourceIdentifier implementation for GenericClass with WalletobjectsGenericclassInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsGenericclassInsertArgs> for GenericClass {
-    fn generate_resource_id(&self, input: &WalletobjectsGenericclassInsertArgs) -> String {
-        "gcp::walletobjects::GenericClass".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::GenericClass"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for GenericClassListResponse
 // =============================================================================
 
@@ -17024,29 +16911,6 @@ impl ResourceIdentifier<WalletobjectsGenericobjectAddmessageArgs>
 impl ResourceIdentifier<WalletobjectsGenericobjectGetArgs> for GenericObject {
     fn generate_resource_id(&self, input: &WalletobjectsGenericobjectGetArgs) -> String {
         format!("gcp::walletobjects::GenericObject/{}", input.resourceId)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::GenericObject"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GenericObject
-// =============================================================================
-
-/// ResourceIdentifier implementation for GenericObject with WalletobjectsGenericobjectInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsGenericobjectInsertArgs> for GenericObject {
-    fn generate_resource_id(&self, input: &WalletobjectsGenericobjectInsertArgs) -> String {
-        "gcp::walletobjects::GenericObject".to_string()
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -17179,29 +17043,6 @@ impl ResourceIdentifier<WalletobjectsGiftcardclassGetArgs> for GiftCardClass {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for GiftCardClass
-// =============================================================================
-
-/// ResourceIdentifier implementation for GiftCardClass with WalletobjectsGiftcardclassInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsGiftcardclassInsertArgs> for GiftCardClass {
-    fn generate_resource_id(&self, input: &WalletobjectsGiftcardclassInsertArgs) -> String {
-        "gcp::walletobjects::GiftCardClass".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::GiftCardClass"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for GiftCardClassListResponse
 // =============================================================================
 
@@ -17322,29 +17163,6 @@ impl ResourceIdentifier<WalletobjectsGiftcardobjectGetArgs> for GiftCardObject {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for GiftCardObject
-// =============================================================================
-
-/// ResourceIdentifier implementation for GiftCardObject with WalletobjectsGiftcardobjectInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsGiftcardobjectInsertArgs> for GiftCardObject {
-    fn generate_resource_id(&self, input: &WalletobjectsGiftcardobjectInsertArgs) -> String {
-        "gcp::walletobjects::GiftCardObject".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::GiftCardObject"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for GiftCardObjectListResponse
 // =============================================================================
 
@@ -17440,52 +17258,6 @@ impl ResourceIdentifier<WalletobjectsIssuerGetArgs> for Issuer {
 // ResourceIdentifier implementation for Issuer
 // =============================================================================
 
-/// ResourceIdentifier implementation for Issuer with WalletobjectsIssuerInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsIssuerInsertArgs> for Issuer {
-    fn generate_resource_id(&self, input: &WalletobjectsIssuerInsertArgs) -> String {
-        "gcp::walletobjects::Issuer".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::Issuer"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for IssuerListResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for IssuerListResponse with WalletobjectsIssuerListArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsIssuerListArgs> for IssuerListResponse {
-    fn generate_resource_id(&self, input: &WalletobjectsIssuerListArgs) -> String {
-        "gcp::walletobjects::IssuerListResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::IssuerListResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Issuer
-// =============================================================================
-
 /// ResourceIdentifier implementation for Issuer with WalletobjectsIssuerPatchArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -17521,29 +17293,6 @@ impl ResourceIdentifier<WalletobjectsIssuerUpdateArgs> for Issuer {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::walletobjects::Issuer"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for JwtInsertResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for JwtInsertResponse with WalletobjectsJwtInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsJwtInsertArgs> for JwtInsertResponse {
-    fn generate_resource_id(&self, input: &WalletobjectsJwtInsertArgs) -> String {
-        "gcp::walletobjects::JwtInsertResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::JwtInsertResponse"
     }
 
     fn provider(&self) -> &'static str {
@@ -17591,29 +17340,6 @@ impl ResourceIdentifier<WalletobjectsLoyaltyclassAddmessageArgs>
 impl ResourceIdentifier<WalletobjectsLoyaltyclassGetArgs> for LoyaltyClass {
     fn generate_resource_id(&self, input: &WalletobjectsLoyaltyclassGetArgs) -> String {
         format!("gcp::walletobjects::LoyaltyClass/{}", input.resourceId)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::LoyaltyClass"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for LoyaltyClass
-// =============================================================================
-
-/// ResourceIdentifier implementation for LoyaltyClass with WalletobjectsLoyaltyclassInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsLoyaltyclassInsertArgs> for LoyaltyClass {
-    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyclassInsertArgs) -> String {
-        "gcp::walletobjects::LoyaltyClass".to_string()
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -17734,29 +17460,6 @@ impl ResourceIdentifier<WalletobjectsLoyaltyobjectAddmessageArgs>
 impl ResourceIdentifier<WalletobjectsLoyaltyobjectGetArgs> for LoyaltyObject {
     fn generate_resource_id(&self, input: &WalletobjectsLoyaltyobjectGetArgs) -> String {
         format!("gcp::walletobjects::LoyaltyObject/{}", input.resourceId)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::LoyaltyObject"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for LoyaltyObject
-// =============================================================================
-
-/// ResourceIdentifier implementation for LoyaltyObject with WalletobjectsLoyaltyobjectInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsLoyaltyobjectInsertArgs> for LoyaltyObject {
-    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyobjectInsertArgs) -> String {
-        "gcp::walletobjects::LoyaltyObject".to_string()
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -17964,29 +17667,6 @@ impl ResourceIdentifier<WalletobjectsOfferclassGetArgs> for OfferClass {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for OfferClass
-// =============================================================================
-
-/// ResourceIdentifier implementation for OfferClass with WalletobjectsOfferclassInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsOfferclassInsertArgs> for OfferClass {
-    fn generate_resource_id(&self, input: &WalletobjectsOfferclassInsertArgs) -> String {
-        "gcp::walletobjects::OfferClass".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::OfferClass"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for OfferClassListResponse
 // =============================================================================
 
@@ -18093,29 +17773,6 @@ impl ResourceIdentifier<WalletobjectsOfferobjectAddmessageArgs> for OfferObjectA
 impl ResourceIdentifier<WalletobjectsOfferobjectGetArgs> for OfferObject {
     fn generate_resource_id(&self, input: &WalletobjectsOfferobjectGetArgs) -> String {
         format!("gcp::walletobjects::OfferObject/{}", input.resourceId)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::OfferObject"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for OfferObject
-// =============================================================================
-
-/// ResourceIdentifier implementation for OfferObject with WalletobjectsOfferobjectInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsOfferobjectInsertArgs> for OfferObject {
-    fn generate_resource_id(&self, input: &WalletobjectsOfferobjectInsertArgs) -> String {
-        "gcp::walletobjects::OfferObject".to_string()
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -18243,29 +17900,6 @@ impl ResourceIdentifier<WalletobjectsPermissionsUpdateArgs> for Permissions {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for SmartTap
-// =============================================================================
-
-/// ResourceIdentifier implementation for SmartTap with WalletobjectsSmarttapInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsSmarttapInsertArgs> for SmartTap {
-    fn generate_resource_id(&self, input: &WalletobjectsSmarttapInsertArgs) -> String {
-        "gcp::walletobjects::SmartTap".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::SmartTap"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for TransitClassAddMessageResponse
 // =============================================================================
 
@@ -18305,29 +17939,6 @@ impl ResourceIdentifier<WalletobjectsTransitclassAddmessageArgs>
 impl ResourceIdentifier<WalletobjectsTransitclassGetArgs> for TransitClass {
     fn generate_resource_id(&self, input: &WalletobjectsTransitclassGetArgs) -> String {
         format!("gcp::walletobjects::TransitClass/{}", input.resourceId)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::TransitClass"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TransitClass
-// =============================================================================
-
-/// ResourceIdentifier implementation for TransitClass with WalletobjectsTransitclassInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsTransitclassInsertArgs> for TransitClass {
-    fn generate_resource_id(&self, input: &WalletobjectsTransitclassInsertArgs) -> String {
-        "gcp::walletobjects::TransitClass".to_string()
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -18460,29 +18071,6 @@ impl ResourceIdentifier<WalletobjectsTransitobjectGetArgs> for TransitObject {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for TransitObject
-// =============================================================================
-
-/// ResourceIdentifier implementation for TransitObject with WalletobjectsTransitobjectInsertArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsTransitobjectInsertArgs> for TransitObject {
-    fn generate_resource_id(&self, input: &WalletobjectsTransitobjectInsertArgs) -> String {
-        "gcp::walletobjects::TransitObject".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::TransitObject"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for TransitObjectListResponse
 // =============================================================================
 
@@ -18544,34 +18132,6 @@ impl ResourceIdentifier<WalletobjectsTransitobjectUpdateArgs> for TransitObject 
 
     fn resource_kind(&self) -> &'static str {
         "gcp::walletobjects::TransitObject"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SetPassUpdateNoticeResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SetPassUpdateNoticeResponse with WalletobjectsWalletobjectsV1PrivateContentSetPassUpdateNoticeArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WalletobjectsWalletobjectsV1PrivateContentSetPassUpdateNoticeArgs>
-    for SetPassUpdateNoticeResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &WalletobjectsWalletobjectsV1PrivateContentSetPassUpdateNoticeArgs,
-    ) -> String {
-        "gcp::walletobjects::SetPassUpdateNoticeResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::walletobjects::SetPassUpdateNoticeResponse"
     }
 
     fn provider(&self) -> &'static str {

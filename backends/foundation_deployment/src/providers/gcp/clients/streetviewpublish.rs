@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -338,8 +340,8 @@ pub fn streetviewpublish_photo_delete(
 pub fn streetviewpublish_photo_get_builder<R>(
     client: &SimpleHttpClient<R>,
     photoId: &String,
-    languageCode: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -482,9 +484,9 @@ pub struct StreetviewpublishPhotoGetArgs {
     /// Path parameter: photoId
     pub photoId: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/photo/{photoId}
@@ -667,7 +669,7 @@ pub fn streetviewpublish_photo_start_upload(
 pub fn streetviewpublish_photo_update_builder<R>(
     client: &SimpleHttpClient<R>,
     id: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -804,7 +806,7 @@ pub struct StreetviewpublishPhotoUpdateArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PUT v1/photo/{id}
@@ -837,7 +839,7 @@ pub fn streetviewpublish_photo_update(
 
 pub fn streetviewpublish_photo_sequence_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    inputType: &Option<Option<String>>,
+    inputType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -972,7 +974,7 @@ pub fn streetviewpublish_photo_sequence_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreetviewpublishPhotoSequenceCreateArgs {
     /// Query parameter: inputType
-    pub inputType: Option<Option<String>>,
+    pub inputType: Option<String>,
 }
 
 /// POST v1/photoSequence
@@ -1166,8 +1168,8 @@ pub fn streetviewpublish_photo_sequence_delete(
 pub fn streetviewpublish_photo_sequence_get_builder<R>(
     client: &SimpleHttpClient<R>,
     sequenceId: &String,
-    filter: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1310,9 +1312,9 @@ pub struct StreetviewpublishPhotoSequenceGetArgs {
     /// Path parameter: sequenceId
     pub sequenceId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/photoSequence/{sequenceId}
@@ -1499,9 +1501,9 @@ pub fn streetviewpublish_photo_sequence_start_upload(
 
 pub fn streetviewpublish_photo_sequences_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1646,11 +1648,11 @@ pub fn streetviewpublish_photo_sequences_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreetviewpublishPhotoSequencesListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/photoSequences
@@ -1844,9 +1846,9 @@ pub fn streetviewpublish_photos_batch_delete(
 
 pub fn streetviewpublish_photos_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    languageCode: &Option<Option<String>>,
-    photoIds: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    photoIds: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1989,11 +1991,11 @@ pub fn streetviewpublish_photos_batch_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreetviewpublishPhotosBatchGetArgs {
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: photoIds
-    pub photoIds: Option<Option<String>>,
+    pub photoIds: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/photos:batchGet
@@ -2185,11 +2187,11 @@ pub fn streetviewpublish_photos_batch_update(
 
 pub fn streetviewpublish_photos_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2338,15 +2340,15 @@ pub fn streetviewpublish_photos_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreetviewpublishPhotosListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/photos
@@ -2378,29 +2380,6 @@ pub fn streetviewpublish_photos_list(
         &args.view,
     )?;
     streetviewpublish_photos_list_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Photo
-// =============================================================================
-
-/// ResourceIdentifier implementation for Photo with StreetviewpublishPhotoCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<StreetviewpublishPhotoCreateArgs> for Photo {
-    fn generate_resource_id(&self, input: &StreetviewpublishPhotoCreateArgs) -> String {
-        "gcp::streetviewpublish::Photo".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::streetviewpublish::Photo"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================
@@ -2442,29 +2421,6 @@ impl ResourceIdentifier<StreetviewpublishPhotoGetArgs> for Photo {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::streetviewpublish::Photo"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for UploadRef
-// =============================================================================
-
-/// ResourceIdentifier implementation for UploadRef with StreetviewpublishPhotoStartUploadArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<StreetviewpublishPhotoStartUploadArgs> for UploadRef {
-    fn generate_resource_id(&self, input: &StreetviewpublishPhotoStartUploadArgs) -> String {
-        "gcp::streetviewpublish::UploadRef".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::streetviewpublish::UploadRef"
     }
 
     fn provider(&self) -> &'static str {
@@ -2565,32 +2521,6 @@ impl ResourceIdentifier<StreetviewpublishPhotoSequenceGetArgs> for Operation {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for UploadRef
-// =============================================================================
-
-/// ResourceIdentifier implementation for UploadRef with StreetviewpublishPhotoSequenceStartUploadArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<StreetviewpublishPhotoSequenceStartUploadArgs> for UploadRef {
-    fn generate_resource_id(
-        &self,
-        input: &StreetviewpublishPhotoSequenceStartUploadArgs,
-    ) -> String {
-        "gcp::streetviewpublish::UploadRef".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::streetviewpublish::UploadRef"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for ListPhotoSequencesResponse
 // =============================================================================
 
@@ -2614,29 +2544,6 @@ impl ResourceIdentifier<StreetviewpublishPhotoSequencesListArgs> for ListPhotoSe
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for BatchDeletePhotosResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for BatchDeletePhotosResponse with StreetviewpublishPhotosBatchDeleteArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<StreetviewpublishPhotosBatchDeleteArgs> for BatchDeletePhotosResponse {
-    fn generate_resource_id(&self, input: &StreetviewpublishPhotosBatchDeleteArgs) -> String {
-        "gcp::streetviewpublish::BatchDeletePhotosResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::streetviewpublish::BatchDeletePhotosResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for BatchGetPhotosResponse
 // =============================================================================
 
@@ -2652,29 +2559,6 @@ impl ResourceIdentifier<StreetviewpublishPhotosBatchGetArgs> for BatchGetPhotosR
 
     fn resource_kind(&self) -> &'static str {
         "gcp::streetviewpublish::BatchGetPhotosResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BatchUpdatePhotosResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for BatchUpdatePhotosResponse with StreetviewpublishPhotosBatchUpdateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<StreetviewpublishPhotosBatchUpdateArgs> for BatchUpdatePhotosResponse {
-    fn generate_resource_id(&self, input: &StreetviewpublishPhotosBatchUpdateArgs) -> String {
-        "gcp::streetviewpublish::BatchUpdatePhotosResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::streetviewpublish::BatchUpdatePhotosResponse"
     }
 
     fn provider(&self) -> &'static str {

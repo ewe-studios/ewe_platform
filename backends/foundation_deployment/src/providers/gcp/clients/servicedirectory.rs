@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn servicedirectory_projects_locations_get(
 pub fn servicedirectory_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct ServicedirectoryProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,7 +395,7 @@ pub fn servicedirectory_projects_locations_list(
 pub fn servicedirectory_projects_locations_namespaces_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    namespaceId: &Option<Option<String>>,
+    namespaceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -533,7 +535,7 @@ pub struct ServicedirectoryProjectsLocationsNamespacesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: namespaceId
-    pub namespaceId: Option<Option<String>>,
+    pub namespaceId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces
@@ -1055,10 +1057,10 @@ pub fn servicedirectory_projects_locations_namespaces_get_iam_policy(
 pub fn servicedirectory_projects_locations_namespaces_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1209,13 +1211,13 @@ pub struct ServicedirectoryProjectsLocationsNamespacesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces
@@ -1258,7 +1260,7 @@ pub fn servicedirectory_projects_locations_namespaces_list(
 pub fn servicedirectory_projects_locations_namespaces_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1398,7 +1400,7 @@ pub struct ServicedirectoryProjectsLocationsNamespacesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
@@ -1770,7 +1772,7 @@ pub fn servicedirectory_projects_locations_namespaces_test_iam_permissions(
 pub fn servicedirectory_projects_locations_namespaces_services_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    serviceId: &Option<Option<String>>,
+    serviceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1910,7 +1912,7 @@ pub struct ServicedirectoryProjectsLocationsNamespacesServicesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: serviceId
-    pub serviceId: Option<Option<String>>,
+    pub serviceId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services
@@ -2434,10 +2436,10 @@ pub fn servicedirectory_projects_locations_namespaces_services_get_iam_policy(
 pub fn servicedirectory_projects_locations_namespaces_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2588,13 +2590,13 @@ pub struct ServicedirectoryProjectsLocationsNamespacesServicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services
@@ -2637,7 +2639,7 @@ pub fn servicedirectory_projects_locations_namespaces_services_list(
 pub fn servicedirectory_projects_locations_namespaces_services_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2777,7 +2779,7 @@ pub struct ServicedirectoryProjectsLocationsNamespacesServicesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
@@ -3318,7 +3320,7 @@ pub fn servicedirectory_projects_locations_namespaces_services_test_iam_permissi
 pub fn servicedirectory_projects_locations_namespaces_services_endpoints_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    endpointId: &Option<Option<String>>,
+    endpointId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3459,7 +3461,7 @@ pub struct ServicedirectoryProjectsLocationsNamespacesServicesEndpointsCreateArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: endpointId
-    pub endpointId: Option<Option<String>>,
+    pub endpointId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints
@@ -3822,10 +3824,10 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_get(
 pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3977,13 +3979,13 @@ pub struct ServicedirectoryProjectsLocationsNamespacesServicesEndpointsListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints
@@ -4026,7 +4028,7 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list(
 pub fn servicedirectory_projects_locations_namespaces_services_endpoints_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4167,7 +4169,7 @@ pub struct ServicedirectoryProjectsLocationsNamespacesServicesEndpointsPatchArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}

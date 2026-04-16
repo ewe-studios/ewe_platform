@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -350,8 +352,8 @@ pub fn adsense_accounts_get_ad_blocking_recovery_tag(
 
 pub fn adsense_accounts_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -491,9 +493,9 @@ pub fn adsense_accounts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AdsenseAccountsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/accounts
@@ -529,8 +531,8 @@ pub fn adsense_accounts_list(
 pub fn adsense_accounts_list_child_accounts_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -675,9 +677,9 @@ pub struct AdsenseAccountsListChildAccountsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}:listChildAccounts
@@ -1042,8 +1044,8 @@ pub fn adsense_accounts_adclients_get_adcode(
 pub fn adsense_accounts_adclients_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1188,9 +1190,9 @@ pub struct AdsenseAccountsAdclientsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/adclients
@@ -1715,8 +1717,8 @@ pub fn adsense_accounts_adclients_adunits_get_adcode(
 pub fn adsense_accounts_adclients_adunits_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1861,9 +1863,9 @@ pub struct AdsenseAccountsAdclientsAdunitsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits
@@ -1904,8 +1906,8 @@ pub fn adsense_accounts_adclients_adunits_list(
 pub fn adsense_accounts_adclients_adunits_list_linked_custom_channels_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2052,9 +2054,9 @@ pub struct AdsenseAccountsAdclientsAdunitsListLinkedCustomChannelsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}:listLinkedCustomChannels
@@ -2097,7 +2099,7 @@ pub fn adsense_accounts_adclients_adunits_list_linked_custom_channels(
 pub fn adsense_accounts_adclients_adunits_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2237,7 +2239,7 @@ pub struct AdsenseAccountsAdclientsAdunitsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}
@@ -2760,8 +2762,8 @@ pub fn adsense_accounts_adclients_customchannels_get(
 pub fn adsense_accounts_adclients_customchannels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2908,9 +2910,9 @@ pub struct AdsenseAccountsAdclientsCustomchannelsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels
@@ -2953,8 +2955,8 @@ pub fn adsense_accounts_adclients_customchannels_list(
 pub fn adsense_accounts_adclients_customchannels_list_linked_ad_units_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3099,9 +3101,9 @@ pub struct AdsenseAccountsAdclientsCustomchannelsListLinkedAdUnitsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}:listLinkedAdUnits
@@ -3142,7 +3144,7 @@ pub fn adsense_accounts_adclients_customchannels_list_linked_ad_units(
 pub fn adsense_accounts_adclients_customchannels_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3284,7 +3286,7 @@ pub struct AdsenseAccountsAdclientsCustomchannelsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
@@ -3484,8 +3486,8 @@ pub fn adsense_accounts_adclients_urlchannels_get(
 pub fn adsense_accounts_adclients_urlchannels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3630,9 +3632,9 @@ pub struct AdsenseAccountsAdclientsUrlchannelsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/adclients/{adclientsId}/urlchannels
@@ -3673,7 +3675,7 @@ pub fn adsense_accounts_adclients_urlchannels_list(
 pub fn adsense_accounts_alerts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3815,7 +3817,7 @@ pub struct AdsenseAccountsAlertsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/alerts
@@ -4175,8 +4177,8 @@ pub fn adsense_accounts_policy_issues_get(
 pub fn adsense_accounts_policy_issues_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4321,9 +4323,9 @@ pub struct AdsenseAccountsPolicyIssuesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/policyIssues
@@ -4364,21 +4366,21 @@ pub fn adsense_accounts_policy_issues_list(
 pub fn adsense_accounts_reports_generate_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
-    currencyCode: &Option<Option<String>>,
-    dateRange: &Option<Option<String>>,
-    dimensions: &Option<Option<String>>,
-    endDate_day: &Option<Option<String>>,
-    endDate_month: &Option<Option<String>>,
-    endDate_year: &Option<Option<String>>,
-    filters: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    metrics: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    reportingTimeZone: &Option<Option<String>>,
-    startDate_day: &Option<Option<String>>,
-    startDate_month: &Option<Option<String>>,
-    startDate_year: &Option<Option<String>>,
+    currencyCode: &Option<String>,
+    dateRange: &Option<String>,
+    dimensions: &Option<String>,
+    endDate_day: &Option<String>,
+    endDate_month: &Option<String>,
+    endDate_year: &Option<String>,
+    filters: &Option<String>,
+    languageCode: &Option<String>,
+    limit: &Option<String>,
+    metrics: &Option<String>,
+    orderBy: &Option<String>,
+    reportingTimeZone: &Option<String>,
+    startDate_day: &Option<String>,
+    startDate_month: &Option<String>,
+    startDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4562,35 +4564,35 @@ pub struct AdsenseAccountsReportsGenerateArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: currencyCode
-    pub currencyCode: Option<Option<String>>,
+    pub currencyCode: Option<String>,
     /// Query parameter: dateRange
-    pub dateRange: Option<Option<String>>,
+    pub dateRange: Option<String>,
     /// Query parameter: dimensions
-    pub dimensions: Option<Option<String>>,
+    pub dimensions: Option<String>,
     /// Query parameter: endDate_day
-    pub endDate_day: Option<Option<String>>,
+    pub endDate_day: Option<String>,
     /// Query parameter: endDate_month
-    pub endDate_month: Option<Option<String>>,
+    pub endDate_month: Option<String>,
     /// Query parameter: endDate_year
-    pub endDate_year: Option<Option<String>>,
+    pub endDate_year: Option<String>,
     /// Query parameter: filters
-    pub filters: Option<Option<String>>,
+    pub filters: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: metrics
-    pub metrics: Option<Option<String>>,
+    pub metrics: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: reportingTimeZone
-    pub reportingTimeZone: Option<Option<String>>,
+    pub reportingTimeZone: Option<String>,
     /// Query parameter: startDate_day
-    pub startDate_day: Option<Option<String>>,
+    pub startDate_day: Option<String>,
     /// Query parameter: startDate_month
-    pub startDate_month: Option<Option<String>>,
+    pub startDate_month: Option<String>,
     /// Query parameter: startDate_year
-    pub startDate_year: Option<Option<String>>,
+    pub startDate_year: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/reports:generate
@@ -4644,21 +4646,21 @@ pub fn adsense_accounts_reports_generate(
 pub fn adsense_accounts_reports_generate_csv_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
-    currencyCode: &Option<Option<String>>,
-    dateRange: &Option<Option<String>>,
-    dimensions: &Option<Option<String>>,
-    endDate_day: &Option<Option<String>>,
-    endDate_month: &Option<Option<String>>,
-    endDate_year: &Option<Option<String>>,
-    filters: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    metrics: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    reportingTimeZone: &Option<Option<String>>,
-    startDate_day: &Option<Option<String>>,
-    startDate_month: &Option<Option<String>>,
-    startDate_year: &Option<Option<String>>,
+    currencyCode: &Option<String>,
+    dateRange: &Option<String>,
+    dimensions: &Option<String>,
+    endDate_day: &Option<String>,
+    endDate_month: &Option<String>,
+    endDate_year: &Option<String>,
+    filters: &Option<String>,
+    languageCode: &Option<String>,
+    limit: &Option<String>,
+    metrics: &Option<String>,
+    orderBy: &Option<String>,
+    reportingTimeZone: &Option<String>,
+    startDate_day: &Option<String>,
+    startDate_month: &Option<String>,
+    startDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4840,35 +4842,35 @@ pub struct AdsenseAccountsReportsGenerateCsvArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: currencyCode
-    pub currencyCode: Option<Option<String>>,
+    pub currencyCode: Option<String>,
     /// Query parameter: dateRange
-    pub dateRange: Option<Option<String>>,
+    pub dateRange: Option<String>,
     /// Query parameter: dimensions
-    pub dimensions: Option<Option<String>>,
+    pub dimensions: Option<String>,
     /// Query parameter: endDate_day
-    pub endDate_day: Option<Option<String>>,
+    pub endDate_day: Option<String>,
     /// Query parameter: endDate_month
-    pub endDate_month: Option<Option<String>>,
+    pub endDate_month: Option<String>,
     /// Query parameter: endDate_year
-    pub endDate_year: Option<Option<String>>,
+    pub endDate_year: Option<String>,
     /// Query parameter: filters
-    pub filters: Option<Option<String>>,
+    pub filters: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: metrics
-    pub metrics: Option<Option<String>>,
+    pub metrics: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: reportingTimeZone
-    pub reportingTimeZone: Option<Option<String>>,
+    pub reportingTimeZone: Option<String>,
     /// Query parameter: startDate_day
-    pub startDate_day: Option<Option<String>>,
+    pub startDate_day: Option<String>,
     /// Query parameter: startDate_month
-    pub startDate_month: Option<Option<String>>,
+    pub startDate_month: Option<String>,
     /// Query parameter: startDate_year
-    pub startDate_year: Option<Option<String>>,
+    pub startDate_year: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/reports:generateCsv
@@ -5080,16 +5082,16 @@ pub fn adsense_accounts_reports_get_saved(
 pub fn adsense_accounts_reports_saved_generate_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    currencyCode: &Option<Option<String>>,
-    dateRange: &Option<Option<String>>,
-    endDate_day: &Option<Option<String>>,
-    endDate_month: &Option<Option<String>>,
-    endDate_year: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    reportingTimeZone: &Option<Option<String>>,
-    startDate_day: &Option<Option<String>>,
-    startDate_month: &Option<Option<String>>,
-    startDate_year: &Option<Option<String>>,
+    currencyCode: &Option<String>,
+    dateRange: &Option<String>,
+    endDate_day: &Option<String>,
+    endDate_month: &Option<String>,
+    endDate_year: &Option<String>,
+    languageCode: &Option<String>,
+    reportingTimeZone: &Option<String>,
+    startDate_day: &Option<String>,
+    startDate_month: &Option<String>,
+    startDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5258,25 +5260,25 @@ pub struct AdsenseAccountsReportsSavedGenerateArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: currencyCode
-    pub currencyCode: Option<Option<String>>,
+    pub currencyCode: Option<String>,
     /// Query parameter: dateRange
-    pub dateRange: Option<Option<String>>,
+    pub dateRange: Option<String>,
     /// Query parameter: endDate_day
-    pub endDate_day: Option<Option<String>>,
+    pub endDate_day: Option<String>,
     /// Query parameter: endDate_month
-    pub endDate_month: Option<Option<String>>,
+    pub endDate_month: Option<String>,
     /// Query parameter: endDate_year
-    pub endDate_year: Option<Option<String>>,
+    pub endDate_year: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: reportingTimeZone
-    pub reportingTimeZone: Option<Option<String>>,
+    pub reportingTimeZone: Option<String>,
     /// Query parameter: startDate_day
-    pub startDate_day: Option<Option<String>>,
+    pub startDate_day: Option<String>,
     /// Query parameter: startDate_month
-    pub startDate_month: Option<Option<String>>,
+    pub startDate_month: Option<String>,
     /// Query parameter: startDate_year
-    pub startDate_year: Option<Option<String>>,
+    pub startDate_year: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/reports/{reportsId}/saved:generate
@@ -5325,16 +5327,16 @@ pub fn adsense_accounts_reports_saved_generate(
 pub fn adsense_accounts_reports_saved_generate_csv_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    currencyCode: &Option<Option<String>>,
-    dateRange: &Option<Option<String>>,
-    endDate_day: &Option<Option<String>>,
-    endDate_month: &Option<Option<String>>,
-    endDate_year: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    reportingTimeZone: &Option<Option<String>>,
-    startDate_day: &Option<Option<String>>,
-    startDate_month: &Option<Option<String>>,
-    startDate_year: &Option<Option<String>>,
+    currencyCode: &Option<String>,
+    dateRange: &Option<String>,
+    endDate_day: &Option<String>,
+    endDate_month: &Option<String>,
+    endDate_year: &Option<String>,
+    languageCode: &Option<String>,
+    reportingTimeZone: &Option<String>,
+    startDate_day: &Option<String>,
+    startDate_month: &Option<String>,
+    startDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5501,25 +5503,25 @@ pub struct AdsenseAccountsReportsSavedGenerateCsvArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: currencyCode
-    pub currencyCode: Option<Option<String>>,
+    pub currencyCode: Option<String>,
     /// Query parameter: dateRange
-    pub dateRange: Option<Option<String>>,
+    pub dateRange: Option<String>,
     /// Query parameter: endDate_day
-    pub endDate_day: Option<Option<String>>,
+    pub endDate_day: Option<String>,
     /// Query parameter: endDate_month
-    pub endDate_month: Option<Option<String>>,
+    pub endDate_month: Option<String>,
     /// Query parameter: endDate_year
-    pub endDate_year: Option<Option<String>>,
+    pub endDate_year: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: reportingTimeZone
-    pub reportingTimeZone: Option<Option<String>>,
+    pub reportingTimeZone: Option<String>,
     /// Query parameter: startDate_day
-    pub startDate_day: Option<Option<String>>,
+    pub startDate_day: Option<String>,
     /// Query parameter: startDate_month
-    pub startDate_month: Option<Option<String>>,
+    pub startDate_month: Option<String>,
     /// Query parameter: startDate_year
-    pub startDate_year: Option<Option<String>>,
+    pub startDate_year: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/reports/{reportsId}/saved:generateCsv
@@ -5566,8 +5568,8 @@ pub fn adsense_accounts_reports_saved_generate_csv(
 pub fn adsense_accounts_reports_saved_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5712,9 +5714,9 @@ pub struct AdsenseAccountsReportsSavedListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/reports/saved
@@ -5915,8 +5917,8 @@ pub fn adsense_accounts_sites_get(
 pub fn adsense_accounts_sites_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6061,9 +6063,9 @@ pub struct AdsenseAccountsSitesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/accounts/{accountsId}/sites

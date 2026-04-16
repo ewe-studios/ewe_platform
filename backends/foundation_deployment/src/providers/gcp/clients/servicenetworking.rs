@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -509,10 +511,10 @@ pub fn servicenetworking_operations_get(
 
 pub fn servicenetworking_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -658,13 +660,13 @@ pub fn servicenetworking_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ServicenetworkingOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/operations
@@ -1837,7 +1839,7 @@ pub fn servicenetworking_services_connections_delete_connection(
 pub fn servicenetworking_services_connections_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    network: &Option<Option<String>>,
+    network: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1979,7 +1981,7 @@ pub struct ServicenetworkingServicesConnectionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: network
-    pub network: Option<Option<String>>,
+    pub network: Option<String>,
 }
 
 /// GET v1/services/{servicesId}/connections
@@ -2016,8 +2018,8 @@ pub fn servicenetworking_services_connections_list(
 pub fn servicenetworking_services_connections_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    force: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2160,9 +2162,9 @@ pub struct ServicenetworkingServicesConnectionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/services/{servicesId}/connections/{connectionsId}
@@ -2361,10 +2363,10 @@ pub fn servicenetworking_services_dns_record_sets_add(
 pub fn servicenetworking_services_dns_record_sets_get_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    consumerNetwork: &Option<Option<String>>,
-    domain: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
-    zone: &Option<Option<String>>,
+    consumerNetwork: &Option<String>,
+    domain: &Option<String>,
+    type_rs: &Option<String>,
+    zone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2515,13 +2517,13 @@ pub struct ServicenetworkingServicesDnsRecordSetsGetArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: consumerNetwork
-    pub consumerNetwork: Option<Option<String>>,
+    pub consumerNetwork: Option<String>,
     /// Query parameter: domain
-    pub domain: Option<Option<String>>,
+    pub domain: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
     /// Query parameter: zone
-    pub zone: Option<Option<String>>,
+    pub zone: Option<String>,
 }
 
 /// GET v1/services/{servicesId}/dnsRecordSets:get
@@ -2564,8 +2566,8 @@ pub fn servicenetworking_services_dns_record_sets_get(
 pub fn servicenetworking_services_dns_record_sets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    consumerNetwork: &Option<Option<String>>,
-    zone: &Option<Option<String>>,
+    consumerNetwork: &Option<String>,
+    zone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2710,9 +2712,9 @@ pub struct ServicenetworkingServicesDnsRecordSetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: consumerNetwork
-    pub consumerNetwork: Option<Option<String>>,
+    pub consumerNetwork: Option<String>,
     /// Query parameter: zone
-    pub zone: Option<Option<String>>,
+    pub zone: Option<String>,
 }
 
 /// GET v1/services/{servicesId}/dnsRecordSets:list
@@ -3393,7 +3395,7 @@ pub fn servicenetworking_services_dns_zones_remove(
 pub fn servicenetworking_services_projects_global_networks_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    includeUsedIpRanges: &Option<Option<String>>,
+    includeUsedIpRanges: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3535,7 +3537,7 @@ pub struct ServicenetworkingServicesProjectsGlobalNetworksGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: includeUsedIpRanges
-    pub includeUsedIpRanges: Option<Option<String>>,
+    pub includeUsedIpRanges: Option<String>,
 }
 
 /// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}

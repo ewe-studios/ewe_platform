@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn healthcare_projects_locations_get(
 pub fn healthcare_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct HealthcareProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,7 +395,7 @@ pub fn healthcare_projects_locations_list(
 pub fn healthcare_projects_locations_datasets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    datasetId: &Option<Option<String>>,
+    datasetId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -533,7 +535,7 @@ pub struct HealthcareProjectsLocationsDatasetsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: datasetId
-    pub datasetId: Option<Option<String>>,
+    pub datasetId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets
@@ -1052,7 +1054,7 @@ pub fn healthcare_projects_locations_datasets_get(
 pub fn healthcare_projects_locations_datasets_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1192,7 +1194,7 @@ pub struct HealthcareProjectsLocationsDatasetsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:getIamPolicy
@@ -1230,8 +1232,8 @@ pub fn healthcare_projects_locations_datasets_get_iam_policy(
 pub fn healthcare_projects_locations_datasets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1376,9 +1378,9 @@ pub struct HealthcareProjectsLocationsDatasetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets
@@ -1419,7 +1421,7 @@ pub fn healthcare_projects_locations_datasets_list(
 pub fn healthcare_projects_locations_datasets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1559,7 +1561,7 @@ pub struct HealthcareProjectsLocationsDatasetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
@@ -2094,7 +2096,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_check_data_access(
 pub fn healthcare_projects_locations_datasets_consent_stores_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    consentStoreId: &Option<Option<String>>,
+    consentStoreId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2236,7 +2238,7 @@ pub struct HealthcareProjectsLocationsDatasetsConsentStoresCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: consentStoreId
-    pub consentStoreId: Option<Option<String>>,
+    pub consentStoreId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores
@@ -2775,7 +2777,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_get(
 pub fn healthcare_projects_locations_datasets_consent_stores_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2915,7 +2917,7 @@ pub struct HealthcareProjectsLocationsDatasetsConsentStoresGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}:getIamPolicy
@@ -2953,9 +2955,9 @@ pub fn healthcare_projects_locations_datasets_consent_stores_get_iam_policy(
 pub fn healthcare_projects_locations_datasets_consent_stores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3103,11 +3105,11 @@ pub struct HealthcareProjectsLocationsDatasetsConsentStoresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores
@@ -3149,7 +3151,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_list(
 pub fn healthcare_projects_locations_datasets_consent_stores_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3291,7 +3293,7 @@ pub struct HealthcareProjectsLocationsDatasetsConsentStoresPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}
@@ -3834,7 +3836,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    attributeDefinitionId: &Option<Option<String>>,
+    attributeDefinitionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3979,7 +3981,7 @@ pub struct HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsC
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: attributeDefinitionId
-    pub attributeDefinitionId: Option<Option<String>>,
+    pub attributeDefinitionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/attributeDefinitions
@@ -4362,9 +4364,9 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4517,11 +4519,11 @@ pub struct HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsL
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/attributeDefinitions
@@ -4570,7 +4572,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_attribute_definitio
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4715,7 +4717,7 @@ pub struct HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsP
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/attributeDefinitions/{attributeDefinitionsId}
@@ -5261,9 +5263,9 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_g
 pub fn healthcare_projects_locations_datasets_consent_stores_consent_artifacts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5414,11 +5416,11 @@ pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentArtifactsListA
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consentArtifacts
@@ -6278,9 +6280,9 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_get(
 pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6428,11 +6430,11 @@ pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents
@@ -6474,9 +6476,9 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_list(
 pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_revisions_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6628,11 +6630,11 @@ pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentsListRevisions
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}:listRevisions
@@ -6677,7 +6679,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_consents_list_revis
 pub fn healthcare_projects_locations_datasets_consent_stores_consents_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6817,7 +6819,7 @@ pub struct HealthcareProjectsLocationsDatasetsConsentStoresConsentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/consents/{consentsId}
@@ -7860,9 +7862,9 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8014,11 +8016,11 @@ pub struct HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsListA
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings
@@ -8063,7 +8065,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8207,7 +8209,7 @@ pub struct HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsPatch
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/consentStores/{consentStoresId}/userDataMappings/{userDataMappingsId}
@@ -8248,7 +8250,7 @@ pub fn healthcare_projects_locations_datasets_consent_stores_user_data_mappings_
 pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8389,7 +8391,7 @@ pub struct HealthcareProjectsLocationsDatasetsDataMapperWorkspacesGetIamPolicyAr
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dataMapperWorkspaces/{dataMapperWorkspacesId}:getIamPolicy
@@ -8772,7 +8774,7 @@ pub fn healthcare_projects_locations_datasets_data_mapper_workspaces_test_iam_pe
 pub fn healthcare_projects_locations_datasets_dicom_stores_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dicomStoreId: &Option<Option<String>>,
+    dicomStoreId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8912,7 +8914,7 @@ pub struct HealthcareProjectsLocationsDatasetsDicomStoresCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dicomStoreId
-    pub dicomStoreId: Option<Option<String>>,
+    pub dicomStoreId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores
@@ -9764,7 +9766,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_get_dicom_store_metri
 pub fn healthcare_projects_locations_datasets_dicom_stores_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9904,7 +9906,7 @@ pub struct HealthcareProjectsLocationsDatasetsDicomStoresGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}:getIamPolicy
@@ -10103,9 +10105,9 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_import(
 pub fn healthcare_projects_locations_datasets_dicom_stores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10253,11 +10255,11 @@ pub struct HealthcareProjectsLocationsDatasetsDicomStoresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores
@@ -10299,7 +10301,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_list(
 pub fn healthcare_projects_locations_datasets_dicom_stores_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10439,7 +10441,7 @@ pub struct HealthcareProjectsLocationsDatasetsDicomStoresPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}
@@ -14528,7 +14530,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
     client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-    viewport: &Option<Option<String>>,
+    viewport: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14672,7 +14674,7 @@ pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesR
     /// Path parameter: dicomWebPath
     pub dicomWebPath: String,
     /// Query parameter: viewport
-    pub viewport: Option<Option<String>>,
+    pub viewport: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}/rendered
@@ -15043,7 +15045,7 @@ pub fn healthcare_projects_locations_datasets_dicom_stores_studies_series_instan
     client: &SimpleHttpClient<R>,
     parent: &String,
     dicomWebPath: &String,
-    viewport: &Option<Option<String>>,
+    viewport: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15187,7 +15189,7 @@ pub struct HealthcareProjectsLocationsDatasetsDicomStoresStudiesSeriesInstancesF
     /// Path parameter: dicomWebPath
     pub dicomWebPath: String,
     /// Query parameter: viewport
-    pub viewport: Option<Option<String>>,
+    pub viewport: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dicomStores/{dicomStoresId}/dicomWeb/studies/{studiesId}/series/{seriesId}/instances/{instancesId}/frames/{framesId}/rendered
@@ -15546,10 +15548,10 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_apply_consents(
 pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_export_group_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    _since: &Option<Option<String>>,
-    _type: &Option<Option<String>>,
-    organizeOutputBy: &Option<Option<String>>,
-    outputFormat: &Option<Option<String>>,
+    _since: &Option<String>,
+    _type: &Option<String>,
+    organizeOutputBy: &Option<String>,
+    outputFormat: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15698,13 +15700,13 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresBulkExportGroupArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: _since
-    pub _since: Option<Option<String>>,
+    pub _since: Option<String>,
     /// Query parameter: _type
-    pub _type: Option<Option<String>>,
+    pub _type: Option<String>,
     /// Query parameter: organizeOutputBy
-    pub organizeOutputBy: Option<Option<String>>,
+    pub organizeOutputBy: Option<String>,
     /// Query parameter: outputFormat
-    pub outputFormat: Option<Option<String>>,
+    pub outputFormat: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Group/{GroupId}/$export
@@ -15906,7 +15908,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_bulk_delete(
 pub fn healthcare_projects_locations_datasets_fhir_stores_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    fhirStoreId: &Option<Option<String>>,
+    fhirStoreId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16046,7 +16048,7 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: fhirStoreId
-    pub fhirStoreId: Option<Option<String>>,
+    pub fhirStoreId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores
@@ -16408,7 +16410,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_delete(
 pub fn healthcare_projects_locations_datasets_fhir_stores_explain_data_access_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    resourceId: &Option<Option<String>>,
+    resourceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16551,7 +16553,7 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresExplainDataAccessArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: resourceId
-    pub resourceId: Option<Option<String>>,
+    pub resourceId: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:explainDataAccess
@@ -17081,7 +17083,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_get_fhir_store_metrics
 pub fn healthcare_projects_locations_datasets_fhir_stores_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17221,7 +17223,7 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}:getIamPolicy
@@ -17420,9 +17422,9 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_import(
 pub fn healthcare_projects_locations_datasets_fhir_stores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17570,11 +17572,11 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores
@@ -17616,7 +17618,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_list(
 pub fn healthcare_projects_locations_datasets_fhir_stores_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17756,7 +17758,7 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}
@@ -19111,8 +19113,8 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_e
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    _count: &Option<Option<String>>,
-    _page_token: &Option<Option<String>>,
+    _count: &Option<String>,
+    _page_token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19255,9 +19257,9 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirPatientConsentEnforc
     /// Path parameter: name
     pub name: String,
     /// Query parameter: _count
-    pub _count: Option<Option<String>>,
+    pub _count: Option<String>,
     /// Query parameter: _page_token
-    pub _page_token: Option<Option<String>>,
+    pub _page_token: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Patient/{PatientId}/$consent-enforcement-status
@@ -19291,12 +19293,12 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patient_consent_e
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_patient_everything_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    _count: &Option<Option<String>>,
-    _page_token: &Option<Option<String>>,
-    _since: &Option<Option<String>>,
-    _type: &Option<Option<String>>,
-    end: &Option<Option<String>>,
-    start: &Option<Option<String>>,
+    _count: &Option<String>,
+    _page_token: &Option<String>,
+    _since: &Option<String>,
+    _type: &Option<String>,
+    end: &Option<String>,
+    start: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19452,17 +19454,17 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirPatientEverythingArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: _count
-    pub _count: Option<Option<String>>,
+    pub _count: Option<String>,
     /// Query parameter: _page_token
-    pub _page_token: Option<Option<String>>,
+    pub _page_token: Option<String>,
     /// Query parameter: _since
-    pub _since: Option<Option<String>>,
+    pub _since: Option<String>,
     /// Query parameter: _type
-    pub _type: Option<Option<String>>,
+    pub _type: Option<String>,
     /// Query parameter: end
-    pub end: Option<Option<String>>,
+    pub end: Option<String>,
     /// Query parameter: start
-    pub start: Option<Option<String>>,
+    pub start: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/Patient/{PatientId}/$everything
@@ -19670,7 +19672,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate
     client: &SimpleHttpClient<R>,
     parent: &String,
     type_rs: &String,
-    profile: &Option<Option<String>>,
+    profile: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19814,7 +19816,7 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirResourceValidateArgs
     /// Path parameter: type
     pub type_rs: String,
     /// Query parameter: profile
-    pub profile: Option<Option<String>>,
+    pub profile: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/$validate
@@ -19854,9 +19856,9 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_resource_validate
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_bulk_export_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    _since: &Option<Option<String>>,
-    _type: &Option<Option<String>>,
-    outputFormat: &Option<Option<String>>,
+    _since: &Option<String>,
+    _type: &Option<String>,
+    outputFormat: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20002,11 +20004,11 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirBulkExportArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: _since
-    pub _since: Option<Option<String>>,
+    pub _since: Option<String>,
     /// Query parameter: _type
-    pub _type: Option<Option<String>>,
+    pub _type: Option<String>,
     /// Query parameter: outputFormat
-    pub outputFormat: Option<Option<String>>,
+    pub outputFormat: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/$export
@@ -21211,10 +21213,10 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_execute_bundle(
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_history_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    _at: &Option<Option<String>>,
-    _count: &Option<Option<String>>,
-    _page_token: &Option<Option<String>>,
-    _since: &Option<Option<String>>,
+    _at: &Option<String>,
+    _count: &Option<String>,
+    _page_token: &Option<String>,
+    _since: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21363,13 +21365,13 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirHistoryArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: _at
-    pub _at: Option<Option<String>>,
+    pub _at: Option<String>,
     /// Query parameter: _count
-    pub _count: Option<Option<String>>,
+    pub _count: Option<String>,
     /// Query parameter: _page_token
-    pub _page_token: Option<Option<String>>,
+    pub _page_token: Option<String>,
     /// Query parameter: _since
-    pub _since: Option<Option<String>>,
+    pub _since: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/{fhirId}/{fhirId1}/_history
@@ -21732,7 +21734,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_read(
 pub fn healthcare_projects_locations_datasets_fhir_stores_fhir_search_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    resourceType: &Option<Option<String>>,
+    resourceType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21872,7 +21874,7 @@ pub struct HealthcareProjectsLocationsDatasetsFhirStoresFhirSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: resourceType
-    pub resourceType: Option<Option<String>>,
+    pub resourceType: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/fhirStores/{fhirStoresId}/fhir/_search
@@ -22731,7 +22733,7 @@ pub fn healthcare_projects_locations_datasets_fhir_stores_operations_get_fhir_op
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    hl7V2StoreId: &Option<Option<String>>,
+    hl7V2StoreId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22871,7 +22873,7 @@ pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: hl7V2StoreId
-    pub hl7V2StoreId: Option<Option<String>>,
+    pub hl7V2StoreId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores
@@ -23560,7 +23562,7 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_hl7v2_store_metr
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23700,7 +23702,7 @@ pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}:getIamPolicy
@@ -23899,9 +23901,9 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_import(
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24049,11 +24051,11 @@ pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores
@@ -24095,7 +24097,7 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_list(
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24235,7 +24237,7 @@ pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}
@@ -25095,7 +25097,7 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_delete(
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25235,7 +25237,7 @@ pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages/{messagesId}
@@ -25438,11 +25440,11 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_ingest(
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25596,15 +25598,15 @@ pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages
@@ -25648,7 +25650,7 @@ pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_list(
 pub fn healthcare_projects_locations_datasets_hl7_v2_stores_messages_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25788,7 +25790,7 @@ pub struct HealthcareProjectsLocationsDatasetsHl7V2StoresMessagesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/hl7V2Stores/{hl7V2StoresId}/messages/{messagesId}
@@ -26148,10 +26150,10 @@ pub fn healthcare_projects_locations_datasets_operations_get(
 pub fn healthcare_projects_locations_datasets_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26302,13 +26304,13 @@ pub struct HealthcareProjectsLocationsDatasetsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/operations

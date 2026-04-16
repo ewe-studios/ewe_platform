@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -370,7 +372,7 @@ pub fn advisorynotifications_organizations_locations_update_settings(
 pub fn advisorynotifications_organizations_locations_notifications_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -515,7 +517,7 @@ pub struct AdvisorynotificationsOrganizationsLocationsNotificationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/notifications/{notificationsId}
@@ -557,10 +559,10 @@ pub fn advisorynotifications_organizations_locations_notifications_get(
 pub fn advisorynotifications_organizations_locations_notifications_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -720,13 +722,13 @@ pub struct AdvisorynotificationsOrganizationsLocationsNotificationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/notifications
@@ -1114,7 +1116,7 @@ pub fn advisorynotifications_projects_locations_update_settings(
 pub fn advisorynotifications_projects_locations_notifications_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1259,7 +1261,7 @@ pub struct AdvisorynotificationsProjectsLocationsNotificationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notifications/{notificationsId}
@@ -1301,10 +1303,10 @@ pub fn advisorynotifications_projects_locations_notifications_get(
 pub fn advisorynotifications_projects_locations_notifications_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1464,13 +1466,13 @@ pub struct AdvisorynotificationsProjectsLocationsNotificationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notifications

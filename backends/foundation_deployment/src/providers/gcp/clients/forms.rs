@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -193,7 +195,7 @@ pub fn forms_forms_batch_update(
 
 pub fn forms_forms_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    unpublished: &Option<Option<String>>,
+    unpublished: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -328,7 +330,7 @@ pub fn forms_forms_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FormsFormsCreateArgs {
     /// Query parameter: unpublished
-    pub unpublished: Option<Option<String>>,
+    pub unpublished: Option<String>,
 }
 
 /// POST v1/forms
@@ -854,9 +856,9 @@ pub fn forms_forms_responses_get(
 pub fn forms_forms_responses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     formId: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1001,11 +1003,11 @@ pub struct FormsFormsResponsesListArgs {
     /// Path parameter: formId
     pub formId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/forms/{formId}/responses

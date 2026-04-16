@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -515,8 +517,8 @@ pub fn bigquerydatatransfer_projects_data_sources_get(
 pub fn bigquerydatatransfer_projects_data_sources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -661,9 +663,9 @@ pub struct BigquerydatatransferProjectsDataSourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/dataSources
@@ -1025,10 +1027,10 @@ pub fn bigquerydatatransfer_projects_locations_get(
 pub fn bigquerydatatransfer_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1179,13 +1181,13 @@ pub struct BigquerydatatransferProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -1717,8 +1719,8 @@ pub fn bigquerydatatransfer_projects_locations_data_sources_get(
 pub fn bigquerydatatransfer_projects_locations_data_sources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1863,9 +1865,9 @@ pub struct BigquerydatatransferProjectsLocationsDataSourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataSources
@@ -1906,9 +1908,9 @@ pub fn bigquerydatatransfer_projects_locations_data_sources_list(
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    authorizationCode: &Option<Option<String>>,
-    serviceAccountName: &Option<Option<String>>,
-    versionInfo: &Option<Option<String>>,
+    authorizationCode: &Option<String>,
+    serviceAccountName: &Option<String>,
+    versionInfo: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2056,11 +2058,11 @@ pub struct BigquerydatatransferProjectsLocationsTransferConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: authorizationCode
-    pub authorizationCode: Option<Option<String>>,
+    pub authorizationCode: Option<String>,
     /// Query parameter: serviceAccountName
-    pub serviceAccountName: Option<Option<String>>,
+    pub serviceAccountName: Option<String>,
     /// Query parameter: versionInfo
-    pub versionInfo: Option<Option<String>>,
+    pub versionInfo: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/transferConfigs
@@ -2429,9 +2431,9 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_get(
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataSourceIds: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    dataSourceIds: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2581,11 +2583,11 @@ pub struct BigquerydatatransferProjectsLocationsTransferConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataSourceIds
-    pub dataSourceIds: Option<Option<String>>,
+    pub dataSourceIds: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs
@@ -2629,10 +2631,10 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_list(
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    authorizationCode: &Option<Option<String>>,
-    serviceAccountName: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    versionInfo: &Option<Option<String>>,
+    authorizationCode: &Option<String>,
+    serviceAccountName: &Option<String>,
+    updateMask: &Option<String>,
+    versionInfo: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2783,13 +2785,13 @@ pub struct BigquerydatatransferProjectsLocationsTransferConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: authorizationCode
-    pub authorizationCode: Option<Option<String>>,
+    pub authorizationCode: Option<String>,
     /// Query parameter: serviceAccountName
-    pub serviceAccountName: Option<Option<String>>,
+    pub serviceAccountName: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: versionInfo
-    pub versionInfo: Option<Option<String>>,
+    pub versionInfo: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
@@ -3501,10 +3503,10 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_get(
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    runAttempt: &Option<Option<String>>,
-    states: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    runAttempt: &Option<String>,
+    states: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3655,13 +3657,13 @@ pub struct BigquerydatatransferProjectsLocationsTransferConfigsRunsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: runAttempt
-    pub runAttempt: Option<Option<String>>,
+    pub runAttempt: Option<String>,
     /// Query parameter: states
-    pub states: Option<Option<String>>,
+    pub states: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs
@@ -3704,9 +3706,9 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list(
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    messageTypes: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    messageTypes: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3857,11 +3859,11 @@ pub struct BigquerydatatransferProjectsLocationsTransferConfigsRunsTransferLogsL
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: messageTypes
-    pub messageTypes: Option<Option<String>>,
+    pub messageTypes: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs
@@ -4076,9 +4078,9 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resourc
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4231,11 +4233,11 @@ pub struct BigquerydatatransferProjectsLocationsTransferConfigsTransferResources
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources
@@ -4282,9 +4284,9 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resourc
 pub fn bigquerydatatransfer_projects_transfer_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    authorizationCode: &Option<Option<String>>,
-    serviceAccountName: &Option<Option<String>>,
-    versionInfo: &Option<Option<String>>,
+    authorizationCode: &Option<String>,
+    serviceAccountName: &Option<String>,
+    versionInfo: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4432,11 +4434,11 @@ pub struct BigquerydatatransferProjectsTransferConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: authorizationCode
-    pub authorizationCode: Option<Option<String>>,
+    pub authorizationCode: Option<String>,
     /// Query parameter: serviceAccountName
-    pub serviceAccountName: Option<Option<String>>,
+    pub serviceAccountName: Option<String>,
     /// Query parameter: versionInfo
-    pub versionInfo: Option<Option<String>>,
+    pub versionInfo: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/transferConfigs
@@ -4803,9 +4805,9 @@ pub fn bigquerydatatransfer_projects_transfer_configs_get(
 pub fn bigquerydatatransfer_projects_transfer_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataSourceIds: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    dataSourceIds: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4955,11 +4957,11 @@ pub struct BigquerydatatransferProjectsTransferConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataSourceIds
-    pub dataSourceIds: Option<Option<String>>,
+    pub dataSourceIds: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/transferConfigs
@@ -5003,10 +5005,10 @@ pub fn bigquerydatatransfer_projects_transfer_configs_list(
 pub fn bigquerydatatransfer_projects_transfer_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    authorizationCode: &Option<Option<String>>,
-    serviceAccountName: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    versionInfo: &Option<Option<String>>,
+    authorizationCode: &Option<String>,
+    serviceAccountName: &Option<String>,
+    updateMask: &Option<String>,
+    versionInfo: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5157,13 +5159,13 @@ pub struct BigquerydatatransferProjectsTransferConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: authorizationCode
-    pub authorizationCode: Option<Option<String>>,
+    pub authorizationCode: Option<String>,
     /// Query parameter: serviceAccountName
-    pub serviceAccountName: Option<Option<String>>,
+    pub serviceAccountName: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: versionInfo
-    pub versionInfo: Option<Option<String>>,
+    pub versionInfo: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
@@ -5868,10 +5870,10 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_get(
 pub fn bigquerydatatransfer_projects_transfer_configs_runs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    runAttempt: &Option<Option<String>>,
-    states: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    runAttempt: &Option<String>,
+    states: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6022,13 +6024,13 @@ pub struct BigquerydatatransferProjectsTransferConfigsRunsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: runAttempt
-    pub runAttempt: Option<Option<String>>,
+    pub runAttempt: Option<String>,
     /// Query parameter: states
-    pub states: Option<Option<String>>,
+    pub states: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs
@@ -6071,9 +6073,9 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_list(
 pub fn bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    messageTypes: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    messageTypes: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6222,11 +6224,11 @@ pub struct BigquerydatatransferProjectsTransferConfigsRunsTransferLogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: messageTypes
-    pub messageTypes: Option<Option<String>>,
+    pub messageTypes: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs
@@ -6434,9 +6436,9 @@ pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_get(
 pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6587,11 +6589,11 @@ pub struct BigquerydatatransferProjectsTransferConfigsTransferResourcesListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/transferResources

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn oracledatabase_projects_locations_get(
 pub fn oracledatabase_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct OracledatabaseProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,9 +395,9 @@ pub fn oracledatabase_projects_locations_list(
 pub fn oracledatabase_projects_locations_autonomous_database_backups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -545,11 +547,11 @@ pub struct OracledatabaseProjectsLocationsAutonomousDatabaseBackupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabaseBackups
@@ -593,9 +595,9 @@ pub fn oracledatabase_projects_locations_autonomous_database_backups_list(
 pub fn oracledatabase_projects_locations_autonomous_database_character_sets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -747,11 +749,11 @@ pub struct OracledatabaseProjectsLocationsAutonomousDatabaseCharacterSetsListArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabaseCharacterSets
@@ -796,8 +798,8 @@ pub fn oracledatabase_projects_locations_autonomous_database_character_sets_list
 pub fn oracledatabase_projects_locations_autonomous_databases_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    autonomousDatabaseId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    autonomousDatabaseId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -940,9 +942,9 @@ pub struct OracledatabaseProjectsLocationsAutonomousDatabasesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: autonomousDatabaseId
-    pub autonomousDatabaseId: Option<Option<String>>,
+    pub autonomousDatabaseId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases
@@ -981,7 +983,7 @@ pub fn oracledatabase_projects_locations_autonomous_databases_create(
 pub fn oracledatabase_projects_locations_autonomous_databases_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1121,7 +1123,7 @@ pub struct OracledatabaseProjectsLocationsAutonomousDatabasesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
@@ -1657,10 +1659,10 @@ pub fn oracledatabase_projects_locations_autonomous_databases_get(
 pub fn oracledatabase_projects_locations_autonomous_databases_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1813,13 +1815,13 @@ pub struct OracledatabaseProjectsLocationsAutonomousDatabasesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases
@@ -1864,8 +1866,8 @@ pub fn oracledatabase_projects_locations_autonomous_databases_list(
 pub fn oracledatabase_projects_locations_autonomous_databases_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2008,9 +2010,9 @@ pub struct OracledatabaseProjectsLocationsAutonomousDatabasesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
@@ -2855,8 +2857,8 @@ pub fn oracledatabase_projects_locations_autonomous_databases_switchover(
 pub fn oracledatabase_projects_locations_autonomous_db_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3003,9 +3005,9 @@ pub struct OracledatabaseProjectsLocationsAutonomousDbVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDbVersions
@@ -3048,8 +3050,8 @@ pub fn oracledatabase_projects_locations_autonomous_db_versions_list(
 pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    cloudExadataInfrastructureId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    cloudExadataInfrastructureId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3193,9 +3195,9 @@ pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresCreateArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: cloudExadataInfrastructureId
-    pub cloudExadataInfrastructureId: Option<Option<String>>,
+    pub cloudExadataInfrastructureId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures
@@ -3234,8 +3236,8 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_create(
 pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    force: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3379,9 +3381,9 @@ pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresDeleteArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}
@@ -3590,10 +3592,10 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_get(
 pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3747,13 +3749,13 @@ pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures
@@ -3798,8 +3800,8 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_list(
 pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3947,9 +3949,9 @@ pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresDbServersLi
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}/dbServers
@@ -3991,8 +3993,8 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_db_server
 pub fn oracledatabase_projects_locations_cloud_vm_clusters_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    cloudVmClusterId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    cloudVmClusterId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4135,9 +4137,9 @@ pub struct OracledatabaseProjectsLocationsCloudVmClustersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: cloudVmClusterId
-    pub cloudVmClusterId: Option<Option<String>>,
+    pub cloudVmClusterId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters
@@ -4176,8 +4178,8 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_create(
 pub fn oracledatabase_projects_locations_cloud_vm_clusters_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    force: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4320,9 +4322,9 @@ pub struct OracledatabaseProjectsLocationsCloudVmClustersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}
@@ -4526,9 +4528,9 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_get(
 pub fn oracledatabase_projects_locations_cloud_vm_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4678,11 +4680,11 @@ pub struct OracledatabaseProjectsLocationsCloudVmClustersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters
@@ -4726,8 +4728,8 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_list(
 pub fn oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4872,9 +4874,9 @@ pub struct OracledatabaseProjectsLocationsCloudVmClustersDbNodesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}/dbNodes
@@ -4915,9 +4917,9 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list(
 pub fn oracledatabase_projects_locations_database_character_sets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5067,11 +5069,11 @@ pub struct OracledatabaseProjectsLocationsDatabaseCharacterSetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/databaseCharacterSets
@@ -5275,9 +5277,9 @@ pub fn oracledatabase_projects_locations_databases_get(
 pub fn oracledatabase_projects_locations_databases_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5425,11 +5427,11 @@ pub struct OracledatabaseProjectsLocationsDatabasesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/databases
@@ -5471,8 +5473,8 @@ pub fn oracledatabase_projects_locations_databases_list(
 pub fn oracledatabase_projects_locations_db_system_initial_storage_sizes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5621,9 +5623,9 @@ pub struct OracledatabaseProjectsLocationsDbSystemInitialStorageSizesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystemInitialStorageSizes
@@ -5666,9 +5668,9 @@ pub fn oracledatabase_projects_locations_db_system_initial_storage_sizes_list(
 pub fn oracledatabase_projects_locations_db_system_shapes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5818,11 +5820,11 @@ pub struct OracledatabaseProjectsLocationsDbSystemShapesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystemShapes
@@ -5866,8 +5868,8 @@ pub fn oracledatabase_projects_locations_db_system_shapes_list(
 pub fn oracledatabase_projects_locations_db_systems_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dbSystemId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    dbSystemId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6010,9 +6012,9 @@ pub struct OracledatabaseProjectsLocationsDbSystemsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dbSystemId
-    pub dbSystemId: Option<Option<String>>,
+    pub dbSystemId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dbSystems
@@ -6051,7 +6053,7 @@ pub fn oracledatabase_projects_locations_db_systems_create(
 pub fn oracledatabase_projects_locations_db_systems_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6191,7 +6193,7 @@ pub struct OracledatabaseProjectsLocationsDbSystemsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/dbSystems/{dbSystemsId}
@@ -6389,10 +6391,10 @@ pub fn oracledatabase_projects_locations_db_systems_get(
 pub fn oracledatabase_projects_locations_db_systems_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6543,13 +6545,13 @@ pub struct OracledatabaseProjectsLocationsDbSystemsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystems
@@ -6592,9 +6594,9 @@ pub fn oracledatabase_projects_locations_db_systems_list(
 pub fn oracledatabase_projects_locations_db_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6742,11 +6744,11 @@ pub struct OracledatabaseProjectsLocationsDbVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dbVersions
@@ -6788,8 +6790,8 @@ pub fn oracledatabase_projects_locations_db_versions_list(
 pub fn oracledatabase_projects_locations_entitlements_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6934,9 +6936,9 @@ pub struct OracledatabaseProjectsLocationsEntitlementsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entitlements
@@ -6977,8 +6979,8 @@ pub fn oracledatabase_projects_locations_entitlements_list(
 pub fn oracledatabase_projects_locations_exadb_vm_clusters_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    exadbVmClusterId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    exadbVmClusterId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7121,9 +7123,9 @@ pub struct OracledatabaseProjectsLocationsExadbVmClustersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: exadbVmClusterId
-    pub exadbVmClusterId: Option<Option<String>>,
+    pub exadbVmClusterId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters
@@ -7162,7 +7164,7 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_create(
 pub fn oracledatabase_projects_locations_exadb_vm_clusters_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7302,7 +7304,7 @@ pub struct OracledatabaseProjectsLocationsExadbVmClustersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
@@ -7505,10 +7507,10 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_get(
 pub fn oracledatabase_projects_locations_exadb_vm_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7661,13 +7663,13 @@ pub struct OracledatabaseProjectsLocationsExadbVmClustersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters
@@ -7712,8 +7714,8 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_list(
 pub fn oracledatabase_projects_locations_exadb_vm_clusters_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7856,9 +7858,9 @@ pub struct OracledatabaseProjectsLocationsExadbVmClustersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
@@ -8061,8 +8063,8 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machin
 pub fn oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8207,9 +8209,9 @@ pub struct OracledatabaseProjectsLocationsExadbVmClustersDbNodesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}/dbNodes
@@ -8250,8 +8252,8 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list(
 pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    exascaleDbStorageVaultId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    exascaleDbStorageVaultId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8394,9 +8396,9 @@ pub struct OracledatabaseProjectsLocationsExascaleDbStorageVaultsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: exascaleDbStorageVaultId
-    pub exascaleDbStorageVaultId: Option<Option<String>>,
+    pub exascaleDbStorageVaultId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults
@@ -8435,7 +8437,7 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_create(
 pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8575,7 +8577,7 @@ pub struct OracledatabaseProjectsLocationsExascaleDbStorageVaultsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}
@@ -8779,10 +8781,10 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_get(
 pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8935,13 +8937,13 @@ pub struct OracledatabaseProjectsLocationsExascaleDbStorageVaultsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults
@@ -8986,9 +8988,9 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_list(
 pub fn oracledatabase_projects_locations_gi_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9136,11 +9138,11 @@ pub struct OracledatabaseProjectsLocationsGiVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/giVersions
@@ -9182,9 +9184,9 @@ pub fn oracledatabase_projects_locations_gi_versions_list(
 pub fn oracledatabase_projects_locations_gi_versions_minor_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9332,11 +9334,11 @@ pub struct OracledatabaseProjectsLocationsGiVersionsMinorVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/giVersions/{giVersionsId}/minorVersions
@@ -9378,8 +9380,8 @@ pub fn oracledatabase_projects_locations_gi_versions_minor_versions_list(
 pub fn oracledatabase_projects_locations_odb_networks_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    odbNetworkId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    odbNetworkId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9522,9 +9524,9 @@ pub struct OracledatabaseProjectsLocationsOdbNetworksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: odbNetworkId
-    pub odbNetworkId: Option<Option<String>>,
+    pub odbNetworkId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/odbNetworks
@@ -9563,7 +9565,7 @@ pub fn oracledatabase_projects_locations_odb_networks_create(
 pub fn oracledatabase_projects_locations_odb_networks_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9703,7 +9705,7 @@ pub struct OracledatabaseProjectsLocationsOdbNetworksDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}
@@ -9901,10 +9903,10 @@ pub fn oracledatabase_projects_locations_odb_networks_get(
 pub fn oracledatabase_projects_locations_odb_networks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10055,13 +10057,13 @@ pub struct OracledatabaseProjectsLocationsOdbNetworksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks
@@ -10104,8 +10106,8 @@ pub fn oracledatabase_projects_locations_odb_networks_list(
 pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    odbSubnetId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    odbSubnetId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10248,9 +10250,9 @@ pub struct OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: odbSubnetId
-    pub odbSubnetId: Option<Option<String>>,
+    pub odbSubnetId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets
@@ -10289,7 +10291,7 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_create(
 pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10429,7 +10431,7 @@ pub struct OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}
@@ -10628,10 +10630,10 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_get(
 pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10782,13 +10784,13 @@ pub struct OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets
@@ -11311,10 +11313,10 @@ pub fn oracledatabase_projects_locations_operations_get(
 pub fn oracledatabase_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11465,13 +11467,13 @@ pub struct OracledatabaseProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -11679,9 +11681,9 @@ pub fn oracledatabase_projects_locations_pluggable_databases_get(
 pub fn oracledatabase_projects_locations_pluggable_databases_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11831,11 +11833,11 @@ pub struct OracledatabaseProjectsLocationsPluggableDatabasesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pluggableDatabases

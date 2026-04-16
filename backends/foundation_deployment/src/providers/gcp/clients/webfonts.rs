@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,11 +31,11 @@ use serde::Serialize;
 
 pub fn webfonts_webfonts_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    capability: &Option<Option<String>>,
-    category: &Option<Option<String>>,
-    family: &Option<Option<String>>,
-    sort: &Option<Option<String>>,
-    subset: &Option<Option<String>>,
+    capability: &Option<String>,
+    category: &Option<String>,
+    family: &Option<String>,
+    sort: &Option<String>,
+    subset: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -180,15 +182,15 @@ pub fn webfonts_webfonts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebfontsWebfontsListArgs {
     /// Query parameter: capability
-    pub capability: Option<Option<String>>,
+    pub capability: Option<String>,
     /// Query parameter: category
-    pub category: Option<Option<String>>,
+    pub category: Option<String>,
     /// Query parameter: family
-    pub family: Option<Option<String>>,
+    pub family: Option<String>,
     /// Query parameter: sort
-    pub sort: Option<Option<String>>,
+    pub sort: Option<String>,
     /// Query parameter: subset
-    pub subset: Option<Option<String>>,
+    pub subset: Option<String>,
 }
 
 /// GET v1/webfonts

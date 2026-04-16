@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn gkebackup_projects_locations_get(
 pub fn gkebackup_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct GkebackupProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,7 +395,7 @@ pub fn gkebackup_projects_locations_list(
 pub fn gkebackup_projects_locations_backup_channels_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    backupChannelId: &Option<Option<String>>,
+    backupChannelId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -537,7 +539,7 @@ pub struct GkebackupProjectsLocationsBackupChannelsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: backupChannelId
-    pub backupChannelId: Option<Option<String>>,
+    pub backupChannelId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/backupChannels
@@ -579,8 +581,8 @@ pub fn gkebackup_projects_locations_backup_channels_create(
 pub fn gkebackup_projects_locations_backup_channels_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
+    etag: &Option<String>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -727,9 +729,9 @@ pub struct GkebackupProjectsLocationsBackupChannelsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
@@ -936,10 +938,10 @@ pub fn gkebackup_projects_locations_backup_channels_get(
 pub fn gkebackup_projects_locations_backup_channels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1092,13 +1094,13 @@ pub struct GkebackupProjectsLocationsBackupChannelsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels
@@ -1143,7 +1145,7 @@ pub fn gkebackup_projects_locations_backup_channels_list(
 pub fn gkebackup_projects_locations_backup_channels_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1287,7 +1289,7 @@ pub struct GkebackupProjectsLocationsBackupChannelsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
@@ -1495,10 +1497,10 @@ pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_get(
 pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1652,13 +1654,13 @@ pub struct GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings
@@ -1703,7 +1705,7 @@ pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_list(
 pub fn gkebackup_projects_locations_backup_plans_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    backupPlanId: &Option<Option<String>>,
+    backupPlanId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1847,7 +1849,7 @@ pub struct GkebackupProjectsLocationsBackupPlansCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: backupPlanId
-    pub backupPlanId: Option<Option<String>>,
+    pub backupPlanId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans
@@ -1889,7 +1891,7 @@ pub fn gkebackup_projects_locations_backup_plans_create(
 pub fn gkebackup_projects_locations_backup_plans_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2033,7 +2035,7 @@ pub struct GkebackupProjectsLocationsBackupPlansDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
@@ -2232,7 +2234,7 @@ pub fn gkebackup_projects_locations_backup_plans_get(
 pub fn gkebackup_projects_locations_backup_plans_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2372,7 +2374,7 @@ pub struct GkebackupProjectsLocationsBackupPlansGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:getIamPolicy
@@ -2574,10 +2576,10 @@ pub fn gkebackup_projects_locations_backup_plans_get_tags(
 pub fn gkebackup_projects_locations_backup_plans_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2728,13 +2730,13 @@ pub struct GkebackupProjectsLocationsBackupPlansListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans
@@ -2777,7 +2779,7 @@ pub fn gkebackup_projects_locations_backup_plans_list(
 pub fn gkebackup_projects_locations_backup_plans_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2921,7 +2923,7 @@ pub struct GkebackupProjectsLocationsBackupPlansPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
@@ -3459,7 +3461,7 @@ pub fn gkebackup_projects_locations_backup_plans_test_iam_permissions(
 pub fn gkebackup_projects_locations_backup_plans_backups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    backupId: &Option<Option<String>>,
+    backupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3603,7 +3605,7 @@ pub struct GkebackupProjectsLocationsBackupPlansBackupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: backupId
-    pub backupId: Option<Option<String>>,
+    pub backupId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups
@@ -3645,8 +3647,8 @@ pub fn gkebackup_projects_locations_backup_plans_backups_create(
 pub fn gkebackup_projects_locations_backup_plans_backups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
+    etag: &Option<String>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3793,9 +3795,9 @@ pub struct GkebackupProjectsLocationsBackupPlansBackupsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
@@ -4174,7 +4176,7 @@ pub fn gkebackup_projects_locations_backup_plans_backups_get_backup_index_downlo
 pub fn gkebackup_projects_locations_backup_plans_backups_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4314,7 +4316,7 @@ pub struct GkebackupProjectsLocationsBackupPlansBackupsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getIamPolicy
@@ -4352,11 +4354,11 @@ pub fn gkebackup_projects_locations_backup_plans_backups_get_iam_policy(
 pub fn gkebackup_projects_locations_backup_plans_backups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4510,15 +4512,15 @@ pub struct GkebackupProjectsLocationsBackupPlansBackupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups
@@ -4562,7 +4564,7 @@ pub fn gkebackup_projects_locations_backup_plans_backups_list(
 pub fn gkebackup_projects_locations_backup_plans_backups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4706,7 +4708,7 @@ pub struct GkebackupProjectsLocationsBackupPlansBackupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
@@ -5249,7 +5251,7 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get(
 pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5392,7 +5394,7 @@ pub struct GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetIamPolicy
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:getIamPolicy
@@ -5431,10 +5433,10 @@ pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_
 pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5585,13 +5587,13 @@ pub struct GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups
@@ -6464,10 +6466,10 @@ pub fn gkebackup_projects_locations_operations_get(
 pub fn gkebackup_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6621,13 +6623,13 @@ pub struct GkebackupProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -6672,7 +6674,7 @@ pub fn gkebackup_projects_locations_operations_list(
 pub fn gkebackup_projects_locations_restore_channels_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    restoreChannelId: &Option<Option<String>>,
+    restoreChannelId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6816,7 +6818,7 @@ pub struct GkebackupProjectsLocationsRestoreChannelsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: restoreChannelId
-    pub restoreChannelId: Option<Option<String>>,
+    pub restoreChannelId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/restoreChannels
@@ -6858,7 +6860,7 @@ pub fn gkebackup_projects_locations_restore_channels_create(
 pub fn gkebackup_projects_locations_restore_channels_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7002,7 +7004,7 @@ pub struct GkebackupProjectsLocationsRestoreChannelsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
@@ -7206,10 +7208,10 @@ pub fn gkebackup_projects_locations_restore_channels_get(
 pub fn gkebackup_projects_locations_restore_channels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7362,13 +7364,13 @@ pub struct GkebackupProjectsLocationsRestoreChannelsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels
@@ -7413,7 +7415,7 @@ pub fn gkebackup_projects_locations_restore_channels_list(
 pub fn gkebackup_projects_locations_restore_channels_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7557,7 +7559,7 @@ pub struct GkebackupProjectsLocationsRestoreChannelsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
@@ -7766,10 +7768,10 @@ pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_get(
 pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7923,13 +7925,13 @@ pub struct GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings
@@ -7974,7 +7976,7 @@ pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_list(
 pub fn gkebackup_projects_locations_restore_plans_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    restorePlanId: &Option<Option<String>>,
+    restorePlanId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8118,7 +8120,7 @@ pub struct GkebackupProjectsLocationsRestorePlansCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: restorePlanId
-    pub restorePlanId: Option<Option<String>>,
+    pub restorePlanId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans
@@ -8160,8 +8162,8 @@ pub fn gkebackup_projects_locations_restore_plans_create(
 pub fn gkebackup_projects_locations_restore_plans_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
+    etag: &Option<String>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8308,9 +8310,9 @@ pub struct GkebackupProjectsLocationsRestorePlansDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
@@ -8513,7 +8515,7 @@ pub fn gkebackup_projects_locations_restore_plans_get(
 pub fn gkebackup_projects_locations_restore_plans_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8653,7 +8655,7 @@ pub struct GkebackupProjectsLocationsRestorePlansGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:getIamPolicy
@@ -8855,10 +8857,10 @@ pub fn gkebackup_projects_locations_restore_plans_get_tags(
 pub fn gkebackup_projects_locations_restore_plans_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9009,13 +9011,13 @@ pub struct GkebackupProjectsLocationsRestorePlansListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans
@@ -9058,7 +9060,7 @@ pub fn gkebackup_projects_locations_restore_plans_list(
 pub fn gkebackup_projects_locations_restore_plans_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9202,7 +9204,7 @@ pub struct GkebackupProjectsLocationsRestorePlansPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
@@ -9740,7 +9742,7 @@ pub fn gkebackup_projects_locations_restore_plans_test_iam_permissions(
 pub fn gkebackup_projects_locations_restore_plans_restores_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    restoreId: &Option<Option<String>>,
+    restoreId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9884,7 +9886,7 @@ pub struct GkebackupProjectsLocationsRestorePlansRestoresCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: restoreId
-    pub restoreId: Option<Option<String>>,
+    pub restoreId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores
@@ -9926,8 +9928,8 @@ pub fn gkebackup_projects_locations_restore_plans_restores_create(
 pub fn gkebackup_projects_locations_restore_plans_restores_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
+    etag: &Option<String>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10074,9 +10076,9 @@ pub struct GkebackupProjectsLocationsRestorePlansRestoresDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
@@ -10280,7 +10282,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_get(
 pub fn gkebackup_projects_locations_restore_plans_restores_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10420,7 +10422,7 @@ pub struct GkebackupProjectsLocationsRestorePlansRestoresGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:getIamPolicy
@@ -10458,10 +10460,10 @@ pub fn gkebackup_projects_locations_restore_plans_restores_get_iam_policy(
 pub fn gkebackup_projects_locations_restore_plans_restores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10612,13 +10614,13 @@ pub struct GkebackupProjectsLocationsRestorePlansRestoresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores
@@ -10661,7 +10663,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_list(
 pub fn gkebackup_projects_locations_restore_plans_restores_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10805,7 +10807,7 @@ pub struct GkebackupProjectsLocationsRestorePlansRestoresPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
@@ -11351,7 +11353,7 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_i
 >(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11494,7 +11496,7 @@ pub struct GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetIamPol
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:getIamPolicy
@@ -11535,10 +11537,10 @@ pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_i
 pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11692,13 +11694,13 @@ pub struct GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores

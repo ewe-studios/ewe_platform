@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,8 +31,8 @@ use serde::Serialize;
 
 pub fn games_accesstokens_generate_play_grouping_api_token_builder<R>(
     client: &SimpleHttpClient<R>,
-    packageName: &Option<Option<String>>,
-    persona: &Option<Option<String>>,
+    packageName: &Option<String>,
+    persona: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -173,9 +175,9 @@ pub fn games_accesstokens_generate_play_grouping_api_token_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesAccesstokensGeneratePlayGroupingApiTokenArgs {
     /// Query parameter: packageName
-    pub packageName: Option<Option<String>>,
+    pub packageName: Option<String>,
     /// Query parameter: persona
-    pub persona: Option<Option<String>>,
+    pub persona: Option<String>,
 }
 
 /// POST games/v1/accesstokens/generatePlayGroupingApiToken
@@ -216,9 +218,9 @@ pub fn games_accesstokens_generate_play_grouping_api_token(
 
 pub fn games_accesstokens_generate_recall_play_grouping_api_token_builder<R>(
     client: &SimpleHttpClient<R>,
-    packageName: &Option<Option<String>>,
-    persona: &Option<Option<String>>,
-    recallSessionId: &Option<Option<String>>,
+    packageName: &Option<String>,
+    persona: &Option<String>,
+    recallSessionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -366,11 +368,11 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesAccesstokensGenerateRecallPlayGroupingApiTokenArgs {
     /// Query parameter: packageName
-    pub packageName: Option<Option<String>>,
+    pub packageName: Option<String>,
     /// Query parameter: persona
-    pub persona: Option<Option<String>>,
+    pub persona: Option<String>,
     /// Query parameter: recallSessionId
-    pub recallSessionId: Option<Option<String>>,
+    pub recallSessionId: Option<String>,
 }
 
 /// POST games/v1/accesstokens/generateRecallPlayGroupingApiToken
@@ -412,9 +414,9 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token(
 
 pub fn games_achievement_definitions_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    language: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    language: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -559,11 +561,11 @@ pub fn games_achievement_definitions_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesAchievementDefinitionsListArgs {
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET games/v1/achievements
@@ -606,8 +608,8 @@ pub fn games_achievement_definitions_list(
 pub fn games_achievements_increment_builder<R>(
     client: &SimpleHttpClient<R>,
     achievementId: &String,
-    requestId: &Option<Option<String>>,
-    stepsToIncrement: &Option<Option<String>>,
+    requestId: &Option<String>,
+    stepsToIncrement: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -754,9 +756,9 @@ pub struct GamesAchievementsIncrementArgs {
     /// Path parameter: achievementId
     pub achievementId: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: stepsToIncrement
-    pub stepsToIncrement: Option<Option<String>>,
+    pub stepsToIncrement: Option<String>,
 }
 
 /// POST games/v1/achievements/{achievementId}/increment
@@ -799,10 +801,10 @@ pub fn games_achievements_increment(
 pub fn games_achievements_list_builder<R>(
     client: &SimpleHttpClient<R>,
     playerId: &String,
-    language: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    state: &Option<Option<String>>,
+    language: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    state: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -955,13 +957,13 @@ pub struct GamesAchievementsListArgs {
     /// Path parameter: playerId
     pub playerId: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: state
-    pub state: Option<Option<String>>,
+    pub state: Option<String>,
 }
 
 /// GET games/v1/players/{playerId}/achievements
@@ -1170,7 +1172,7 @@ pub fn games_achievements_reveal(
 pub fn games_achievements_set_steps_at_least_builder<R>(
     client: &SimpleHttpClient<R>,
     achievementId: &String,
-    steps: &Option<Option<String>>,
+    steps: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1314,7 +1316,7 @@ pub struct GamesAchievementsSetStepsAtLeastArgs {
     /// Path parameter: achievementId
     pub achievementId: String,
     /// Query parameter: steps
-    pub steps: Option<Option<String>>,
+    pub steps: Option<String>,
 }
 
 /// POST games/v1/achievements/{achievementId}/setStepsAtLeast
@@ -1674,8 +1676,8 @@ pub fn games_achievements_update_multiple(
 pub fn games_applications_get_builder<R>(
     client: &SimpleHttpClient<R>,
     applicationId: &String,
-    language: &Option<Option<String>>,
-    platformType: &Option<Option<String>>,
+    language: &Option<String>,
+    platformType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1818,9 +1820,9 @@ pub struct GamesApplicationsGetArgs {
     /// Path parameter: applicationId
     pub applicationId: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: platformType
-    pub platformType: Option<Option<String>>,
+    pub platformType: Option<String>,
 }
 
 /// GET games/v1/applications/{applicationId}
@@ -1858,8 +1860,8 @@ pub fn games_applications_get(
 
 pub fn games_applications_get_end_point_builder<R>(
     client: &SimpleHttpClient<R>,
-    applicationId: &Option<Option<String>>,
-    endPointType: &Option<Option<String>>,
+    applicationId: &Option<String>,
+    endPointType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1997,9 +1999,9 @@ pub fn games_applications_get_end_point_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesApplicationsGetEndPointArgs {
     /// Query parameter: applicationId
-    pub applicationId: Option<Option<String>>,
+    pub applicationId: Option<String>,
     /// Query parameter: endPointType
-    pub endPointType: Option<Option<String>>,
+    pub endPointType: Option<String>,
 }
 
 /// POST games/v1/applications/getEndPoint
@@ -2342,9 +2344,9 @@ pub fn games_applications_verify(
 
 pub fn games_events_list_by_player_builder<R>(
     client: &SimpleHttpClient<R>,
-    language: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    language: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2487,11 +2489,11 @@ pub fn games_events_list_by_player_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesEventsListByPlayerArgs {
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET games/v1/events
@@ -2531,9 +2533,9 @@ pub fn games_events_list_by_player(
 
 pub fn games_events_list_definitions_builder<R>(
     client: &SimpleHttpClient<R>,
-    language: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    language: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2678,11 +2680,11 @@ pub fn games_events_list_definitions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesEventsListDefinitionsArgs {
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET games/v1/eventDefinitions
@@ -2724,7 +2726,7 @@ pub fn games_events_list_definitions(
 
 pub fn games_events_record_builder<R>(
     client: &SimpleHttpClient<R>,
-    language: &Option<Option<String>>,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2861,7 +2863,7 @@ pub fn games_events_record_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesEventsRecordArgs {
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
 }
 
 /// POST games/v1/events
@@ -2897,7 +2899,7 @@ pub fn games_events_record(
 pub fn games_leaderboards_get_builder<R>(
     client: &SimpleHttpClient<R>,
     leaderboardId: &String,
-    language: &Option<Option<String>>,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3037,7 +3039,7 @@ pub struct GamesLeaderboardsGetArgs {
     /// Path parameter: leaderboardId
     pub leaderboardId: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
 }
 
 /// GET games/v1/leaderboards/{leaderboardId}
@@ -3070,9 +3072,9 @@ pub fn games_leaderboards_get(
 
 pub fn games_leaderboards_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    language: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    language: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3215,11 +3217,11 @@ pub fn games_leaderboards_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesLeaderboardsListArgs {
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET games/v1/leaderboards
@@ -3409,9 +3411,9 @@ pub fn games_metagame_list_categories_by_player_builder<R>(
     client: &SimpleHttpClient<R>,
     playerId: &String,
     collection: &String,
-    language: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    language: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3561,11 +3563,11 @@ pub struct GamesMetagameListCategoriesByPlayerArgs {
     /// Path parameter: collection
     pub collection: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET games/v1/players/{playerId}/categories/{collection}
@@ -3608,8 +3610,8 @@ pub fn games_metagame_list_categories_by_player(
 pub fn games_players_get_builder<R>(
     client: &SimpleHttpClient<R>,
     playerId: &String,
-    language: &Option<Option<String>>,
-    playerIdConsistencyToken: &Option<Option<String>>,
+    language: &Option<String>,
+    playerIdConsistencyToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3749,9 +3751,9 @@ pub struct GamesPlayersGetArgs {
     /// Path parameter: playerId
     pub playerId: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: playerIdConsistencyToken
-    pub playerIdConsistencyToken: Option<Option<String>>,
+    pub playerIdConsistencyToken: Option<String>,
 }
 
 /// GET games/v1/players/{playerId}
@@ -3789,7 +3791,7 @@ pub fn games_players_get(
 
 pub fn games_players_get_multiple_application_player_ids_builder<R>(
     client: &SimpleHttpClient<R>,
-    applicationIds: &Option<Option<String>>,
+    applicationIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3930,7 +3932,7 @@ pub fn games_players_get_multiple_application_player_ids_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesPlayersGetMultipleApplicationPlayerIdsArgs {
     /// Query parameter: applicationIds
-    pub applicationIds: Option<Option<String>>,
+    pub applicationIds: Option<String>,
 }
 
 /// GET games/v1/players/me/multipleApplicationPlayerIds
@@ -4121,9 +4123,9 @@ pub fn games_players_get_scoped_player_ids(
 pub fn games_players_list_builder<R>(
     client: &SimpleHttpClient<R>,
     collection: &String,
-    language: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    language: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4271,11 +4273,11 @@ pub struct GamesPlayersListArgs {
     /// Path parameter: collection
     pub collection: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET games/v1/players/me/players/{collection}
@@ -4317,7 +4319,7 @@ pub fn games_players_list(
 pub fn games_recall_games_player_tokens_builder<R>(
     client: &SimpleHttpClient<R>,
     sessionId: &String,
-    applicationIds: &Option<Option<String>>,
+    applicationIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4461,7 +4463,7 @@ pub struct GamesRecallGamesPlayerTokensArgs {
     /// Path parameter: sessionId
     pub sessionId: String,
     /// Query parameter: applicationIds
-    pub applicationIds: Option<Option<String>>,
+    pub applicationIds: Option<String>,
 }
 
 /// GET games/v1/recall/gamesPlayerTokens/{sessionId}
@@ -5293,7 +5295,7 @@ pub fn games_recall_unlink_persona(
 
 pub fn games_revisions_check_builder<R>(
     client: &SimpleHttpClient<R>,
-    clientRevision: &Option<Option<String>>,
+    clientRevision: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5430,7 +5432,7 @@ pub fn games_revisions_check_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesRevisionsCheckArgs {
     /// Query parameter: clientRevision
-    pub clientRevision: Option<Option<String>>,
+    pub clientRevision: Option<String>,
 }
 
 /// GET games/v1/revisions/check
@@ -5468,10 +5470,10 @@ pub fn games_scores_get_builder<R>(
     playerId: &String,
     leaderboardId: &String,
     timeSpan: &String,
-    includeRankType: &Option<Option<String>>,
-    language: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    includeRankType: &Option<String>,
+    language: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5628,13 +5630,13 @@ pub struct GamesScoresGetArgs {
     /// Path parameter: timeSpan
     pub timeSpan: String,
     /// Query parameter: includeRankType
-    pub includeRankType: Option<Option<String>>,
+    pub includeRankType: Option<String>,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET games/v1/players/{playerId}/leaderboards/{leaderboardId}/scores/{timeSpan}
@@ -5682,10 +5684,10 @@ pub fn games_scores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     leaderboardId: &String,
     collection: &String,
-    language: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    timeSpan: &Option<Option<String>>,
+    language: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    timeSpan: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5838,13 +5840,13 @@ pub struct GamesScoresListArgs {
     /// Path parameter: collection
     pub collection: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: timeSpan
-    pub timeSpan: Option<Option<String>>,
+    pub timeSpan: Option<String>,
 }
 
 /// GET games/v1/leaderboards/{leaderboardId}/scores/{collection}
@@ -5889,12 +5891,12 @@ pub fn games_scores_list_window_builder<R>(
     client: &SimpleHttpClient<R>,
     leaderboardId: &String,
     collection: &String,
-    language: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resultsAbove: &Option<Option<String>>,
-    returnTopIfAbsent: &Option<Option<String>>,
-    timeSpan: &Option<Option<String>>,
+    language: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    resultsAbove: &Option<String>,
+    returnTopIfAbsent: &Option<String>,
+    timeSpan: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6053,17 +6055,17 @@ pub struct GamesScoresListWindowArgs {
     /// Path parameter: collection
     pub collection: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resultsAbove
-    pub resultsAbove: Option<Option<String>>,
+    pub resultsAbove: Option<String>,
     /// Query parameter: returnTopIfAbsent
-    pub returnTopIfAbsent: Option<Option<String>>,
+    pub returnTopIfAbsent: Option<String>,
     /// Query parameter: timeSpan
-    pub timeSpan: Option<Option<String>>,
+    pub timeSpan: Option<String>,
 }
 
 /// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
@@ -6109,9 +6111,9 @@ pub fn games_scores_list_window(
 pub fn games_scores_submit_builder<R>(
     client: &SimpleHttpClient<R>,
     leaderboardId: &String,
-    language: &Option<Option<String>>,
-    score: &Option<Option<String>>,
-    scoreTag: &Option<Option<String>>,
+    language: &Option<String>,
+    score: &Option<String>,
+    scoreTag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6259,11 +6261,11 @@ pub struct GamesScoresSubmitArgs {
     /// Path parameter: leaderboardId
     pub leaderboardId: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: score
-    pub score: Option<Option<String>>,
+    pub score: Option<String>,
     /// Query parameter: scoreTag
-    pub scoreTag: Option<Option<String>>,
+    pub scoreTag: Option<String>,
 }
 
 /// POST games/v1/leaderboards/{leaderboardId}/scores
@@ -6304,7 +6306,7 @@ pub fn games_scores_submit(
 
 pub fn games_scores_submit_multiple_builder<R>(
     client: &SimpleHttpClient<R>,
-    language: &Option<Option<String>>,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6441,7 +6443,7 @@ pub fn games_scores_submit_multiple_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesScoresSubmitMultipleArgs {
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
 }
 
 /// POST games/v1/leaderboards/scores
@@ -6477,7 +6479,7 @@ pub fn games_scores_submit_multiple(
 pub fn games_snapshots_get_builder<R>(
     client: &SimpleHttpClient<R>,
     snapshotId: &String,
-    language: &Option<Option<String>>,
+    language: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6617,7 +6619,7 @@ pub struct GamesSnapshotsGetArgs {
     /// Path parameter: snapshotId
     pub snapshotId: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
 }
 
 /// GET games/v1/snapshots/{snapshotId}
@@ -6651,9 +6653,9 @@ pub fn games_snapshots_get(
 pub fn games_snapshots_list_builder<R>(
     client: &SimpleHttpClient<R>,
     playerId: &String,
-    language: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    language: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6801,11 +6803,11 @@ pub struct GamesSnapshotsListArgs {
     /// Path parameter: playerId
     pub playerId: String,
     /// Query parameter: language
-    pub language: Option<Option<String>>,
+    pub language: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET games/v1/players/{playerId}/snapshots
@@ -7204,29 +7206,6 @@ impl ResourceIdentifier<GamesAchievementsUnlockArgs> for AchievementUnlockRespon
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for AchievementUpdateMultipleResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for AchievementUpdateMultipleResponse with GamesAchievementsUpdateMultipleArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GamesAchievementsUpdateMultipleArgs> for AchievementUpdateMultipleResponse {
-    fn generate_resource_id(&self, input: &GamesAchievementsUpdateMultipleArgs) -> String {
-        "gcp::games::AchievementUpdateMultipleResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::games::AchievementUpdateMultipleResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for Application
 // =============================================================================
 
@@ -7414,29 +7393,6 @@ impl ResourceIdentifier<GamesLeaderboardsListArgs> for LeaderboardListResponse {
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for MetagameConfig
-// =============================================================================
-
-/// ResourceIdentifier implementation for MetagameConfig with GamesMetagameGetMetagameConfigArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GamesMetagameGetMetagameConfigArgs> for MetagameConfig {
-    fn generate_resource_id(&self, input: &GamesMetagameGetMetagameConfigArgs) -> String {
-        "gcp::games::MetagameConfig".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::games::MetagameConfig"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for CategoryListResponse
 // =============================================================================
 
@@ -7506,29 +7462,6 @@ impl ResourceIdentifier<GamesPlayersGetMultipleApplicationPlayerIdsArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::games::GetMultipleApplicationPlayerIdsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ScopedPlayerIds
-// =============================================================================
-
-/// ResourceIdentifier implementation for ScopedPlayerIds with GamesPlayersGetScopedPlayerIdsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GamesPlayersGetScopedPlayerIdsArgs> for ScopedPlayerIds {
-    fn generate_resource_id(&self, input: &GamesPlayersGetScopedPlayerIdsArgs) -> String {
-        "gcp::games::ScopedPlayerIds".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::games::ScopedPlayerIds"
     }
 
     fn provider(&self) -> &'static str {
@@ -7617,52 +7550,6 @@ impl ResourceIdentifier<GamesRecallLastTokenFromAllDeveloperGamesArgs>
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for LinkPersonaResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for LinkPersonaResponse with GamesRecallLinkPersonaArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GamesRecallLinkPersonaArgs> for LinkPersonaResponse {
-    fn generate_resource_id(&self, input: &GamesRecallLinkPersonaArgs) -> String {
-        "gcp::games::LinkPersonaResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::games::LinkPersonaResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ResetPersonaResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ResetPersonaResponse with GamesRecallResetPersonaArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GamesRecallResetPersonaArgs> for ResetPersonaResponse {
-    fn generate_resource_id(&self, input: &GamesRecallResetPersonaArgs) -> String {
-        "gcp::games::ResetPersonaResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::games::ResetPersonaResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for RetrievePlayerTokensResponse
 // =============================================================================
 
@@ -7681,29 +7568,6 @@ impl ResourceIdentifier<GamesRecallRetrieveTokensArgs> for RetrievePlayerTokensR
 
     fn resource_kind(&self) -> &'static str {
         "gcp::games::RetrievePlayerTokensResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for UnlinkPersonaResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for UnlinkPersonaResponse with GamesRecallUnlinkPersonaArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GamesRecallUnlinkPersonaArgs> for UnlinkPersonaResponse {
-    fn generate_resource_id(&self, input: &GamesRecallUnlinkPersonaArgs) -> String {
-        "gcp::games::UnlinkPersonaResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::games::UnlinkPersonaResponse"
     }
 
     fn provider(&self) -> &'static str {
@@ -7897,29 +7761,6 @@ impl ResourceIdentifier<GamesSnapshotsListArgs> for SnapshotListResponse {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::games::SnapshotListResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for StatsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for StatsResponse with GamesStatsGetArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<GamesStatsGetArgs> for StatsResponse {
-    fn generate_resource_id(&self, input: &GamesStatsGetArgs) -> String {
-        "gcp::games::StatsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::games::StatsResponse"
     }
 
     fn provider(&self) -> &'static str {

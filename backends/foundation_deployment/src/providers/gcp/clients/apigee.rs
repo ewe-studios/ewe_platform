@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -186,7 +188,7 @@ pub fn apigee_hybrid_issuers_list(
 
 pub fn apigee_organizations_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -325,7 +327,7 @@ pub fn apigee_organizations_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApigeeOrganizationsCreateArgs {
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// POST v1/organizations
@@ -363,7 +365,7 @@ pub fn apigee_organizations_create(
 pub fn apigee_organizations_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    retention: &Option<Option<String>>,
+    retention: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -504,7 +506,7 @@ pub struct ApigeeOrganizationsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: retention
-    pub retention: Option<Option<String>>,
+    pub retention: Option<String>,
 }
 
 /// DELETE v1/organizations/{organizationsId}
@@ -875,7 +877,7 @@ pub fn apigee_organizations_get_control_plane_access(
 pub fn apigee_organizations_get_deployed_ingress_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1019,7 +1021,7 @@ pub struct ApigeeOrganizationsGetDeployedIngressConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/deployedIngressConfig
@@ -2389,7 +2391,7 @@ pub fn apigee_organizations_update(
 pub fn apigee_organizations_update_control_plane_access_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2533,7 +2535,7 @@ pub struct ApigeeOrganizationsUpdateControlPlaneAccessArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/controlPlaneAccess
@@ -2575,7 +2577,7 @@ pub fn apigee_organizations_update_control_plane_access(
 pub fn apigee_organizations_update_security_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2719,7 +2721,7 @@ pub struct ApigeeOrganizationsUpdateSecuritySettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/securitySettings
@@ -3261,7 +3263,7 @@ pub fn apigee_organizations_analytics_datastores_get(
 pub fn apigee_organizations_analytics_datastores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    targetType: &Option<Option<String>>,
+    targetType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3405,7 +3407,7 @@ pub struct ApigeeOrganizationsAnalyticsDatastoresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: targetType
-    pub targetType: Option<Option<String>>,
+    pub targetType: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/analytics/datastores
@@ -3783,7 +3785,7 @@ pub fn apigee_organizations_analytics_datastores_update(
 pub fn apigee_organizations_apim_service_extensions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    apimServiceExtensionId: &Option<Option<String>>,
+    apimServiceExtensionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3927,7 +3929,7 @@ pub struct ApigeeOrganizationsApimServiceExtensionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: apimServiceExtensionId
-    pub apimServiceExtensionId: Option<Option<String>>,
+    pub apimServiceExtensionId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/apimServiceExtensions
@@ -4306,8 +4308,8 @@ pub fn apigee_organizations_apim_service_extensions_get(
 pub fn apigee_organizations_apim_service_extensions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4458,9 +4460,9 @@ pub struct ApigeeOrganizationsApimServiceExtensionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/apimServiceExtensions
@@ -4503,8 +4505,8 @@ pub fn apigee_organizations_apim_service_extensions_list(
 pub fn apigee_organizations_apim_service_extensions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4651,9 +4653,9 @@ pub struct ApigeeOrganizationsApimServiceExtensionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/apimServiceExtensions/{apimServiceExtensionsId}
@@ -5368,12 +5370,12 @@ pub fn apigee_organizations_apiproducts_get(
 pub fn apigee_organizations_apiproducts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    attributename: &Option<Option<String>>,
-    attributevalue: &Option<Option<String>>,
-    count: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    space: &Option<Option<String>>,
-    startKey: &Option<Option<String>>,
+    attributename: &Option<String>,
+    attributevalue: &Option<String>,
+    count: &Option<String>,
+    expand: &Option<String>,
+    space: &Option<String>,
+    startKey: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5533,17 +5535,17 @@ pub struct ApigeeOrganizationsApiproductsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: attributename
-    pub attributename: Option<Option<String>>,
+    pub attributename: Option<String>,
     /// Query parameter: attributevalue
-    pub attributevalue: Option<Option<String>>,
+    pub attributevalue: Option<String>,
     /// Query parameter: count
-    pub count: Option<Option<String>>,
+    pub count: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: space
-    pub space: Option<Option<String>>,
+    pub space: Option<String>,
     /// Query parameter: startKey
-    pub startKey: Option<Option<String>>,
+    pub startKey: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/apiproducts
@@ -7105,11 +7107,11 @@ pub fn apigee_organizations_apiproducts_rateplans_get(
 pub fn apigee_organizations_apiproducts_rateplans_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    count: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    startKey: &Option<Option<String>>,
-    state: &Option<Option<String>>,
+    count: &Option<String>,
+    expand: &Option<String>,
+    orderBy: &Option<String>,
+    startKey: &Option<String>,
+    state: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7265,15 +7267,15 @@ pub struct ApigeeOrganizationsApiproductsRateplansListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: count
-    pub count: Option<Option<String>>,
+    pub count: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: startKey
-    pub startKey: Option<Option<String>>,
+    pub startKey: Option<String>,
     /// Query parameter: state
-    pub state: Option<Option<String>>,
+    pub state: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/rateplans
@@ -7487,10 +7489,10 @@ pub fn apigee_organizations_apiproducts_rateplans_update(
 pub fn apigee_organizations_apis_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    action: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    space: &Option<Option<String>>,
-    validate: &Option<Option<String>>,
+    action: &Option<String>,
+    name: &Option<String>,
+    space: &Option<String>,
+    validate: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7643,13 +7645,13 @@ pub struct ApigeeOrganizationsApisCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: action
-    pub action: Option<Option<String>>,
+    pub action: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: space
-    pub space: Option<Option<String>>,
+    pub space: Option<String>,
     /// Query parameter: validate
-    pub validate: Option<Option<String>>,
+    pub validate: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/apis
@@ -8030,9 +8032,9 @@ pub fn apigee_organizations_apis_get(
 pub fn apigee_organizations_apis_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    includeMetaData: &Option<Option<String>>,
-    includeRevisions: &Option<Option<String>>,
-    space: &Option<Option<String>>,
+    includeMetaData: &Option<String>,
+    includeRevisions: &Option<String>,
+    space: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8182,11 +8184,11 @@ pub struct ApigeeOrganizationsApisListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: includeMetaData
-    pub includeMetaData: Option<Option<String>>,
+    pub includeMetaData: Option<String>,
     /// Query parameter: includeRevisions
-    pub includeRevisions: Option<Option<String>>,
+    pub includeRevisions: Option<String>,
     /// Query parameter: space
-    pub space: Option<Option<String>>,
+    pub space: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/apis
@@ -8398,7 +8400,7 @@ pub fn apigee_organizations_apis_move(
 pub fn apigee_organizations_apis_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8542,7 +8544,7 @@ pub struct ApigeeOrganizationsApisPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/apis/{apisId}
@@ -8580,8 +8582,8 @@ pub fn apigee_organizations_apis_patch(
 pub fn apigee_organizations_apis_debugsessions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8729,9 +8731,9 @@ pub struct ApigeeOrganizationsApisDebugsessionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/debugsessions
@@ -10121,8 +10123,8 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_get(
 pub fn apigee_organizations_apis_keyvaluemaps_entries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10270,9 +10272,9 @@ pub struct ApigeeOrganizationsApisKeyvaluemapsEntriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}/entries
@@ -10652,7 +10654,7 @@ pub fn apigee_organizations_apis_revisions_delete(
 pub fn apigee_organizations_apis_revisions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    format: &Option<Option<String>>,
+    format: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10794,7 +10796,7 @@ pub struct ApigeeOrganizationsApisRevisionsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: format
-    pub format: Option<Option<String>>,
+    pub format: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/revisions/{revisionsId}
@@ -10831,7 +10833,7 @@ pub fn apigee_organizations_apis_revisions_get(
 pub fn apigee_organizations_apis_revisions_update_api_proxy_revision_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    validate: &Option<Option<String>>,
+    validate: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10975,7 +10977,7 @@ pub struct ApigeeOrganizationsApisRevisionsUpdateApiProxyRevisionArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: validate
-    pub validate: Option<Option<String>>,
+    pub validate: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/apis/{apisId}/revisions/{revisionsId}
@@ -12029,9 +12031,9 @@ pub fn apigee_organizations_appgroups_get_monetization_config(
 pub fn apigee_organizations_appgroups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12181,11 +12183,11 @@ pub struct ApigeeOrganizationsAppgroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/appgroups
@@ -12229,7 +12231,7 @@ pub fn apigee_organizations_appgroups_list(
 pub fn apigee_organizations_appgroups_update_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    action: &Option<Option<String>>,
+    action: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12373,7 +12375,7 @@ pub struct ApigeeOrganizationsAppgroupsUpdateArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: action
-    pub action: Option<Option<String>>,
+    pub action: Option<String>,
 }
 
 /// PUT v1/organizations/{organizationsId}/appgroups/{appgroupsId}
@@ -13085,8 +13087,8 @@ pub fn apigee_organizations_appgroups_apps_get(
 pub fn apigee_organizations_appgroups_apps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13234,9 +13236,9 @@ pub struct ApigeeOrganizationsAppgroupsAppsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps
@@ -13279,7 +13281,7 @@ pub fn apigee_organizations_appgroups_apps_list(
 pub fn apigee_organizations_appgroups_apps_update_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    action: &Option<Option<String>>,
+    action: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13423,7 +13425,7 @@ pub struct ApigeeOrganizationsAppgroupsAppsUpdateArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: action
-    pub action: Option<Option<String>>,
+    pub action: Option<String>,
 }
 
 /// PUT v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}
@@ -14307,7 +14309,7 @@ pub fn apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    action: &Option<Option<String>>,
+    action: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14449,7 +14451,7 @@ pub struct ApigeeOrganizationsAppgroupsAppsKeysApiproductsUpdateAppGroupAppKeyAp
     /// Path parameter: name
     pub name: String,
     /// Query parameter: action
-    pub action: Option<Option<String>>,
+    pub action: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
@@ -15329,8 +15331,8 @@ pub fn apigee_organizations_appgroups_subscriptions_get(
 pub fn apigee_organizations_appgroups_subscriptions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15481,9 +15483,9 @@ pub struct ApigeeOrganizationsAppgroupsSubscriptionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/subscriptions
@@ -15690,18 +15692,18 @@ pub fn apigee_organizations_apps_get(
 pub fn apigee_organizations_apps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    apiProduct: &Option<Option<String>>,
-    apptype: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    includeCred: &Option<Option<String>>,
-    keyStatus: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    rows: &Option<Option<String>>,
-    startKey: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    apiProduct: &Option<String>,
+    apptype: &Option<String>,
+    expand: &Option<String>,
+    filter: &Option<String>,
+    ids: &Option<String>,
+    includeCred: &Option<String>,
+    keyStatus: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    rows: &Option<String>,
+    startKey: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15878,29 +15880,29 @@ pub struct ApigeeOrganizationsAppsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: apiProduct
-    pub apiProduct: Option<Option<String>>,
+    pub apiProduct: Option<String>,
     /// Query parameter: apptype
-    pub apptype: Option<Option<String>>,
+    pub apptype: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: includeCred
-    pub includeCred: Option<Option<String>>,
+    pub includeCred: Option<String>,
     /// Query parameter: keyStatus
-    pub keyStatus: Option<Option<String>>,
+    pub keyStatus: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: rows
-    pub rows: Option<Option<String>>,
+    pub rows: Option<String>,
     /// Query parameter: startKey
-    pub startKey: Option<Option<String>>,
+    pub startKey: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/apps
@@ -15953,7 +15955,7 @@ pub fn apigee_organizations_apps_list(
 pub fn apigee_organizations_datacollectors_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataCollectorId: &Option<Option<String>>,
+    dataCollectorId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16097,7 +16099,7 @@ pub struct ApigeeOrganizationsDatacollectorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataCollectorId
-    pub dataCollectorId: Option<Option<String>>,
+    pub dataCollectorId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/datacollectors
@@ -16471,8 +16473,8 @@ pub fn apigee_organizations_datacollectors_get(
 pub fn apigee_organizations_datacollectors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16620,9 +16622,9 @@ pub struct ApigeeOrganizationsDatacollectorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/datacollectors
@@ -16665,7 +16667,7 @@ pub fn apigee_organizations_datacollectors_list(
 pub fn apigee_organizations_datacollectors_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16809,7 +16811,7 @@ pub struct ApigeeOrganizationsDatacollectorsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/datacollectors/{datacollectorsId}
@@ -16848,7 +16850,7 @@ pub fn apigee_organizations_datacollectors_patch(
 pub fn apigee_organizations_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    sharedFlows: &Option<Option<String>>,
+    sharedFlows: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16993,7 +16995,7 @@ pub struct ApigeeOrganizationsDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: sharedFlows
-    pub sharedFlows: Option<Option<String>>,
+    pub sharedFlows: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/deployments
@@ -17536,7 +17538,7 @@ pub fn apigee_organizations_developers_delete(
 pub fn apigee_organizations_developers_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    action: &Option<Option<String>>,
+    action: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17680,7 +17682,7 @@ pub struct ApigeeOrganizationsDevelopersGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: action
-    pub action: Option<Option<String>>,
+    pub action: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/developers/{developersId}
@@ -18056,12 +18058,12 @@ pub fn apigee_organizations_developers_get_monetization_config(
 pub fn apigee_organizations_developers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    app: &Option<Option<String>>,
-    count: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    ids: &Option<Option<String>>,
-    includeCompany: &Option<Option<String>>,
-    startKey: &Option<Option<String>>,
+    app: &Option<String>,
+    count: &Option<String>,
+    expand: &Option<String>,
+    ids: &Option<String>,
+    includeCompany: &Option<String>,
+    startKey: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18221,17 +18223,17 @@ pub struct ApigeeOrganizationsDevelopersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: app
-    pub app: Option<Option<String>>,
+    pub app: Option<String>,
     /// Query parameter: count
-    pub count: Option<Option<String>>,
+    pub count: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: ids
-    pub ids: Option<Option<String>>,
+    pub ids: Option<String>,
     /// Query parameter: includeCompany
-    pub includeCompany: Option<Option<String>>,
+    pub includeCompany: Option<String>,
     /// Query parameter: startKey
-    pub startKey: Option<Option<String>>,
+    pub startKey: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/developers
@@ -18278,7 +18280,7 @@ pub fn apigee_organizations_developers_list(
 pub fn apigee_organizations_developers_set_developer_status_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    action: &Option<Option<String>>,
+    action: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18420,7 +18422,7 @@ pub struct ApigeeOrganizationsDevelopersSetDeveloperStatusArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: action
-    pub action: Option<Option<String>>,
+    pub action: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}
@@ -19304,7 +19306,7 @@ pub fn apigee_organizations_developers_apps_generate_key_pair_or_update_develope
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    action: &Option<Option<String>>,
+    action: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19451,7 +19453,7 @@ pub struct ApigeeOrganizationsDevelopersAppsGenerateKeyPairOrUpdateDeveloperAppS
     /// Path parameter: name
     pub name: String,
     /// Query parameter: action
-    pub action: Option<Option<String>>,
+    pub action: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}
@@ -19491,8 +19493,8 @@ pub fn apigee_organizations_developers_apps_generate_key_pair_or_update_develope
 pub fn apigee_organizations_developers_apps_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    entity: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    entity: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19639,9 +19641,9 @@ pub struct ApigeeOrganizationsDevelopersAppsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: entity
-    pub entity: Option<Option<String>>,
+    pub entity: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}
@@ -19684,10 +19686,10 @@ pub fn apigee_organizations_developers_apps_get(
 pub fn apigee_organizations_developers_apps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    count: &Option<Option<String>>,
-    expand: &Option<Option<String>>,
-    shallowExpand: &Option<Option<String>>,
-    startKey: &Option<Option<String>>,
+    count: &Option<String>,
+    expand: &Option<String>,
+    shallowExpand: &Option<String>,
+    startKey: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19841,13 +19843,13 @@ pub struct ApigeeOrganizationsDevelopersAppsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: count
-    pub count: Option<Option<String>>,
+    pub count: Option<String>,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
     /// Query parameter: shallowExpand
-    pub shallowExpand: Option<Option<String>>,
+    pub shallowExpand: Option<String>,
     /// Query parameter: startKey
-    pub startKey: Option<Option<String>>,
+    pub startKey: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps
@@ -21413,7 +21415,7 @@ pub fn apigee_organizations_developers_apps_keys_replace_developer_app_key(
 pub fn apigee_organizations_developers_apps_keys_update_developer_app_key_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    action: &Option<Option<String>>,
+    action: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21557,7 +21559,7 @@ pub struct ApigeeOrganizationsDevelopersAppsKeysUpdateDeveloperAppKeyArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: action
-    pub action: Option<Option<String>>,
+    pub action: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}
@@ -21770,7 +21772,7 @@ pub fn apigee_organizations_developers_apps_keys_apiproducts_update_developer_ap
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    action: &Option<Option<String>>,
+    action: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21912,7 +21914,7 @@ pub struct ApigeeOrganizationsDevelopersAppsKeysApiproductsUpdateDeveloperAppKey
     /// Path parameter: name
     pub name: String,
     /// Query parameter: action
-    pub action: Option<Option<String>>,
+    pub action: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
@@ -23632,8 +23634,8 @@ pub fn apigee_organizations_developers_subscriptions_get(
 pub fn apigee_organizations_developers_subscriptions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    count: &Option<Option<String>>,
-    startKey: &Option<Option<String>>,
+    count: &Option<String>,
+    startKey: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23787,9 +23789,9 @@ pub struct ApigeeOrganizationsDevelopersSubscriptionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: count
-    pub count: Option<Option<String>>,
+    pub count: Option<String>,
     /// Query parameter: startKey
-    pub startKey: Option<Option<String>>,
+    pub startKey: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/subscriptions
@@ -23835,7 +23837,7 @@ pub fn apigee_organizations_developers_subscriptions_list(
 pub fn apigee_organizations_dns_zones_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dnsZoneId: &Option<Option<String>>,
+    dnsZoneId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23979,7 +23981,7 @@ pub struct ApigeeOrganizationsDnsZonesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dnsZoneId
-    pub dnsZoneId: Option<Option<String>>,
+    pub dnsZoneId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/dnsZones
@@ -24354,8 +24356,8 @@ pub fn apigee_organizations_dns_zones_get(
 pub fn apigee_organizations_dns_zones_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24503,9 +24505,9 @@ pub struct ApigeeOrganizationsDnsZonesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/dnsZones
@@ -24548,7 +24550,7 @@ pub fn apigee_organizations_dns_zones_list(
 pub fn apigee_organizations_endpoint_attachments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    endpointAttachmentId: &Option<Option<String>>,
+    endpointAttachmentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24692,7 +24694,7 @@ pub struct ApigeeOrganizationsEndpointAttachmentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: endpointAttachmentId
-    pub endpointAttachmentId: Option<Option<String>>,
+    pub endpointAttachmentId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/endpointAttachments
@@ -25070,8 +25072,8 @@ pub fn apigee_organizations_endpoint_attachments_get(
 pub fn apigee_organizations_endpoint_attachments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25222,9 +25224,9 @@ pub struct ApigeeOrganizationsEndpointAttachmentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/endpointAttachments
@@ -25267,7 +25269,7 @@ pub fn apigee_organizations_endpoint_attachments_list(
 pub fn apigee_organizations_envgroups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25411,7 +25413,7 @@ pub struct ApigeeOrganizationsEnvgroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/envgroups
@@ -25785,7 +25787,7 @@ pub fn apigee_organizations_envgroups_get(
 pub fn apigee_organizations_envgroups_get_deployed_ingress_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25929,7 +25931,7 @@ pub struct ApigeeOrganizationsEnvgroupsGetDeployedIngressConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/envgroups/{envgroupsId}/deployedIngressConfig
@@ -25969,8 +25971,8 @@ pub fn apigee_organizations_envgroups_get_deployed_ingress_config(
 pub fn apigee_organizations_envgroups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26118,9 +26120,9 @@ pub struct ApigeeOrganizationsEnvgroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/envgroups
@@ -26163,7 +26165,7 @@ pub fn apigee_organizations_envgroups_list(
 pub fn apigee_organizations_envgroups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26307,7 +26309,7 @@ pub struct ApigeeOrganizationsEnvgroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/envgroups/{envgroupsId}
@@ -26851,8 +26853,8 @@ pub fn apigee_organizations_envgroups_attachments_get(
 pub fn apigee_organizations_envgroups_attachments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27006,9 +27008,9 @@ pub struct ApigeeOrganizationsEnvgroupsAttachmentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/envgroups/{envgroupsId}/attachments
@@ -27054,7 +27056,7 @@ pub fn apigee_organizations_envgroups_attachments_list(
 pub fn apigee_organizations_environments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27198,7 +27200,7 @@ pub struct ApigeeOrganizationsEnvironmentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/environments
@@ -28249,7 +28251,7 @@ pub fn apigee_organizations_environments_get_deployed_config(
 pub fn apigee_organizations_environments_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28391,7 +28393,7 @@ pub struct ApigeeOrganizationsEnvironmentsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}:getIamPolicy
@@ -28768,7 +28770,7 @@ pub fn apigee_organizations_environments_get_trace_config(
 pub fn apigee_organizations_environments_modify_environment_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28912,7 +28914,7 @@ pub struct ApigeeOrganizationsEnvironmentsModifyEnvironmentArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/environments/{environmentsId}
@@ -29787,8 +29789,8 @@ pub fn apigee_organizations_environments_update(
 pub fn apigee_organizations_environments_update_debugmask_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    replaceRepeatedFields: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    replaceRepeatedFields: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29935,9 +29937,9 @@ pub struct ApigeeOrganizationsEnvironmentsUpdateDebugmaskArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: replaceRepeatedFields
-    pub replaceRepeatedFields: Option<Option<String>>,
+    pub replaceRepeatedFields: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/environments/{environmentsId}/debugmask
@@ -30148,7 +30150,7 @@ pub fn apigee_organizations_environments_update_environment(
 pub fn apigee_organizations_environments_update_security_actions_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30292,7 +30294,7 @@ pub struct ApigeeOrganizationsEnvironmentsUpdateSecurityActionsConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/environments/{environmentsId}/securityActionsConfig
@@ -30334,7 +30336,7 @@ pub fn apigee_organizations_environments_update_security_actions_config(
 pub fn apigee_organizations_environments_update_trace_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30478,7 +30480,7 @@ pub struct ApigeeOrganizationsEnvironmentsUpdateTraceConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/environments/{environmentsId}/traceConfig
@@ -30690,8 +30692,8 @@ pub fn apigee_organizations_environments_addons_config_set_addon_enablement(
 pub fn apigee_organizations_environments_analytics_admin_get_schemav2_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    disableCache: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    disableCache: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30836,9 +30838,9 @@ pub struct ApigeeOrganizationsEnvironmentsAnalyticsAdminGetSchemav2Args {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: disableCache
-    pub disableCache: Option<Option<String>>,
+    pub disableCache: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/analytics/admin/schemav2
@@ -31548,9 +31550,9 @@ pub fn apigee_organizations_environments_apis_deployments_list(
 pub fn apigee_organizations_environments_apis_revisions_deploy_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    override_rs: &Option<Option<String>>,
-    sequencedRollout: &Option<Option<String>>,
-    serviceAccount: &Option<Option<String>>,
+    override_rs: &Option<String>,
+    sequencedRollout: &Option<String>,
+    serviceAccount: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31700,11 +31702,11 @@ pub struct ApigeeOrganizationsEnvironmentsApisRevisionsDeployArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: override
-    pub override_rs: Option<Option<String>>,
+    pub override_rs: Option<String>,
     /// Query parameter: sequencedRollout
-    pub sequencedRollout: Option<Option<String>>,
+    pub sequencedRollout: Option<String>,
     /// Query parameter: serviceAccount
-    pub serviceAccount: Option<Option<String>>,
+    pub serviceAccount: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments
@@ -31918,7 +31920,7 @@ pub fn apigee_organizations_environments_apis_revisions_get_deployments(
 pub fn apigee_organizations_environments_apis_revisions_undeploy_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    sequencedRollout: &Option<Option<String>>,
+    sequencedRollout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32060,7 +32062,7 @@ pub struct ApigeeOrganizationsEnvironmentsApisRevisionsUndeployArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: sequencedRollout
-    pub sequencedRollout: Option<Option<String>>,
+    pub sequencedRollout: Option<String>,
 }
 
 /// DELETE v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments
@@ -32100,7 +32102,7 @@ pub fn apigee_organizations_environments_apis_revisions_undeploy(
 pub fn apigee_organizations_environments_apis_revisions_debugsessions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32244,7 +32246,7 @@ pub struct ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/debugsessions
@@ -32624,8 +32626,8 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_get(
 pub fn apigee_organizations_environments_apis_revisions_debugsessions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32773,9 +32775,9 @@ pub struct ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/debugsessions
@@ -32992,7 +32994,7 @@ pub fn apigee_organizations_environments_apis_revisions_deployments_generate_dep
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    override_rs: &Option<Option<String>>,
+    override_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33136,7 +33138,7 @@ pub struct ApigeeOrganizationsEnvironmentsApisRevisionsDeploymentsGenerateDeploy
     /// Path parameter: name
     pub name: String,
     /// Query parameter: override
-    pub override_rs: Option<Option<String>>,
+    pub override_rs: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments:generateDeployChangeReport
@@ -34194,9 +34196,9 @@ pub fn apigee_organizations_environments_archive_deployments_get(
 pub fn apigee_organizations_environments_archive_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34350,11 +34352,11 @@ pub struct ApigeeOrganizationsEnvironmentsArchiveDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/archiveDeployments
@@ -34398,7 +34400,7 @@ pub fn apigee_organizations_environments_archive_deployments_list(
 pub fn apigee_organizations_environments_archive_deployments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34542,7 +34544,7 @@ pub struct ApigeeOrganizationsEnvironmentsArchiveDeploymentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/environments/{environmentsId}/archiveDeployments/{archiveDeploymentsId}
@@ -34916,7 +34918,7 @@ pub fn apigee_organizations_environments_deployments_get(
 pub fn apigee_organizations_environments_deployments_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35058,7 +35060,7 @@ pub struct ApigeeOrganizationsEnvironmentsDeploymentsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/deployments/{deploymentsId}:getIamPolicy
@@ -35098,7 +35100,7 @@ pub fn apigee_organizations_environments_deployments_get_iam_policy(
 pub fn apigee_organizations_environments_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    sharedFlows: &Option<Option<String>>,
+    sharedFlows: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35243,7 +35245,7 @@ pub struct ApigeeOrganizationsEnvironmentsDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: sharedFlows
-    pub sharedFlows: Option<Option<String>>,
+    pub sharedFlows: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/deployments
@@ -36136,7 +36138,7 @@ pub fn apigee_organizations_environments_flowhooks_get(
 pub fn apigee_organizations_environments_keystores_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36280,7 +36282,7 @@ pub struct ApigeeOrganizationsEnvironmentsKeystoresCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/keystores
@@ -36658,11 +36660,11 @@ pub fn apigee_organizations_environments_keystores_get(
 pub fn apigee_organizations_environments_keystores_aliases_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    _password: &Option<Option<String>>,
-    alias: &Option<Option<String>>,
-    format: &Option<Option<String>>,
-    ignoreExpiryValidation: &Option<Option<String>>,
-    ignoreNewlineValidation: &Option<Option<String>>,
+    _password: &Option<String>,
+    alias: &Option<String>,
+    format: &Option<String>,
+    ignoreExpiryValidation: &Option<String>,
+    ignoreNewlineValidation: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36816,15 +36818,15 @@ pub struct ApigeeOrganizationsEnvironmentsKeystoresAliasesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: _password
-    pub _password: Option<Option<String>>,
+    pub _password: Option<String>,
     /// Query parameter: alias
-    pub alias: Option<Option<String>>,
+    pub alias: Option<String>,
     /// Query parameter: format
-    pub format: Option<Option<String>>,
+    pub format: Option<String>,
     /// Query parameter: ignoreExpiryValidation
-    pub ignoreExpiryValidation: Option<Option<String>>,
+    pub ignoreExpiryValidation: Option<String>,
     /// Query parameter: ignoreNewlineValidation
-    pub ignoreNewlineValidation: Option<Option<String>>,
+    pub ignoreNewlineValidation: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/keystores/{keystoresId}/aliases
@@ -37529,8 +37531,8 @@ pub fn apigee_organizations_environments_keystores_aliases_get_certificate(
 pub fn apigee_organizations_environments_keystores_aliases_update_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    ignoreExpiryValidation: &Option<Option<String>>,
-    ignoreNewlineValidation: &Option<Option<String>>,
+    ignoreExpiryValidation: &Option<String>,
+    ignoreNewlineValidation: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37675,9 +37677,9 @@ pub struct ApigeeOrganizationsEnvironmentsKeystoresAliasesUpdateArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: ignoreExpiryValidation
-    pub ignoreExpiryValidation: Option<Option<String>>,
+    pub ignoreExpiryValidation: Option<String>,
     /// Query parameter: ignoreNewlineValidation
-    pub ignoreNewlineValidation: Option<Option<String>>,
+    pub ignoreNewlineValidation: Option<String>,
 }
 
 /// PUT v1/organizations/{organizationsId}/environments/{environmentsId}/keystores/{keystoresId}/aliases/{aliasesId}
@@ -38902,8 +38904,8 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_get(
 pub fn apigee_organizations_environments_keyvaluemaps_entries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39051,9 +39053,9 @@ pub struct ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}/entries
@@ -39265,21 +39267,21 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_update(
 pub fn apigee_organizations_environments_optimized_stats_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    accuracy: &Option<Option<String>>,
-    aggTable: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    offset: &Option<Option<String>>,
-    realtime: &Option<Option<String>>,
-    select: &Option<Option<String>>,
-    sonar: &Option<Option<String>>,
-    sort: &Option<Option<String>>,
-    sortby: &Option<Option<String>>,
-    timeRange: &Option<Option<String>>,
-    timeUnit: &Option<Option<String>>,
-    topk: &Option<Option<String>>,
-    tsAscending: &Option<Option<String>>,
-    tzo: &Option<Option<String>>,
+    accuracy: &Option<String>,
+    aggTable: &Option<String>,
+    filter: &Option<String>,
+    limit: &Option<String>,
+    offset: &Option<String>,
+    realtime: &Option<String>,
+    select: &Option<String>,
+    sonar: &Option<String>,
+    sort: &Option<String>,
+    sortby: &Option<String>,
+    timeRange: &Option<String>,
+    timeUnit: &Option<String>,
+    topk: &Option<String>,
+    tsAscending: &Option<String>,
+    tzo: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39465,35 +39467,35 @@ pub struct ApigeeOrganizationsEnvironmentsOptimizedStatsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: accuracy
-    pub accuracy: Option<Option<String>>,
+    pub accuracy: Option<String>,
     /// Query parameter: aggTable
-    pub aggTable: Option<Option<String>>,
+    pub aggTable: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: offset
-    pub offset: Option<Option<String>>,
+    pub offset: Option<String>,
     /// Query parameter: realtime
-    pub realtime: Option<Option<String>>,
+    pub realtime: Option<String>,
     /// Query parameter: select
-    pub select: Option<Option<String>>,
+    pub select: Option<String>,
     /// Query parameter: sonar
-    pub sonar: Option<Option<String>>,
+    pub sonar: Option<String>,
     /// Query parameter: sort
-    pub sort: Option<Option<String>>,
+    pub sort: Option<String>,
     /// Query parameter: sortby
-    pub sortby: Option<Option<String>>,
+    pub sortby: Option<String>,
     /// Query parameter: timeRange
-    pub timeRange: Option<Option<String>>,
+    pub timeRange: Option<String>,
     /// Query parameter: timeUnit
-    pub timeUnit: Option<Option<String>>,
+    pub timeUnit: Option<String>,
     /// Query parameter: topk
-    pub topk: Option<Option<String>>,
+    pub topk: Option<String>,
     /// Query parameter: tsAscending
-    pub tsAscending: Option<Option<String>>,
+    pub tsAscending: Option<String>,
     /// Query parameter: tzo
-    pub tzo: Option<Option<String>>,
+    pub tzo: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/optimizedStats/{optimizedStatsId}
@@ -40222,12 +40224,12 @@ pub fn apigee_organizations_environments_queries_get_resulturl(
 pub fn apigee_organizations_environments_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataset: &Option<Option<String>>,
-    from: &Option<Option<String>>,
-    inclQueriesWithoutReport: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    submittedBy: &Option<Option<String>>,
-    to: &Option<Option<String>>,
+    dataset: &Option<String>,
+    from: &Option<String>,
+    inclQueriesWithoutReport: &Option<String>,
+    status: &Option<String>,
+    submittedBy: &Option<String>,
+    to: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40387,17 +40389,17 @@ pub struct ApigeeOrganizationsEnvironmentsQueriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataset
-    pub dataset: Option<Option<String>>,
+    pub dataset: Option<String>,
     /// Query parameter: from
-    pub from: Option<Option<String>>,
+    pub from: Option<String>,
     /// Query parameter: inclQueriesWithoutReport
-    pub inclQueriesWithoutReport: Option<Option<String>>,
+    pub inclQueriesWithoutReport: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: submittedBy
-    pub submittedBy: Option<Option<String>>,
+    pub submittedBy: Option<String>,
     /// Query parameter: to
-    pub to: Option<Option<String>>,
+    pub to: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/queries
@@ -41117,8 +41119,8 @@ pub fn apigee_organizations_environments_references_update(
 pub fn apigee_organizations_environments_resourcefiles_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    name: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    name: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41265,9 +41267,9 @@ pub struct ApigeeOrganizationsEnvironmentsResourcefilesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/resourcefiles
@@ -41664,7 +41666,7 @@ pub fn apigee_organizations_environments_resourcefiles_get(
 pub fn apigee_organizations_environments_resourcefiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    type_rs: &Option<Option<String>>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41812,7 +41814,7 @@ pub struct ApigeeOrganizationsEnvironmentsResourcefilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/resourcefiles
@@ -42214,7 +42216,7 @@ pub fn apigee_organizations_environments_resourcefiles_update(
 pub fn apigee_organizations_environments_security_actions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    securityActionId: &Option<Option<String>>,
+    securityActionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42358,7 +42360,7 @@ pub struct ApigeeOrganizationsEnvironmentsSecurityActionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: securityActionId
-    pub securityActionId: Option<Option<String>>,
+    pub securityActionId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/securityActions
@@ -43072,9 +43074,9 @@ pub fn apigee_organizations_environments_security_actions_get(
 pub fn apigee_organizations_environments_security_actions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43225,11 +43227,11 @@ pub struct ApigeeOrganizationsEnvironmentsSecurityActionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityActions
@@ -43273,7 +43275,7 @@ pub fn apigee_organizations_environments_security_actions_list(
 pub fn apigee_organizations_environments_security_actions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43417,7 +43419,7 @@ pub struct ApigeeOrganizationsEnvironmentsSecurityActionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/environments/{environmentsId}/securityActions/{securityActionsId}
@@ -43809,9 +43811,9 @@ pub fn apigee_organizations_environments_security_incidents_get(
 pub fn apigee_organizations_environments_security_incidents_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43962,11 +43964,11 @@ pub struct ApigeeOrganizationsEnvironmentsSecurityIncidentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityIncidents
@@ -44010,7 +44012,7 @@ pub fn apigee_organizations_environments_security_incidents_list(
 pub fn apigee_organizations_environments_security_incidents_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -44154,7 +44156,7 @@ pub struct ApigeeOrganizationsEnvironmentsSecurityIncidentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/environments/{environmentsId}/securityIncidents/{securityIncidentsId}
@@ -44870,13 +44872,13 @@ pub fn apigee_organizations_environments_security_reports_get_result_view(
 pub fn apigee_organizations_environments_security_reports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataset: &Option<Option<String>>,
-    from: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    submittedBy: &Option<Option<String>>,
-    to: &Option<Option<String>>,
+    dataset: &Option<String>,
+    from: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    status: &Option<String>,
+    submittedBy: &Option<String>,
+    to: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -45039,19 +45041,19 @@ pub struct ApigeeOrganizationsEnvironmentsSecurityReportsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataset
-    pub dataset: Option<Option<String>>,
+    pub dataset: Option<String>,
     /// Query parameter: from
-    pub from: Option<Option<String>>,
+    pub from: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: submittedBy
-    pub submittedBy: Option<Option<String>>,
+    pub submittedBy: Option<String>,
     /// Query parameter: to
-    pub to: Option<Option<String>>,
+    pub to: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityReports
@@ -45616,8 +45618,8 @@ pub fn apigee_organizations_environments_sharedflows_deployments_list(
 pub fn apigee_organizations_environments_sharedflows_revisions_deploy_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    override_rs: &Option<Option<String>>,
-    serviceAccount: &Option<Option<String>>,
+    override_rs: &Option<String>,
+    serviceAccount: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -45764,9 +45766,9 @@ pub struct ApigeeOrganizationsEnvironmentsSharedflowsRevisionsDeployArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: override
-    pub override_rs: Option<Option<String>>,
+    pub override_rs: Option<String>,
     /// Query parameter: serviceAccount
-    pub serviceAccount: Option<Option<String>>,
+    pub serviceAccount: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/sharedflows/{sharedflowsId}/revisions/{revisionsId}/deployments
@@ -46146,21 +46148,21 @@ pub fn apigee_organizations_environments_sharedflows_revisions_undeploy(
 pub fn apigee_organizations_environments_stats_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    accuracy: &Option<Option<String>>,
-    aggTable: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    offset: &Option<Option<String>>,
-    realtime: &Option<Option<String>>,
-    select: &Option<Option<String>>,
-    sonar: &Option<Option<String>>,
-    sort: &Option<Option<String>>,
-    sortby: &Option<Option<String>>,
-    timeRange: &Option<Option<String>>,
-    timeUnit: &Option<Option<String>>,
-    topk: &Option<Option<String>>,
-    tsAscending: &Option<Option<String>>,
-    tzo: &Option<Option<String>>,
+    accuracy: &Option<String>,
+    aggTable: &Option<String>,
+    filter: &Option<String>,
+    limit: &Option<String>,
+    offset: &Option<String>,
+    realtime: &Option<String>,
+    select: &Option<String>,
+    sonar: &Option<String>,
+    sort: &Option<String>,
+    sortby: &Option<String>,
+    timeRange: &Option<String>,
+    timeUnit: &Option<String>,
+    topk: &Option<String>,
+    tsAscending: &Option<String>,
+    tzo: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46344,35 +46346,35 @@ pub struct ApigeeOrganizationsEnvironmentsStatsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: accuracy
-    pub accuracy: Option<Option<String>>,
+    pub accuracy: Option<String>,
     /// Query parameter: aggTable
-    pub aggTable: Option<Option<String>>,
+    pub aggTable: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: offset
-    pub offset: Option<Option<String>>,
+    pub offset: Option<String>,
     /// Query parameter: realtime
-    pub realtime: Option<Option<String>>,
+    pub realtime: Option<String>,
     /// Query parameter: select
-    pub select: Option<Option<String>>,
+    pub select: Option<String>,
     /// Query parameter: sonar
-    pub sonar: Option<Option<String>>,
+    pub sonar: Option<String>,
     /// Query parameter: sort
-    pub sort: Option<Option<String>>,
+    pub sort: Option<String>,
     /// Query parameter: sortby
-    pub sortby: Option<Option<String>>,
+    pub sortby: Option<String>,
     /// Query parameter: timeRange
-    pub timeRange: Option<Option<String>>,
+    pub timeRange: Option<String>,
     /// Query parameter: timeUnit
-    pub timeUnit: Option<Option<String>>,
+    pub timeUnit: Option<String>,
     /// Query parameter: topk
-    pub topk: Option<Option<String>>,
+    pub topk: Option<String>,
     /// Query parameter: tsAscending
-    pub tsAscending: Option<Option<String>>,
+    pub tsAscending: Option<String>,
     /// Query parameter: tzo
-    pub tzo: Option<Option<String>>,
+    pub tzo: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/stats/{statsId}
@@ -46426,7 +46428,7 @@ pub fn apigee_organizations_environments_stats_get(
 pub fn apigee_organizations_environments_targetservers_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46570,7 +46572,7 @@ pub struct ApigeeOrganizationsEnvironmentsTargetserversCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/environments/{environmentsId}/targetservers
@@ -47624,8 +47626,8 @@ pub fn apigee_organizations_environments_trace_config_overrides_get(
 pub fn apigee_organizations_environments_trace_config_overrides_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -47776,9 +47778,9 @@ pub struct ApigeeOrganizationsEnvironmentsTraceConfigOverridesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/traceConfig/overrides
@@ -47821,7 +47823,7 @@ pub fn apigee_organizations_environments_trace_config_overrides_list(
 pub fn apigee_organizations_environments_trace_config_overrides_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -47965,7 +47967,7 @@ pub struct ApigeeOrganizationsEnvironmentsTraceConfigOverridesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/environments/{environmentsId}/traceConfig/overrides/{overridesId}
@@ -48676,13 +48678,13 @@ pub fn apigee_organizations_host_queries_get_result_view(
 pub fn apigee_organizations_host_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataset: &Option<Option<String>>,
-    envgroupHostname: &Option<Option<String>>,
-    from: &Option<Option<String>>,
-    inclQueriesWithoutReport: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    submittedBy: &Option<Option<String>>,
-    to: &Option<Option<String>>,
+    dataset: &Option<String>,
+    envgroupHostname: &Option<String>,
+    from: &Option<String>,
+    inclQueriesWithoutReport: &Option<String>,
+    status: &Option<String>,
+    submittedBy: &Option<String>,
+    to: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48845,19 +48847,19 @@ pub struct ApigeeOrganizationsHostQueriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataset
-    pub dataset: Option<Option<String>>,
+    pub dataset: Option<String>,
     /// Query parameter: envgroupHostname
-    pub envgroupHostname: Option<Option<String>>,
+    pub envgroupHostname: Option<String>,
     /// Query parameter: from
-    pub from: Option<Option<String>>,
+    pub from: Option<String>,
     /// Query parameter: inclQueriesWithoutReport
-    pub inclQueriesWithoutReport: Option<Option<String>>,
+    pub inclQueriesWithoutReport: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: submittedBy
-    pub submittedBy: Option<Option<String>>,
+    pub submittedBy: Option<String>,
     /// Query parameter: to
-    pub to: Option<Option<String>>,
+    pub to: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/hostQueries
@@ -49576,14 +49578,14 @@ pub fn apigee_organizations_host_security_reports_get_result_view(
 pub fn apigee_organizations_host_security_reports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataset: &Option<Option<String>>,
-    envgroupHostname: &Option<Option<String>>,
-    from: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    submittedBy: &Option<Option<String>>,
-    to: &Option<Option<String>>,
+    dataset: &Option<String>,
+    envgroupHostname: &Option<String>,
+    from: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    status: &Option<String>,
+    submittedBy: &Option<String>,
+    to: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -49749,21 +49751,21 @@ pub struct ApigeeOrganizationsHostSecurityReportsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataset
-    pub dataset: Option<Option<String>>,
+    pub dataset: Option<String>,
     /// Query parameter: envgroupHostname
-    pub envgroupHostname: Option<Option<String>>,
+    pub envgroupHostname: Option<String>,
     /// Query parameter: from
-    pub from: Option<Option<String>>,
+    pub from: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: submittedBy
-    pub submittedBy: Option<Option<String>>,
+    pub submittedBy: Option<String>,
     /// Query parameter: to
-    pub to: Option<Option<String>>,
+    pub to: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/hostSecurityReports
@@ -49812,20 +49814,20 @@ pub fn apigee_organizations_host_security_reports_list(
 pub fn apigee_organizations_host_stats_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    accuracy: &Option<Option<String>>,
-    envgroupHostname: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    offset: &Option<Option<String>>,
-    realtime: &Option<Option<String>>,
-    select: &Option<Option<String>>,
-    sort: &Option<Option<String>>,
-    sortby: &Option<Option<String>>,
-    timeRange: &Option<Option<String>>,
-    timeUnit: &Option<Option<String>>,
-    topk: &Option<Option<String>>,
-    tsAscending: &Option<Option<String>>,
-    tzo: &Option<Option<String>>,
+    accuracy: &Option<String>,
+    envgroupHostname: &Option<String>,
+    filter: &Option<String>,
+    limit: &Option<String>,
+    offset: &Option<String>,
+    realtime: &Option<String>,
+    select: &Option<String>,
+    sort: &Option<String>,
+    sortby: &Option<String>,
+    timeRange: &Option<String>,
+    timeUnit: &Option<String>,
+    topk: &Option<String>,
+    tsAscending: &Option<String>,
+    tzo: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -50006,33 +50008,33 @@ pub struct ApigeeOrganizationsHostStatsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: accuracy
-    pub accuracy: Option<Option<String>>,
+    pub accuracy: Option<String>,
     /// Query parameter: envgroupHostname
-    pub envgroupHostname: Option<Option<String>>,
+    pub envgroupHostname: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: offset
-    pub offset: Option<Option<String>>,
+    pub offset: Option<String>,
     /// Query parameter: realtime
-    pub realtime: Option<Option<String>>,
+    pub realtime: Option<String>,
     /// Query parameter: select
-    pub select: Option<Option<String>>,
+    pub select: Option<String>,
     /// Query parameter: sort
-    pub sort: Option<Option<String>>,
+    pub sort: Option<String>,
     /// Query parameter: sortby
-    pub sortby: Option<Option<String>>,
+    pub sortby: Option<String>,
     /// Query parameter: timeRange
-    pub timeRange: Option<Option<String>>,
+    pub timeRange: Option<String>,
     /// Query parameter: timeUnit
-    pub timeUnit: Option<Option<String>>,
+    pub timeUnit: Option<String>,
     /// Query parameter: topk
-    pub topk: Option<Option<String>>,
+    pub topk: Option<String>,
     /// Query parameter: tsAscending
-    pub tsAscending: Option<Option<String>>,
+    pub tsAscending: Option<String>,
     /// Query parameter: tzo
-    pub tzo: Option<Option<String>>,
+    pub tzo: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/hostStats/{hostStatsId}
@@ -50589,8 +50591,8 @@ pub fn apigee_organizations_instances_get(
 pub fn apigee_organizations_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -50737,9 +50739,9 @@ pub struct ApigeeOrganizationsInstancesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/instances
@@ -50782,7 +50784,7 @@ pub fn apigee_organizations_instances_list(
 pub fn apigee_organizations_instances_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -50926,7 +50928,7 @@ pub struct ApigeeOrganizationsInstancesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/instances/{instancesId}
@@ -51638,8 +51640,8 @@ pub fn apigee_organizations_instances_attachments_get(
 pub fn apigee_organizations_instances_attachments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51790,9 +51792,9 @@ pub struct ApigeeOrganizationsInstancesAttachmentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}/attachments
@@ -52846,8 +52848,8 @@ pub fn apigee_organizations_instances_nat_addresses_get(
 pub fn apigee_organizations_instances_nat_addresses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -52995,9 +52997,9 @@ pub struct ApigeeOrganizationsInstancesNatAddressesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}/natAddresses
@@ -54216,8 +54218,8 @@ pub fn apigee_organizations_keyvaluemaps_entries_get(
 pub fn apigee_organizations_keyvaluemaps_entries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -54365,9 +54367,9 @@ pub struct ApigeeOrganizationsKeyvaluemapsEntriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/keyvaluemaps/{keyvaluemapsId}/entries
@@ -54746,10 +54748,10 @@ pub fn apigee_organizations_operations_get(
 pub fn apigee_organizations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -54903,13 +54905,13 @@ pub struct ApigeeOrganizationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/operations
@@ -54954,20 +54956,20 @@ pub fn apigee_organizations_operations_list(
 pub fn apigee_organizations_optimized_host_stats_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    accuracy: &Option<Option<String>>,
-    envgroupHostname: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    limit: &Option<Option<String>>,
-    offset: &Option<Option<String>>,
-    realtime: &Option<Option<String>>,
-    select: &Option<Option<String>>,
-    sort: &Option<Option<String>>,
-    sortby: &Option<Option<String>>,
-    timeRange: &Option<Option<String>>,
-    timeUnit: &Option<Option<String>>,
-    topk: &Option<Option<String>>,
-    tsAscending: &Option<Option<String>>,
-    tzo: &Option<Option<String>>,
+    accuracy: &Option<String>,
+    envgroupHostname: &Option<String>,
+    filter: &Option<String>,
+    limit: &Option<String>,
+    offset: &Option<String>,
+    realtime: &Option<String>,
+    select: &Option<String>,
+    sort: &Option<String>,
+    sortby: &Option<String>,
+    timeRange: &Option<String>,
+    timeUnit: &Option<String>,
+    topk: &Option<String>,
+    tsAscending: &Option<String>,
+    tzo: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -55150,33 +55152,33 @@ pub struct ApigeeOrganizationsOptimizedHostStatsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: accuracy
-    pub accuracy: Option<Option<String>>,
+    pub accuracy: Option<String>,
     /// Query parameter: envgroupHostname
-    pub envgroupHostname: Option<Option<String>>,
+    pub envgroupHostname: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: limit
-    pub limit: Option<Option<String>>,
+    pub limit: Option<String>,
     /// Query parameter: offset
-    pub offset: Option<Option<String>>,
+    pub offset: Option<String>,
     /// Query parameter: realtime
-    pub realtime: Option<Option<String>>,
+    pub realtime: Option<String>,
     /// Query parameter: select
-    pub select: Option<Option<String>>,
+    pub select: Option<String>,
     /// Query parameter: sort
-    pub sort: Option<Option<String>>,
+    pub sort: Option<String>,
     /// Query parameter: sortby
-    pub sortby: Option<Option<String>>,
+    pub sortby: Option<String>,
     /// Query parameter: timeRange
-    pub timeRange: Option<Option<String>>,
+    pub timeRange: Option<String>,
     /// Query parameter: timeUnit
-    pub timeUnit: Option<Option<String>>,
+    pub timeUnit: Option<String>,
     /// Query parameter: topk
-    pub topk: Option<Option<String>>,
+    pub topk: Option<String>,
     /// Query parameter: tsAscending
-    pub tsAscending: Option<Option<String>>,
+    pub tsAscending: Option<String>,
     /// Query parameter: tzo
-    pub tzo: Option<Option<String>>,
+    pub tzo: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/optimizedHostStats/{optimizedHostStatsId}
@@ -55736,7 +55738,7 @@ pub fn apigee_organizations_reports_get(
 pub fn apigee_organizations_reports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    expand: &Option<Option<String>>,
+    expand: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -55881,7 +55883,7 @@ pub struct ApigeeOrganizationsReportsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: expand
-    pub expand: Option<Option<String>>,
+    pub expand: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/reports
@@ -56266,7 +56268,7 @@ pub fn apigee_organizations_security_assessment_results_batch_compute(
 pub fn apigee_organizations_security_feedback_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    securityFeedbackId: &Option<Option<String>>,
+    securityFeedbackId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -56410,7 +56412,7 @@ pub struct ApigeeOrganizationsSecurityFeedbackCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: securityFeedbackId
-    pub securityFeedbackId: Option<Option<String>>,
+    pub securityFeedbackId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/securityFeedback
@@ -56784,8 +56786,8 @@ pub fn apigee_organizations_security_feedback_get(
 pub fn apigee_organizations_security_feedback_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -56933,9 +56935,9 @@ pub struct ApigeeOrganizationsSecurityFeedbackListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/securityFeedback
@@ -56978,7 +56980,7 @@ pub fn apigee_organizations_security_feedback_list(
 pub fn apigee_organizations_security_feedback_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -57122,7 +57124,7 @@ pub struct ApigeeOrganizationsSecurityFeedbackPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/securityFeedback/{securityFeedbackId}
@@ -57161,7 +57163,7 @@ pub fn apigee_organizations_security_feedback_patch(
 pub fn apigee_organizations_security_monitoring_conditions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    securityMonitoringConditionId: &Option<Option<String>>,
+    securityMonitoringConditionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -57306,7 +57308,7 @@ pub struct ApigeeOrganizationsSecurityMonitoringConditionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: securityMonitoringConditionId
-    pub securityMonitoringConditionId: Option<Option<String>>,
+    pub securityMonitoringConditionId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/securityMonitoringConditions
@@ -57348,7 +57350,7 @@ pub fn apigee_organizations_security_monitoring_conditions_create(
 pub fn apigee_organizations_security_monitoring_conditions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    riskAssessmentType: &Option<Option<String>>,
+    riskAssessmentType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -57490,7 +57492,7 @@ pub struct ApigeeOrganizationsSecurityMonitoringConditionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: riskAssessmentType
-    pub riskAssessmentType: Option<Option<String>>,
+    pub riskAssessmentType: Option<String>,
 }
 
 /// DELETE v1/organizations/{organizationsId}/securityMonitoringConditions/{securityMonitoringConditionsId}
@@ -57530,7 +57532,7 @@ pub fn apigee_organizations_security_monitoring_conditions_delete(
 pub fn apigee_organizations_security_monitoring_conditions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    riskAssessmentType: &Option<Option<String>>,
+    riskAssessmentType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -57675,7 +57677,7 @@ pub struct ApigeeOrganizationsSecurityMonitoringConditionsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: riskAssessmentType
-    pub riskAssessmentType: Option<Option<String>>,
+    pub riskAssessmentType: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/securityMonitoringConditions/{securityMonitoringConditionsId}
@@ -57717,10 +57719,10 @@ pub fn apigee_organizations_security_monitoring_conditions_get(
 pub fn apigee_organizations_security_monitoring_conditions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    riskAssessmentType: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    riskAssessmentType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -57880,13 +57882,13 @@ pub struct ApigeeOrganizationsSecurityMonitoringConditionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: riskAssessmentType
-    pub riskAssessmentType: Option<Option<String>>,
+    pub riskAssessmentType: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/securityMonitoringConditions
@@ -57934,7 +57936,7 @@ pub fn apigee_organizations_security_monitoring_conditions_list(
 pub fn apigee_organizations_security_monitoring_conditions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -58079,7 +58081,7 @@ pub struct ApigeeOrganizationsSecurityMonitoringConditionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/securityMonitoringConditions/{securityMonitoringConditionsId}
@@ -58121,7 +58123,7 @@ pub fn apigee_organizations_security_monitoring_conditions_patch(
 pub fn apigee_organizations_security_profiles_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    securityProfileId: &Option<Option<String>>,
+    securityProfileId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -58265,7 +58267,7 @@ pub struct ApigeeOrganizationsSecurityProfilesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: securityProfileId
-    pub securityProfileId: Option<Option<String>>,
+    pub securityProfileId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/securityProfiles
@@ -58639,8 +58641,8 @@ pub fn apigee_organizations_security_profiles_get(
 pub fn apigee_organizations_security_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -58788,9 +58790,9 @@ pub struct ApigeeOrganizationsSecurityProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/securityProfiles
@@ -58833,8 +58835,8 @@ pub fn apigee_organizations_security_profiles_list(
 pub fn apigee_organizations_security_profiles_list_revisions_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -58988,9 +58990,9 @@ pub struct ApigeeOrganizationsSecurityProfilesListRevisionsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/securityProfiles/{securityProfilesId}:listRevisions
@@ -59036,7 +59038,7 @@ pub fn apigee_organizations_security_profiles_list_revisions(
 pub fn apigee_organizations_security_profiles_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -59180,7 +59182,7 @@ pub struct ApigeeOrganizationsSecurityProfilesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/securityProfiles/{securityProfilesId}
@@ -59741,7 +59743,7 @@ pub fn apigee_organizations_security_profiles_environments_delete(
 pub fn apigee_organizations_security_profiles_v2_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    securityProfileV2Id: &Option<Option<String>>,
+    securityProfileV2Id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -59885,7 +59887,7 @@ pub struct ApigeeOrganizationsSecurityProfilesV2CreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: securityProfileV2Id
-    pub securityProfileV2Id: Option<Option<String>>,
+    pub securityProfileV2Id: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/securityProfilesV2
@@ -59927,7 +59929,7 @@ pub fn apigee_organizations_security_profiles_v2_create(
 pub fn apigee_organizations_security_profiles_v2_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    riskAssessmentType: &Option<Option<String>>,
+    riskAssessmentType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60069,7 +60071,7 @@ pub struct ApigeeOrganizationsSecurityProfilesV2DeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: riskAssessmentType
-    pub riskAssessmentType: Option<Option<String>>,
+    pub riskAssessmentType: Option<String>,
 }
 
 /// DELETE v1/organizations/{organizationsId}/securityProfilesV2/{securityProfilesV2Id}
@@ -60109,7 +60111,7 @@ pub fn apigee_organizations_security_profiles_v2_delete(
 pub fn apigee_organizations_security_profiles_v2_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    riskAssessmentType: &Option<Option<String>>,
+    riskAssessmentType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60253,7 +60255,7 @@ pub struct ApigeeOrganizationsSecurityProfilesV2GetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: riskAssessmentType
-    pub riskAssessmentType: Option<Option<String>>,
+    pub riskAssessmentType: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/securityProfilesV2/{securityProfilesV2Id}
@@ -60295,9 +60297,9 @@ pub fn apigee_organizations_security_profiles_v2_get(
 pub fn apigee_organizations_security_profiles_v2_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    riskAssessmentType: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    riskAssessmentType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60451,11 +60453,11 @@ pub struct ApigeeOrganizationsSecurityProfilesV2ListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: riskAssessmentType
-    pub riskAssessmentType: Option<Option<String>>,
+    pub riskAssessmentType: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/securityProfilesV2
@@ -60499,7 +60501,7 @@ pub fn apigee_organizations_security_profiles_v2_list(
 pub fn apigee_organizations_security_profiles_v2_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60643,7 +60645,7 @@ pub struct ApigeeOrganizationsSecurityProfilesV2PatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/securityProfilesV2/{securityProfilesV2Id}
@@ -60685,9 +60687,9 @@ pub fn apigee_organizations_security_profiles_v2_patch(
 pub fn apigee_organizations_sharedflows_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    action: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    space: &Option<Option<String>>,
+    action: &Option<String>,
+    name: &Option<String>,
+    space: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60837,11 +60839,11 @@ pub struct ApigeeOrganizationsSharedflowsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: action
-    pub action: Option<Option<String>>,
+    pub action: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: space
-    pub space: Option<Option<String>>,
+    pub space: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/sharedflows
@@ -61221,9 +61223,9 @@ pub fn apigee_organizations_sharedflows_get(
 pub fn apigee_organizations_sharedflows_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    includeMetaData: &Option<Option<String>>,
-    includeRevisions: &Option<Option<String>>,
-    space: &Option<Option<String>>,
+    includeMetaData: &Option<String>,
+    includeRevisions: &Option<String>,
+    space: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -61374,11 +61376,11 @@ pub struct ApigeeOrganizationsSharedflowsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: includeMetaData
-    pub includeMetaData: Option<Option<String>>,
+    pub includeMetaData: Option<String>,
     /// Query parameter: includeRevisions
-    pub includeRevisions: Option<Option<String>>,
+    pub includeRevisions: Option<String>,
     /// Query parameter: space
-    pub space: Option<Option<String>>,
+    pub space: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/sharedflows
@@ -61927,7 +61929,7 @@ pub fn apigee_organizations_sharedflows_revisions_delete(
 pub fn apigee_organizations_sharedflows_revisions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    format: &Option<Option<String>>,
+    format: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -62069,7 +62071,7 @@ pub struct ApigeeOrganizationsSharedflowsRevisionsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: format
-    pub format: Option<Option<String>>,
+    pub format: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}/revisions/{revisionsId}
@@ -62106,7 +62108,7 @@ pub fn apigee_organizations_sharedflows_revisions_get(
 pub fn apigee_organizations_sharedflows_revisions_update_shared_flow_revision_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    validate: &Option<Option<String>>,
+    validate: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -62251,7 +62253,7 @@ pub struct ApigeeOrganizationsSharedflowsRevisionsUpdateSharedFlowRevisionArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: validate
-    pub validate: Option<Option<String>>,
+    pub validate: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}/revisions/{revisionsId}
@@ -63977,8 +63979,8 @@ pub fn apigee_organizations_sites_apidocs_get_documentation(
 pub fn apigee_organizations_sites_apidocs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -64125,9 +64127,9 @@ pub struct ApigeeOrganizationsSitesApidocsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/sites/{sitesId}/apidocs
@@ -64508,7 +64510,7 @@ pub fn apigee_organizations_sites_apidocs_update_documentation(
 pub fn apigee_organizations_spaces_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    spaceId: &Option<Option<String>>,
+    spaceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -64650,7 +64652,7 @@ pub struct ApigeeOrganizationsSpacesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: spaceId
-    pub spaceId: Option<Option<String>>,
+    pub spaceId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/spaces
@@ -65014,7 +65016,7 @@ pub fn apigee_organizations_spaces_get(
 pub fn apigee_organizations_spaces_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65156,7 +65158,7 @@ pub struct ApigeeOrganizationsSpacesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/spaces/{spacesId}:getIamPolicy
@@ -65196,8 +65198,8 @@ pub fn apigee_organizations_spaces_get_iam_policy(
 pub fn apigee_organizations_spaces_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65344,9 +65346,9 @@ pub struct ApigeeOrganizationsSpacesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/spaces
@@ -65389,7 +65391,7 @@ pub fn apigee_organizations_spaces_list(
 pub fn apigee_organizations_spaces_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65531,7 +65533,7 @@ pub struct ApigeeOrganizationsSpacesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/spaces/{spacesId}
@@ -66059,31 +66061,6 @@ pub fn apigee_projects_provision_organization(
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for GoogleCloudApigeeV1ListHybridIssuersResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListHybridIssuersResponse with ApigeeHybridIssuersListArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ApigeeHybridIssuersListArgs>
-    for GoogleCloudApigeeV1ListHybridIssuersResponse
-{
-    fn generate_resource_id(&self, input: &ApigeeHybridIssuersListArgs) -> String {
-        "gcp::apigee::GoogleCloudApigeeV1ListHybridIssuersResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::apigee::GoogleCloudApigeeV1ListHybridIssuersResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for GoogleLongrunningOperation
 // =============================================================================
 
@@ -66319,31 +66296,6 @@ impl ResourceIdentifier<ApigeeOrganizationsGetSyncAuthorizationArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::apigee::GoogleCloudApigeeV1SyncAuthorization"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleCloudApigeeV1ListOrganizationsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleCloudApigeeV1ListOrganizationsResponse with ApigeeOrganizationsListArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ApigeeOrganizationsListArgs>
-    for GoogleCloudApigeeV1ListOrganizationsResponse
-{
-    fn generate_resource_id(&self, input: &ApigeeOrganizationsListArgs) -> String {
-        "gcp::apigee::GoogleCloudApigeeV1ListOrganizationsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::apigee::GoogleCloudApigeeV1ListOrganizationsResponse"
     }
 
     fn provider(&self) -> &'static str {

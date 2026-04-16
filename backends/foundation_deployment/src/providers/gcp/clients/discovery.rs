@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -196,8 +198,8 @@ pub fn discovery_apis_get_rest(
 
 pub fn discovery_apis_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    name: &Option<Option<String>>,
-    preferred: &Option<Option<String>>,
+    name: &Option<String>,
+    preferred: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -337,9 +339,9 @@ pub fn discovery_apis_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DiscoveryApisListArgs {
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: preferred
-    pub preferred: Option<Option<String>>,
+    pub preferred: Option<String>,
 }
 
 /// GET apis

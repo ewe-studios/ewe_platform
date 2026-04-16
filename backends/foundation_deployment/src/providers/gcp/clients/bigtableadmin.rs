@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn bigtableadmin_operations_get(
 pub fn bigtableadmin_operations_projects_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct BigtableadminOperationsProjectsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/operations/projects/{projectsId}/operations
@@ -1033,7 +1035,7 @@ pub fn bigtableadmin_projects_instances_get_iam_policy(
 pub fn bigtableadmin_projects_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1175,7 +1177,7 @@ pub struct BigtableadminProjectsInstancesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances
@@ -1212,7 +1214,7 @@ pub fn bigtableadmin_projects_instances_list(
 pub fn bigtableadmin_projects_instances_partial_update_instance_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1352,7 +1354,7 @@ pub struct BigtableadminProjectsInstancesPartialUpdateInstanceArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/instances/{instancesId}
@@ -1879,8 +1881,8 @@ pub fn bigtableadmin_projects_instances_update(
 pub fn bigtableadmin_projects_instances_app_profiles_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    appProfileId: &Option<Option<String>>,
-    ignoreWarnings: &Option<Option<String>>,
+    appProfileId: &Option<String>,
+    ignoreWarnings: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2023,9 +2025,9 @@ pub struct BigtableadminProjectsInstancesAppProfilesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: appProfileId
-    pub appProfileId: Option<Option<String>>,
+    pub appProfileId: Option<String>,
     /// Query parameter: ignoreWarnings
-    pub ignoreWarnings: Option<Option<String>>,
+    pub ignoreWarnings: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/instances/{instancesId}/appProfiles
@@ -2064,7 +2066,7 @@ pub fn bigtableadmin_projects_instances_app_profiles_create(
 pub fn bigtableadmin_projects_instances_app_profiles_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    ignoreWarnings: &Option<Option<String>>,
+    ignoreWarnings: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2204,7 +2206,7 @@ pub struct BigtableadminProjectsInstancesAppProfilesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: ignoreWarnings
-    pub ignoreWarnings: Option<Option<String>>,
+    pub ignoreWarnings: Option<String>,
 }
 
 /// DELETE v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
@@ -2402,8 +2404,8 @@ pub fn bigtableadmin_projects_instances_app_profiles_get(
 pub fn bigtableadmin_projects_instances_app_profiles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2548,9 +2550,9 @@ pub struct BigtableadminProjectsInstancesAppProfilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances/{instancesId}/appProfiles
@@ -2591,8 +2593,8 @@ pub fn bigtableadmin_projects_instances_app_profiles_list(
 pub fn bigtableadmin_projects_instances_app_profiles_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    ignoreWarnings: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    ignoreWarnings: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2735,9 +2737,9 @@ pub struct BigtableadminProjectsInstancesAppProfilesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: ignoreWarnings
-    pub ignoreWarnings: Option<Option<String>>,
+    pub ignoreWarnings: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/instances/{instancesId}/appProfiles/{appProfilesId}
@@ -2776,7 +2778,7 @@ pub fn bigtableadmin_projects_instances_app_profiles_patch(
 pub fn bigtableadmin_projects_instances_clusters_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    clusterId: &Option<Option<String>>,
+    clusterId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2916,7 +2918,7 @@ pub struct BigtableadminProjectsInstancesClustersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: clusterId
-    pub clusterId: Option<Option<String>>,
+    pub clusterId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/instances/{instancesId}/clusters
@@ -3435,7 +3437,7 @@ pub fn bigtableadmin_projects_instances_clusters_get_memory_layer(
 pub fn bigtableadmin_projects_instances_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3577,7 +3579,7 @@ pub struct BigtableadminProjectsInstancesClustersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters
@@ -3617,7 +3619,7 @@ pub fn bigtableadmin_projects_instances_clusters_list(
 pub fn bigtableadmin_projects_instances_clusters_partial_update_cluster_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3757,7 +3759,7 @@ pub struct BigtableadminProjectsInstancesClustersPartialUpdateClusterArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}
@@ -3955,7 +3957,7 @@ pub fn bigtableadmin_projects_instances_clusters_update(
 pub fn bigtableadmin_projects_instances_clusters_update_memory_layer_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4095,7 +4097,7 @@ pub struct BigtableadminProjectsInstancesClustersUpdateMemoryLayerArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayer
@@ -4294,7 +4296,7 @@ pub fn bigtableadmin_projects_instances_clusters_backups_copy(
 pub fn bigtableadmin_projects_instances_clusters_backups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    backupId: &Option<Option<String>>,
+    backupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4434,7 +4436,7 @@ pub struct BigtableadminProjectsInstancesClustersBackupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: backupId
-    pub backupId: Option<Option<String>>,
+    pub backupId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups
@@ -4957,10 +4959,10 @@ pub fn bigtableadmin_projects_instances_clusters_backups_get_iam_policy(
 pub fn bigtableadmin_projects_instances_clusters_backups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5111,13 +5113,13 @@ pub struct BigtableadminProjectsInstancesClustersBackupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups
@@ -5160,7 +5162,7 @@ pub fn bigtableadmin_projects_instances_clusters_backups_list(
 pub fn bigtableadmin_projects_instances_clusters_backups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5300,7 +5302,7 @@ pub struct BigtableadminProjectsInstancesClustersBackupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/backups/{backupsId}
@@ -5673,10 +5675,10 @@ pub fn bigtableadmin_projects_instances_clusters_backups_test_iam_permissions(
 pub fn bigtableadmin_projects_instances_clusters_hot_tablets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    endTime: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startTime: &Option<Option<String>>,
+    endTime: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    startTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5827,13 +5829,13 @@ pub struct BigtableadminProjectsInstancesClustersHotTabletsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: endTime
-    pub endTime: Option<Option<String>>,
+    pub endTime: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/hotTablets
@@ -5876,8 +5878,8 @@ pub fn bigtableadmin_projects_instances_clusters_hot_tablets_list(
 pub fn bigtableadmin_projects_instances_clusters_memory_layers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6022,9 +6024,9 @@ pub struct BigtableadminProjectsInstancesClustersMemoryLayersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances/{instancesId}/clusters/{clustersId}/memoryLayers
@@ -6065,7 +6067,7 @@ pub fn bigtableadmin_projects_instances_clusters_memory_layers_list(
 pub fn bigtableadmin_projects_instances_logical_views_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    logicalViewId: &Option<Option<String>>,
+    logicalViewId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6205,7 +6207,7 @@ pub struct BigtableadminProjectsInstancesLogicalViewsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: logicalViewId
-    pub logicalViewId: Option<Option<String>>,
+    pub logicalViewId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/instances/{instancesId}/logicalViews
@@ -6243,7 +6245,7 @@ pub fn bigtableadmin_projects_instances_logical_views_create(
 pub fn bigtableadmin_projects_instances_logical_views_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6383,7 +6385,7 @@ pub struct BigtableadminProjectsInstancesLogicalViewsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
@@ -6742,8 +6744,8 @@ pub fn bigtableadmin_projects_instances_logical_views_get_iam_policy(
 pub fn bigtableadmin_projects_instances_logical_views_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6888,9 +6890,9 @@ pub struct BigtableadminProjectsInstancesLogicalViewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances/{instancesId}/logicalViews
@@ -6931,7 +6933,7 @@ pub fn bigtableadmin_projects_instances_logical_views_list(
 pub fn bigtableadmin_projects_instances_logical_views_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7071,7 +7073,7 @@ pub struct BigtableadminProjectsInstancesLogicalViewsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/instances/{instancesId}/logicalViews/{logicalViewsId}
@@ -7443,7 +7445,7 @@ pub fn bigtableadmin_projects_instances_logical_views_test_iam_permissions(
 pub fn bigtableadmin_projects_instances_materialized_views_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    materializedViewId: &Option<Option<String>>,
+    materializedViewId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7583,7 +7585,7 @@ pub struct BigtableadminProjectsInstancesMaterializedViewsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: materializedViewId
-    pub materializedViewId: Option<Option<String>>,
+    pub materializedViewId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/instances/{instancesId}/materializedViews
@@ -7621,7 +7623,7 @@ pub fn bigtableadmin_projects_instances_materialized_views_create(
 pub fn bigtableadmin_projects_instances_materialized_views_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7761,7 +7763,7 @@ pub struct BigtableadminProjectsInstancesMaterializedViewsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
@@ -7797,7 +7799,7 @@ pub fn bigtableadmin_projects_instances_materialized_views_delete(
 pub fn bigtableadmin_projects_instances_materialized_views_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7939,7 +7941,7 @@ pub struct BigtableadminProjectsInstancesMaterializedViewsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
@@ -8140,9 +8142,9 @@ pub fn bigtableadmin_projects_instances_materialized_views_get_iam_policy(
 pub fn bigtableadmin_projects_instances_materialized_views_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8292,11 +8294,11 @@ pub struct BigtableadminProjectsInstancesMaterializedViewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances/{instancesId}/materializedViews
@@ -8340,7 +8342,7 @@ pub fn bigtableadmin_projects_instances_materialized_views_list(
 pub fn bigtableadmin_projects_instances_materialized_views_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8480,7 +8482,7 @@ pub struct BigtableadminProjectsInstancesMaterializedViewsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/instances/{instancesId}/materializedViews/{materializedViewsId}
@@ -9669,7 +9671,7 @@ pub fn bigtableadmin_projects_instances_tables_generate_consistency_token(
 pub fn bigtableadmin_projects_instances_tables_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9809,7 +9811,7 @@ pub struct BigtableadminProjectsInstancesTablesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
@@ -10005,9 +10007,9 @@ pub fn bigtableadmin_projects_instances_tables_get_iam_policy(
 pub fn bigtableadmin_projects_instances_tables_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10155,11 +10157,11 @@ pub struct BigtableadminProjectsInstancesTablesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables
@@ -10362,8 +10364,8 @@ pub fn bigtableadmin_projects_instances_tables_modify_column_families(
 pub fn bigtableadmin_projects_instances_tables_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    ignoreWarnings: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    ignoreWarnings: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10506,9 +10508,9 @@ pub struct BigtableadminProjectsInstancesTablesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: ignoreWarnings
-    pub ignoreWarnings: Option<Option<String>>,
+    pub ignoreWarnings: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}
@@ -11199,7 +11201,7 @@ pub fn bigtableadmin_projects_instances_tables_undelete(
 pub fn bigtableadmin_projects_instances_tables_authorized_views_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    authorizedViewId: &Option<Option<String>>,
+    authorizedViewId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11339,7 +11341,7 @@ pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: authorizedViewId
-    pub authorizedViewId: Option<Option<String>>,
+    pub authorizedViewId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews
@@ -11377,7 +11379,7 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_create(
 pub fn bigtableadmin_projects_instances_tables_authorized_views_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11517,7 +11519,7 @@ pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
@@ -11553,7 +11555,7 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_delete(
 pub fn bigtableadmin_projects_instances_tables_authorized_views_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11695,7 +11697,7 @@ pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
@@ -11897,9 +11899,9 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_get_iam_policy(
 pub fn bigtableadmin_projects_instances_tables_authorized_views_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12049,11 +12051,11 @@ pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews
@@ -12097,8 +12099,8 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_list(
 pub fn bigtableadmin_projects_instances_tables_authorized_views_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    ignoreWarnings: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    ignoreWarnings: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12241,9 +12243,9 @@ pub struct BigtableadminProjectsInstancesTablesAuthorizedViewsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: ignoreWarnings
-    pub ignoreWarnings: Option<Option<String>>,
+    pub ignoreWarnings: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/authorizedViews/{authorizedViewsId}
@@ -12620,7 +12622,7 @@ pub fn bigtableadmin_projects_instances_tables_authorized_views_test_iam_permiss
 pub fn bigtableadmin_projects_instances_tables_schema_bundles_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    schemaBundleId: &Option<Option<String>>,
+    schemaBundleId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12760,7 +12762,7 @@ pub struct BigtableadminProjectsInstancesTablesSchemaBundlesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: schemaBundleId
-    pub schemaBundleId: Option<Option<String>>,
+    pub schemaBundleId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles
@@ -12798,7 +12800,7 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_create(
 pub fn bigtableadmin_projects_instances_tables_schema_bundles_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12938,7 +12940,7 @@ pub struct BigtableadminProjectsInstancesTablesSchemaBundlesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
@@ -13302,9 +13304,9 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_get_iam_policy(
 pub fn bigtableadmin_projects_instances_tables_schema_bundles_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13452,11 +13454,11 @@ pub struct BigtableadminProjectsInstancesTablesSchemaBundlesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles
@@ -13498,8 +13500,8 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_list(
 pub fn bigtableadmin_projects_instances_tables_schema_bundles_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    ignoreWarnings: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    ignoreWarnings: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13642,9 +13644,9 @@ pub struct BigtableadminProjectsInstancesTablesSchemaBundlesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: ignoreWarnings
-    pub ignoreWarnings: Option<Option<String>>,
+    pub ignoreWarnings: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/instances/{instancesId}/tables/{tablesId}/schemaBundles/{schemaBundlesId}
@@ -14019,10 +14021,10 @@ pub fn bigtableadmin_projects_instances_tables_schema_bundles_test_iam_permissio
 pub fn bigtableadmin_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14173,13 +14175,13 @@ pub struct BigtableadminProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations

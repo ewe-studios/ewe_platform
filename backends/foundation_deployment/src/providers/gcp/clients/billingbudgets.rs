@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -530,9 +532,9 @@ pub fn billingbudgets_billing_accounts_budgets_get(
 pub fn billingbudgets_billing_accounts_budgets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    scope: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    scope: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -683,11 +685,11 @@ pub struct BillingbudgetsBillingAccountsBudgetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: scope
-    pub scope: Option<Option<String>>,
+    pub scope: Option<String>,
 }
 
 /// GET v1/billingAccounts/{billingAccountsId}/budgets
@@ -731,7 +733,7 @@ pub fn billingbudgets_billing_accounts_budgets_list(
 pub fn billingbudgets_billing_accounts_budgets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -875,7 +877,7 @@ pub struct BillingbudgetsBillingAccountsBudgetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/billingAccounts/{billingAccountsId}/budgets/{budgetsId}

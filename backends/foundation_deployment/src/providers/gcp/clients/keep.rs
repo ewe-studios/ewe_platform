@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,7 +32,7 @@ use serde::Serialize;
 pub fn keep_media_download_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    mimeType: &Option<Option<String>>,
+    mimeType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -170,7 +172,7 @@ pub struct KeepMediaDownloadArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: mimeType
-    pub mimeType: Option<Option<String>>,
+    pub mimeType: Option<String>,
 }
 
 /// GET v1/notes/{notesId}/attachments/{attachmentsId}
@@ -665,9 +667,9 @@ pub fn keep_notes_get(
 
 pub fn keep_notes_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -810,11 +812,11 @@ pub fn keep_notes_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct KeepNotesListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/notes
@@ -1185,29 +1187,6 @@ impl ResourceIdentifier<KeepMediaDownloadArgs> for Attachment {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::keep::Attachment"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Note
-// =============================================================================
-
-/// ResourceIdentifier implementation for Note with KeepNotesCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<KeepNotesCreateArgs> for Note {
-    fn generate_resource_id(&self, input: &KeepNotesCreateArgs) -> String {
-        "gcp::keep::Note".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::keep::Note"
     }
 
     fn provider(&self) -> &'static str {

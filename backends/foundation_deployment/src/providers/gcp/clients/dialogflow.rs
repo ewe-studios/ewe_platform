@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -198,10 +200,10 @@ pub fn dialogflow_projects_locations_get(
 pub fn dialogflow_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -354,13 +356,13 @@ pub struct DialogflowProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations
@@ -1073,7 +1075,7 @@ pub fn dialogflow_projects_locations_agents_get(
 pub fn dialogflow_projects_locations_agents_get_generative_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1218,7 +1220,7 @@ pub struct DialogflowProjectsLocationsAgentsGetGenerativeSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generativeSettings
@@ -1260,7 +1262,7 @@ pub fn dialogflow_projects_locations_agents_get_generative_settings(
 pub fn dialogflow_projects_locations_agents_get_validation_result_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1405,7 +1407,7 @@ pub struct DialogflowProjectsLocationsAgentsGetValidationResultArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/validationResult
@@ -1447,8 +1449,8 @@ pub fn dialogflow_projects_locations_agents_get_validation_result(
 pub fn dialogflow_projects_locations_agents_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1596,9 +1598,9 @@ pub struct DialogflowProjectsLocationsAgentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents
@@ -1641,7 +1643,7 @@ pub fn dialogflow_projects_locations_agents_list(
 pub fn dialogflow_projects_locations_agents_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1785,7 +1787,7 @@ pub struct DialogflowProjectsLocationsAgentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}
@@ -1992,7 +1994,7 @@ pub fn dialogflow_projects_locations_agents_restore(
 pub fn dialogflow_projects_locations_agents_update_generative_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2137,7 +2139,7 @@ pub struct DialogflowProjectsLocationsAgentsUpdateGenerativeSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generativeSettings
@@ -2516,9 +2518,9 @@ pub fn dialogflow_projects_locations_agents_changelogs_get(
 pub fn dialogflow_projects_locations_agents_changelogs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2669,11 +2671,11 @@ pub struct DialogflowProjectsLocationsAgentsChangelogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/changelogs
@@ -2717,7 +2719,7 @@ pub fn dialogflow_projects_locations_agents_changelogs_list(
 pub fn dialogflow_projects_locations_agents_entity_types_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2861,7 +2863,7 @@ pub struct DialogflowProjectsLocationsAgentsEntityTypesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/entityTypes
@@ -2903,7 +2905,7 @@ pub fn dialogflow_projects_locations_agents_entity_types_create(
 pub fn dialogflow_projects_locations_agents_entity_types_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3045,7 +3047,7 @@ pub struct DialogflowProjectsLocationsAgentsEntityTypesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/entityTypes/{entityTypesId}
@@ -3254,7 +3256,7 @@ pub fn dialogflow_projects_locations_agents_entity_types_export(
 pub fn dialogflow_projects_locations_agents_entity_types_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3398,7 +3400,7 @@ pub struct DialogflowProjectsLocationsAgentsEntityTypesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/entityTypes/{entityTypesId}
@@ -3609,9 +3611,9 @@ pub fn dialogflow_projects_locations_agents_entity_types_import(
 pub fn dialogflow_projects_locations_agents_entity_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3762,11 +3764,11 @@ pub struct DialogflowProjectsLocationsAgentsEntityTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/entityTypes
@@ -3810,8 +3812,8 @@ pub fn dialogflow_projects_locations_agents_entity_types_list(
 pub fn dialogflow_projects_locations_agents_entity_types_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3958,9 +3960,9 @@ pub struct DialogflowProjectsLocationsAgentsEntityTypesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/entityTypes/{entityTypesId}
@@ -4677,8 +4679,8 @@ pub fn dialogflow_projects_locations_agents_environments_get(
 pub fn dialogflow_projects_locations_agents_environments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4829,9 +4831,9 @@ pub struct DialogflowProjectsLocationsAgentsEnvironmentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments
@@ -4874,8 +4876,8 @@ pub fn dialogflow_projects_locations_agents_environments_list(
 pub fn dialogflow_projects_locations_agents_environments_lookup_environment_history_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5030,9 +5032,9 @@ pub struct DialogflowProjectsLocationsAgentsEnvironmentsLookupEnvironmentHistory
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}:lookupEnvironmentHistory
@@ -5079,7 +5081,7 @@ pub fn dialogflow_projects_locations_agents_environments_lookup_environment_hist
 pub fn dialogflow_projects_locations_agents_environments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5223,7 +5225,7 @@ pub struct DialogflowProjectsLocationsAgentsEnvironmentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}
@@ -5436,8 +5438,8 @@ pub fn dialogflow_projects_locations_agents_environments_run_continuous_test(
 pub fn dialogflow_projects_locations_agents_environments_continuous_test_results_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5593,9 +5595,9 @@ pub struct DialogflowProjectsLocationsAgentsEnvironmentsContinuousTestResultsLis
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/continuousTestResults
@@ -5812,8 +5814,8 @@ pub fn dialogflow_projects_locations_agents_environments_deployments_get(
 pub fn dialogflow_projects_locations_agents_environments_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5961,9 +5963,9 @@ pub struct DialogflowProjectsLocationsAgentsEnvironmentsDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/deployments
@@ -6513,8 +6515,8 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_get(
 pub fn dialogflow_projects_locations_agents_environments_experiments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6662,9 +6664,9 @@ pub struct DialogflowProjectsLocationsAgentsEnvironmentsExperimentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments
@@ -6707,7 +6709,7 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_list(
 pub fn dialogflow_projects_locations_agents_environments_experiments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6851,7 +6853,7 @@ pub struct DialogflowProjectsLocationsAgentsEnvironmentsExperimentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments/{experimentsId}
@@ -8441,8 +8443,8 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_g
 pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8597,9 +8599,9 @@ pub struct DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesListA
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}/entityTypes
@@ -8646,7 +8648,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_l
 pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8793,7 +8795,7 @@ pub struct DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesPatch
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}
@@ -8836,7 +8838,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_p
 pub fn dialogflow_projects_locations_agents_flows_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8980,7 +8982,7 @@ pub struct DialogflowProjectsLocationsAgentsFlowsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows
@@ -9022,7 +9024,7 @@ pub fn dialogflow_projects_locations_agents_flows_create(
 pub fn dialogflow_projects_locations_agents_flows_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9164,7 +9166,7 @@ pub struct DialogflowProjectsLocationsAgentsFlowsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}
@@ -9369,7 +9371,7 @@ pub fn dialogflow_projects_locations_agents_flows_export(
 pub fn dialogflow_projects_locations_agents_flows_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9513,7 +9515,7 @@ pub struct DialogflowProjectsLocationsAgentsFlowsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}
@@ -9555,7 +9557,7 @@ pub fn dialogflow_projects_locations_agents_flows_get(
 pub fn dialogflow_projects_locations_agents_flows_get_validation_result_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9700,7 +9702,7 @@ pub struct DialogflowProjectsLocationsAgentsFlowsGetValidationResultArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/validationResult
@@ -9910,9 +9912,9 @@ pub fn dialogflow_projects_locations_agents_flows_import(
 pub fn dialogflow_projects_locations_agents_flows_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10063,11 +10065,11 @@ pub struct DialogflowProjectsLocationsAgentsFlowsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows
@@ -10111,8 +10113,8 @@ pub fn dialogflow_projects_locations_agents_flows_list(
 pub fn dialogflow_projects_locations_agents_flows_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10259,9 +10261,9 @@ pub struct DialogflowProjectsLocationsAgentsFlowsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}
@@ -10641,7 +10643,7 @@ pub fn dialogflow_projects_locations_agents_flows_validate(
 pub fn dialogflow_projects_locations_agents_flows_pages_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10785,7 +10787,7 @@ pub struct DialogflowProjectsLocationsAgentsFlowsPagesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages
@@ -10827,7 +10829,7 @@ pub fn dialogflow_projects_locations_agents_flows_pages_create(
 pub fn dialogflow_projects_locations_agents_flows_pages_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10969,7 +10971,7 @@ pub struct DialogflowProjectsLocationsAgentsFlowsPagesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages/{pagesId}
@@ -11009,7 +11011,7 @@ pub fn dialogflow_projects_locations_agents_flows_pages_delete(
 pub fn dialogflow_projects_locations_agents_flows_pages_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11153,7 +11155,7 @@ pub struct DialogflowProjectsLocationsAgentsFlowsPagesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages/{pagesId}
@@ -11195,9 +11197,9 @@ pub fn dialogflow_projects_locations_agents_flows_pages_get(
 pub fn dialogflow_projects_locations_agents_flows_pages_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11348,11 +11350,11 @@ pub struct DialogflowProjectsLocationsAgentsFlowsPagesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages
@@ -11396,8 +11398,8 @@ pub fn dialogflow_projects_locations_agents_flows_pages_list(
 pub fn dialogflow_projects_locations_agents_flows_pages_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11544,9 +11546,9 @@ pub struct DialogflowProjectsLocationsAgentsFlowsPagesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages/{pagesId}
@@ -11589,7 +11591,7 @@ pub fn dialogflow_projects_locations_agents_flows_pages_patch(
 pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11735,7 +11737,7 @@ pub struct DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsCreateArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups
@@ -11778,7 +11780,7 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_create
 pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11921,7 +11923,7 @@ pub struct DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsDeleteArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups/{transitionRouteGroupsId}
@@ -11962,7 +11964,7 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_delete
 pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12108,7 +12110,7 @@ pub struct DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups/{transitionRouteGroupsId}
@@ -12150,9 +12152,9 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_get(
 pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12310,11 +12312,11 @@ pub struct DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups
@@ -12361,8 +12363,8 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_list(
 pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12511,9 +12513,9 @@ pub struct DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsPatchArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups/{transitionRouteGroupsId}
@@ -13231,8 +13233,8 @@ pub fn dialogflow_projects_locations_agents_flows_versions_get(
 pub fn dialogflow_projects_locations_agents_flows_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13380,9 +13382,9 @@ pub struct DialogflowProjectsLocationsAgentsFlowsVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions
@@ -13594,7 +13596,7 @@ pub fn dialogflow_projects_locations_agents_flows_versions_load(
 pub fn dialogflow_projects_locations_agents_flows_versions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13738,7 +13740,7 @@ pub struct DialogflowProjectsLocationsAgentsFlowsVersionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions/{versionsId}
@@ -13780,7 +13782,7 @@ pub fn dialogflow_projects_locations_agents_flows_versions_patch(
 pub fn dialogflow_projects_locations_agents_generators_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13924,7 +13926,7 @@ pub struct DialogflowProjectsLocationsAgentsGeneratorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generators
@@ -13966,7 +13968,7 @@ pub fn dialogflow_projects_locations_agents_generators_create(
 pub fn dialogflow_projects_locations_agents_generators_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14108,7 +14110,7 @@ pub struct DialogflowProjectsLocationsAgentsGeneratorsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generators/{generatorsId}
@@ -14148,7 +14150,7 @@ pub fn dialogflow_projects_locations_agents_generators_delete(
 pub fn dialogflow_projects_locations_agents_generators_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14292,7 +14294,7 @@ pub struct DialogflowProjectsLocationsAgentsGeneratorsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generators/{generatorsId}
@@ -14334,9 +14336,9 @@ pub fn dialogflow_projects_locations_agents_generators_get(
 pub fn dialogflow_projects_locations_agents_generators_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14487,11 +14489,11 @@ pub struct DialogflowProjectsLocationsAgentsGeneratorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generators
@@ -14535,8 +14537,8 @@ pub fn dialogflow_projects_locations_agents_generators_list(
 pub fn dialogflow_projects_locations_agents_generators_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14683,9 +14685,9 @@ pub struct DialogflowProjectsLocationsAgentsGeneratorsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generators/{generatorsId}
@@ -14728,7 +14730,7 @@ pub fn dialogflow_projects_locations_agents_generators_patch(
 pub fn dialogflow_projects_locations_agents_intents_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14872,7 +14874,7 @@ pub struct DialogflowProjectsLocationsAgentsIntentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/intents
@@ -15247,7 +15249,7 @@ pub fn dialogflow_projects_locations_agents_intents_export(
 pub fn dialogflow_projects_locations_agents_intents_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15391,7 +15393,7 @@ pub struct DialogflowProjectsLocationsAgentsIntentsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/intents/{intentsId}
@@ -15602,10 +15604,10 @@ pub fn dialogflow_projects_locations_agents_intents_import(
 pub fn dialogflow_projects_locations_agents_intents_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    intentView: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    intentView: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15759,13 +15761,13 @@ pub struct DialogflowProjectsLocationsAgentsIntentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: intentView
-    pub intentView: Option<Option<String>>,
+    pub intentView: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/intents
@@ -15810,8 +15812,8 @@ pub fn dialogflow_projects_locations_agents_intents_list(
 pub fn dialogflow_projects_locations_agents_intents_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15958,9 +15960,9 @@ pub struct DialogflowProjectsLocationsAgentsIntentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/intents/{intentsId}
@@ -16843,8 +16845,8 @@ pub fn dialogflow_projects_locations_agents_playbooks_import(
 pub fn dialogflow_projects_locations_agents_playbooks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16992,9 +16994,9 @@ pub struct DialogflowProjectsLocationsAgentsPlaybooksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks
@@ -17037,7 +17039,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_list(
 pub fn dialogflow_projects_locations_agents_playbooks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17181,7 +17183,7 @@ pub struct DialogflowProjectsLocationsAgentsPlaybooksPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}
@@ -17728,9 +17730,9 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_get(
 pub fn dialogflow_projects_locations_agents_playbooks_examples_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17881,11 +17883,11 @@ pub struct DialogflowProjectsLocationsAgentsPlaybooksExamplesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/examples
@@ -17929,7 +17931,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_list(
 pub fn dialogflow_projects_locations_agents_playbooks_examples_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18073,7 +18075,7 @@ pub struct DialogflowProjectsLocationsAgentsPlaybooksExamplesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/examples/{examplesId}
@@ -18620,8 +18622,8 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_get(
 pub fn dialogflow_projects_locations_agents_playbooks_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18775,9 +18777,9 @@ pub struct DialogflowProjectsLocationsAgentsPlaybooksVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/versions
@@ -20369,8 +20371,8 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_get(
 pub fn dialogflow_projects_locations_agents_sessions_entity_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20524,9 +20526,9 @@ pub struct DialogflowProjectsLocationsAgentsSessionsEntityTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}/entityTypes
@@ -20572,7 +20574,7 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_list(
 pub fn dialogflow_projects_locations_agents_sessions_entity_types_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20717,7 +20719,7 @@ pub struct DialogflowProjectsLocationsAgentsSessionsEntityTypesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}
@@ -21093,7 +21095,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_batch_run(
 pub fn dialogflow_projects_locations_agents_test_cases_calculate_coverage_builder<R>(
     client: &SimpleHttpClient<R>,
     agent: &String,
-    type_rs: &Option<Option<String>>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21241,7 +21243,7 @@ pub struct DialogflowProjectsLocationsAgentsTestCasesCalculateCoverageArgs {
     /// Path parameter: agent
     pub agent: String,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases:calculateCoverage
@@ -21958,9 +21960,9 @@ pub fn dialogflow_projects_locations_agents_test_cases_import(
 pub fn dialogflow_projects_locations_agents_test_cases_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22111,11 +22113,11 @@ pub struct DialogflowProjectsLocationsAgentsTestCasesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases
@@ -22159,7 +22161,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_list(
 pub fn dialogflow_projects_locations_agents_test_cases_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22303,7 +22305,7 @@ pub struct DialogflowProjectsLocationsAgentsTestCasesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases/{testCasesId}
@@ -22683,9 +22685,9 @@ pub fn dialogflow_projects_locations_agents_test_cases_results_get(
 pub fn dialogflow_projects_locations_agents_test_cases_results_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22839,11 +22841,11 @@ pub struct DialogflowProjectsLocationsAgentsTestCasesResultsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases/{testCasesId}/results
@@ -23055,7 +23057,7 @@ pub fn dialogflow_projects_locations_agents_tools_create(
 pub fn dialogflow_projects_locations_agents_tools_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23197,7 +23199,7 @@ pub struct DialogflowProjectsLocationsAgentsToolsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}
@@ -23402,8 +23404,8 @@ pub fn dialogflow_projects_locations_agents_tools_get(
 pub fn dialogflow_projects_locations_agents_tools_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23551,9 +23553,9 @@ pub struct DialogflowProjectsLocationsAgentsToolsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools
@@ -23596,7 +23598,7 @@ pub fn dialogflow_projects_locations_agents_tools_list(
 pub fn dialogflow_projects_locations_agents_tools_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23740,7 +23742,7 @@ pub struct DialogflowProjectsLocationsAgentsToolsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}
@@ -23951,7 +23953,7 @@ pub fn dialogflow_projects_locations_agents_tools_versions_create(
 pub fn dialogflow_projects_locations_agents_tools_versions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24093,7 +24095,7 @@ pub struct DialogflowProjectsLocationsAgentsToolsVersionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}/versions/{versionsId}
@@ -24302,8 +24304,8 @@ pub fn dialogflow_projects_locations_agents_tools_versions_get(
 pub fn dialogflow_projects_locations_agents_tools_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24454,9 +24456,9 @@ pub struct DialogflowProjectsLocationsAgentsToolsVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}/versions
@@ -24672,7 +24674,7 @@ pub fn dialogflow_projects_locations_agents_tools_versions_restore(
 pub fn dialogflow_projects_locations_agents_transition_route_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24817,7 +24819,7 @@ pub struct DialogflowProjectsLocationsAgentsTransitionRouteGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// POST v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups
@@ -24859,7 +24861,7 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_create(
 pub fn dialogflow_projects_locations_agents_transition_route_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25001,7 +25003,7 @@ pub struct DialogflowProjectsLocationsAgentsTransitionRouteGroupsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups/{transitionRouteGroupsId}
@@ -25041,7 +25043,7 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_delete(
 pub fn dialogflow_projects_locations_agents_transition_route_groups_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25186,7 +25188,7 @@ pub struct DialogflowProjectsLocationsAgentsTransitionRouteGroupsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups/{transitionRouteGroupsId}
@@ -25228,9 +25230,9 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_get(
 pub fn dialogflow_projects_locations_agents_transition_route_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25387,11 +25389,11 @@ pub struct DialogflowProjectsLocationsAgentsTransitionRouteGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups
@@ -25438,8 +25440,8 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_list(
 pub fn dialogflow_projects_locations_agents_transition_route_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25587,9 +25589,9 @@ pub struct DialogflowProjectsLocationsAgentsTransitionRouteGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups/{transitionRouteGroupsId}
@@ -25801,7 +25803,7 @@ pub fn dialogflow_projects_locations_agents_webhooks_create(
 pub fn dialogflow_projects_locations_agents_webhooks_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25943,7 +25945,7 @@ pub struct DialogflowProjectsLocationsAgentsWebhooksDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/webhooks/{webhooksId}
@@ -26151,8 +26153,8 @@ pub fn dialogflow_projects_locations_agents_webhooks_get(
 pub fn dialogflow_projects_locations_agents_webhooks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26300,9 +26302,9 @@ pub struct DialogflowProjectsLocationsAgentsWebhooksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/webhooks
@@ -26345,7 +26347,7 @@ pub fn dialogflow_projects_locations_agents_webhooks_list(
 pub fn dialogflow_projects_locations_agents_webhooks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26489,7 +26491,7 @@ pub struct DialogflowProjectsLocationsAgentsWebhooksPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/webhooks/{webhooksId}
@@ -26863,10 +26865,10 @@ pub fn dialogflow_projects_locations_operations_get(
 pub fn dialogflow_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27020,13 +27022,13 @@ pub struct DialogflowProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations
@@ -27573,8 +27575,8 @@ pub fn dialogflow_projects_locations_security_settings_get(
 pub fn dialogflow_projects_locations_security_settings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27728,9 +27730,9 @@ pub struct DialogflowProjectsLocationsSecuritySettingsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}/securitySettings
@@ -27776,7 +27778,7 @@ pub fn dialogflow_projects_locations_security_settings_list(
 pub fn dialogflow_projects_locations_security_settings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27920,7 +27922,7 @@ pub struct DialogflowProjectsLocationsSecuritySettingsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v3/projects/{projectsId}/locations/{locationsId}/securitySettings/{securitySettingsId}
@@ -28294,10 +28296,10 @@ pub fn dialogflow_projects_operations_get(
 pub fn dialogflow_projects_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28451,13 +28453,13 @@ pub struct DialogflowProjectsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v3/projects/{projectsId}/operations

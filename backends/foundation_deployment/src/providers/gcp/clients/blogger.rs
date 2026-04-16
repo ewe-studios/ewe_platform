@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -31,7 +33,7 @@ pub fn blogger_blog_user_infos_get_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
     blogId: &String,
-    maxPosts: &Option<Option<String>>,
+    maxPosts: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -175,7 +177,7 @@ pub struct BloggerBlogUserInfosGetArgs {
     /// Path parameter: blogId
     pub blogId: String,
     /// Query parameter: maxPosts
-    pub maxPosts: Option<Option<String>>,
+    pub maxPosts: Option<String>,
 }
 
 /// GET v3/users/{userId}/blogs/{blogId}
@@ -212,8 +214,8 @@ pub fn blogger_blog_user_infos_get(
 pub fn blogger_blogs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
-    maxPosts: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    maxPosts: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -353,9 +355,9 @@ pub struct BloggerBlogsGetArgs {
     /// Path parameter: blogId
     pub blogId: String,
     /// Query parameter: maxPosts
-    pub maxPosts: Option<Option<String>>,
+    pub maxPosts: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/blogs/{blogId}
@@ -388,8 +390,8 @@ pub fn blogger_blogs_get(
 
 pub fn blogger_blogs_get_by_url_builder<R>(
     client: &SimpleHttpClient<R>,
-    url: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    url: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -527,9 +529,9 @@ pub fn blogger_blogs_get_by_url_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BloggerBlogsGetByUrlArgs {
     /// Query parameter: url
-    pub url: Option<Option<String>>,
+    pub url: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/blogs/byurl
@@ -563,10 +565,10 @@ pub fn blogger_blogs_get_by_url(
 pub fn blogger_blogs_list_by_user_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
-    fetchUserInfo: &Option<Option<String>>,
-    role: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    fetchUserInfo: &Option<String>,
+    role: &Option<String>,
+    status: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -712,13 +714,13 @@ pub struct BloggerBlogsListByUserArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: fetchUserInfo
-    pub fetchUserInfo: Option<Option<String>>,
+    pub fetchUserInfo: Option<String>,
     /// Query parameter: role
-    pub role: Option<Option<String>>,
+    pub role: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/users/{userId}/blogs
@@ -1092,7 +1094,7 @@ pub fn blogger_comments_get_builder<R>(
     blogId: &String,
     postId: &String,
     commentId: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1236,7 +1238,7 @@ pub struct BloggerCommentsGetArgs {
     /// Path parameter: commentId
     pub commentId: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/blogs/{blogId}/posts/{postId}/comments/{commentId}
@@ -1277,13 +1279,13 @@ pub fn blogger_comments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
-    endDate: &Option<Option<String>>,
-    fetchBodies: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startDate: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    endDate: &Option<String>,
+    fetchBodies: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    startDate: &Option<String>,
+    status: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1443,19 +1445,19 @@ pub struct BloggerCommentsListArgs {
     /// Path parameter: postId
     pub postId: String,
     /// Query parameter: endDate
-    pub endDate: Option<Option<String>>,
+    pub endDate: Option<String>,
     /// Query parameter: fetchBodies
-    pub fetchBodies: Option<Option<String>>,
+    pub fetchBodies: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startDate
-    pub startDate: Option<Option<String>>,
+    pub startDate: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/blogs/{blogId}/posts/{postId}/comments
@@ -1500,12 +1502,12 @@ pub fn blogger_comments_list(
 pub fn blogger_comments_list_by_blog_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
-    endDate: &Option<Option<String>>,
-    fetchBodies: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startDate: &Option<Option<String>>,
-    status: &Option<Option<String>>,
+    endDate: &Option<String>,
+    fetchBodies: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    startDate: &Option<String>,
+    status: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1660,17 +1662,17 @@ pub struct BloggerCommentsListByBlogArgs {
     /// Path parameter: blogId
     pub blogId: String,
     /// Query parameter: endDate
-    pub endDate: Option<Option<String>>,
+    pub endDate: Option<String>,
     /// Query parameter: fetchBodies
-    pub fetchBodies: Option<Option<String>>,
+    pub fetchBodies: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startDate
-    pub startDate: Option<Option<String>>,
+    pub startDate: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
 }
 
 /// GET v3/blogs/{blogId}/comments
@@ -2051,7 +2053,7 @@ pub fn blogger_comments_remove_content(
 pub fn blogger_page_views_get_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
-    range: &Option<Option<String>>,
+    range: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2191,7 +2193,7 @@ pub struct BloggerPageViewsGetArgs {
     /// Path parameter: blogId
     pub blogId: String,
     /// Query parameter: range
-    pub range: Option<Option<String>>,
+    pub range: Option<String>,
 }
 
 /// GET v3/blogs/{blogId}/pageviews
@@ -2226,7 +2228,7 @@ pub fn blogger_pages_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
     pageId: &String,
-    useTrash: &Option<Option<String>>,
+    useTrash: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2365,7 +2367,7 @@ pub struct BloggerPagesDeleteArgs {
     /// Path parameter: pageId
     pub pageId: String,
     /// Query parameter: useTrash
-    pub useTrash: Option<Option<String>>,
+    pub useTrash: Option<String>,
 }
 
 /// DELETE v3/blogs/{blogId}/pages/{pageId}
@@ -2400,7 +2402,7 @@ pub fn blogger_pages_get_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
     pageId: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2542,7 +2544,7 @@ pub struct BloggerPagesGetArgs {
     /// Path parameter: pageId
     pub pageId: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/blogs/{blogId}/pages/{pageId}
@@ -2576,7 +2578,7 @@ pub fn blogger_pages_get(
 pub fn blogger_pages_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
-    isDraft: &Option<Option<String>>,
+    isDraft: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2713,7 +2715,7 @@ pub struct BloggerPagesInsertArgs {
     /// Path parameter: blogId
     pub blogId: String,
     /// Query parameter: isDraft
-    pub isDraft: Option<Option<String>>,
+    pub isDraft: Option<String>,
 }
 
 /// POST v3/blogs/{blogId}/pages
@@ -2747,11 +2749,11 @@ pub fn blogger_pages_insert(
 pub fn blogger_pages_list_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
-    fetchBodies: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    fetchBodies: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    status: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2900,15 +2902,15 @@ pub struct BloggerPagesListArgs {
     /// Path parameter: blogId
     pub blogId: String,
     /// Query parameter: fetchBodies
-    pub fetchBodies: Option<Option<String>>,
+    pub fetchBodies: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/blogs/{blogId}/pages
@@ -2951,8 +2953,8 @@ pub fn blogger_pages_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
     pageId: &String,
-    publish: &Option<Option<String>>,
-    revert: &Option<Option<String>>,
+    publish: &Option<String>,
+    revert: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3097,9 +3099,9 @@ pub struct BloggerPagesPatchArgs {
     /// Path parameter: pageId
     pub pageId: String,
     /// Query parameter: publish
-    pub publish: Option<Option<String>>,
+    pub publish: Option<String>,
     /// Query parameter: revert
-    pub revert: Option<Option<String>>,
+    pub revert: Option<String>,
 }
 
 /// PATCH v3/blogs/{blogId}/pages/{pageId}
@@ -3466,8 +3468,8 @@ pub fn blogger_pages_update_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
     pageId: &String,
-    publish: &Option<Option<String>>,
-    revert: &Option<Option<String>>,
+    publish: &Option<String>,
+    revert: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3612,9 +3614,9 @@ pub struct BloggerPagesUpdateArgs {
     /// Path parameter: pageId
     pub pageId: String,
     /// Query parameter: publish
-    pub publish: Option<Option<String>>,
+    pub publish: Option<String>,
     /// Query parameter: revert
-    pub revert: Option<Option<String>>,
+    pub revert: Option<String>,
 }
 
 /// PUT v3/blogs/{blogId}/pages/{pageId}
@@ -3656,7 +3658,7 @@ pub fn blogger_post_user_infos_get_builder<R>(
     userId: &String,
     blogId: &String,
     postId: &String,
-    maxComments: &Option<Option<String>>,
+    maxComments: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3802,7 +3804,7 @@ pub struct BloggerPostUserInfosGetArgs {
     /// Path parameter: postId
     pub postId: String,
     /// Query parameter: maxComments
-    pub maxComments: Option<Option<String>>,
+    pub maxComments: Option<String>,
 }
 
 /// GET v3/users/{userId}/blogs/{blogId}/posts/{postId}
@@ -3845,15 +3847,15 @@ pub fn blogger_post_user_infos_list_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
     blogId: &String,
-    endDate: &Option<Option<String>>,
-    fetchBodies: &Option<Option<String>>,
-    labels: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startDate: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    endDate: &Option<String>,
+    fetchBodies: &Option<String>,
+    labels: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    startDate: &Option<String>,
+    status: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4021,23 +4023,23 @@ pub struct BloggerPostUserInfosListArgs {
     /// Path parameter: blogId
     pub blogId: String,
     /// Query parameter: endDate
-    pub endDate: Option<Option<String>>,
+    pub endDate: Option<String>,
     /// Query parameter: fetchBodies
-    pub fetchBodies: Option<Option<String>>,
+    pub fetchBodies: Option<String>,
     /// Query parameter: labels
-    pub labels: Option<Option<String>>,
+    pub labels: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startDate
-    pub startDate: Option<Option<String>>,
+    pub startDate: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/users/{userId}/blogs/{blogId}/posts
@@ -4087,7 +4089,7 @@ pub fn blogger_posts_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
-    useTrash: &Option<Option<String>>,
+    useTrash: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4226,7 +4228,7 @@ pub struct BloggerPostsDeleteArgs {
     /// Path parameter: postId
     pub postId: String,
     /// Query parameter: useTrash
-    pub useTrash: Option<Option<String>>,
+    pub useTrash: Option<String>,
 }
 
 /// DELETE v3/blogs/{blogId}/posts/{postId}
@@ -4261,10 +4263,10 @@ pub fn blogger_posts_get_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
-    fetchBody: &Option<Option<String>>,
-    fetchImages: &Option<Option<String>>,
-    maxComments: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    fetchBody: &Option<String>,
+    fetchImages: &Option<String>,
+    maxComments: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4415,13 +4417,13 @@ pub struct BloggerPostsGetArgs {
     /// Path parameter: postId
     pub postId: String,
     /// Query parameter: fetchBody
-    pub fetchBody: Option<Option<String>>,
+    pub fetchBody: Option<String>,
     /// Query parameter: fetchImages
-    pub fetchImages: Option<Option<String>>,
+    pub fetchImages: Option<String>,
     /// Query parameter: maxComments
-    pub maxComments: Option<Option<String>>,
+    pub maxComments: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/blogs/{blogId}/posts/{postId}
@@ -4463,9 +4465,9 @@ pub fn blogger_posts_get(
 pub fn blogger_posts_get_by_path_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
-    maxComments: &Option<Option<String>>,
-    path: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    maxComments: &Option<String>,
+    path: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4611,11 +4613,11 @@ pub struct BloggerPostsGetByPathArgs {
     /// Path parameter: blogId
     pub blogId: String,
     /// Query parameter: maxComments
-    pub maxComments: Option<Option<String>>,
+    pub maxComments: Option<String>,
     /// Query parameter: path
-    pub path: Option<Option<String>>,
+    pub path: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/blogs/{blogId}/posts/bypath
@@ -4655,9 +4657,9 @@ pub fn blogger_posts_get_by_path(
 pub fn blogger_posts_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
-    fetchBody: &Option<Option<String>>,
-    fetchImages: &Option<Option<String>>,
-    isDraft: &Option<Option<String>>,
+    fetchBody: &Option<String>,
+    fetchImages: &Option<String>,
+    isDraft: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4800,11 +4802,11 @@ pub struct BloggerPostsInsertArgs {
     /// Path parameter: blogId
     pub blogId: String,
     /// Query parameter: fetchBody
-    pub fetchBody: Option<Option<String>>,
+    pub fetchBody: Option<String>,
     /// Query parameter: fetchImages
-    pub fetchImages: Option<Option<String>>,
+    pub fetchImages: Option<String>,
     /// Query parameter: isDraft
-    pub isDraft: Option<Option<String>>,
+    pub isDraft: Option<String>,
 }
 
 /// POST v3/blogs/{blogId}/posts
@@ -4844,17 +4846,17 @@ pub fn blogger_posts_insert(
 pub fn blogger_posts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
-    endDate: &Option<Option<String>>,
-    fetchBodies: &Option<Option<String>>,
-    fetchImages: &Option<Option<String>>,
-    labels: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    sortOption: &Option<Option<String>>,
-    startDate: &Option<Option<String>>,
-    status: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    endDate: &Option<String>,
+    fetchBodies: &Option<String>,
+    fetchImages: &Option<String>,
+    labels: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    pageToken: &Option<String>,
+    sortOption: &Option<String>,
+    startDate: &Option<String>,
+    status: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5021,27 +5023,27 @@ pub struct BloggerPostsListArgs {
     /// Path parameter: blogId
     pub blogId: String,
     /// Query parameter: endDate
-    pub endDate: Option<Option<String>>,
+    pub endDate: Option<String>,
     /// Query parameter: fetchBodies
-    pub fetchBodies: Option<Option<String>>,
+    pub fetchBodies: Option<String>,
     /// Query parameter: fetchImages
-    pub fetchImages: Option<Option<String>>,
+    pub fetchImages: Option<String>,
     /// Query parameter: labels
-    pub labels: Option<Option<String>>,
+    pub labels: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: sortOption
-    pub sortOption: Option<Option<String>>,
+    pub sortOption: Option<String>,
     /// Query parameter: startDate
-    pub startDate: Option<Option<String>>,
+    pub startDate: Option<String>,
     /// Query parameter: status
-    pub status: Option<Option<String>>,
+    pub status: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v3/blogs/{blogId}/posts
@@ -5090,11 +5092,11 @@ pub fn blogger_posts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
-    fetchBody: &Option<Option<String>>,
-    fetchImages: &Option<Option<String>>,
-    maxComments: &Option<Option<String>>,
-    publish: &Option<Option<String>>,
-    revert: &Option<Option<String>>,
+    fetchBody: &Option<String>,
+    fetchImages: &Option<String>,
+    maxComments: &Option<String>,
+    publish: &Option<String>,
+    revert: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5248,15 +5250,15 @@ pub struct BloggerPostsPatchArgs {
     /// Path parameter: postId
     pub postId: String,
     /// Query parameter: fetchBody
-    pub fetchBody: Option<Option<String>>,
+    pub fetchBody: Option<String>,
     /// Query parameter: fetchImages
-    pub fetchImages: Option<Option<String>>,
+    pub fetchImages: Option<String>,
     /// Query parameter: maxComments
-    pub maxComments: Option<Option<String>>,
+    pub maxComments: Option<String>,
     /// Query parameter: publish
-    pub publish: Option<Option<String>>,
+    pub publish: Option<String>,
     /// Query parameter: revert
-    pub revert: Option<Option<String>>,
+    pub revert: Option<String>,
 }
 
 /// PATCH v3/blogs/{blogId}/posts/{postId}
@@ -5300,7 +5302,7 @@ pub fn blogger_posts_publish_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
-    publishDate: &Option<Option<String>>,
+    publishDate: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5442,7 +5444,7 @@ pub struct BloggerPostsPublishArgs {
     /// Path parameter: postId
     pub postId: String,
     /// Query parameter: publishDate
-    pub publishDate: Option<Option<String>>,
+    pub publishDate: Option<String>,
 }
 
 /// POST v3/blogs/{blogId}/posts/{postId}/publish
@@ -5640,9 +5642,9 @@ pub fn blogger_posts_revert(
 pub fn blogger_posts_search_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
-    fetchBodies: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    q: &Option<Option<String>>,
+    fetchBodies: &Option<String>,
+    orderBy: &Option<String>,
+    q: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5788,11 +5790,11 @@ pub struct BloggerPostsSearchArgs {
     /// Path parameter: blogId
     pub blogId: String,
     /// Query parameter: fetchBodies
-    pub fetchBodies: Option<Option<String>>,
+    pub fetchBodies: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
 }
 
 /// GET v3/blogs/{blogId}/posts/search
@@ -5833,11 +5835,11 @@ pub fn blogger_posts_update_builder<R>(
     client: &SimpleHttpClient<R>,
     blogId: &String,
     postId: &String,
-    fetchBody: &Option<Option<String>>,
-    fetchImages: &Option<Option<String>>,
-    maxComments: &Option<Option<String>>,
-    publish: &Option<Option<String>>,
-    revert: &Option<Option<String>>,
+    fetchBody: &Option<String>,
+    fetchImages: &Option<String>,
+    maxComments: &Option<String>,
+    publish: &Option<String>,
+    revert: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5991,15 +5993,15 @@ pub struct BloggerPostsUpdateArgs {
     /// Path parameter: postId
     pub postId: String,
     /// Query parameter: fetchBody
-    pub fetchBody: Option<Option<String>>,
+    pub fetchBody: Option<String>,
     /// Query parameter: fetchImages
-    pub fetchImages: Option<Option<String>>,
+    pub fetchImages: Option<String>,
     /// Query parameter: maxComments
-    pub maxComments: Option<Option<String>>,
+    pub maxComments: Option<String>,
     /// Query parameter: publish
-    pub publish: Option<Option<String>>,
+    pub publish: Option<String>,
     /// Query parameter: revert
-    pub revert: Option<Option<String>>,
+    pub revert: Option<String>,
 }
 
 /// PUT v3/blogs/{blogId}/posts/{postId}

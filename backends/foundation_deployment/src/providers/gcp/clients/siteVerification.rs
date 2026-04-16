@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -511,7 +513,7 @@ pub fn site_verification_web_resource_get_token(
 
 pub fn site_verification_web_resource_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    verificationMethod: &Option<Option<String>>,
+    verificationMethod: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -650,7 +652,7 @@ pub fn site_verification_web_resource_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SiteVerificationWebResourceInsertArgs {
     /// Query parameter: verificationMethod
-    pub verificationMethod: Option<Option<String>>,
+    pub verificationMethod: Option<String>,
 }
 
 /// POST webResource
@@ -1201,31 +1203,6 @@ impl ResourceIdentifier<SiteVerificationWebResourceGetArgs>
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for SiteVerificationWebResourceGettokenResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SiteVerificationWebResourceGettokenResponse with SiteVerificationWebResourceGetTokenArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SiteVerificationWebResourceGetTokenArgs>
-    for SiteVerificationWebResourceGettokenResponse
-{
-    fn generate_resource_id(&self, input: &SiteVerificationWebResourceGetTokenArgs) -> String {
-        "gcp::siteVerification::SiteVerificationWebResourceGettokenResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::siteVerification::SiteVerificationWebResourceGettokenResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for SiteVerificationWebResourceResource
 // =============================================================================
 
@@ -1243,31 +1220,6 @@ impl ResourceIdentifier<SiteVerificationWebResourceInsertArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::siteVerification::SiteVerificationWebResourceResource"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SiteVerificationWebResourceListResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SiteVerificationWebResourceListResponse with SiteVerificationWebResourceListArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SiteVerificationWebResourceListArgs>
-    for SiteVerificationWebResourceListResponse
-{
-    fn generate_resource_id(&self, input: &SiteVerificationWebResourceListArgs) -> String {
-        "gcp::siteVerification::SiteVerificationWebResourceListResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::siteVerification::SiteVerificationWebResourceListResponse"
     }
 
     fn provider(&self) -> &'static str {

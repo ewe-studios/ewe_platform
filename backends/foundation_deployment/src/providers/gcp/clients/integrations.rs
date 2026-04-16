@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,11 +31,11 @@ use serde::Serialize;
 
 pub fn integrations_callback_generate_token_builder<R>(
     client: &SimpleHttpClient<R>,
-    code: &Option<Option<String>>,
-    gcpProjectId: &Option<Option<String>>,
-    product: &Option<Option<String>>,
-    redirectUri: &Option<Option<String>>,
-    state: &Option<Option<String>>,
+    code: &Option<String>,
+    gcpProjectId: &Option<String>,
+    product: &Option<String>,
+    redirectUri: &Option<String>,
+    state: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -188,15 +190,15 @@ pub fn integrations_callback_generate_token_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IntegrationsCallbackGenerateTokenArgs {
     /// Query parameter: code
-    pub code: Option<Option<String>>,
+    pub code: Option<String>,
     /// Query parameter: gcpProjectId
-    pub gcpProjectId: Option<Option<String>>,
+    pub gcpProjectId: Option<String>,
     /// Query parameter: product
-    pub product: Option<Option<String>>,
+    pub product: Option<String>,
     /// Query parameter: redirectUri
-    pub redirectUri: Option<Option<String>>,
+    pub redirectUri: Option<String>,
     /// Query parameter: state
-    pub state: Option<Option<String>>,
+    pub state: Option<String>,
 }
 
 /// GET v1/callback:generateToken
@@ -1292,9 +1294,9 @@ pub fn integrations_projects_locations_apps_script_projects_link(
 pub fn integrations_projects_locations_auth_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    clientCertificate_encryptedPrivateKey: &Option<Option<String>>,
-    clientCertificate_passphrase: &Option<Option<String>>,
-    clientCertificate_sslCertificate: &Option<Option<String>>,
+    clientCertificate_encryptedPrivateKey: &Option<String>,
+    clientCertificate_passphrase: &Option<String>,
+    clientCertificate_sslCertificate: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1444,11 +1446,11 @@ pub struct IntegrationsProjectsLocationsAuthConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: clientCertificate_encryptedPrivateKey
-    pub clientCertificate_encryptedPrivateKey: Option<Option<String>>,
+    pub clientCertificate_encryptedPrivateKey: Option<String>,
     /// Query parameter: clientCertificate_passphrase
-    pub clientCertificate_passphrase: Option<Option<String>>,
+    pub clientCertificate_passphrase: Option<String>,
     /// Query parameter: clientCertificate_sslCertificate
-    pub clientCertificate_sslCertificate: Option<Option<String>>,
+    pub clientCertificate_sslCertificate: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/authConfigs
@@ -1824,10 +1826,10 @@ pub fn integrations_projects_locations_auth_configs_get(
 pub fn integrations_projects_locations_auth_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1987,13 +1989,13 @@ pub struct IntegrationsProjectsLocationsAuthConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/authConfigs
@@ -2041,10 +2043,10 @@ pub fn integrations_projects_locations_auth_configs_list(
 pub fn integrations_projects_locations_auth_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    clientCertificate_encryptedPrivateKey: &Option<Option<String>>,
-    clientCertificate_passphrase: &Option<Option<String>>,
-    clientCertificate_sslCertificate: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    clientCertificate_encryptedPrivateKey: &Option<String>,
+    clientCertificate_passphrase: &Option<String>,
+    clientCertificate_sslCertificate: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2197,13 +2199,13 @@ pub struct IntegrationsProjectsLocationsAuthConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: clientCertificate_encryptedPrivateKey
-    pub clientCertificate_encryptedPrivateKey: Option<Option<String>>,
+    pub clientCertificate_encryptedPrivateKey: Option<String>,
     /// Query parameter: clientCertificate_passphrase
-    pub clientCertificate_passphrase: Option<Option<String>>,
+    pub clientCertificate_passphrase: Option<String>,
     /// Query parameter: clientCertificate_sslCertificate
-    pub clientCertificate_sslCertificate: Option<Option<String>>,
+    pub clientCertificate_sslCertificate: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/authConfigs/{authConfigsId}
@@ -2749,10 +2751,10 @@ pub fn integrations_projects_locations_certificates_get(
 pub fn integrations_projects_locations_certificates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2912,13 +2914,13 @@ pub struct IntegrationsProjectsLocationsCertificatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificates
@@ -2966,7 +2968,7 @@ pub fn integrations_projects_locations_certificates_list(
 pub fn integrations_projects_locations_certificates_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3110,7 +3112,7 @@ pub struct IntegrationsProjectsLocationsCertificatesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/certificates/{certificatesId}
@@ -4863,10 +4865,10 @@ pub fn integrations_projects_locations_connections_get_connection_schema_metadat
 pub fn integrations_projects_locations_connections_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5026,13 +5028,13 @@ pub struct IntegrationsProjectsLocationsConnectionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections
@@ -5080,9 +5082,9 @@ pub fn integrations_projects_locations_connections_list(
 pub fn integrations_projects_locations_connections_runtime_action_schemas_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5240,11 +5242,11 @@ pub struct IntegrationsProjectsLocationsConnectionsRuntimeActionSchemasListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/runtimeActionSchemas
@@ -5291,9 +5293,9 @@ pub fn integrations_projects_locations_connections_runtime_action_schemas_list(
 pub fn integrations_projects_locations_connections_runtime_entity_schemas_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5451,11 +5453,11 @@ pub struct IntegrationsProjectsLocationsConnectionsRuntimeEntitySchemasListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/runtimeEntitySchemas
@@ -5844,7 +5846,7 @@ pub fn integrations_projects_locations_integrations_execute(
 pub fn integrations_projects_locations_integrations_execute_event_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    triggerId: &Option<Option<String>>,
+    triggerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5992,7 +5994,7 @@ pub struct IntegrationsProjectsLocationsIntegrationsExecuteEventArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: triggerId
-    pub triggerId: Option<Option<String>>,
+    pub triggerId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}:executeEvent
@@ -6034,10 +6036,10 @@ pub fn integrations_projects_locations_integrations_execute_event(
 pub fn integrations_projects_locations_integrations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6197,13 +6199,13 @@ pub struct IntegrationsProjectsLocationsIntegrationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations
@@ -6430,11 +6432,11 @@ pub fn integrations_projects_locations_integrations_schedule(
 pub fn integrations_projects_locations_integrations_search_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    enableNaturalLanguageQueryUnderstanding: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    enableNaturalLanguageQueryUnderstanding: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6597,15 +6599,15 @@ pub struct IntegrationsProjectsLocationsIntegrationsSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: enableNaturalLanguageQueryUnderstanding
-    pub enableNaturalLanguageQueryUnderstanding: Option<Option<String>>,
+    pub enableNaturalLanguageQueryUnderstanding: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations:search
@@ -7361,26 +7363,26 @@ pub fn integrations_projects_locations_integrations_executions_get(
 pub fn integrations_projects_locations_integrations_executions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    filterParams_customFilter: &Option<Option<String>>,
-    filterParams_endTime: &Option<Option<String>>,
-    filterParams_eventStatuses: &Option<Option<String>>,
-    filterParams_executionId: &Option<Option<String>>,
-    filterParams_parameterKey: &Option<Option<String>>,
-    filterParams_parameterPairKey: &Option<Option<String>>,
-    filterParams_parameterPairValue: &Option<Option<String>>,
-    filterParams_parameterType: &Option<Option<String>>,
-    filterParams_parameterValue: &Option<Option<String>>,
-    filterParams_startTime: &Option<Option<String>>,
-    filterParams_taskStatuses: &Option<Option<String>>,
-    filterParams_workflowName: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
-    refreshAcl: &Option<Option<String>>,
-    snapshotMetadataWithoutParams: &Option<Option<String>>,
-    truncateParams: &Option<Option<String>>,
+    filter: &Option<String>,
+    filterParams_customFilter: &Option<String>,
+    filterParams_endTime: &Option<String>,
+    filterParams_eventStatuses: &Option<String>,
+    filterParams_executionId: &Option<String>,
+    filterParams_parameterKey: &Option<String>,
+    filterParams_parameterPairKey: &Option<String>,
+    filterParams_parameterPairValue: &Option<String>,
+    filterParams_parameterType: &Option<String>,
+    filterParams_parameterValue: &Option<String>,
+    filterParams_startTime: &Option<String>,
+    filterParams_taskStatuses: &Option<String>,
+    filterParams_workflowName: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
+    refreshAcl: &Option<String>,
+    snapshotMetadataWithoutParams: &Option<String>,
+    truncateParams: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7585,45 +7587,45 @@ pub struct IntegrationsProjectsLocationsIntegrationsExecutionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: filterParams_customFilter
-    pub filterParams_customFilter: Option<Option<String>>,
+    pub filterParams_customFilter: Option<String>,
     /// Query parameter: filterParams_endTime
-    pub filterParams_endTime: Option<Option<String>>,
+    pub filterParams_endTime: Option<String>,
     /// Query parameter: filterParams_eventStatuses
-    pub filterParams_eventStatuses: Option<Option<String>>,
+    pub filterParams_eventStatuses: Option<String>,
     /// Query parameter: filterParams_executionId
-    pub filterParams_executionId: Option<Option<String>>,
+    pub filterParams_executionId: Option<String>,
     /// Query parameter: filterParams_parameterKey
-    pub filterParams_parameterKey: Option<Option<String>>,
+    pub filterParams_parameterKey: Option<String>,
     /// Query parameter: filterParams_parameterPairKey
-    pub filterParams_parameterPairKey: Option<Option<String>>,
+    pub filterParams_parameterPairKey: Option<String>,
     /// Query parameter: filterParams_parameterPairValue
-    pub filterParams_parameterPairValue: Option<Option<String>>,
+    pub filterParams_parameterPairValue: Option<String>,
     /// Query parameter: filterParams_parameterType
-    pub filterParams_parameterType: Option<Option<String>>,
+    pub filterParams_parameterType: Option<String>,
     /// Query parameter: filterParams_parameterValue
-    pub filterParams_parameterValue: Option<Option<String>>,
+    pub filterParams_parameterValue: Option<String>,
     /// Query parameter: filterParams_startTime
-    pub filterParams_startTime: Option<Option<String>>,
+    pub filterParams_startTime: Option<String>,
     /// Query parameter: filterParams_taskStatuses
-    pub filterParams_taskStatuses: Option<Option<String>>,
+    pub filterParams_taskStatuses: Option<String>,
     /// Query parameter: filterParams_workflowName
-    pub filterParams_workflowName: Option<Option<String>>,
+    pub filterParams_workflowName: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
     /// Query parameter: refreshAcl
-    pub refreshAcl: Option<Option<String>>,
+    pub refreshAcl: Option<String>,
     /// Query parameter: snapshotMetadataWithoutParams
-    pub snapshotMetadataWithoutParams: Option<Option<String>>,
+    pub snapshotMetadataWithoutParams: Option<String>,
     /// Query parameter: truncateParams
-    pub truncateParams: Option<Option<String>>,
+    pub truncateParams: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/executions
@@ -8038,10 +8040,10 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_lift(
 pub fn integrations_projects_locations_integrations_executions_suspensions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8202,13 +8204,13 @@ pub struct IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsListArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions
@@ -8438,8 +8440,8 @@ pub fn integrations_projects_locations_integrations_executions_suspensions_resol
 pub fn integrations_projects_locations_integrations_versions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    createSampleIntegrations: &Option<Option<String>>,
-    newIntegration: &Option<Option<String>>,
+    createSampleIntegrations: &Option<String>,
+    newIntegration: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8587,9 +8589,9 @@ pub struct IntegrationsProjectsLocationsIntegrationsVersionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: createSampleIntegrations
-    pub createSampleIntegrations: Option<Option<String>>,
+    pub createSampleIntegrations: Option<String>,
     /// Query parameter: newIntegration
-    pub newIntegration: Option<Option<String>>,
+    pub newIntegration: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions
@@ -8797,8 +8799,8 @@ pub fn integrations_projects_locations_integrations_versions_delete(
 pub fn integrations_projects_locations_integrations_versions_download_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    fileFormat: &Option<Option<String>>,
-    files: &Option<Option<String>>,
+    fileFormat: &Option<String>,
+    files: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8952,9 +8954,9 @@ pub struct IntegrationsProjectsLocationsIntegrationsVersionsDownloadArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fileFormat
-    pub fileFormat: Option<Option<String>>,
+    pub fileFormat: Option<String>,
     /// Query parameter: files
-    pub files: Option<Option<String>>,
+    pub files: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}:download
@@ -9000,7 +9002,7 @@ pub fn integrations_projects_locations_integrations_versions_download(
 pub fn integrations_projects_locations_integrations_versions_download_json_package_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    files: &Option<Option<String>>,
+    files: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9152,7 +9154,7 @@ pub struct IntegrationsProjectsLocationsIntegrationsVersionsDownloadJsonPackageA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: files
-    pub files: Option<Option<String>>,
+    pub files: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}:downloadJsonPackage
@@ -9368,11 +9370,11 @@ pub fn integrations_projects_locations_integrations_versions_get(
 pub fn integrations_projects_locations_integrations_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    fieldMask: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    fieldMask: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9535,15 +9537,15 @@ pub struct IntegrationsProjectsLocationsIntegrationsVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: fieldMask
-    pub fieldMask: Option<Option<String>>,
+    pub fieldMask: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions
@@ -9592,7 +9594,7 @@ pub fn integrations_projects_locations_integrations_versions_list(
 pub fn integrations_projects_locations_integrations_versions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9737,7 +9739,7 @@ pub struct IntegrationsProjectsLocationsIntegrationsVersionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}
@@ -10482,7 +10484,7 @@ pub fn integrations_projects_locations_integrations_versions_upload(
 pub fn integrations_projects_locations_integrations_versions_test_cases_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    testCaseId: &Option<Option<String>>,
+    testCaseId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10627,7 +10629,7 @@ pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesCreateArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: testCaseId
-    pub testCaseId: Option<Option<String>>,
+    pub testCaseId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases
@@ -10836,7 +10838,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_delete(
 pub fn integrations_projects_locations_integrations_versions_test_cases_download_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    fileFormat: &Option<Option<String>>,
+    fileFormat: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10988,7 +10990,7 @@ pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDownloadArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fileFormat
-    pub fileFormat: Option<Option<String>>,
+    pub fileFormat: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}:download
@@ -11570,11 +11572,11 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_get(
 pub fn integrations_projects_locations_integrations_versions_test_cases_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11734,15 +11736,15 @@ pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases
@@ -11788,7 +11790,7 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_list(
 pub fn integrations_projects_locations_integrations_versions_test_cases_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11933,7 +11935,7 @@ pub struct IntegrationsProjectsLocationsIntegrationsVersionsTestCasesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/integrations/{integrationsId}/versions/{versionsId}/testCases/{testCasesId}
@@ -12326,9 +12328,9 @@ pub fn integrations_projects_locations_integrations_versions_test_cases_upload(
 pub fn integrations_projects_locations_products_auth_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    clientCertificate_encryptedPrivateKey: &Option<Option<String>>,
-    clientCertificate_passphrase: &Option<Option<String>>,
-    clientCertificate_sslCertificate: &Option<Option<String>>,
+    clientCertificate_encryptedPrivateKey: &Option<String>,
+    clientCertificate_passphrase: &Option<String>,
+    clientCertificate_sslCertificate: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12478,11 +12480,11 @@ pub struct IntegrationsProjectsLocationsProductsAuthConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: clientCertificate_encryptedPrivateKey
-    pub clientCertificate_encryptedPrivateKey: Option<Option<String>>,
+    pub clientCertificate_encryptedPrivateKey: Option<String>,
     /// Query parameter: clientCertificate_passphrase
-    pub clientCertificate_passphrase: Option<Option<String>>,
+    pub clientCertificate_passphrase: Option<String>,
     /// Query parameter: clientCertificate_sslCertificate
-    pub clientCertificate_sslCertificate: Option<Option<String>>,
+    pub clientCertificate_sslCertificate: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/authConfigs
@@ -12860,10 +12862,10 @@ pub fn integrations_projects_locations_products_auth_configs_get(
 pub fn integrations_projects_locations_products_auth_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13023,13 +13025,13 @@ pub struct IntegrationsProjectsLocationsProductsAuthConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/authConfigs
@@ -13077,10 +13079,10 @@ pub fn integrations_projects_locations_products_auth_configs_list(
 pub fn integrations_projects_locations_products_auth_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    clientCertificate_encryptedPrivateKey: &Option<Option<String>>,
-    clientCertificate_passphrase: &Option<Option<String>>,
-    clientCertificate_sslCertificate: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    clientCertificate_encryptedPrivateKey: &Option<String>,
+    clientCertificate_passphrase: &Option<String>,
+    clientCertificate_sslCertificate: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13233,13 +13235,13 @@ pub struct IntegrationsProjectsLocationsProductsAuthConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: clientCertificate_encryptedPrivateKey
-    pub clientCertificate_encryptedPrivateKey: Option<Option<String>>,
+    pub clientCertificate_encryptedPrivateKey: Option<String>,
     /// Query parameter: clientCertificate_passphrase
-    pub clientCertificate_passphrase: Option<Option<String>>,
+    pub clientCertificate_passphrase: Option<String>,
     /// Query parameter: clientCertificate_sslCertificate
-    pub clientCertificate_sslCertificate: Option<Option<String>>,
+    pub clientCertificate_sslCertificate: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/authConfigs/{authConfigsId}
@@ -13787,10 +13789,10 @@ pub fn integrations_projects_locations_products_certificates_get(
 pub fn integrations_projects_locations_products_certificates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13950,13 +13952,13 @@ pub struct IntegrationsProjectsLocationsProductsCertificatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/certificates
@@ -14004,7 +14006,7 @@ pub fn integrations_projects_locations_products_certificates_list(
 pub fn integrations_projects_locations_products_certificates_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14148,7 +14150,7 @@ pub struct IntegrationsProjectsLocationsProductsCertificatesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/certificates/{certificatesId}
@@ -14550,10 +14552,10 @@ pub fn integrations_projects_locations_products_integrations_execute(
 pub fn integrations_projects_locations_products_integrations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14713,13 +14715,13 @@ pub struct IntegrationsProjectsLocationsProductsIntegrationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations
@@ -15478,26 +15480,26 @@ pub fn integrations_projects_locations_products_integrations_executions_get(
 pub fn integrations_projects_locations_products_integrations_executions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    filterParams_customFilter: &Option<Option<String>>,
-    filterParams_endTime: &Option<Option<String>>,
-    filterParams_eventStatuses: &Option<Option<String>>,
-    filterParams_executionId: &Option<Option<String>>,
-    filterParams_parameterKey: &Option<Option<String>>,
-    filterParams_parameterPairKey: &Option<Option<String>>,
-    filterParams_parameterPairValue: &Option<Option<String>>,
-    filterParams_parameterType: &Option<Option<String>>,
-    filterParams_parameterValue: &Option<Option<String>>,
-    filterParams_startTime: &Option<Option<String>>,
-    filterParams_taskStatuses: &Option<Option<String>>,
-    filterParams_workflowName: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
-    refreshAcl: &Option<Option<String>>,
-    snapshotMetadataWithoutParams: &Option<Option<String>>,
-    truncateParams: &Option<Option<String>>,
+    filter: &Option<String>,
+    filterParams_customFilter: &Option<String>,
+    filterParams_endTime: &Option<String>,
+    filterParams_eventStatuses: &Option<String>,
+    filterParams_executionId: &Option<String>,
+    filterParams_parameterKey: &Option<String>,
+    filterParams_parameterPairKey: &Option<String>,
+    filterParams_parameterPairValue: &Option<String>,
+    filterParams_parameterType: &Option<String>,
+    filterParams_parameterValue: &Option<String>,
+    filterParams_startTime: &Option<String>,
+    filterParams_taskStatuses: &Option<String>,
+    filterParams_workflowName: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
+    refreshAcl: &Option<String>,
+    snapshotMetadataWithoutParams: &Option<String>,
+    truncateParams: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15702,45 +15704,45 @@ pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: filterParams_customFilter
-    pub filterParams_customFilter: Option<Option<String>>,
+    pub filterParams_customFilter: Option<String>,
     /// Query parameter: filterParams_endTime
-    pub filterParams_endTime: Option<Option<String>>,
+    pub filterParams_endTime: Option<String>,
     /// Query parameter: filterParams_eventStatuses
-    pub filterParams_eventStatuses: Option<Option<String>>,
+    pub filterParams_eventStatuses: Option<String>,
     /// Query parameter: filterParams_executionId
-    pub filterParams_executionId: Option<Option<String>>,
+    pub filterParams_executionId: Option<String>,
     /// Query parameter: filterParams_parameterKey
-    pub filterParams_parameterKey: Option<Option<String>>,
+    pub filterParams_parameterKey: Option<String>,
     /// Query parameter: filterParams_parameterPairKey
-    pub filterParams_parameterPairKey: Option<Option<String>>,
+    pub filterParams_parameterPairKey: Option<String>,
     /// Query parameter: filterParams_parameterPairValue
-    pub filterParams_parameterPairValue: Option<Option<String>>,
+    pub filterParams_parameterPairValue: Option<String>,
     /// Query parameter: filterParams_parameterType
-    pub filterParams_parameterType: Option<Option<String>>,
+    pub filterParams_parameterType: Option<String>,
     /// Query parameter: filterParams_parameterValue
-    pub filterParams_parameterValue: Option<Option<String>>,
+    pub filterParams_parameterValue: Option<String>,
     /// Query parameter: filterParams_startTime
-    pub filterParams_startTime: Option<Option<String>>,
+    pub filterParams_startTime: Option<String>,
     /// Query parameter: filterParams_taskStatuses
-    pub filterParams_taskStatuses: Option<Option<String>>,
+    pub filterParams_taskStatuses: Option<String>,
     /// Query parameter: filterParams_workflowName
-    pub filterParams_workflowName: Option<Option<String>>,
+    pub filterParams_workflowName: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
     /// Query parameter: refreshAcl
-    pub refreshAcl: Option<Option<String>>,
+    pub refreshAcl: Option<String>,
     /// Query parameter: snapshotMetadataWithoutParams
-    pub snapshotMetadataWithoutParams: Option<Option<String>>,
+    pub snapshotMetadataWithoutParams: Option<String>,
     /// Query parameter: truncateParams
-    pub truncateParams: Option<Option<String>>,
+    pub truncateParams: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions
@@ -15985,10 +15987,10 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16151,13 +16153,13 @@ pub struct IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspension
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/executions/{executionsId}/suspensions
@@ -16393,8 +16395,8 @@ pub fn integrations_projects_locations_products_integrations_executions_suspensi
 pub fn integrations_projects_locations_products_integrations_versions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    createSampleIntegrations: &Option<Option<String>>,
-    newIntegration: &Option<Option<String>>,
+    createSampleIntegrations: &Option<String>,
+    newIntegration: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16542,9 +16544,9 @@ pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: createSampleIntegrations
-    pub createSampleIntegrations: Option<Option<String>>,
+    pub createSampleIntegrations: Option<String>,
     /// Query parameter: newIntegration
-    pub newIntegration: Option<Option<String>>,
+    pub newIntegration: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions
@@ -16753,8 +16755,8 @@ pub fn integrations_projects_locations_products_integrations_versions_delete(
 pub fn integrations_projects_locations_products_integrations_versions_download_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    fileFormat: &Option<Option<String>>,
-    files: &Option<Option<String>>,
+    fileFormat: &Option<String>,
+    files: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16909,9 +16911,9 @@ pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsDownloadArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fileFormat
-    pub fileFormat: Option<Option<String>>,
+    pub fileFormat: Option<String>,
     /// Query parameter: files
-    pub files: Option<Option<String>>,
+    pub files: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}:download
@@ -17128,11 +17130,11 @@ pub fn integrations_projects_locations_products_integrations_versions_get(
 pub fn integrations_projects_locations_products_integrations_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    fieldMask: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    fieldMask: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17295,15 +17297,15 @@ pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: fieldMask
-    pub fieldMask: Option<Option<String>>,
+    pub fieldMask: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions
@@ -17352,7 +17354,7 @@ pub fn integrations_projects_locations_products_integrations_versions_list(
 pub fn integrations_projects_locations_products_integrations_versions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17497,7 +17499,7 @@ pub struct IntegrationsProjectsLocationsProductsIntegrationsVersionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/integrations/{integrationsId}/versions/{versionsId}
@@ -18764,10 +18766,10 @@ pub fn integrations_projects_locations_products_sfdc_instances_get(
 pub fn integrations_projects_locations_products_sfdc_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18927,13 +18929,13 @@ pub struct IntegrationsProjectsLocationsProductsSfdcInstancesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances
@@ -18981,7 +18983,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_list(
 pub fn integrations_projects_locations_products_sfdc_instances_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19126,7 +19128,7 @@ pub struct IntegrationsProjectsLocationsProductsSfdcInstancesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}
@@ -19681,10 +19683,10 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_get
 pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19845,13 +19847,13 @@ pub struct IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsListArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels
@@ -19900,7 +19902,7 @@ pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_lis
 pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20045,7 +20047,7 @@ pub struct IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsPatchAr
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/products/{productsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
@@ -20592,10 +20594,10 @@ pub fn integrations_projects_locations_sfdc_instances_get(
 pub fn integrations_projects_locations_sfdc_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20755,13 +20757,13 @@ pub struct IntegrationsProjectsLocationsSfdcInstancesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances
@@ -20809,7 +20811,7 @@ pub fn integrations_projects_locations_sfdc_instances_list(
 pub fn integrations_projects_locations_sfdc_instances_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20954,7 +20956,7 @@ pub struct IntegrationsProjectsLocationsSfdcInstancesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}
@@ -21503,10 +21505,10 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_get(
 pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21666,13 +21668,13 @@ pub struct IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels
@@ -21720,7 +21722,7 @@ pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_list(
 pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21864,7 +21866,7 @@ pub struct IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/sfdcInstances/{sfdcInstancesId}/sfdcChannels/{sfdcChannelsId}
@@ -22238,7 +22240,7 @@ pub fn integrations_projects_locations_templates_delete(
 pub fn integrations_projects_locations_templates_download_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    fileFormat: &Option<Option<String>>,
+    fileFormat: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22389,7 +22391,7 @@ pub struct IntegrationsProjectsLocationsTemplatesDownloadArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fileFormat
-    pub fileFormat: Option<Option<String>>,
+    pub fileFormat: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates/{templatesId}:download
@@ -22774,11 +22776,11 @@ pub fn integrations_projects_locations_templates_import(
 pub fn integrations_projects_locations_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22938,15 +22940,15 @@ pub struct IntegrationsProjectsLocationsTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates
@@ -22992,7 +22994,7 @@ pub fn integrations_projects_locations_templates_list(
 pub fn integrations_projects_locations_templates_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23136,7 +23138,7 @@ pub struct IntegrationsProjectsLocationsTemplatesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/templates/{templatesId}
@@ -23178,13 +23180,13 @@ pub fn integrations_projects_locations_templates_patch(
 pub fn integrations_projects_locations_templates_search_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    enableNaturalLanguageQueryUnderstanding: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    enableNaturalLanguageQueryUnderstanding: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23353,19 +23355,19 @@ pub struct IntegrationsProjectsLocationsTemplatesSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: enableNaturalLanguageQueryUnderstanding
-    pub enableNaturalLanguageQueryUnderstanding: Option<Option<String>>,
+    pub enableNaturalLanguageQueryUnderstanding: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/templates:search
@@ -24097,35 +24099,6 @@ impl ResourceIdentifier<IntegrationsCallbackGenerateTokenArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::integrations::GoogleCloudIntegrationsV1alphaGenerateTokenResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse with IntegrationsConnectorPlatformRegionsEnumerateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<IntegrationsConnectorPlatformRegionsEnumerateArgs>
-    for GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &IntegrationsConnectorPlatformRegionsEnumerateArgs,
-    ) -> String {
-        "gcp::integrations::GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse"
-            .to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::integrations::GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse"
     }
 
     fn provider(&self) -> &'static str {

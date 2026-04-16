@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,17 +31,17 @@ use serde::Serialize;
 
 pub fn script_processes_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    userProcessFilter_deploymentId: &Option<Option<String>>,
-    userProcessFilter_endTime: &Option<Option<String>>,
-    userProcessFilter_functionName: &Option<Option<String>>,
-    userProcessFilter_projectName: &Option<Option<String>>,
-    userProcessFilter_scriptId: &Option<Option<String>>,
-    userProcessFilter_startTime: &Option<Option<String>>,
-    userProcessFilter_statuses: &Option<Option<String>>,
-    userProcessFilter_types: &Option<Option<String>>,
-    userProcessFilter_userAccessLevels: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    userProcessFilter_deploymentId: &Option<String>,
+    userProcessFilter_endTime: &Option<String>,
+    userProcessFilter_functionName: &Option<String>,
+    userProcessFilter_projectName: &Option<String>,
+    userProcessFilter_scriptId: &Option<String>,
+    userProcessFilter_startTime: &Option<String>,
+    userProcessFilter_statuses: &Option<String>,
+    userProcessFilter_types: &Option<String>,
+    userProcessFilter_userAccessLevels: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -206,27 +208,27 @@ pub fn script_processes_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ScriptProcessesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: userProcessFilter_deploymentId
-    pub userProcessFilter_deploymentId: Option<Option<String>>,
+    pub userProcessFilter_deploymentId: Option<String>,
     /// Query parameter: userProcessFilter_endTime
-    pub userProcessFilter_endTime: Option<Option<String>>,
+    pub userProcessFilter_endTime: Option<String>,
     /// Query parameter: userProcessFilter_functionName
-    pub userProcessFilter_functionName: Option<Option<String>>,
+    pub userProcessFilter_functionName: Option<String>,
     /// Query parameter: userProcessFilter_projectName
-    pub userProcessFilter_projectName: Option<Option<String>>,
+    pub userProcessFilter_projectName: Option<String>,
     /// Query parameter: userProcessFilter_scriptId
-    pub userProcessFilter_scriptId: Option<Option<String>>,
+    pub userProcessFilter_scriptId: Option<String>,
     /// Query parameter: userProcessFilter_startTime
-    pub userProcessFilter_startTime: Option<Option<String>>,
+    pub userProcessFilter_startTime: Option<String>,
     /// Query parameter: userProcessFilter_statuses
-    pub userProcessFilter_statuses: Option<Option<String>>,
+    pub userProcessFilter_statuses: Option<String>,
     /// Query parameter: userProcessFilter_types
-    pub userProcessFilter_types: Option<Option<String>>,
+    pub userProcessFilter_types: Option<String>,
     /// Query parameter: userProcessFilter_userAccessLevels
-    pub userProcessFilter_userAccessLevels: Option<Option<String>>,
+    pub userProcessFilter_userAccessLevels: Option<String>,
 }
 
 /// GET v1/processes
@@ -274,16 +276,16 @@ pub fn script_processes_list(
 
 pub fn script_processes_list_script_processes_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    scriptId: &Option<Option<String>>,
-    scriptProcessFilter_deploymentId: &Option<Option<String>>,
-    scriptProcessFilter_endTime: &Option<Option<String>>,
-    scriptProcessFilter_functionName: &Option<Option<String>>,
-    scriptProcessFilter_startTime: &Option<Option<String>>,
-    scriptProcessFilter_statuses: &Option<Option<String>>,
-    scriptProcessFilter_types: &Option<Option<String>>,
-    scriptProcessFilter_userAccessLevels: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    scriptId: &Option<String>,
+    scriptProcessFilter_deploymentId: &Option<String>,
+    scriptProcessFilter_endTime: &Option<String>,
+    scriptProcessFilter_functionName: &Option<String>,
+    scriptProcessFilter_startTime: &Option<String>,
+    scriptProcessFilter_statuses: &Option<String>,
+    scriptProcessFilter_types: &Option<String>,
+    scriptProcessFilter_userAccessLevels: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -449,25 +451,25 @@ pub fn script_processes_list_script_processes_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ScriptProcessesListScriptProcessesArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: scriptId
-    pub scriptId: Option<Option<String>>,
+    pub scriptId: Option<String>,
     /// Query parameter: scriptProcessFilter_deploymentId
-    pub scriptProcessFilter_deploymentId: Option<Option<String>>,
+    pub scriptProcessFilter_deploymentId: Option<String>,
     /// Query parameter: scriptProcessFilter_endTime
-    pub scriptProcessFilter_endTime: Option<Option<String>>,
+    pub scriptProcessFilter_endTime: Option<String>,
     /// Query parameter: scriptProcessFilter_functionName
-    pub scriptProcessFilter_functionName: Option<Option<String>>,
+    pub scriptProcessFilter_functionName: Option<String>,
     /// Query parameter: scriptProcessFilter_startTime
-    pub scriptProcessFilter_startTime: Option<Option<String>>,
+    pub scriptProcessFilter_startTime: Option<String>,
     /// Query parameter: scriptProcessFilter_statuses
-    pub scriptProcessFilter_statuses: Option<Option<String>>,
+    pub scriptProcessFilter_statuses: Option<String>,
     /// Query parameter: scriptProcessFilter_types
-    pub scriptProcessFilter_types: Option<Option<String>>,
+    pub scriptProcessFilter_types: Option<String>,
     /// Query parameter: scriptProcessFilter_userAccessLevels
-    pub scriptProcessFilter_userAccessLevels: Option<Option<String>>,
+    pub scriptProcessFilter_userAccessLevels: Option<String>,
 }
 
 /// GET v1/processes:listScriptProcesses
@@ -822,7 +824,7 @@ pub fn script_projects_get(
 pub fn script_projects_get_content_builder<R>(
     client: &SimpleHttpClient<R>,
     scriptId: &String,
-    versionNumber: &Option<Option<String>>,
+    versionNumber: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -962,7 +964,7 @@ pub struct ScriptProjectsGetContentArgs {
     /// Path parameter: scriptId
     pub scriptId: String,
     /// Query parameter: versionNumber
-    pub versionNumber: Option<Option<String>>,
+    pub versionNumber: Option<String>,
 }
 
 /// GET v1/projects/{scriptId}/content
@@ -996,8 +998,8 @@ pub fn script_projects_get_content(
 pub fn script_projects_get_metrics_builder<R>(
     client: &SimpleHttpClient<R>,
     scriptId: &String,
-    metricsFilter_deploymentId: &Option<Option<String>>,
-    metricsGranularity: &Option<Option<String>>,
+    metricsFilter_deploymentId: &Option<String>,
+    metricsGranularity: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1140,9 +1142,9 @@ pub struct ScriptProjectsGetMetricsArgs {
     /// Path parameter: scriptId
     pub scriptId: String,
     /// Query parameter: metricsFilter_deploymentId
-    pub metricsFilter_deploymentId: Option<Option<String>>,
+    pub metricsFilter_deploymentId: Option<String>,
     /// Query parameter: metricsGranularity
-    pub metricsGranularity: Option<Option<String>>,
+    pub metricsGranularity: Option<String>,
 }
 
 /// GET v1/projects/{scriptId}/metrics
@@ -1829,8 +1831,8 @@ pub fn script_projects_deployments_get(
 pub fn script_projects_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     scriptId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1975,9 +1977,9 @@ pub struct ScriptProjectsDeploymentsListArgs {
     /// Path parameter: scriptId
     pub scriptId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{scriptId}/deployments
@@ -2506,8 +2508,8 @@ pub fn script_projects_versions_get(
 pub fn script_projects_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     scriptId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2652,9 +2654,9 @@ pub struct ScriptProjectsVersionsListArgs {
     /// Path parameter: scriptId
     pub scriptId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{scriptId}/versions
@@ -2882,29 +2884,6 @@ impl ResourceIdentifier<ScriptProcessesListScriptProcessesArgs> for ListScriptPr
 
     fn resource_kind(&self) -> &'static str {
         "gcp::script::ListScriptProcessesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Project
-// =============================================================================
-
-/// ResourceIdentifier implementation for Project with ScriptProjectsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ScriptProjectsCreateArgs> for Project {
-    fn generate_resource_id(&self, input: &ScriptProjectsCreateArgs) -> String {
-        "gcp::script::Project".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::script::Project"
     }
 
     fn provider(&self) -> &'static str {

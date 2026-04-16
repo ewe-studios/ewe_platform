@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -842,8 +844,8 @@ pub fn logging_billing_accounts_exclusions_get(
 pub fn logging_billing_accounts_exclusions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -988,9 +990,9 @@ pub struct LoggingBillingAccountsExclusionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/exclusions
@@ -1031,7 +1033,7 @@ pub fn logging_billing_accounts_exclusions_list(
 pub fn logging_billing_accounts_exclusions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1173,7 +1175,7 @@ pub struct LoggingBillingAccountsExclusionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/billingAccounts/{billingAccountsId}/exclusions/{exclusionsId}
@@ -1370,10 +1372,10 @@ pub fn logging_billing_accounts_locations_get(
 pub fn logging_billing_accounts_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1524,13 +1526,13 @@ pub struct LoggingBillingAccountsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/locations
@@ -1573,7 +1575,7 @@ pub fn logging_billing_accounts_locations_list(
 pub fn logging_billing_accounts_locations_buckets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bucketId: &Option<Option<String>>,
+    bucketId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1713,7 +1715,7 @@ pub struct LoggingBillingAccountsLocationsBucketsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bucketId
-    pub bucketId: Option<Option<String>>,
+    pub bucketId: Option<String>,
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets
@@ -1751,7 +1753,7 @@ pub fn logging_billing_accounts_locations_buckets_create(
 pub fn logging_billing_accounts_locations_buckets_create_async_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bucketId: &Option<Option<String>>,
+    bucketId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1891,7 +1893,7 @@ pub struct LoggingBillingAccountsLocationsBucketsCreateAsyncArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bucketId
-    pub bucketId: Option<Option<String>>,
+    pub bucketId: Option<String>,
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets:createAsync
@@ -2249,8 +2251,8 @@ pub fn logging_billing_accounts_locations_buckets_get(
 pub fn logging_billing_accounts_locations_buckets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2395,9 +2397,9 @@ pub struct LoggingBillingAccountsLocationsBucketsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets
@@ -2438,7 +2440,7 @@ pub fn logging_billing_accounts_locations_buckets_list(
 pub fn logging_billing_accounts_locations_buckets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2578,7 +2580,7 @@ pub struct LoggingBillingAccountsLocationsBucketsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}
@@ -2776,7 +2778,7 @@ pub fn logging_billing_accounts_locations_buckets_undelete(
 pub fn logging_billing_accounts_locations_buckets_update_async_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2916,7 +2918,7 @@ pub struct LoggingBillingAccountsLocationsBucketsUpdateAsyncArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
@@ -2954,7 +2956,7 @@ pub fn logging_billing_accounts_locations_buckets_update_async(
 pub fn logging_billing_accounts_locations_buckets_links_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    linkId: &Option<Option<String>>,
+    linkId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3094,7 +3096,7 @@ pub struct LoggingBillingAccountsLocationsBucketsLinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: linkId
-    pub linkId: Option<Option<String>>,
+    pub linkId: Option<String>,
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/links
@@ -3453,8 +3455,8 @@ pub fn logging_billing_accounts_locations_buckets_links_get(
 pub fn logging_billing_accounts_locations_buckets_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3599,9 +3601,9 @@ pub struct LoggingBillingAccountsLocationsBucketsLinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/links
@@ -3642,7 +3644,7 @@ pub fn logging_billing_accounts_locations_buckets_links_list(
 pub fn logging_billing_accounts_locations_buckets_views_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    viewId: &Option<Option<String>>,
+    viewId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3782,7 +3784,7 @@ pub struct LoggingBillingAccountsLocationsBucketsViewsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: viewId
-    pub viewId: Option<Option<String>>,
+    pub viewId: Option<String>,
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/views
@@ -4141,8 +4143,8 @@ pub fn logging_billing_accounts_locations_buckets_views_get(
 pub fn logging_billing_accounts_locations_buckets_views_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4287,9 +4289,9 @@ pub struct LoggingBillingAccountsLocationsBucketsViewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/views
@@ -4330,7 +4332,7 @@ pub fn logging_billing_accounts_locations_buckets_views_list(
 pub fn logging_billing_accounts_locations_buckets_views_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4470,7 +4472,7 @@ pub struct LoggingBillingAccountsLocationsBucketsViewsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
@@ -4508,9 +4510,9 @@ pub fn logging_billing_accounts_locations_buckets_views_patch(
 pub fn logging_billing_accounts_locations_buckets_views_logs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resourceNames: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4658,11 +4660,11 @@ pub struct LoggingBillingAccountsLocationsBucketsViewsLogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resourceNames
-    pub resourceNames: Option<Option<String>>,
+    pub resourceNames: Option<String>,
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}/logs
@@ -5024,10 +5026,10 @@ pub fn logging_billing_accounts_locations_operations_get(
 pub fn logging_billing_accounts_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5178,13 +5180,13 @@ pub struct LoggingBillingAccountsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/operations
@@ -5227,9 +5229,9 @@ pub fn logging_billing_accounts_locations_operations_list(
 pub fn logging_billing_accounts_locations_recent_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5377,11 +5379,11 @@ pub struct LoggingBillingAccountsLocationsRecentQueriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/recentQueries
@@ -5423,7 +5425,7 @@ pub fn logging_billing_accounts_locations_recent_queries_list(
 pub fn logging_billing_accounts_locations_saved_queries_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    savedQueryId: &Option<Option<String>>,
+    savedQueryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5563,7 +5565,7 @@ pub struct LoggingBillingAccountsLocationsSavedQueriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: savedQueryId
-    pub savedQueryId: Option<Option<String>>,
+    pub savedQueryId: Option<String>,
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/savedQueries
@@ -5922,9 +5924,9 @@ pub fn logging_billing_accounts_locations_saved_queries_get(
 pub fn logging_billing_accounts_locations_saved_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6072,11 +6074,11 @@ pub struct LoggingBillingAccountsLocationsSavedQueriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/savedQueries
@@ -6118,7 +6120,7 @@ pub fn logging_billing_accounts_locations_saved_queries_list(
 pub fn logging_billing_accounts_locations_saved_queries_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6258,7 +6260,7 @@ pub struct LoggingBillingAccountsLocationsSavedQueriesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/billingAccounts/{billingAccountsId}/locations/{locationsId}/savedQueries/{savedQueriesId}
@@ -6456,9 +6458,9 @@ pub fn logging_billing_accounts_logs_delete(
 pub fn logging_billing_accounts_logs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resourceNames: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6606,11 +6608,11 @@ pub struct LoggingBillingAccountsLogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resourceNames
-    pub resourceNames: Option<Option<String>>,
+    pub resourceNames: Option<String>,
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/logs
@@ -6652,8 +6654,8 @@ pub fn logging_billing_accounts_logs_list(
 pub fn logging_billing_accounts_sinks_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6796,9 +6798,9 @@ pub struct LoggingBillingAccountsSinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
 }
 
 /// POST v2/billingAccounts/{billingAccountsId}/sinks
@@ -7157,9 +7159,9 @@ pub fn logging_billing_accounts_sinks_get(
 pub fn logging_billing_accounts_sinks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7307,11 +7309,11 @@ pub struct LoggingBillingAccountsSinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/billingAccounts/{billingAccountsId}/sinks
@@ -7353,9 +7355,9 @@ pub fn logging_billing_accounts_sinks_list(
 pub fn logging_billing_accounts_sinks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     sinkName: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7501,11 +7503,11 @@ pub struct LoggingBillingAccountsSinksPatchArgs {
     /// Path parameter: sinkName
     pub sinkName: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/billingAccounts/{billingAccountsId}/sinks/{sinksId}
@@ -7545,9 +7547,9 @@ pub fn logging_billing_accounts_sinks_patch(
 pub fn logging_billing_accounts_sinks_update_builder<R>(
     client: &SimpleHttpClient<R>,
     sinkName: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7693,11 +7695,11 @@ pub struct LoggingBillingAccountsSinksUpdateArgs {
     /// Path parameter: sinkName
     pub sinkName: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PUT v2/billingAccounts/{billingAccountsId}/sinks/{sinksId}
@@ -8829,8 +8831,8 @@ pub fn logging_exclusions_get(
 pub fn logging_exclusions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8975,9 +8977,9 @@ pub struct LoggingExclusionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/{v2Id}/{v2Id1}/exclusions
@@ -9014,7 +9016,7 @@ pub fn logging_exclusions_list(
 pub fn logging_exclusions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9156,7 +9158,7 @@ pub struct LoggingExclusionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/exclusions/{exclusionsId}
@@ -9516,7 +9518,7 @@ pub fn logging_folders_get_settings(
 pub fn logging_folders_update_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9656,7 +9658,7 @@ pub struct LoggingFoldersUpdateSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/folders/{foldersId}/settings
@@ -10178,8 +10180,8 @@ pub fn logging_folders_exclusions_get(
 pub fn logging_folders_exclusions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10324,9 +10326,9 @@ pub struct LoggingFoldersExclusionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/exclusions
@@ -10367,7 +10369,7 @@ pub fn logging_folders_exclusions_list(
 pub fn logging_folders_exclusions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10509,7 +10511,7 @@ pub struct LoggingFoldersExclusionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/folders/{foldersId}/exclusions/{exclusionsId}
@@ -10705,10 +10707,10 @@ pub fn logging_folders_locations_get(
 pub fn logging_folders_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10859,13 +10861,13 @@ pub struct LoggingFoldersLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/locations
@@ -10908,7 +10910,7 @@ pub fn logging_folders_locations_list(
 pub fn logging_folders_locations_buckets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bucketId: &Option<Option<String>>,
+    bucketId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11048,7 +11050,7 @@ pub struct LoggingFoldersLocationsBucketsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bucketId
-    pub bucketId: Option<Option<String>>,
+    pub bucketId: Option<String>,
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets
@@ -11083,7 +11085,7 @@ pub fn logging_folders_locations_buckets_create(
 pub fn logging_folders_locations_buckets_create_async_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bucketId: &Option<Option<String>>,
+    bucketId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11223,7 +11225,7 @@ pub struct LoggingFoldersLocationsBucketsCreateAsyncArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bucketId
-    pub bucketId: Option<Option<String>>,
+    pub bucketId: Option<String>,
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets:createAsync
@@ -11581,8 +11583,8 @@ pub fn logging_folders_locations_buckets_get(
 pub fn logging_folders_locations_buckets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11727,9 +11729,9 @@ pub struct LoggingFoldersLocationsBucketsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets
@@ -11770,7 +11772,7 @@ pub fn logging_folders_locations_buckets_list(
 pub fn logging_folders_locations_buckets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11910,7 +11912,7 @@ pub struct LoggingFoldersLocationsBucketsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}
@@ -12105,7 +12107,7 @@ pub fn logging_folders_locations_buckets_undelete(
 pub fn logging_folders_locations_buckets_update_async_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12245,7 +12247,7 @@ pub struct LoggingFoldersLocationsBucketsUpdateAsyncArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
@@ -12283,7 +12285,7 @@ pub fn logging_folders_locations_buckets_update_async(
 pub fn logging_folders_locations_buckets_links_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    linkId: &Option<Option<String>>,
+    linkId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12423,7 +12425,7 @@ pub struct LoggingFoldersLocationsBucketsLinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: linkId
-    pub linkId: Option<Option<String>>,
+    pub linkId: Option<String>,
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/links
@@ -12778,8 +12780,8 @@ pub fn logging_folders_locations_buckets_links_get(
 pub fn logging_folders_locations_buckets_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12924,9 +12926,9 @@ pub struct LoggingFoldersLocationsBucketsLinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/links
@@ -12967,7 +12969,7 @@ pub fn logging_folders_locations_buckets_links_list(
 pub fn logging_folders_locations_buckets_views_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    viewId: &Option<Option<String>>,
+    viewId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13107,7 +13109,7 @@ pub struct LoggingFoldersLocationsBucketsViewsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: viewId
-    pub viewId: Option<Option<String>>,
+    pub viewId: Option<String>,
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/views
@@ -13623,8 +13625,8 @@ pub fn logging_folders_locations_buckets_views_get_iam_policy(
 pub fn logging_folders_locations_buckets_views_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13769,9 +13771,9 @@ pub struct LoggingFoldersLocationsBucketsViewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/views
@@ -13812,7 +13814,7 @@ pub fn logging_folders_locations_buckets_views_list(
 pub fn logging_folders_locations_buckets_views_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13952,7 +13954,7 @@ pub struct LoggingFoldersLocationsBucketsViewsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
@@ -14322,9 +14324,9 @@ pub fn logging_folders_locations_buckets_views_test_iam_permissions(
 pub fn logging_folders_locations_buckets_views_logs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resourceNames: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14472,11 +14474,11 @@ pub struct LoggingFoldersLocationsBucketsViewsLogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resourceNames
-    pub resourceNames: Option<Option<String>>,
+    pub resourceNames: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}/logs
@@ -14518,7 +14520,7 @@ pub fn logging_folders_locations_buckets_views_logs_list(
 pub fn logging_folders_locations_log_scopes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    logScopeId: &Option<Option<String>>,
+    logScopeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14658,7 +14660,7 @@ pub struct LoggingFoldersLocationsLogScopesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: logScopeId
-    pub logScopeId: Option<Option<String>>,
+    pub logScopeId: Option<String>,
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/logScopes
@@ -15016,8 +15018,8 @@ pub fn logging_folders_locations_log_scopes_get(
 pub fn logging_folders_locations_log_scopes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15162,9 +15164,9 @@ pub struct LoggingFoldersLocationsLogScopesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/logScopes
@@ -15205,7 +15207,7 @@ pub fn logging_folders_locations_log_scopes_list(
 pub fn logging_folders_locations_log_scopes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15345,7 +15347,7 @@ pub struct LoggingFoldersLocationsLogScopesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/folders/{foldersId}/locations/{locationsId}/logScopes/{logScopesId}
@@ -15700,10 +15702,10 @@ pub fn logging_folders_locations_operations_get(
 pub fn logging_folders_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15854,13 +15856,13 @@ pub struct LoggingFoldersLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations
@@ -15903,9 +15905,9 @@ pub fn logging_folders_locations_operations_list(
 pub fn logging_folders_locations_recent_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16053,11 +16055,11 @@ pub struct LoggingFoldersLocationsRecentQueriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/recentQueries
@@ -16099,7 +16101,7 @@ pub fn logging_folders_locations_recent_queries_list(
 pub fn logging_folders_locations_saved_queries_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    savedQueryId: &Option<Option<String>>,
+    savedQueryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16239,7 +16241,7 @@ pub struct LoggingFoldersLocationsSavedQueriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: savedQueryId
-    pub savedQueryId: Option<Option<String>>,
+    pub savedQueryId: Option<String>,
 }
 
 /// POST v2/folders/{foldersId}/locations/{locationsId}/savedQueries
@@ -16597,9 +16599,9 @@ pub fn logging_folders_locations_saved_queries_get(
 pub fn logging_folders_locations_saved_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16747,11 +16749,11 @@ pub struct LoggingFoldersLocationsSavedQueriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/savedQueries
@@ -16793,7 +16795,7 @@ pub fn logging_folders_locations_saved_queries_list(
 pub fn logging_folders_locations_saved_queries_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16933,7 +16935,7 @@ pub struct LoggingFoldersLocationsSavedQueriesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/folders/{foldersId}/locations/{locationsId}/savedQueries/{savedQueriesId}
@@ -17131,9 +17133,9 @@ pub fn logging_folders_logs_delete(
 pub fn logging_folders_logs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resourceNames: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17278,11 +17280,11 @@ pub struct LoggingFoldersLogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resourceNames
-    pub resourceNames: Option<Option<String>>,
+    pub resourceNames: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/logs
@@ -17324,8 +17326,8 @@ pub fn logging_folders_logs_list(
 pub fn logging_folders_sinks_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17465,9 +17467,9 @@ pub struct LoggingFoldersSinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
 }
 
 /// POST v2/folders/{foldersId}/sinks
@@ -17826,9 +17828,9 @@ pub fn logging_folders_sinks_get(
 pub fn logging_folders_sinks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17973,11 +17975,11 @@ pub struct LoggingFoldersSinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/sinks
@@ -18019,9 +18021,9 @@ pub fn logging_folders_sinks_list(
 pub fn logging_folders_sinks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     sinkName: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18167,11 +18169,11 @@ pub struct LoggingFoldersSinksPatchArgs {
     /// Path parameter: sinkName
     pub sinkName: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/folders/{foldersId}/sinks/{sinksId}
@@ -18211,9 +18213,9 @@ pub fn logging_folders_sinks_patch(
 pub fn logging_folders_sinks_update_builder<R>(
     client: &SimpleHttpClient<R>,
     sinkName: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18359,11 +18361,11 @@ pub struct LoggingFoldersSinksUpdateArgs {
     /// Path parameter: sinkName
     pub sinkName: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PUT v2/folders/{foldersId}/sinks/{sinksId}
@@ -18563,10 +18565,10 @@ pub fn logging_locations_get(
 pub fn logging_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18717,13 +18719,13 @@ pub struct LoggingLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/{v2Id}/{v2Id1}/locations
@@ -18766,7 +18768,7 @@ pub fn logging_locations_list(
 pub fn logging_locations_buckets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bucketId: &Option<Option<String>>,
+    bucketId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18906,7 +18908,7 @@ pub struct LoggingLocationsBucketsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bucketId
-    pub bucketId: Option<Option<String>>,
+    pub bucketId: Option<String>,
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets
@@ -18940,7 +18942,7 @@ pub fn logging_locations_buckets_create(
 pub fn logging_locations_buckets_create_async_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bucketId: &Option<Option<String>>,
+    bucketId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19080,7 +19082,7 @@ pub struct LoggingLocationsBucketsCreateAsyncArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bucketId
-    pub bucketId: Option<Option<String>>,
+    pub bucketId: Option<String>,
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets:createAsync
@@ -19435,8 +19437,8 @@ pub fn logging_locations_buckets_get(
 pub fn logging_locations_buckets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19581,9 +19583,9 @@ pub struct LoggingLocationsBucketsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets
@@ -19624,7 +19626,7 @@ pub fn logging_locations_buckets_list(
 pub fn logging_locations_buckets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19764,7 +19766,7 @@ pub struct LoggingLocationsBucketsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}
@@ -19958,7 +19960,7 @@ pub fn logging_locations_buckets_undelete(
 pub fn logging_locations_buckets_update_async_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20098,7 +20100,7 @@ pub struct LoggingLocationsBucketsUpdateAsyncArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
@@ -20133,7 +20135,7 @@ pub fn logging_locations_buckets_update_async(
 pub fn logging_locations_buckets_links_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    linkId: &Option<Option<String>>,
+    linkId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20273,7 +20275,7 @@ pub struct LoggingLocationsBucketsLinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: linkId
-    pub linkId: Option<Option<String>>,
+    pub linkId: Option<String>,
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/links
@@ -20628,8 +20630,8 @@ pub fn logging_locations_buckets_links_get(
 pub fn logging_locations_buckets_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20774,9 +20776,9 @@ pub struct LoggingLocationsBucketsLinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/links
@@ -20817,7 +20819,7 @@ pub fn logging_locations_buckets_links_list(
 pub fn logging_locations_buckets_views_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    viewId: &Option<Option<String>>,
+    viewId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20957,7 +20959,7 @@ pub struct LoggingLocationsBucketsViewsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: viewId
-    pub viewId: Option<Option<String>>,
+    pub viewId: Option<String>,
 }
 
 /// POST v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views
@@ -21472,8 +21474,8 @@ pub fn logging_locations_buckets_views_get_iam_policy(
 pub fn logging_locations_buckets_views_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21618,9 +21620,9 @@ pub struct LoggingLocationsBucketsViewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views
@@ -21661,7 +21663,7 @@ pub fn logging_locations_buckets_views_list(
 pub fn logging_locations_buckets_views_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21801,7 +21803,7 @@ pub struct LoggingLocationsBucketsViewsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
@@ -22485,10 +22487,10 @@ pub fn logging_locations_operations_get(
 pub fn logging_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22639,13 +22641,13 @@ pub struct LoggingLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/{v2Id}/{v2Id1}/locations/{locationsId}/operations
@@ -22848,9 +22850,9 @@ pub fn logging_logs_delete(
 pub fn logging_logs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resourceNames: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22995,11 +22997,11 @@ pub struct LoggingLogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resourceNames
-    pub resourceNames: Option<Option<String>>,
+    pub resourceNames: Option<String>,
 }
 
 /// GET v2/{v2Id}/{v2Id1}/logs
@@ -23040,8 +23042,8 @@ pub fn logging_logs_list(
 
 pub fn logging_monitored_resource_descriptors_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23183,9 +23185,9 @@ pub fn logging_monitored_resource_descriptors_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct LoggingMonitoredResourceDescriptorsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/monitoredResourceDescriptors
@@ -23551,7 +23553,7 @@ pub fn logging_organizations_get_settings(
 pub fn logging_organizations_update_cmek_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23693,7 +23695,7 @@ pub struct LoggingOrganizationsUpdateCmekSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/organizations/{organizationsId}/cmekSettings
@@ -23730,7 +23732,7 @@ pub fn logging_organizations_update_cmek_settings(
 pub fn logging_organizations_update_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23870,7 +23872,7 @@ pub struct LoggingOrganizationsUpdateSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/organizations/{organizationsId}/settings
@@ -24393,8 +24395,8 @@ pub fn logging_organizations_exclusions_get(
 pub fn logging_organizations_exclusions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24539,9 +24541,9 @@ pub struct LoggingOrganizationsExclusionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/exclusions
@@ -24582,7 +24584,7 @@ pub fn logging_organizations_exclusions_list(
 pub fn logging_organizations_exclusions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24724,7 +24726,7 @@ pub struct LoggingOrganizationsExclusionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/organizations/{organizationsId}/exclusions/{exclusionsId}
@@ -24921,10 +24923,10 @@ pub fn logging_organizations_locations_get(
 pub fn logging_organizations_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25075,13 +25077,13 @@ pub struct LoggingOrganizationsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations
@@ -25124,7 +25126,7 @@ pub fn logging_organizations_locations_list(
 pub fn logging_organizations_locations_buckets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bucketId: &Option<Option<String>>,
+    bucketId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25264,7 +25266,7 @@ pub struct LoggingOrganizationsLocationsBucketsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bucketId
-    pub bucketId: Option<Option<String>>,
+    pub bucketId: Option<String>,
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets
@@ -25302,7 +25304,7 @@ pub fn logging_organizations_locations_buckets_create(
 pub fn logging_organizations_locations_buckets_create_async_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bucketId: &Option<Option<String>>,
+    bucketId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25442,7 +25444,7 @@ pub struct LoggingOrganizationsLocationsBucketsCreateAsyncArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bucketId
-    pub bucketId: Option<Option<String>>,
+    pub bucketId: Option<String>,
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets:createAsync
@@ -25800,8 +25802,8 @@ pub fn logging_organizations_locations_buckets_get(
 pub fn logging_organizations_locations_buckets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25946,9 +25948,9 @@ pub struct LoggingOrganizationsLocationsBucketsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets
@@ -25989,7 +25991,7 @@ pub fn logging_organizations_locations_buckets_list(
 pub fn logging_organizations_locations_buckets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26129,7 +26131,7 @@ pub struct LoggingOrganizationsLocationsBucketsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}
@@ -26327,7 +26329,7 @@ pub fn logging_organizations_locations_buckets_undelete(
 pub fn logging_organizations_locations_buckets_update_async_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26467,7 +26469,7 @@ pub struct LoggingOrganizationsLocationsBucketsUpdateAsyncArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
@@ -26505,7 +26507,7 @@ pub fn logging_organizations_locations_buckets_update_async(
 pub fn logging_organizations_locations_buckets_links_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    linkId: &Option<Option<String>>,
+    linkId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26645,7 +26647,7 @@ pub struct LoggingOrganizationsLocationsBucketsLinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: linkId
-    pub linkId: Option<Option<String>>,
+    pub linkId: Option<String>,
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/links
@@ -27003,8 +27005,8 @@ pub fn logging_organizations_locations_buckets_links_get(
 pub fn logging_organizations_locations_buckets_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27149,9 +27151,9 @@ pub struct LoggingOrganizationsLocationsBucketsLinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/links
@@ -27192,7 +27194,7 @@ pub fn logging_organizations_locations_buckets_links_list(
 pub fn logging_organizations_locations_buckets_views_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    viewId: &Option<Option<String>>,
+    viewId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27332,7 +27334,7 @@ pub struct LoggingOrganizationsLocationsBucketsViewsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: viewId
-    pub viewId: Option<Option<String>>,
+    pub viewId: Option<String>,
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/views
@@ -27853,8 +27855,8 @@ pub fn logging_organizations_locations_buckets_views_get_iam_policy(
 pub fn logging_organizations_locations_buckets_views_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27999,9 +28001,9 @@ pub struct LoggingOrganizationsLocationsBucketsViewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/views
@@ -28042,7 +28044,7 @@ pub fn logging_organizations_locations_buckets_views_list(
 pub fn logging_organizations_locations_buckets_views_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28182,7 +28184,7 @@ pub struct LoggingOrganizationsLocationsBucketsViewsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
@@ -28554,9 +28556,9 @@ pub fn logging_organizations_locations_buckets_views_test_iam_permissions(
 pub fn logging_organizations_locations_buckets_views_logs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resourceNames: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28704,11 +28706,11 @@ pub struct LoggingOrganizationsLocationsBucketsViewsLogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resourceNames
-    pub resourceNames: Option<Option<String>>,
+    pub resourceNames: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}/logs
@@ -28750,7 +28752,7 @@ pub fn logging_organizations_locations_buckets_views_logs_list(
 pub fn logging_organizations_locations_log_scopes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    logScopeId: &Option<Option<String>>,
+    logScopeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28890,7 +28892,7 @@ pub struct LoggingOrganizationsLocationsLogScopesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: logScopeId
-    pub logScopeId: Option<Option<String>>,
+    pub logScopeId: Option<String>,
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/logScopes
@@ -29248,8 +29250,8 @@ pub fn logging_organizations_locations_log_scopes_get(
 pub fn logging_organizations_locations_log_scopes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29394,9 +29396,9 @@ pub struct LoggingOrganizationsLocationsLogScopesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/logScopes
@@ -29437,7 +29439,7 @@ pub fn logging_organizations_locations_log_scopes_list(
 pub fn logging_organizations_locations_log_scopes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29577,7 +29579,7 @@ pub struct LoggingOrganizationsLocationsLogScopesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/organizations/{organizationsId}/locations/{locationsId}/logScopes/{logScopesId}
@@ -29935,10 +29937,10 @@ pub fn logging_organizations_locations_operations_get(
 pub fn logging_organizations_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30089,13 +30091,13 @@ pub struct LoggingOrganizationsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
@@ -30138,9 +30140,9 @@ pub fn logging_organizations_locations_operations_list(
 pub fn logging_organizations_locations_recent_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30288,11 +30290,11 @@ pub struct LoggingOrganizationsLocationsRecentQueriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/recentQueries
@@ -30334,7 +30336,7 @@ pub fn logging_organizations_locations_recent_queries_list(
 pub fn logging_organizations_locations_saved_queries_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    savedQueryId: &Option<Option<String>>,
+    savedQueryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30474,7 +30476,7 @@ pub struct LoggingOrganizationsLocationsSavedQueriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: savedQueryId
-    pub savedQueryId: Option<Option<String>>,
+    pub savedQueryId: Option<String>,
 }
 
 /// POST v2/organizations/{organizationsId}/locations/{locationsId}/savedQueries
@@ -30832,9 +30834,9 @@ pub fn logging_organizations_locations_saved_queries_get(
 pub fn logging_organizations_locations_saved_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30982,11 +30984,11 @@ pub struct LoggingOrganizationsLocationsSavedQueriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/savedQueries
@@ -31028,7 +31030,7 @@ pub fn logging_organizations_locations_saved_queries_list(
 pub fn logging_organizations_locations_saved_queries_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31168,7 +31170,7 @@ pub struct LoggingOrganizationsLocationsSavedQueriesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/organizations/{organizationsId}/locations/{locationsId}/savedQueries/{savedQueriesId}
@@ -31366,9 +31368,9 @@ pub fn logging_organizations_logs_delete(
 pub fn logging_organizations_logs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resourceNames: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31516,11 +31518,11 @@ pub struct LoggingOrganizationsLogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resourceNames
-    pub resourceNames: Option<Option<String>>,
+    pub resourceNames: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/logs
@@ -31562,8 +31564,8 @@ pub fn logging_organizations_logs_list(
 pub fn logging_organizations_sinks_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31706,9 +31708,9 @@ pub struct LoggingOrganizationsSinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
 }
 
 /// POST v2/organizations/{organizationsId}/sinks
@@ -32067,9 +32069,9 @@ pub fn logging_organizations_sinks_get(
 pub fn logging_organizations_sinks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32217,11 +32219,11 @@ pub struct LoggingOrganizationsSinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/sinks
@@ -32263,9 +32265,9 @@ pub fn logging_organizations_sinks_list(
 pub fn logging_organizations_sinks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     sinkName: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32411,11 +32413,11 @@ pub struct LoggingOrganizationsSinksPatchArgs {
     /// Path parameter: sinkName
     pub sinkName: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/organizations/{organizationsId}/sinks/{sinksId}
@@ -32455,9 +32457,9 @@ pub fn logging_organizations_sinks_patch(
 pub fn logging_organizations_sinks_update_builder<R>(
     client: &SimpleHttpClient<R>,
     sinkName: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32603,11 +32605,11 @@ pub struct LoggingOrganizationsSinksUpdateArgs {
     /// Path parameter: sinkName
     pub sinkName: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PUT v2/organizations/{organizationsId}/sinks/{sinksId}
@@ -33459,8 +33461,8 @@ pub fn logging_projects_exclusions_get(
 pub fn logging_projects_exclusions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33605,9 +33607,9 @@ pub struct LoggingProjectsExclusionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/exclusions
@@ -33648,7 +33650,7 @@ pub fn logging_projects_exclusions_list(
 pub fn logging_projects_exclusions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33790,7 +33792,7 @@ pub struct LoggingProjectsExclusionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/exclusions/{exclusionsId}
@@ -33986,10 +33988,10 @@ pub fn logging_projects_locations_get(
 pub fn logging_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34140,13 +34142,13 @@ pub struct LoggingProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations
@@ -34189,7 +34191,7 @@ pub fn logging_projects_locations_list(
 pub fn logging_projects_locations_buckets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bucketId: &Option<Option<String>>,
+    bucketId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34329,7 +34331,7 @@ pub struct LoggingProjectsLocationsBucketsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bucketId
-    pub bucketId: Option<Option<String>>,
+    pub bucketId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets
@@ -34364,7 +34366,7 @@ pub fn logging_projects_locations_buckets_create(
 pub fn logging_projects_locations_buckets_create_async_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bucketId: &Option<Option<String>>,
+    bucketId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34504,7 +34506,7 @@ pub struct LoggingProjectsLocationsBucketsCreateAsyncArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bucketId
-    pub bucketId: Option<Option<String>>,
+    pub bucketId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets:createAsync
@@ -34862,8 +34864,8 @@ pub fn logging_projects_locations_buckets_get(
 pub fn logging_projects_locations_buckets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35008,9 +35010,9 @@ pub struct LoggingProjectsLocationsBucketsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets
@@ -35051,7 +35053,7 @@ pub fn logging_projects_locations_buckets_list(
 pub fn logging_projects_locations_buckets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35191,7 +35193,7 @@ pub struct LoggingProjectsLocationsBucketsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}
@@ -35386,7 +35388,7 @@ pub fn logging_projects_locations_buckets_undelete(
 pub fn logging_projects_locations_buckets_update_async_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35526,7 +35528,7 @@ pub struct LoggingProjectsLocationsBucketsUpdateAsyncArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}:updateAsync
@@ -35564,7 +35566,7 @@ pub fn logging_projects_locations_buckets_update_async(
 pub fn logging_projects_locations_buckets_links_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    linkId: &Option<Option<String>>,
+    linkId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35704,7 +35706,7 @@ pub struct LoggingProjectsLocationsBucketsLinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: linkId
-    pub linkId: Option<Option<String>>,
+    pub linkId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/links
@@ -36062,8 +36064,8 @@ pub fn logging_projects_locations_buckets_links_get(
 pub fn logging_projects_locations_buckets_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36208,9 +36210,9 @@ pub struct LoggingProjectsLocationsBucketsLinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/links
@@ -36251,7 +36253,7 @@ pub fn logging_projects_locations_buckets_links_list(
 pub fn logging_projects_locations_buckets_views_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    viewId: &Option<Option<String>>,
+    viewId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36391,7 +36393,7 @@ pub struct LoggingProjectsLocationsBucketsViewsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: viewId
-    pub viewId: Option<Option<String>>,
+    pub viewId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/views
@@ -36910,8 +36912,8 @@ pub fn logging_projects_locations_buckets_views_get_iam_policy(
 pub fn logging_projects_locations_buckets_views_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37056,9 +37058,9 @@ pub struct LoggingProjectsLocationsBucketsViewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/views
@@ -37099,7 +37101,7 @@ pub fn logging_projects_locations_buckets_views_list(
 pub fn logging_projects_locations_buckets_views_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37239,7 +37241,7 @@ pub struct LoggingProjectsLocationsBucketsViewsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}
@@ -37609,9 +37611,9 @@ pub fn logging_projects_locations_buckets_views_test_iam_permissions(
 pub fn logging_projects_locations_buckets_views_logs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resourceNames: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37759,11 +37761,11 @@ pub struct LoggingProjectsLocationsBucketsViewsLogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resourceNames
-    pub resourceNames: Option<Option<String>>,
+    pub resourceNames: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/buckets/{bucketsId}/views/{viewsId}/logs
@@ -37805,7 +37807,7 @@ pub fn logging_projects_locations_buckets_views_logs_list(
 pub fn logging_projects_locations_log_scopes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    logScopeId: &Option<Option<String>>,
+    logScopeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37945,7 +37947,7 @@ pub struct LoggingProjectsLocationsLogScopesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: logScopeId
-    pub logScopeId: Option<Option<String>>,
+    pub logScopeId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/logScopes
@@ -38303,8 +38305,8 @@ pub fn logging_projects_locations_log_scopes_get(
 pub fn logging_projects_locations_log_scopes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -38449,9 +38451,9 @@ pub struct LoggingProjectsLocationsLogScopesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/logScopes
@@ -38492,7 +38494,7 @@ pub fn logging_projects_locations_log_scopes_list(
 pub fn logging_projects_locations_log_scopes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -38632,7 +38634,7 @@ pub struct LoggingProjectsLocationsLogScopesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/logScopes/{logScopesId}
@@ -38987,10 +38989,10 @@ pub fn logging_projects_locations_operations_get(
 pub fn logging_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39141,13 +39143,13 @@ pub struct LoggingProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
@@ -39190,9 +39192,9 @@ pub fn logging_projects_locations_operations_list(
 pub fn logging_projects_locations_recent_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39340,11 +39342,11 @@ pub struct LoggingProjectsLocationsRecentQueriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/recentQueries
@@ -39386,7 +39388,7 @@ pub fn logging_projects_locations_recent_queries_list(
 pub fn logging_projects_locations_saved_queries_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    savedQueryId: &Option<Option<String>>,
+    savedQueryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39526,7 +39528,7 @@ pub struct LoggingProjectsLocationsSavedQueriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: savedQueryId
-    pub savedQueryId: Option<Option<String>>,
+    pub savedQueryId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/savedQueries
@@ -39884,9 +39886,9 @@ pub fn logging_projects_locations_saved_queries_get(
 pub fn logging_projects_locations_saved_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40034,11 +40036,11 @@ pub struct LoggingProjectsLocationsSavedQueriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/savedQueries
@@ -40080,7 +40082,7 @@ pub fn logging_projects_locations_saved_queries_list(
 pub fn logging_projects_locations_saved_queries_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40220,7 +40222,7 @@ pub struct LoggingProjectsLocationsSavedQueriesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/savedQueries/{savedQueriesId}
@@ -40418,9 +40420,9 @@ pub fn logging_projects_logs_delete(
 pub fn logging_projects_logs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resourceNames: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    resourceNames: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40565,11 +40567,11 @@ pub struct LoggingProjectsLogsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resourceNames
-    pub resourceNames: Option<Option<String>>,
+    pub resourceNames: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/logs
@@ -41091,8 +41093,8 @@ pub fn logging_projects_metrics_get(
 pub fn logging_projects_metrics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41237,9 +41239,9 @@ pub struct LoggingProjectsMetricsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/metrics
@@ -41440,8 +41442,8 @@ pub fn logging_projects_metrics_update(
 pub fn logging_projects_sinks_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41584,9 +41586,9 @@ pub struct LoggingProjectsSinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/sinks
@@ -41945,9 +41947,9 @@ pub fn logging_projects_sinks_get(
 pub fn logging_projects_sinks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42095,11 +42097,11 @@ pub struct LoggingProjectsSinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/sinks
@@ -42141,9 +42143,9 @@ pub fn logging_projects_sinks_list(
 pub fn logging_projects_sinks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     sinkName: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42289,11 +42291,11 @@ pub struct LoggingProjectsSinksPatchArgs {
     /// Path parameter: sinkName
     pub sinkName: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/sinks/{sinksId}
@@ -42333,9 +42335,9 @@ pub fn logging_projects_sinks_patch(
 pub fn logging_projects_sinks_update_builder<R>(
     client: &SimpleHttpClient<R>,
     sinkName: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42481,11 +42483,11 @@ pub struct LoggingProjectsSinksUpdateArgs {
     /// Path parameter: sinkName
     pub sinkName: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PUT v2/projects/{projectsId}/sinks/{sinksId}
@@ -42525,8 +42527,8 @@ pub fn logging_projects_sinks_update(
 pub fn logging_sinks_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42666,9 +42668,9 @@ pub struct LoggingSinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
 }
 
 /// POST v2/{v2Id}/{v2Id1}/sinks
@@ -43027,9 +43029,9 @@ pub fn logging_sinks_get(
 pub fn logging_sinks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43174,11 +43176,11 @@ pub struct LoggingSinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/{v2Id}/{v2Id1}/sinks
@@ -43220,9 +43222,9 @@ pub fn logging_sinks_list(
 pub fn logging_sinks_update_builder<R>(
     client: &SimpleHttpClient<R>,
     sinkName: &String,
-    customWriterIdentity: &Option<Option<String>>,
-    uniqueWriterIdentity: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    customWriterIdentity: &Option<String>,
+    uniqueWriterIdentity: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43368,11 +43370,11 @@ pub struct LoggingSinksUpdateArgs {
     /// Path parameter: sinkName
     pub sinkName: String,
     /// Query parameter: customWriterIdentity
-    pub customWriterIdentity: Option<Option<String>>,
+    pub customWriterIdentity: Option<String>,
     /// Query parameter: uniqueWriterIdentity
-    pub uniqueWriterIdentity: Option<Option<String>>,
+    pub uniqueWriterIdentity: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PUT v2/{v2Id}/{v2Id1}/sinks/{sinksId}
@@ -43736,7 +43738,7 @@ pub fn logging_get_settings(
 pub fn logging_update_cmek_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43878,7 +43880,7 @@ pub struct LoggingUpdateCmekSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/cmekSettings
@@ -43914,7 +43916,7 @@ pub fn logging_update_cmek_settings(
 pub fn logging_update_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -44054,7 +44056,7 @@ pub struct LoggingUpdateSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/{v2Id}/{v2Id1}/settings
@@ -45173,98 +45175,6 @@ impl ResourceIdentifier<LoggingBillingAccountsSinksUpdateArgs> for LogSink {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::logging::LogSink"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Operation with LoggingEntriesCopyArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<LoggingEntriesCopyArgs> for Operation {
-    fn generate_resource_id(&self, input: &LoggingEntriesCopyArgs) -> String {
-        "gcp::logging::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::logging::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ListLogEntriesResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ListLogEntriesResponse with LoggingEntriesListArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<LoggingEntriesListArgs> for ListLogEntriesResponse {
-    fn generate_resource_id(&self, input: &LoggingEntriesListArgs) -> String {
-        "gcp::logging::ListLogEntriesResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::logging::ListLogEntriesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for TailLogEntriesResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for TailLogEntriesResponse with LoggingEntriesTailArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<LoggingEntriesTailArgs> for TailLogEntriesResponse {
-    fn generate_resource_id(&self, input: &LoggingEntriesTailArgs) -> String {
-        "gcp::logging::TailLogEntriesResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::logging::TailLogEntriesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for WriteLogEntriesResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for WriteLogEntriesResponse with LoggingEntriesWriteArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<LoggingEntriesWriteArgs> for WriteLogEntriesResponse {
-    fn generate_resource_id(&self, input: &LoggingEntriesWriteArgs) -> String {
-        "gcp::logging::WriteLogEntriesResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::logging::WriteLogEntriesResponse"
     }
 
     fn provider(&self) -> &'static str {

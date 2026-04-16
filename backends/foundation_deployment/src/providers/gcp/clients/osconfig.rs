@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,8 +32,8 @@ use serde::Serialize;
 pub fn osconfig_folders_locations_global_policy_orchestrators_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    policyOrchestratorId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    policyOrchestratorId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -174,9 +176,9 @@ pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: policyOrchestratorId
-    pub policyOrchestratorId: Option<Option<String>>,
+    pub policyOrchestratorId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v2/folders/{foldersId}/locations/global/policyOrchestrators
@@ -215,8 +217,8 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_create(
 pub fn osconfig_folders_locations_global_policy_orchestrators_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -359,9 +361,9 @@ pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
@@ -570,10 +572,10 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_get(
 pub fn osconfig_folders_locations_global_policy_orchestrators_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -730,13 +732,13 @@ pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/locations/global/policyOrchestrators
@@ -781,7 +783,7 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_list(
 pub fn osconfig_folders_locations_global_policy_orchestrators_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -921,7 +923,7 @@ pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
@@ -1439,10 +1441,10 @@ pub fn osconfig_folders_locations_operations_get(
 pub fn osconfig_folders_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1593,13 +1595,13 @@ pub struct OsconfigFoldersLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations
@@ -1642,8 +1644,8 @@ pub fn osconfig_folders_locations_operations_list(
 pub fn osconfig_organizations_locations_global_policy_orchestrators_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    policyOrchestratorId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    policyOrchestratorId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1786,9 +1788,9 @@ pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: policyOrchestratorId
-    pub policyOrchestratorId: Option<Option<String>>,
+    pub policyOrchestratorId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v2/organizations/{organizationsId}/locations/global/policyOrchestrators
@@ -1827,8 +1829,8 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_create(
 pub fn osconfig_organizations_locations_global_policy_orchestrators_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1971,9 +1973,9 @@ pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
@@ -2183,10 +2185,10 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_get(
 pub fn osconfig_organizations_locations_global_policy_orchestrators_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2343,13 +2345,13 @@ pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators
@@ -2394,7 +2396,7 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_list(
 pub fn osconfig_organizations_locations_global_policy_orchestrators_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2534,7 +2536,7 @@ pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
@@ -3052,10 +3054,10 @@ pub fn osconfig_organizations_locations_operations_get(
 pub fn osconfig_organizations_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3206,13 +3208,13 @@ pub struct OsconfigOrganizationsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
@@ -3255,8 +3257,8 @@ pub fn osconfig_organizations_locations_operations_list(
 pub fn osconfig_projects_locations_global_policy_orchestrators_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    policyOrchestratorId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    policyOrchestratorId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3399,9 +3401,9 @@ pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: policyOrchestratorId
-    pub policyOrchestratorId: Option<Option<String>>,
+    pub policyOrchestratorId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/global/policyOrchestrators
@@ -3440,8 +3442,8 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_create(
 pub fn osconfig_projects_locations_global_policy_orchestrators_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3584,9 +3586,9 @@ pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
@@ -3795,10 +3797,10 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_get(
 pub fn osconfig_projects_locations_global_policy_orchestrators_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3955,13 +3957,13 @@ pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/global/policyOrchestrators
@@ -4006,7 +4008,7 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_list(
 pub fn osconfig_projects_locations_global_policy_orchestrators_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4146,7 +4148,7 @@ pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
@@ -4664,10 +4666,10 @@ pub fn osconfig_projects_locations_operations_get(
 pub fn osconfig_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4818,13 +4820,13 @@ pub struct OsconfigProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,9 +32,9 @@ use serde::Serialize;
 pub fn paymentsresellersubscription_partners_products_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -180,11 +182,11 @@ pub struct PaymentsresellersubscriptionPartnersProductsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/partners/{partnersId}/products
@@ -397,9 +399,9 @@ pub fn paymentsresellersubscription_partners_promotions_find_eligible(
 pub fn paymentsresellersubscription_partners_promotions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -547,11 +549,11 @@ pub struct PaymentsresellersubscriptionPartnersPromotionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/partners/{partnersId}/promotions
@@ -762,7 +764,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_cancel(
 pub fn paymentsresellersubscription_partners_subscriptions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    subscriptionId: &Option<Option<String>>,
+    subscriptionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -904,7 +906,7 @@ pub struct PaymentsresellersubscriptionPartnersSubscriptionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: subscriptionId
-    pub subscriptionId: Option<Option<String>>,
+    pub subscriptionId: Option<String>,
 }
 
 /// POST v1/partners/{partnersId}/subscriptions
@@ -1447,9 +1449,9 @@ pub fn paymentsresellersubscription_partners_subscriptions_get(
 pub fn paymentsresellersubscription_partners_subscriptions_provision_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    cycleOptions_initialCycleDuration_count: &Option<Option<String>>,
-    cycleOptions_initialCycleDuration_unit: &Option<Option<String>>,
-    subscriptionId: &Option<Option<String>>,
+    cycleOptions_initialCycleDuration_count: &Option<String>,
+    cycleOptions_initialCycleDuration_unit: &Option<String>,
+    subscriptionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1597,11 +1599,11 @@ pub struct PaymentsresellersubscriptionPartnersSubscriptionsProvisionArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: cycleOptions_initialCycleDuration_count
-    pub cycleOptions_initialCycleDuration_count: Option<Option<String>>,
+    pub cycleOptions_initialCycleDuration_count: Option<String>,
     /// Query parameter: cycleOptions_initialCycleDuration_unit
-    pub cycleOptions_initialCycleDuration_unit: Option<Option<String>>,
+    pub cycleOptions_initialCycleDuration_unit: Option<String>,
     /// Query parameter: subscriptionId
-    pub subscriptionId: Option<Option<String>>,
+    pub subscriptionId: Option<String>,
 }
 
 /// POST v1/partners/{partnersId}/subscriptions:provision
@@ -2151,7 +2153,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_undo_cancel(
 pub fn paymentsresellersubscription_partners_subscriptions_line_items_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2293,7 +2295,7 @@ pub struct PaymentsresellersubscriptionPartnersSubscriptionsLineItemsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/partners/{partnersId}/subscriptions/{subscriptionsId}/lineItems/{lineItemsId}

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -1065,8 +1067,8 @@ pub fn discoveryengine_projects_locations_set_up_data_connector(
 pub fn discoveryengine_projects_locations_set_up_data_connector_v2_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    collectionDisplayName: &Option<Option<String>>,
-    collectionId: &Option<Option<String>>,
+    collectionDisplayName: &Option<String>,
+    collectionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1213,9 +1215,9 @@ pub struct DiscoveryengineProjectsLocationsSetUpDataConnectorV2Args {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: collectionDisplayName
-    pub collectionDisplayName: Option<Option<String>>,
+    pub collectionDisplayName: Option<String>,
     /// Query parameter: collectionId
-    pub collectionId: Option<Option<String>>,
+    pub collectionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}:setUpDataConnectorV2
@@ -1426,7 +1428,7 @@ pub fn discoveryengine_projects_locations_update_acl_config(
 pub fn discoveryengine_projects_locations_update_cmek_config_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    setDefault: &Option<Option<String>>,
+    setDefault: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1570,7 +1572,7 @@ pub struct DiscoveryengineProjectsLocationsUpdateCmekConfigArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: setDefault
-    pub setDefault: Option<Option<String>>,
+    pub setDefault: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/cmekConfig
@@ -2122,7 +2124,7 @@ pub fn discoveryengine_projects_locations_cmek_configs_list(
 pub fn discoveryengine_projects_locations_cmek_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    setDefault: &Option<Option<String>>,
+    setDefault: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2266,7 +2268,7 @@ pub struct DiscoveryengineProjectsLocationsCmekConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: setDefault
-    pub setDefault: Option<Option<String>>,
+    pub setDefault: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/cmekConfigs/{cmekConfigsId}
@@ -2647,7 +2649,7 @@ pub fn discoveryengine_projects_locations_collections_get_data_connector(
 pub fn discoveryengine_projects_locations_collections_update_data_connector_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2791,7 +2793,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsUpdateDataConnectorArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataConnector
@@ -2835,9 +2837,9 @@ pub fn discoveryengine_projects_locations_collections_data_connector_mcp_builder
     projectsId: &String,
     locationsId: &String,
     collectionsId: &String,
-    contentType: &Option<Option<String>>,
-    data: &Option<Option<String>>,
-    extensions: &Option<Option<String>>,
+    contentType: &Option<String>,
+    data: &Option<String>,
+    extensions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2991,11 +2993,11 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataConnectorMcpArgs {
     /// Path parameter: collectionsId
     pub collectionsId: String,
     /// Query parameter: contentType
-    pub contentType: Option<Option<String>>,
+    pub contentType: Option<String>,
     /// Query parameter: data
-    pub data: Option<Option<String>>,
+    pub data: Option<String>,
     /// Query parameter: extensions
-    pub extensions: Option<Option<String>>,
+    pub extensions: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataConnector/mcp
@@ -3211,10 +3213,10 @@ pub fn discoveryengine_projects_locations_collections_data_connector_operations_
 pub fn discoveryengine_projects_locations_collections_data_connector_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3370,13 +3372,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataConnectorOperationsLis
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataConnector/operations
@@ -3422,10 +3424,10 @@ pub fn discoveryengine_projects_locations_collections_data_connector_operations_
 pub fn discoveryengine_projects_locations_collections_data_stores_complete_query_builder<R>(
     client: &SimpleHttpClient<R>,
     dataStore: &String,
-    includeTailSuggestions: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    queryModel: &Option<Option<String>>,
-    userPseudoId: &Option<Option<String>>,
+    includeTailSuggestions: &Option<String>,
+    query: &Option<String>,
+    queryModel: &Option<String>,
+    userPseudoId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3583,13 +3585,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresCompleteQueryArg
     /// Path parameter: dataStore
     pub dataStore: String,
     /// Query parameter: includeTailSuggestions
-    pub includeTailSuggestions: Option<Option<String>>,
+    pub includeTailSuggestions: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: queryModel
-    pub queryModel: Option<Option<String>>,
+    pub queryModel: Option<String>,
     /// Query parameter: userPseudoId
-    pub userPseudoId: Option<Option<String>>,
+    pub userPseudoId: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}:completeQuery
@@ -3635,11 +3637,11 @@ pub fn discoveryengine_projects_locations_collections_data_stores_complete_query
 pub fn discoveryengine_projects_locations_collections_data_stores_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    cmekConfigName: &Option<Option<String>>,
-    createAdvancedSiteSearch: &Option<Option<String>>,
-    dataStoreId: &Option<Option<String>>,
-    disableCmek: &Option<Option<String>>,
-    skipDefaultSchemaCreation: &Option<Option<String>>,
+    cmekConfigName: &Option<String>,
+    createAdvancedSiteSearch: &Option<String>,
+    dataStoreId: &Option<String>,
+    disableCmek: &Option<String>,
+    skipDefaultSchemaCreation: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3795,15 +3797,15 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: cmekConfigName
-    pub cmekConfigName: Option<Option<String>>,
+    pub cmekConfigName: Option<String>,
     /// Query parameter: createAdvancedSiteSearch
-    pub createAdvancedSiteSearch: Option<Option<String>>,
+    pub createAdvancedSiteSearch: Option<String>,
     /// Query parameter: dataStoreId
-    pub dataStoreId: Option<Option<String>>,
+    pub dataStoreId: Option<String>,
     /// Query parameter: disableCmek
-    pub disableCmek: Option<Option<String>>,
+    pub disableCmek: Option<String>,
     /// Query parameter: skipDefaultSchemaCreation
-    pub skipDefaultSchemaCreation: Option<Option<String>>,
+    pub skipDefaultSchemaCreation: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores
@@ -4367,9 +4369,9 @@ pub fn discoveryengine_projects_locations_collections_data_stores_get_site_searc
 pub fn discoveryengine_projects_locations_collections_data_stores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4523,11 +4525,11 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores
@@ -4571,7 +4573,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_list(
 pub fn discoveryengine_projects_locations_collections_data_stores_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4715,7 +4717,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}
@@ -4933,8 +4935,8 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_batch
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    matcher_fhirMatcher_fhirResources: &Option<Option<String>>,
-    matcher_urisMatcher_uris: &Option<Option<String>>,
+    matcher_fhirMatcher_fhirResources: &Option<String>,
+    matcher_urisMatcher_uris: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5089,9 +5091,9 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesBatchGet
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: matcher_fhirMatcher_fhirResources
-    pub matcher_fhirMatcher_fhirResources: Option<Option<String>>,
+    pub matcher_fhirMatcher_fhirResources: Option<String>,
     /// Query parameter: matcher_urisMatcher_uris
-    pub matcher_urisMatcher_uris: Option<Option<String>>,
+    pub matcher_urisMatcher_uris: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/batchGetDocumentsMetadata
@@ -5134,7 +5136,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    documentId: &Option<Option<String>>,
+    documentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5281,7 +5283,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocument
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: documentId
-    pub documentId: Option<Option<String>>,
+    pub documentId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents
@@ -5847,8 +5849,8 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6002,9 +6004,9 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocument
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents
@@ -6052,8 +6054,8 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6203,9 +6205,9 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocument
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}
@@ -6771,10 +6773,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6931,13 +6933,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesOperatio
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations
@@ -7501,7 +7503,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_completion_sug
 pub fn discoveryengine_projects_locations_collections_data_stores_controls_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    controlId: &Option<Option<String>>,
+    controlId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7646,7 +7648,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresControlsCreateAr
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: controlId
-    pub controlId: Option<Option<String>>,
+    pub controlId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/controls
@@ -8028,9 +8030,9 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_get(
 pub fn discoveryengine_projects_locations_collections_data_stores_controls_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8182,11 +8184,11 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresControlsListArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/controls
@@ -8230,7 +8232,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_list(
 pub fn discoveryengine_projects_locations_collections_data_stores_controls_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8375,7 +8377,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresControlsPatchArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/controls/{controlsId}
@@ -9123,10 +9125,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 pub fn discoveryengine_projects_locations_collections_data_stores_conversations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9288,13 +9290,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsLis
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations
@@ -9343,7 +9345,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 pub fn discoveryengine_projects_locations_collections_data_stores_conversations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9489,7 +9491,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsPat
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations/{conversationsId}
@@ -9888,10 +9890,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_models_operati
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10048,13 +10050,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresModelsOperations
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/models/{modelsId}/operations
@@ -10274,10 +10276,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_operations_get
 pub fn discoveryengine_projects_locations_collections_data_stores_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10432,13 +10434,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresOperationsListAr
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/operations
@@ -10484,7 +10486,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_operations_lis
 pub fn discoveryengine_projects_locations_collections_data_stores_schemas_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    schemaId: &Option<Option<String>>,
+    schemaId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10629,7 +10631,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasCreateArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: schemaId
-    pub schemaId: Option<Option<String>>,
+    pub schemaId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas
@@ -11015,8 +11017,8 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_get(
 pub fn discoveryengine_projects_locations_collections_data_stores_schemas_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11165,9 +11167,9 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas
@@ -11210,7 +11212,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_list(
 pub fn discoveryengine_projects_locations_collections_data_stores_schemas_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
+    allowMissing: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11355,7 +11357,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasPatchArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}
@@ -11577,10 +11579,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operat
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11737,13 +11739,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasOperation
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}/operations
@@ -11973,7 +11975,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    servingConfigId: &Option<Option<String>>,
+    servingConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12120,7 +12122,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsCr
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: servingConfigId
-    pub servingConfigId: Option<Option<String>>,
+    pub servingConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs
@@ -12512,8 +12514,8 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12670,9 +12672,9 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsLi
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs
@@ -12719,7 +12721,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12866,7 +12868,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsPa
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}
@@ -13613,7 +13615,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 pub fn discoveryengine_projects_locations_collections_data_stores_sessions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    sessionId: &Option<Option<String>>,
+    sessionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13758,7 +13760,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsCreateAr
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: sessionId
-    pub sessionId: Option<Option<String>>,
+    pub sessionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions
@@ -13969,7 +13971,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_delet
 pub fn discoveryengine_projects_locations_collections_data_stores_sessions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    includeAnswerDetails: &Option<Option<String>>,
+    includeAnswerDetails: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14114,7 +14116,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsGetArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: includeAnswerDetails
-    pub includeAnswerDetails: Option<Option<String>>,
+    pub includeAnswerDetails: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions/{sessionsId}
@@ -14156,10 +14158,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_get(
 pub fn discoveryengine_projects_locations_collections_data_stores_sessions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14314,13 +14316,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsListArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions
@@ -14365,7 +14367,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_list(
 pub fn discoveryengine_projects_locations_collections_data_stores_sessions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14510,7 +14512,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsPatchArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions/{sessionsId}
@@ -15242,8 +15244,8 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 >(
     client: &SimpleHttpClient<R>,
     siteSearchEngine: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15398,9 +15400,9 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngine
     /// Path parameter: siteSearchEngine
     pub siteSearchEngine: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:fetchDomainVerificationStatus
@@ -15783,10 +15785,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15940,13 +15942,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngine
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/operations
@@ -16326,7 +16328,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    matcher_urisMatcher_uris: &Option<Option<String>>,
+    matcher_urisMatcher_uris: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16474,7 +16476,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngine
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: matcher_urisMatcher_uris
-    pub matcher_urisMatcher_uris: Option<Option<String>>,
+    pub matcher_urisMatcher_uris: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps:fetch
@@ -17197,8 +17199,8 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17350,9 +17352,9 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngine
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites
@@ -17734,10 +17736,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17892,13 +17894,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngine
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/operations
@@ -18277,9 +18279,9 @@ pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_den
 pub fn discoveryengine_projects_locations_collections_data_stores_user_events_collect_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    ets: &Option<Option<String>>,
-    uri: &Option<Option<String>>,
-    userEvent: &Option<Option<String>>,
+    ets: &Option<String>,
+    uri: &Option<String>,
+    userEvent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18429,11 +18431,11 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresUserEventsCollec
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: ets
-    pub ets: Option<Option<String>>,
+    pub ets: Option<String>,
     /// Query parameter: uri
-    pub uri: Option<Option<String>>,
+    pub uri: Option<String>,
     /// Query parameter: userEvent
-    pub userEvent: Option<Option<String>>,
+    pub userEvent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/userEvents:collect
@@ -18823,7 +18825,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_pu
 pub fn discoveryengine_projects_locations_collections_data_stores_user_events_write_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    writeAsync: &Option<Option<String>>,
+    writeAsync: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18968,7 +18970,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresUserEventsWriteA
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: writeAsync
-    pub writeAsync: Option<Option<String>>,
+    pub writeAsync: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/userEvents:write
@@ -19011,8 +19013,8 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_wr
 pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    acceptCache: &Option<Option<String>>,
-    getWidgetConfigRequestOption_turnOffCollectionComponents: &Option<Option<String>>,
+    acceptCache: &Option<String>,
+    getWidgetConfigRequestOption_turnOffCollectionComponents: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19164,9 +19166,9 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresWidgetConfigsGet
     /// Path parameter: name
     pub name: String,
     /// Query parameter: acceptCache
-    pub acceptCache: Option<Option<String>>,
+    pub acceptCache: Option<String>,
     /// Query parameter: getWidgetConfigRequestOption_turnOffCollectionComponents
-    pub getWidgetConfigRequestOption_turnOffCollectionComponents: Option<Option<String>>,
+    pub getWidgetConfigRequestOption_turnOffCollectionComponents: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/widgetConfigs/{widgetConfigsId}
@@ -19210,7 +19212,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs
 pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19357,7 +19359,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresWidgetConfigsPat
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/widgetConfigs/{widgetConfigsId}
@@ -19400,7 +19402,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs
 pub fn discoveryengine_projects_locations_collections_engines_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    engineId: &Option<Option<String>>,
+    engineId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19544,7 +19546,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: engineId
-    pub engineId: Option<Option<String>>,
+    pub engineId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines
@@ -19924,7 +19926,7 @@ pub fn discoveryengine_projects_locations_collections_engines_get(
 pub fn discoveryengine_projects_locations_collections_engines_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20066,7 +20068,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}:getIamPolicy
@@ -20106,9 +20108,9 @@ pub fn discoveryengine_projects_locations_collections_engines_get_iam_policy(
 pub fn discoveryengine_projects_locations_collections_engines_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20259,11 +20261,11 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines
@@ -20307,7 +20309,7 @@ pub fn discoveryengine_projects_locations_collections_engines_list(
 pub fn discoveryengine_projects_locations_collections_engines_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20451,7 +20453,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}
@@ -20660,7 +20662,7 @@ pub fn discoveryengine_projects_locations_collections_engines_set_iam_policy(
 pub fn discoveryengine_projects_locations_collections_engines_assistants_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    assistantId: &Option<Option<String>>,
+    assistantId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20805,7 +20807,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsCreateArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: assistantId
-    pub assistantId: Option<Option<String>>,
+    pub assistantId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants
@@ -21184,8 +21186,8 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_get(
 pub fn discoveryengine_projects_locations_collections_engines_assistants_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21337,9 +21339,9 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants
@@ -21382,7 +21384,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_list(
 pub fn discoveryengine_projects_locations_collections_engines_assistants_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21527,7 +21529,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsPatchArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}
@@ -22414,7 +22416,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     client: &SimpleHttpClient<R>,
     tenant: &String,
     name: &String,
-    historyLength: &Option<Option<String>>,
+    historyLength: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22557,7 +22559,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2A
     /// Path parameter: name
     pub name: String,
     /// Query parameter: historyLength
-    pub historyLength: Option<Option<String>>,
+    pub historyLength: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}
@@ -22765,7 +22767,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     client: &SimpleHttpClient<R>,
     tenant: &String,
     parent: &String,
-    configId: &Option<Option<String>>,
+    configId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22913,7 +22915,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2A
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: configId
-    pub configId: Option<Option<String>>,
+    pub configId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}/pushNotificationConfigs
@@ -23300,8 +23302,8 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     client: &SimpleHttpClient<R>,
     tenant: &String,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23453,9 +23455,9 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2A
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}/pushNotificationConfigs
@@ -23847,7 +23849,7 @@ pub fn discoveryengine_projects_locations_collections_engines_completion_config_
 pub fn discoveryengine_projects_locations_collections_engines_controls_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    controlId: &Option<Option<String>>,
+    controlId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23992,7 +23994,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesControlsCreateArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: controlId
-    pub controlId: Option<Option<String>>,
+    pub controlId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/controls
@@ -24371,9 +24373,9 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_get(
 pub fn discoveryengine_projects_locations_collections_engines_controls_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24524,11 +24526,11 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesControlsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/controls
@@ -24572,7 +24574,7 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_list(
 pub fn discoveryengine_projects_locations_collections_engines_controls_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24716,7 +24718,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesControlsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/controls/{controlsId}
@@ -25453,10 +25455,10 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_get(
 pub fn discoveryengine_projects_locations_collections_engines_conversations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25617,13 +25619,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesConversationsListAr
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations
@@ -25672,7 +25674,7 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_list
 pub fn discoveryengine_projects_locations_collections_engines_conversations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25817,7 +25819,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesConversationsPatchA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations/{conversationsId}
@@ -26197,10 +26199,10 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_get(
 pub fn discoveryengine_projects_locations_collections_engines_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26355,13 +26357,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesOperationsListArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations
@@ -26581,7 +26583,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_an
 pub fn discoveryengine_projects_locations_collections_engines_serving_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    servingConfigId: &Option<Option<String>>,
+    servingConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26727,7 +26729,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsCreat
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: servingConfigId
-    pub servingConfigId: Option<Option<String>>,
+    pub servingConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs
@@ -27111,8 +27113,8 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_ge
 pub fn discoveryengine_projects_locations_collections_engines_serving_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27267,9 +27269,9 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsListA
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs
@@ -27316,7 +27318,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_li
 pub fn discoveryengine_projects_locations_collections_engines_serving_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27461,7 +27463,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsPatch
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}
@@ -28213,7 +28215,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_st
 pub fn discoveryengine_projects_locations_collections_engines_sessions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    sessionId: &Option<Option<String>>,
+    sessionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28358,7 +28360,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesSessionsCreateArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: sessionId
-    pub sessionId: Option<Option<String>>,
+    pub sessionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions
@@ -28567,7 +28569,7 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_delete(
 pub fn discoveryengine_projects_locations_collections_engines_sessions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    includeAnswerDetails: &Option<Option<String>>,
+    includeAnswerDetails: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28711,7 +28713,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesSessionsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: includeAnswerDetails
-    pub includeAnswerDetails: Option<Option<String>>,
+    pub includeAnswerDetails: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions/{sessionsId}
@@ -28753,10 +28755,10 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_get(
 pub fn discoveryengine_projects_locations_collections_engines_sessions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28910,13 +28912,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesSessionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions
@@ -28961,7 +28963,7 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_list(
 pub fn discoveryengine_projects_locations_collections_engines_sessions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29105,7 +29107,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesSessionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions/{sessionsId}
@@ -29319,8 +29321,8 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_answers_g
 pub fn discoveryengine_projects_locations_collections_engines_widget_configs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    acceptCache: &Option<Option<String>>,
-    getWidgetConfigRequestOption_turnOffCollectionComponents: &Option<Option<String>>,
+    acceptCache: &Option<String>,
+    getWidgetConfigRequestOption_turnOffCollectionComponents: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29471,9 +29473,9 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesWidgetConfigsGetArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: acceptCache
-    pub acceptCache: Option<Option<String>>,
+    pub acceptCache: Option<String>,
     /// Query parameter: getWidgetConfigRequestOption_turnOffCollectionComponents
-    pub getWidgetConfigRequestOption_turnOffCollectionComponents: Option<Option<String>>,
+    pub getWidgetConfigRequestOption_turnOffCollectionComponents: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/widgetConfigs/{widgetConfigsId}
@@ -29517,7 +29519,7 @@ pub fn discoveryengine_projects_locations_collections_engines_widget_configs_get
 pub fn discoveryengine_projects_locations_collections_engines_widget_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29662,7 +29664,7 @@ pub struct DiscoveryengineProjectsLocationsCollectionsEnginesWidgetConfigsPatchA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/widgetConfigs/{widgetConfigsId}
@@ -29874,10 +29876,10 @@ pub fn discoveryengine_projects_locations_collections_operations_get(
 pub fn discoveryengine_projects_locations_collections_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30031,13 +30033,13 @@ pub struct DiscoveryengineProjectsLocationsCollectionsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/operations
@@ -30082,10 +30084,10 @@ pub fn discoveryengine_projects_locations_collections_operations_list(
 pub fn discoveryengine_projects_locations_data_stores_complete_query_builder<R>(
     client: &SimpleHttpClient<R>,
     dataStore: &String,
-    includeTailSuggestions: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    queryModel: &Option<Option<String>>,
-    userPseudoId: &Option<Option<String>>,
+    includeTailSuggestions: &Option<String>,
+    query: &Option<String>,
+    queryModel: &Option<String>,
+    userPseudoId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30242,13 +30244,13 @@ pub struct DiscoveryengineProjectsLocationsDataStoresCompleteQueryArgs {
     /// Path parameter: dataStore
     pub dataStore: String,
     /// Query parameter: includeTailSuggestions
-    pub includeTailSuggestions: Option<Option<String>>,
+    pub includeTailSuggestions: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: queryModel
-    pub queryModel: Option<Option<String>>,
+    pub queryModel: Option<String>,
     /// Query parameter: userPseudoId
-    pub userPseudoId: Option<Option<String>>,
+    pub userPseudoId: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}:completeQuery
@@ -30293,11 +30295,11 @@ pub fn discoveryengine_projects_locations_data_stores_complete_query(
 pub fn discoveryengine_projects_locations_data_stores_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    cmekConfigName: &Option<Option<String>>,
-    createAdvancedSiteSearch: &Option<Option<String>>,
-    dataStoreId: &Option<Option<String>>,
-    disableCmek: &Option<Option<String>>,
-    skipDefaultSchemaCreation: &Option<Option<String>>,
+    cmekConfigName: &Option<String>,
+    createAdvancedSiteSearch: &Option<String>,
+    dataStoreId: &Option<String>,
+    disableCmek: &Option<String>,
+    skipDefaultSchemaCreation: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30453,15 +30455,15 @@ pub struct DiscoveryengineProjectsLocationsDataStoresCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: cmekConfigName
-    pub cmekConfigName: Option<Option<String>>,
+    pub cmekConfigName: Option<String>,
     /// Query parameter: createAdvancedSiteSearch
-    pub createAdvancedSiteSearch: Option<Option<String>>,
+    pub createAdvancedSiteSearch: Option<String>,
     /// Query parameter: dataStoreId
-    pub dataStoreId: Option<Option<String>>,
+    pub dataStoreId: Option<String>,
     /// Query parameter: disableCmek
-    pub disableCmek: Option<Option<String>>,
+    pub disableCmek: Option<String>,
     /// Query parameter: skipDefaultSchemaCreation
-    pub skipDefaultSchemaCreation: Option<Option<String>>,
+    pub skipDefaultSchemaCreation: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataStores
@@ -31015,9 +31017,9 @@ pub fn discoveryengine_projects_locations_data_stores_get_site_search_engine(
 pub fn discoveryengine_projects_locations_data_stores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31171,11 +31173,11 @@ pub struct DiscoveryengineProjectsLocationsDataStoresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores
@@ -31219,7 +31221,7 @@ pub fn discoveryengine_projects_locations_data_stores_list(
 pub fn discoveryengine_projects_locations_data_stores_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31363,7 +31365,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}
@@ -31407,8 +31409,8 @@ pub fn discoveryengine_projects_locations_data_stores_branches_batch_get_documen
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    matcher_fhirMatcher_fhirResources: &Option<Option<String>>,
-    matcher_urisMatcher_uris: &Option<Option<String>>,
+    matcher_fhirMatcher_fhirResources: &Option<String>,
+    matcher_urisMatcher_uris: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31565,9 +31567,9 @@ pub struct DiscoveryengineProjectsLocationsDataStoresBranchesBatchGetDocumentsMe
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: matcher_fhirMatcher_fhirResources
-    pub matcher_fhirMatcher_fhirResources: Option<Option<String>>,
+    pub matcher_fhirMatcher_fhirResources: Option<String>,
     /// Query parameter: matcher_urisMatcher_uris
-    pub matcher_urisMatcher_uris: Option<Option<String>>,
+    pub matcher_urisMatcher_uris: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/batchGetDocumentsMetadata
@@ -31610,7 +31612,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_batch_get_documen
 pub fn discoveryengine_projects_locations_data_stores_branches_documents_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    documentId: &Option<Option<String>>,
+    documentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31755,7 +31757,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsCreateArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: documentId
-    pub documentId: Option<Option<String>>,
+    pub documentId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents
@@ -32306,8 +32308,8 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_import(
 pub fn discoveryengine_projects_locations_data_stores_branches_documents_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32459,9 +32461,9 @@ pub struct DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents
@@ -32504,8 +32506,8 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_list(
 pub fn discoveryengine_projects_locations_data_stores_branches_documents_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32653,9 +32655,9 @@ pub struct DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsPatchArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}
@@ -33209,10 +33211,10 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_get(
 pub fn discoveryengine_projects_locations_data_stores_branches_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33367,13 +33369,13 @@ pub struct DiscoveryengineProjectsLocationsDataStoresBranchesOperationsListArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations
@@ -33949,7 +33951,7 @@ pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_pur
 pub fn discoveryengine_projects_locations_data_stores_controls_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    controlId: &Option<Option<String>>,
+    controlId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34093,7 +34095,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresControlsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: controlId
-    pub controlId: Option<Option<String>>,
+    pub controlId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/controls
@@ -34469,9 +34471,9 @@ pub fn discoveryengine_projects_locations_data_stores_controls_get(
 pub fn discoveryengine_projects_locations_data_stores_controls_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34622,11 +34624,11 @@ pub struct DiscoveryengineProjectsLocationsDataStoresControlsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/controls
@@ -34670,7 +34672,7 @@ pub fn discoveryengine_projects_locations_data_stores_controls_list(
 pub fn discoveryengine_projects_locations_data_stores_controls_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34814,7 +34816,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresControlsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/controls/{controlsId}
@@ -35543,10 +35545,10 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_get(
 pub fn discoveryengine_projects_locations_data_stores_conversations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35706,13 +35708,13 @@ pub struct DiscoveryengineProjectsLocationsDataStoresConversationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/conversations
@@ -35760,7 +35762,7 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_list(
 pub fn discoveryengine_projects_locations_data_stores_conversations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35904,7 +35906,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresConversationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/conversations/{conversationsId}
@@ -36116,10 +36118,10 @@ pub fn discoveryengine_projects_locations_data_stores_models_operations_get(
 pub fn discoveryengine_projects_locations_data_stores_models_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36273,13 +36275,13 @@ pub struct DiscoveryengineProjectsLocationsDataStoresModelsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/models/{modelsId}/operations
@@ -36493,10 +36495,10 @@ pub fn discoveryengine_projects_locations_data_stores_operations_get(
 pub fn discoveryengine_projects_locations_data_stores_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36650,13 +36652,13 @@ pub struct DiscoveryengineProjectsLocationsDataStoresOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/operations
@@ -36701,7 +36703,7 @@ pub fn discoveryengine_projects_locations_data_stores_operations_list(
 pub fn discoveryengine_projects_locations_data_stores_schemas_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    schemaId: &Option<Option<String>>,
+    schemaId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36845,7 +36847,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresSchemasCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: schemaId
-    pub schemaId: Option<Option<String>>,
+    pub schemaId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/schemas
@@ -37225,8 +37227,8 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_get(
 pub fn discoveryengine_projects_locations_data_stores_schemas_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37374,9 +37376,9 @@ pub struct DiscoveryengineProjectsLocationsDataStoresSchemasListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/schemas
@@ -37419,7 +37421,7 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_list(
 pub fn discoveryengine_projects_locations_data_stores_schemas_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
+    allowMissing: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37563,7 +37565,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresSchemasPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/schemas/{schemasId}
@@ -37777,7 +37779,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_answer(
 pub fn discoveryengine_projects_locations_data_stores_serving_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    servingConfigId: &Option<Option<String>>,
+    servingConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37921,7 +37923,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresServingConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: servingConfigId
-    pub servingConfigId: Option<Option<String>>,
+    pub servingConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs
@@ -38299,8 +38301,8 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_get(
 pub fn discoveryengine_projects_locations_data_stores_serving_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -38454,9 +38456,9 @@ pub struct DiscoveryengineProjectsLocationsDataStoresServingConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs
@@ -38502,7 +38504,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_list(
 pub fn discoveryengine_projects_locations_data_stores_serving_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -38646,7 +38648,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresServingConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}
@@ -39381,7 +39383,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_stream_ans
 pub fn discoveryengine_projects_locations_data_stores_sessions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    sessionId: &Option<Option<String>>,
+    sessionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39525,7 +39527,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresSessionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: sessionId
-    pub sessionId: Option<Option<String>>,
+    pub sessionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/sessions
@@ -39732,7 +39734,7 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_delete(
 pub fn discoveryengine_projects_locations_data_stores_sessions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    includeAnswerDetails: &Option<Option<String>>,
+    includeAnswerDetails: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39876,7 +39878,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresSessionsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: includeAnswerDetails
-    pub includeAnswerDetails: Option<Option<String>>,
+    pub includeAnswerDetails: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/sessions/{sessionsId}
@@ -39918,10 +39920,10 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_get(
 pub fn discoveryengine_projects_locations_data_stores_sessions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40075,13 +40077,13 @@ pub struct DiscoveryengineProjectsLocationsDataStoresSessionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/sessions
@@ -40126,7 +40128,7 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_list(
 pub fn discoveryengine_projects_locations_data_stores_sessions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40270,7 +40272,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresSessionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/sessions/{sessionsId}
@@ -41353,7 +41355,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemap
 pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_fetch_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    matcher_urisMatcher_uris: &Option<Option<String>>,
+    matcher_urisMatcher_uris: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41504,7 +41506,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineSitemapsFet
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: matcher_urisMatcher_uris
-    pub matcher_urisMatcher_uris: Option<Option<String>>,
+    pub matcher_urisMatcher_uris: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps:fetch
@@ -42249,8 +42251,8 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42404,9 +42406,9 @@ pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineTargetSites
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites
@@ -42979,9 +42981,9 @@ pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entri
 pub fn discoveryengine_projects_locations_data_stores_user_events_collect_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    ets: &Option<Option<String>>,
-    uri: &Option<Option<String>>,
-    userEvent: &Option<Option<String>>,
+    ets: &Option<String>,
+    uri: &Option<String>,
+    userEvent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43129,11 +43131,11 @@ pub struct DiscoveryengineProjectsLocationsDataStoresUserEventsCollectArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: ets
-    pub ets: Option<Option<String>>,
+    pub ets: Option<String>,
     /// Query parameter: uri
-    pub uri: Option<Option<String>>,
+    pub uri: Option<String>,
     /// Query parameter: userEvent
-    pub userEvent: Option<Option<String>>,
+    pub userEvent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/userEvents:collect
@@ -43517,7 +43519,7 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_purge(
 pub fn discoveryengine_projects_locations_data_stores_user_events_write_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    writeAsync: &Option<Option<String>>,
+    writeAsync: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43661,7 +43663,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresUserEventsWriteArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: writeAsync
-    pub writeAsync: Option<Option<String>>,
+    pub writeAsync: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/userEvents:write
@@ -43703,8 +43705,8 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_write(
 pub fn discoveryengine_projects_locations_data_stores_widget_configs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    acceptCache: &Option<Option<String>>,
-    getWidgetConfigRequestOption_turnOffCollectionComponents: &Option<Option<String>>,
+    acceptCache: &Option<String>,
+    getWidgetConfigRequestOption_turnOffCollectionComponents: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43854,9 +43856,9 @@ pub struct DiscoveryengineProjectsLocationsDataStoresWidgetConfigsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: acceptCache
-    pub acceptCache: Option<Option<String>>,
+    pub acceptCache: Option<String>,
     /// Query parameter: getWidgetConfigRequestOption_turnOffCollectionComponents
-    pub getWidgetConfigRequestOption_turnOffCollectionComponents: Option<Option<String>>,
+    pub getWidgetConfigRequestOption_turnOffCollectionComponents: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/widgetConfigs/{widgetConfigsId}
@@ -43899,7 +43901,7 @@ pub fn discoveryengine_projects_locations_data_stores_widget_configs_get(
 pub fn discoveryengine_projects_locations_data_stores_widget_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -44043,7 +44045,7 @@ pub struct DiscoveryengineProjectsLocationsDataStoresWidgetConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/widgetConfigs/{widgetConfigsId}
@@ -44260,9 +44262,9 @@ pub fn discoveryengine_projects_locations_grounding_configs_check(
 pub fn discoveryengine_projects_locations_identity_mapping_stores_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    cmekConfigName: &Option<Option<String>>,
-    disableCmek: &Option<Option<String>>,
-    identityMappingStoreId: &Option<Option<String>>,
+    cmekConfigName: &Option<String>,
+    disableCmek: &Option<String>,
+    identityMappingStoreId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -44413,11 +44415,11 @@ pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: cmekConfigName
-    pub cmekConfigName: Option<Option<String>>,
+    pub cmekConfigName: Option<String>,
     /// Query parameter: disableCmek
-    pub disableCmek: Option<Option<String>>,
+    pub disableCmek: Option<String>,
     /// Query parameter: identityMappingStoreId
-    pub identityMappingStoreId: Option<Option<String>>,
+    pub identityMappingStoreId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores
@@ -44976,8 +44978,8 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_import_identit
 pub fn discoveryengine_projects_locations_identity_mapping_stores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -45131,9 +45133,9 @@ pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores
@@ -45181,8 +45183,8 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_list_identity_
 >(
     client: &SimpleHttpClient<R>,
     identityMappingStore: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -45339,9 +45341,9 @@ pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresListIdentityMapp
     /// Path parameter: identityMappingStore
     pub identityMappingStore: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}:listIdentityMappings
@@ -45741,10 +45743,10 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_get
 pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -45899,13 +45901,13 @@ pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresOperationsListAr
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}/operations
@@ -45951,7 +45953,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_lis
 pub fn discoveryengine_projects_locations_license_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    licenseConfigId: &Option<Option<String>>,
+    licenseConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46095,7 +46097,7 @@ pub struct DiscoveryengineProjectsLocationsLicenseConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: licenseConfigId
-    pub licenseConfigId: Option<Option<String>>,
+    pub licenseConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/licenseConfigs
@@ -46306,7 +46308,7 @@ pub fn discoveryengine_projects_locations_license_configs_get(
 pub fn discoveryengine_projects_locations_license_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46450,7 +46452,7 @@ pub struct DiscoveryengineProjectsLocationsLicenseConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/licenseConfigs/{licenseConfigsId}
@@ -46660,10 +46662,10 @@ pub fn discoveryengine_projects_locations_operations_get(
 pub fn discoveryengine_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46817,13 +46819,13 @@ pub struct DiscoveryengineProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -47208,9 +47210,9 @@ pub fn discoveryengine_projects_locations_ranking_configs_rank(
 pub fn discoveryengine_projects_locations_user_events_collect_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    ets: &Option<Option<String>>,
-    uri: &Option<Option<String>>,
-    userEvent: &Option<Option<String>>,
+    ets: &Option<String>,
+    uri: &Option<String>,
+    userEvent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -47358,11 +47360,11 @@ pub struct DiscoveryengineProjectsLocationsUserEventsCollectArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: ets
-    pub ets: Option<Option<String>>,
+    pub ets: Option<String>,
     /// Query parameter: uri
-    pub uri: Option<Option<String>>,
+    pub uri: Option<String>,
     /// Query parameter: userEvent
-    pub userEvent: Option<Option<String>>,
+    pub userEvent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/userEvents:collect
@@ -47573,7 +47575,7 @@ pub fn discoveryengine_projects_locations_user_events_import(
 pub fn discoveryengine_projects_locations_user_events_write_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    writeAsync: &Option<Option<String>>,
+    writeAsync: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -47717,7 +47719,7 @@ pub struct DiscoveryengineProjectsLocationsUserEventsWriteArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: writeAsync
-    pub writeAsync: Option<Option<String>>,
+    pub writeAsync: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/userEvents:write
@@ -48100,7 +48102,7 @@ pub fn discoveryengine_projects_locations_user_stores_get(
 pub fn discoveryengine_projects_locations_user_stores_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48244,7 +48246,7 @@ pub struct DiscoveryengineProjectsLocationsUserStoresPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/userStores/{userStoresId}
@@ -48471,10 +48473,10 @@ pub fn discoveryengine_projects_locations_user_stores_license_configs_usage_stat
 pub fn discoveryengine_projects_locations_user_stores_user_licenses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48631,13 +48633,13 @@ pub struct DiscoveryengineProjectsLocationsUserStoresUserLicensesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/userStores/{userStoresId}/userLicenses
@@ -49014,10 +49016,10 @@ pub fn discoveryengine_projects_operations_get(
 pub fn discoveryengine_projects_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -49171,13 +49173,13 @@ pub struct DiscoveryengineProjectsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/operations

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn baremetalsolution_projects_locations_get(
 pub fn baremetalsolution_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct BaremetalsolutionProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations
@@ -1376,9 +1378,9 @@ pub fn baremetalsolution_projects_locations_instances_get(
 pub fn baremetalsolution_projects_locations_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1526,11 +1528,11 @@ pub struct BaremetalsolutionProjectsLocationsInstancesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances
@@ -1741,7 +1743,7 @@ pub fn baremetalsolution_projects_locations_instances_load_auth_info(
 pub fn baremetalsolution_projects_locations_instances_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1881,7 +1883,7 @@ pub struct BaremetalsolutionProjectsLocationsInstancesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
@@ -2881,9 +2883,9 @@ pub fn baremetalsolution_projects_locations_networks_get(
 pub fn baremetalsolution_projects_locations_networks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3031,11 +3033,11 @@ pub struct BaremetalsolutionProjectsLocationsNetworksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/networks
@@ -3244,7 +3246,7 @@ pub fn baremetalsolution_projects_locations_networks_list_network_usage(
 pub fn baremetalsolution_projects_locations_networks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3384,7 +3386,7 @@ pub struct BaremetalsolutionProjectsLocationsNetworksPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/networks/{networksId}
@@ -4064,9 +4066,9 @@ pub fn baremetalsolution_projects_locations_nfs_shares_get(
 pub fn baremetalsolution_projects_locations_nfs_shares_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4214,11 +4216,11 @@ pub struct BaremetalsolutionProjectsLocationsNfsSharesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nfsShares
@@ -4260,7 +4262,7 @@ pub fn baremetalsolution_projects_locations_nfs_shares_list(
 pub fn baremetalsolution_projects_locations_nfs_shares_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4400,7 +4402,7 @@ pub struct BaremetalsolutionProjectsLocationsNfsSharesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/nfsShares/{nfsSharesId}
@@ -4919,8 +4921,8 @@ pub fn baremetalsolution_projects_locations_os_images_get(
 pub fn baremetalsolution_projects_locations_os_images_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5065,9 +5067,9 @@ pub struct BaremetalsolutionProjectsLocationsOsImagesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/osImages
@@ -5108,7 +5110,7 @@ pub fn baremetalsolution_projects_locations_os_images_list(
 pub fn baremetalsolution_projects_locations_provisioning_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    email: &Option<Option<String>>,
+    email: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5250,7 +5252,7 @@ pub struct BaremetalsolutionProjectsLocationsProvisioningConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: email
-    pub email: Option<Option<String>>,
+    pub email: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/provisioningConfigs
@@ -5455,8 +5457,8 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_get(
 pub fn baremetalsolution_projects_locations_provisioning_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    email: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    email: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5601,9 +5603,9 @@ pub struct BaremetalsolutionProjectsLocationsProvisioningConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: email
-    pub email: Option<Option<String>>,
+    pub email: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/provisioningConfigs/{provisioningConfigsId}
@@ -5815,8 +5817,8 @@ pub fn baremetalsolution_projects_locations_provisioning_configs_submit(
 pub fn baremetalsolution_projects_locations_provisioning_quotas_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5963,9 +5965,9 @@ pub struct BaremetalsolutionProjectsLocationsProvisioningQuotasListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/provisioningQuotas
@@ -6008,7 +6010,7 @@ pub fn baremetalsolution_projects_locations_provisioning_quotas_list(
 pub fn baremetalsolution_projects_locations_ssh_keys_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    sshKeyId: &Option<Option<String>>,
+    sshKeyId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6148,7 +6150,7 @@ pub struct BaremetalsolutionProjectsLocationsSshKeysCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: sshKeyId
-    pub sshKeyId: Option<Option<String>>,
+    pub sshKeyId: Option<String>,
 }
 
 /// POST v2/projects/{projectsId}/locations/{locationsId}/sshKeys
@@ -6346,8 +6348,8 @@ pub fn baremetalsolution_projects_locations_ssh_keys_delete(
 pub fn baremetalsolution_projects_locations_ssh_keys_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6492,9 +6494,9 @@ pub struct BaremetalsolutionProjectsLocationsSshKeysListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/sshKeys
@@ -6855,9 +6857,9 @@ pub fn baremetalsolution_projects_locations_volumes_get(
 pub fn baremetalsolution_projects_locations_volumes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7005,11 +7007,11 @@ pub struct BaremetalsolutionProjectsLocationsVolumesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes
@@ -7051,7 +7053,7 @@ pub fn baremetalsolution_projects_locations_volumes_list(
 pub fn baremetalsolution_projects_locations_volumes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7191,7 +7193,7 @@ pub struct BaremetalsolutionProjectsLocationsVolumesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
@@ -7872,8 +7874,8 @@ pub fn baremetalsolution_projects_locations_volumes_luns_get(
 pub fn baremetalsolution_projects_locations_volumes_luns_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8018,9 +8020,9 @@ pub struct BaremetalsolutionProjectsLocationsVolumesLunsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/luns
@@ -8554,8 +8556,8 @@ pub fn baremetalsolution_projects_locations_volumes_snapshots_get(
 pub fn baremetalsolution_projects_locations_volumes_snapshots_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8702,9 +8704,9 @@ pub struct BaremetalsolutionProjectsLocationsVolumesSnapshotsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots

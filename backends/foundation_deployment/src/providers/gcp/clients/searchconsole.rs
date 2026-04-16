@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -521,7 +523,7 @@ pub fn webmasters_sitemaps_get(
 pub fn webmasters_sitemaps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     siteUrl: &String,
-    sitemapIndex: &Option<Option<String>>,
+    sitemapIndex: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -663,7 +665,7 @@ pub struct WebmastersSitemapsListArgs {
     /// Path parameter: siteUrl
     pub siteUrl: String,
     /// Query parameter: sitemapIndex
-    pub sitemapIndex: Option<Option<String>>,
+    pub sitemapIndex: Option<String>,
 }
 
 /// GET webmasters/v3/sites/{siteUrl}/sitemaps
@@ -1877,80 +1879,6 @@ impl ResourceIdentifier<WebmastersSitesGetArgs> for WmxSite {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::searchconsole::WmxSite"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SitesListResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SitesListResponse with WebmastersSitesListArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<WebmastersSitesListArgs> for SitesListResponse {
-    fn generate_resource_id(&self, input: &WebmastersSitesListArgs) -> String {
-        "gcp::searchconsole::SitesListResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::searchconsole::SitesListResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for InspectUrlIndexResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for InspectUrlIndexResponse with SearchconsoleUrlInspectionIndexInspectArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SearchconsoleUrlInspectionIndexInspectArgs> for InspectUrlIndexResponse {
-    fn generate_resource_id(&self, input: &SearchconsoleUrlInspectionIndexInspectArgs) -> String {
-        "gcp::searchconsole::InspectUrlIndexResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::searchconsole::InspectUrlIndexResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for RunMobileFriendlyTestResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for RunMobileFriendlyTestResponse with SearchconsoleUrlTestingToolsMobileFriendlyTestRunArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<SearchconsoleUrlTestingToolsMobileFriendlyTestRunArgs>
-    for RunMobileFriendlyTestResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &SearchconsoleUrlTestingToolsMobileFriendlyTestRunArgs,
-    ) -> String {
-        "gcp::searchconsole::RunMobileFriendlyTestResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::searchconsole::RunMobileFriendlyTestResponse"
     }
 
     fn provider(&self) -> &'static str {

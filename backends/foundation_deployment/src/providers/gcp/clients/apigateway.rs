@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -194,10 +196,10 @@ pub fn apigateway_projects_locations_get(
 pub fn apigateway_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -350,13 +352,13 @@ pub struct ApigatewayProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -401,7 +403,7 @@ pub fn apigateway_projects_locations_list(
 pub fn apigateway_projects_locations_apis_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    apiId: &Option<Option<String>>,
+    apiId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -543,7 +545,7 @@ pub struct ApigatewayProjectsLocationsApisCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: apiId
-    pub apiId: Option<Option<String>>,
+    pub apiId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis
@@ -908,7 +910,7 @@ pub fn apigateway_projects_locations_apis_get(
 pub fn apigateway_projects_locations_apis_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1050,7 +1052,7 @@ pub struct ApigatewayProjectsLocationsApisGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}:getIamPolicy
@@ -1090,10 +1092,10 @@ pub fn apigateway_projects_locations_apis_get_iam_policy(
 pub fn apigateway_projects_locations_apis_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1246,13 +1248,13 @@ pub struct ApigatewayProjectsLocationsApisListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis
@@ -1297,7 +1299,7 @@ pub fn apigateway_projects_locations_apis_list(
 pub fn apigateway_projects_locations_apis_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1439,7 +1441,7 @@ pub struct ApigatewayProjectsLocationsApisPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
@@ -1810,7 +1812,7 @@ pub fn apigateway_projects_locations_apis_test_iam_permissions(
 pub fn apigateway_projects_locations_apis_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    apiConfigId: &Option<Option<String>>,
+    apiConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1952,7 +1954,7 @@ pub struct ApigatewayProjectsLocationsApisConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: apiConfigId
-    pub apiConfigId: Option<Option<String>>,
+    pub apiConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/configs
@@ -2156,7 +2158,7 @@ pub fn apigateway_projects_locations_apis_configs_delete(
 pub fn apigateway_projects_locations_apis_configs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2298,7 +2300,7 @@ pub struct ApigatewayProjectsLocationsApisConfigsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/configs/{configsId}
@@ -2335,7 +2337,7 @@ pub fn apigateway_projects_locations_apis_configs_get(
 pub fn apigateway_projects_locations_apis_configs_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2477,7 +2479,7 @@ pub struct ApigatewayProjectsLocationsApisConfigsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/configs/{configsId}:getIamPolicy
@@ -2517,10 +2519,10 @@ pub fn apigateway_projects_locations_apis_configs_get_iam_policy(
 pub fn apigateway_projects_locations_apis_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2673,13 +2675,13 @@ pub struct ApigatewayProjectsLocationsApisConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/configs
@@ -2724,7 +2726,7 @@ pub fn apigateway_projects_locations_apis_configs_list(
 pub fn apigateway_projects_locations_apis_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2866,7 +2868,7 @@ pub struct ApigatewayProjectsLocationsApisConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/configs/{configsId}
@@ -3242,7 +3244,7 @@ pub fn apigateway_projects_locations_apis_configs_test_iam_permissions(
 pub fn apigateway_projects_locations_gateways_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    gatewayId: &Option<Option<String>>,
+    gatewayId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3384,7 +3386,7 @@ pub struct ApigatewayProjectsLocationsGatewaysCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: gatewayId
-    pub gatewayId: Option<Option<String>>,
+    pub gatewayId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/gateways
@@ -3752,7 +3754,7 @@ pub fn apigateway_projects_locations_gateways_get(
 pub fn apigateway_projects_locations_gateways_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3894,7 +3896,7 @@ pub struct ApigatewayProjectsLocationsGatewaysGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}:getIamPolicy
@@ -3934,10 +3936,10 @@ pub fn apigateway_projects_locations_gateways_get_iam_policy(
 pub fn apigateway_projects_locations_gateways_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4090,13 +4092,13 @@ pub struct ApigatewayProjectsLocationsGatewaysListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways
@@ -4141,7 +4143,7 @@ pub fn apigateway_projects_locations_gateways_list(
 pub fn apigateway_projects_locations_gateways_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4283,7 +4285,7 @@ pub struct ApigatewayProjectsLocationsGatewaysPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
@@ -5140,10 +5142,10 @@ pub fn apigateway_projects_locations_operations_get(
 pub fn apigateway_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5296,13 +5298,13 @@ pub struct ApigatewayProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations

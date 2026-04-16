@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -189,11 +191,11 @@ pub fn servicemanagement_operations_get(
 
 pub fn servicemanagement_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    name: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -342,15 +344,15 @@ pub fn servicemanagement_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ServicemanagementOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/operations
@@ -1022,8 +1024,8 @@ pub fn servicemanagement_services_get(
 pub fn servicemanagement_services_get_config_builder<R>(
     client: &SimpleHttpClient<R>,
     serviceName: &String,
-    configId: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    configId: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1166,9 +1168,9 @@ pub struct ServicemanagementServicesGetConfigArgs {
     /// Path parameter: serviceName
     pub serviceName: String,
     /// Query parameter: configId
-    pub configId: Option<Option<String>>,
+    pub configId: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/services/{serviceName}/config
@@ -1366,10 +1368,10 @@ pub fn servicemanagement_services_get_iam_policy(
 
 pub fn servicemanagement_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    consumerId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    producerProjectId: &Option<Option<String>>,
+    consumerId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    producerProjectId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1515,13 +1517,13 @@ pub fn servicemanagement_services_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ServicemanagementServicesListArgs {
     /// Query parameter: consumerId
-    pub consumerId: Option<Option<String>>,
+    pub consumerId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: producerProjectId
-    pub producerProjectId: Option<Option<String>>,
+    pub producerProjectId: Option<String>,
 }
 
 /// GET v1/services
@@ -2212,7 +2214,7 @@ pub fn servicemanagement_services_configs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     serviceName: &String,
     configId: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2354,7 +2356,7 @@ pub struct ServicemanagementServicesConfigsGetArgs {
     /// Path parameter: configId
     pub configId: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/services/{serviceName}/configs/{configId}
@@ -2393,8 +2395,8 @@ pub fn servicemanagement_services_configs_get(
 pub fn servicemanagement_services_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     serviceName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2541,9 +2543,9 @@ pub struct ServicemanagementServicesConfigsListArgs {
     /// Path parameter: serviceName
     pub serviceName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/services/{serviceName}/configs
@@ -3564,9 +3566,9 @@ pub fn servicemanagement_services_rollouts_get(
 pub fn servicemanagement_services_rollouts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     serviceName: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3716,11 +3718,11 @@ pub struct ServicemanagementServicesRolloutsListArgs {
     /// Path parameter: serviceName
     pub serviceName: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/services/{serviceName}/rollouts
@@ -3805,29 +3807,6 @@ impl ResourceIdentifier<ServicemanagementOperationsListArgs> for ListOperationsR
 // ResourceIdentifier implementation for Operation
 // =============================================================================
 
-/// ResourceIdentifier implementation for Operation with ServicemanagementServicesCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ServicemanagementServicesCreateArgs> for Operation {
-    fn generate_resource_id(&self, input: &ServicemanagementServicesCreateArgs) -> String {
-        "gcp::servicemanagement::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::servicemanagement::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
 /// ResourceIdentifier implementation for Operation with ServicemanagementServicesDeleteArgs input.
 ///
 /// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
@@ -3840,34 +3819,6 @@ impl ResourceIdentifier<ServicemanagementServicesDeleteArgs> for Operation {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::servicemanagement::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GenerateConfigReportResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GenerateConfigReportResponse with ServicemanagementServicesGenerateConfigReportArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<ServicemanagementServicesGenerateConfigReportArgs>
-    for GenerateConfigReportResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &ServicemanagementServicesGenerateConfigReportArgs,
-    ) -> String {
-        "gcp::servicemanagement::GenerateConfigReportResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::servicemanagement::GenerateConfigReportResponse"
     }
 
     fn provider(&self) -> &'static str {

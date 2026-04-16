@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -194,13 +196,13 @@ pub fn clouderrorreporting_projects_delete_events(
 pub fn clouderrorreporting_projects_events_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectName: &String,
-    groupId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    serviceFilter_resourceType: &Option<Option<String>>,
-    serviceFilter_service: &Option<Option<String>>,
-    serviceFilter_version: &Option<Option<String>>,
-    timeRange_period: &Option<Option<String>>,
+    groupId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    serviceFilter_resourceType: &Option<String>,
+    serviceFilter_service: &Option<String>,
+    serviceFilter_version: &Option<String>,
+    timeRange_period: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -360,19 +362,19 @@ pub struct ClouderrorreportingProjectsEventsListArgs {
     /// Path parameter: projectName
     pub projectName: String,
     /// Query parameter: groupId
-    pub groupId: Option<Option<String>>,
+    pub groupId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: serviceFilter_resourceType
-    pub serviceFilter_resourceType: Option<Option<String>>,
+    pub serviceFilter_resourceType: Option<String>,
     /// Query parameter: serviceFilter_service
-    pub serviceFilter_service: Option<Option<String>>,
+    pub serviceFilter_service: Option<String>,
     /// Query parameter: serviceFilter_version
-    pub serviceFilter_version: Option<Option<String>>,
+    pub serviceFilter_version: Option<String>,
     /// Query parameter: timeRange_period
-    pub timeRange_period: Option<Option<String>>,
+    pub timeRange_period: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/events
@@ -582,17 +584,17 @@ pub fn clouderrorreporting_projects_events_report(
 pub fn clouderrorreporting_projects_group_stats_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectName: &String,
-    alignment: &Option<Option<String>>,
-    alignmentTime: &Option<Option<String>>,
-    groupId: &Option<Option<String>>,
-    order: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    serviceFilter_resourceType: &Option<Option<String>>,
-    serviceFilter_service: &Option<Option<String>>,
-    serviceFilter_version: &Option<Option<String>>,
-    timeRange_period: &Option<Option<String>>,
-    timedCountDuration: &Option<Option<String>>,
+    alignment: &Option<String>,
+    alignmentTime: &Option<String>,
+    groupId: &Option<String>,
+    order: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    serviceFilter_resourceType: &Option<String>,
+    serviceFilter_service: &Option<String>,
+    serviceFilter_version: &Option<String>,
+    timeRange_period: &Option<String>,
+    timedCountDuration: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -764,27 +766,27 @@ pub struct ClouderrorreportingProjectsGroupStatsListArgs {
     /// Path parameter: projectName
     pub projectName: String,
     /// Query parameter: alignment
-    pub alignment: Option<Option<String>>,
+    pub alignment: Option<String>,
     /// Query parameter: alignmentTime
-    pub alignmentTime: Option<Option<String>>,
+    pub alignmentTime: Option<String>,
     /// Query parameter: groupId
-    pub groupId: Option<Option<String>>,
+    pub groupId: Option<String>,
     /// Query parameter: order
-    pub order: Option<Option<String>>,
+    pub order: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: serviceFilter_resourceType
-    pub serviceFilter_resourceType: Option<Option<String>>,
+    pub serviceFilter_resourceType: Option<String>,
     /// Query parameter: serviceFilter_service
-    pub serviceFilter_service: Option<Option<String>>,
+    pub serviceFilter_service: Option<String>,
     /// Query parameter: serviceFilter_version
-    pub serviceFilter_version: Option<Option<String>>,
+    pub serviceFilter_version: Option<String>,
     /// Query parameter: timeRange_period
-    pub timeRange_period: Option<Option<String>>,
+    pub timeRange_period: Option<String>,
     /// Query parameter: timedCountDuration
-    pub timedCountDuration: Option<Option<String>>,
+    pub timedCountDuration: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/groupStats
@@ -1319,13 +1321,13 @@ pub fn clouderrorreporting_projects_locations_delete_events(
 pub fn clouderrorreporting_projects_locations_events_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectName: &String,
-    groupId: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    serviceFilter_resourceType: &Option<Option<String>>,
-    serviceFilter_service: &Option<Option<String>>,
-    serviceFilter_version: &Option<Option<String>>,
-    timeRange_period: &Option<Option<String>>,
+    groupId: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    serviceFilter_resourceType: &Option<String>,
+    serviceFilter_service: &Option<String>,
+    serviceFilter_version: &Option<String>,
+    timeRange_period: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1485,19 +1487,19 @@ pub struct ClouderrorreportingProjectsLocationsEventsListArgs {
     /// Path parameter: projectName
     pub projectName: String,
     /// Query parameter: groupId
-    pub groupId: Option<Option<String>>,
+    pub groupId: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: serviceFilter_resourceType
-    pub serviceFilter_resourceType: Option<Option<String>>,
+    pub serviceFilter_resourceType: Option<String>,
     /// Query parameter: serviceFilter_service
-    pub serviceFilter_service: Option<Option<String>>,
+    pub serviceFilter_service: Option<String>,
     /// Query parameter: serviceFilter_version
-    pub serviceFilter_version: Option<Option<String>>,
+    pub serviceFilter_version: Option<String>,
     /// Query parameter: timeRange_period
-    pub timeRange_period: Option<Option<String>>,
+    pub timeRange_period: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/events
@@ -1543,17 +1545,17 @@ pub fn clouderrorreporting_projects_locations_events_list(
 pub fn clouderrorreporting_projects_locations_group_stats_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectName: &String,
-    alignment: &Option<Option<String>>,
-    alignmentTime: &Option<Option<String>>,
-    groupId: &Option<Option<String>>,
-    order: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    serviceFilter_resourceType: &Option<Option<String>>,
-    serviceFilter_service: &Option<Option<String>>,
-    serviceFilter_version: &Option<Option<String>>,
-    timeRange_period: &Option<Option<String>>,
-    timedCountDuration: &Option<Option<String>>,
+    alignment: &Option<String>,
+    alignmentTime: &Option<String>,
+    groupId: &Option<String>,
+    order: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    serviceFilter_resourceType: &Option<String>,
+    serviceFilter_service: &Option<String>,
+    serviceFilter_version: &Option<String>,
+    timeRange_period: &Option<String>,
+    timedCountDuration: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1725,27 +1727,27 @@ pub struct ClouderrorreportingProjectsLocationsGroupStatsListArgs {
     /// Path parameter: projectName
     pub projectName: String,
     /// Query parameter: alignment
-    pub alignment: Option<Option<String>>,
+    pub alignment: Option<String>,
     /// Query parameter: alignmentTime
-    pub alignmentTime: Option<Option<String>>,
+    pub alignmentTime: Option<String>,
     /// Query parameter: groupId
-    pub groupId: Option<Option<String>>,
+    pub groupId: Option<String>,
     /// Query parameter: order
-    pub order: Option<Option<String>>,
+    pub order: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: serviceFilter_resourceType
-    pub serviceFilter_resourceType: Option<Option<String>>,
+    pub serviceFilter_resourceType: Option<String>,
     /// Query parameter: serviceFilter_service
-    pub serviceFilter_service: Option<Option<String>>,
+    pub serviceFilter_service: Option<String>,
     /// Query parameter: serviceFilter_version
-    pub serviceFilter_version: Option<Option<String>>,
+    pub serviceFilter_version: Option<String>,
     /// Query parameter: timeRange_period
-    pub timeRange_period: Option<Option<String>>,
+    pub timeRange_period: Option<String>,
     /// Query parameter: timedCountDuration
-    pub timedCountDuration: Option<Option<String>>,
+    pub timedCountDuration: Option<String>,
 }
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/groupStats

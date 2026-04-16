@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -178,7 +180,7 @@ pub fn appengine_apps_create(
 pub fn appengine_apps_get_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
-    includeExtraData: &Option<Option<String>>,
+    includeExtraData: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -315,7 +317,7 @@ pub struct AppengineAppsGetArgs {
     /// Path parameter: appsId
     pub appsId: String,
     /// Query parameter: includeExtraData
-    pub includeExtraData: Option<Option<String>>,
+    pub includeExtraData: Option<String>,
 }
 
 /// GET v1/apps/{appsId}
@@ -349,7 +351,7 @@ pub fn appengine_apps_get(
 pub fn appengine_apps_list_runtimes_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
-    environment: &Option<Option<String>>,
+    environment: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -491,7 +493,7 @@ pub struct AppengineAppsListRuntimesArgs {
     /// Path parameter: appsId
     pub appsId: String,
     /// Query parameter: environment
-    pub environment: Option<Option<String>>,
+    pub environment: Option<String>,
 }
 
 /// GET v1/apps/{appsId}:listRuntimes
@@ -527,7 +529,7 @@ pub fn appengine_apps_list_runtimes(
 pub fn appengine_apps_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -664,7 +666,7 @@ pub struct AppengineAppsPatchArgs {
     /// Path parameter: appsId
     pub appsId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/apps/{appsId}
@@ -1187,7 +1189,7 @@ pub fn appengine_apps_authorized_certificates_get_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
     authorizedCertificatesId: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1331,7 +1333,7 @@ pub struct AppengineAppsAuthorizedCertificatesGetArgs {
     /// Path parameter: authorizedCertificatesId
     pub authorizedCertificatesId: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/apps/{appsId}/authorizedCertificates/{authorizedCertificatesId}
@@ -1372,9 +1374,9 @@ pub fn appengine_apps_authorized_certificates_get(
 pub fn appengine_apps_authorized_certificates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1524,11 +1526,11 @@ pub struct AppengineAppsAuthorizedCertificatesListArgs {
     /// Path parameter: appsId
     pub appsId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/apps/{appsId}/authorizedCertificates
@@ -1573,7 +1575,7 @@ pub fn appengine_apps_authorized_certificates_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
     authorizedCertificatesId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1717,7 +1719,7 @@ pub struct AppengineAppsAuthorizedCertificatesPatchArgs {
     /// Path parameter: authorizedCertificatesId
     pub authorizedCertificatesId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/apps/{appsId}/authorizedCertificates/{authorizedCertificatesId}
@@ -1758,8 +1760,8 @@ pub fn appengine_apps_authorized_certificates_patch(
 pub fn appengine_apps_authorized_domains_list_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1906,9 +1908,9 @@ pub struct AppengineAppsAuthorizedDomainsListArgs {
     /// Path parameter: appsId
     pub appsId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/apps/{appsId}/authorizedDomains
@@ -1951,7 +1953,7 @@ pub fn appengine_apps_authorized_domains_list(
 pub fn appengine_apps_domain_mappings_create_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
-    overrideStrategy: &Option<Option<String>>,
+    overrideStrategy: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2091,7 +2093,7 @@ pub struct AppengineAppsDomainMappingsCreateArgs {
     /// Path parameter: appsId
     pub appsId: String,
     /// Query parameter: overrideStrategy
-    pub overrideStrategy: Option<Option<String>>,
+    pub overrideStrategy: Option<String>,
 }
 
 /// POST v1/apps/{appsId}/domainMappings
@@ -2464,8 +2466,8 @@ pub fn appengine_apps_domain_mappings_get(
 pub fn appengine_apps_domain_mappings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2612,9 +2614,9 @@ pub struct AppengineAppsDomainMappingsListArgs {
     /// Path parameter: appsId
     pub appsId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/apps/{appsId}/domainMappings
@@ -2658,7 +2660,7 @@ pub fn appengine_apps_domain_mappings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
     domainMappingsId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2800,7 +2802,7 @@ pub struct AppengineAppsDomainMappingsPatchArgs {
     /// Path parameter: domainMappingsId
     pub domainMappingsId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/apps/{appsId}/domainMappings/{domainMappingsId}
@@ -3509,9 +3511,9 @@ pub fn appengine_apps_firewall_ingress_rules_get(
 pub fn appengine_apps_firewall_ingress_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
-    matchingAddress: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    matchingAddress: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3659,11 +3661,11 @@ pub struct AppengineAppsFirewallIngressRulesListArgs {
     /// Path parameter: appsId
     pub appsId: String,
     /// Query parameter: matchingAddress
-    pub matchingAddress: Option<Option<String>>,
+    pub matchingAddress: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/apps/{appsId}/firewall/ingressRules
@@ -3706,7 +3708,7 @@ pub fn appengine_apps_firewall_ingress_rules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
     ingressRulesId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3850,7 +3852,7 @@ pub struct AppengineAppsFirewallIngressRulesPatchArgs {
     /// Path parameter: ingressRulesId
     pub ingressRulesId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/apps/{appsId}/firewall/ingressRules/{ingressRulesId}
@@ -4054,10 +4056,10 @@ pub fn appengine_apps_locations_get(
 pub fn appengine_apps_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4208,13 +4210,13 @@ pub struct AppengineAppsLocationsListArgs {
     /// Path parameter: appsId
     pub appsId: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/apps/{appsId}/locations
@@ -4420,10 +4422,10 @@ pub fn appengine_apps_operations_get(
 pub fn appengine_apps_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4574,13 +4576,13 @@ pub struct AppengineAppsOperationsListArgs {
     /// Path parameter: appsId
     pub appsId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/apps/{appsId}/operations
@@ -4949,8 +4951,8 @@ pub fn appengine_apps_services_get(
 pub fn appengine_apps_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5095,9 +5097,9 @@ pub struct AppengineAppsServicesListArgs {
     /// Path parameter: appsId
     pub appsId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/apps/{appsId}/services
@@ -5139,8 +5141,8 @@ pub fn appengine_apps_services_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
-    migrateTraffic: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    migrateTraffic: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5285,9 +5287,9 @@ pub struct AppengineAppsServicesPatchArgs {
     /// Path parameter: servicesId
     pub servicesId: String,
     /// Query parameter: migrateTraffic
-    pub migrateTraffic: Option<Option<String>>,
+    pub migrateTraffic: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/apps/{appsId}/services/{servicesId}
@@ -5835,7 +5837,7 @@ pub fn appengine_apps_services_versions_get_builder<R>(
     appsId: &String,
     servicesId: &String,
     versionsId: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5979,7 +5981,7 @@ pub struct AppengineAppsServicesVersionsGetArgs {
     /// Path parameter: versionsId
     pub versionsId: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}
@@ -6020,9 +6022,9 @@ pub fn appengine_apps_services_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     appsId: &String,
     servicesId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6172,11 +6174,11 @@ pub struct AppengineAppsServicesVersionsListArgs {
     /// Path parameter: servicesId
     pub servicesId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/apps/{appsId}/services/{servicesId}/versions
@@ -6221,7 +6223,7 @@ pub fn appengine_apps_services_versions_patch_builder<R>(
     appsId: &String,
     servicesId: &String,
     versionsId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6365,7 +6367,7 @@ pub struct AppengineAppsServicesVersionsPatchArgs {
     /// Path parameter: versionsId
     pub versionsId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}
@@ -6932,8 +6934,8 @@ pub fn appengine_apps_services_versions_instances_list_builder<R>(
     appsId: &String,
     servicesId: &String,
     versionsId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7082,9 +7084,9 @@ pub struct AppengineAppsServicesVersionsInstancesListArgs {
     /// Path parameter: versionsId
     pub versionsId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}/instances
@@ -7129,7 +7131,7 @@ pub fn appengine_projects_locations_applications_patch_builder<R>(
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7273,7 +7275,7 @@ pub struct AppengineProjectsLocationsApplicationsPatchArgs {
     /// Path parameter: applicationsId
     pub applicationsId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}
@@ -7673,7 +7675,7 @@ pub fn appengine_projects_locations_applications_authorized_certificates_get_bui
     locationsId: &String,
     applicationsId: &String,
     authorizedCertificatesId: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7824,7 +7826,7 @@ pub struct AppengineProjectsLocationsApplicationsAuthorizedCertificatesGetArgs {
     /// Path parameter: authorizedCertificatesId
     pub authorizedCertificatesId: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates/{authorizedCertificatesId}
@@ -7869,9 +7871,9 @@ pub fn appengine_projects_locations_applications_authorized_certificates_list_bu
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8028,11 +8030,11 @@ pub struct AppengineProjectsLocationsApplicationsAuthorizedCertificatesListArgs 
     /// Path parameter: applicationsId
     pub applicationsId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates
@@ -8081,7 +8083,7 @@ pub fn appengine_projects_locations_applications_authorized_certificates_patch_b
     locationsId: &String,
     applicationsId: &String,
     authorizedCertificatesId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8233,7 +8235,7 @@ pub struct AppengineProjectsLocationsApplicationsAuthorizedCertificatesPatchArgs
     /// Path parameter: authorizedCertificatesId
     pub authorizedCertificatesId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates/{authorizedCertificatesId}
@@ -8278,8 +8280,8 @@ pub fn appengine_projects_locations_applications_authorized_domains_list_builder
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8432,9 +8434,9 @@ pub struct AppengineProjectsLocationsApplicationsAuthorizedDomainsListArgs {
     /// Path parameter: applicationsId
     pub applicationsId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedDomains
@@ -8481,7 +8483,7 @@ pub fn appengine_projects_locations_applications_domain_mappings_create_builder<
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
-    overrideStrategy: &Option<Option<String>>,
+    overrideStrategy: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8627,7 +8629,7 @@ pub struct AppengineProjectsLocationsApplicationsDomainMappingsCreateArgs {
     /// Path parameter: applicationsId
     pub applicationsId: String,
     /// Query parameter: overrideStrategy
-    pub overrideStrategy: Option<Option<String>>,
+    pub overrideStrategy: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings
@@ -9029,8 +9031,8 @@ pub fn appengine_projects_locations_applications_domain_mappings_list_builder<R>
     projectsId: &String,
     locationsId: &String,
     applicationsId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9183,9 +9185,9 @@ pub struct AppengineProjectsLocationsApplicationsDomainMappingsListArgs {
     /// Path parameter: applicationsId
     pub applicationsId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings
@@ -9233,7 +9235,7 @@ pub fn appengine_projects_locations_applications_domain_mappings_patch_builder<R
     locationsId: &String,
     applicationsId: &String,
     domainMappingsId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9382,7 +9384,7 @@ pub struct AppengineProjectsLocationsApplicationsDomainMappingsPatchArgs {
     /// Path parameter: domainMappingsId
     pub domainMappingsId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings/{domainMappingsId}
@@ -9601,8 +9603,8 @@ pub fn appengine_projects_locations_applications_services_patch_builder<R>(
     locationsId: &String,
     applicationsId: &String,
     servicesId: &String,
-    migrateTraffic: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    migrateTraffic: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9751,9 +9753,9 @@ pub struct AppengineProjectsLocationsApplicationsServicesPatchArgs {
     /// Path parameter: servicesId
     pub servicesId: String,
     /// Query parameter: migrateTraffic
-    pub migrateTraffic: Option<Option<String>>,
+    pub migrateTraffic: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}
@@ -10167,7 +10169,7 @@ pub fn appengine_projects_locations_applications_services_versions_patch_builder
     applicationsId: &String,
     servicesId: &String,
     versionsId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10319,7 +10321,7 @@ pub struct AppengineProjectsLocationsApplicationsServicesVersionsPatchArgs {
     /// Path parameter: versionsId
     pub versionsId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}/versions/{versionsId}
@@ -10730,29 +10732,6 @@ pub fn appengine_projects_locations_applications_services_versions_instances_del
             &args.instancesId,
         )?;
     appengine_projects_locations_applications_services_versions_instances_delete_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Operation with AppengineAppsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AppengineAppsCreateArgs> for Operation {
-    fn generate_resource_id(&self, input: &AppengineAppsCreateArgs) -> String {
-        "gcp::appengine::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::appengine::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -31,7 +33,7 @@ pub fn books_bookshelves_get_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
     shelf: &String,
-    source: &Option<Option<String>>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -173,7 +175,7 @@ pub struct BooksBookshelvesGetArgs {
     /// Path parameter: shelf
     pub shelf: String,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET books/v1/users/{userId}/bookshelves/{shelf}
@@ -207,7 +209,7 @@ pub fn books_bookshelves_get(
 pub fn books_bookshelves_list_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
-    source: &Option<Option<String>>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -347,7 +349,7 @@ pub struct BooksBookshelvesListArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET books/v1/users/{userId}/bookshelves
@@ -382,10 +384,10 @@ pub fn books_bookshelves_volumes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
     shelf: &String,
-    maxResults: &Option<Option<String>>,
-    showPreorders: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    startIndex: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    showPreorders: &Option<String>,
+    source: &Option<String>,
+    startIndex: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -536,13 +538,13 @@ pub struct BooksBookshelvesVolumesListArgs {
     /// Path parameter: shelf
     pub shelf: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: showPreorders
-    pub showPreorders: Option<Option<String>>,
+    pub showPreorders: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: startIndex
-    pub startIndex: Option<Option<String>>,
+    pub startIndex: Option<String>,
 }
 
 /// GET books/v1/users/{userId}/bookshelves/{shelf}/volumes
@@ -583,10 +585,10 @@ pub fn books_bookshelves_volumes_list(
 
 pub fn books_cloudloading_add_book_builder<R>(
     client: &SimpleHttpClient<R>,
-    drive_document_id: &Option<Option<String>>,
-    mime_type: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    upload_client_token: &Option<Option<String>>,
+    drive_document_id: &Option<String>,
+    mime_type: &Option<String>,
+    name: &Option<String>,
+    upload_client_token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -732,13 +734,13 @@ pub fn books_cloudloading_add_book_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksCloudloadingAddBookArgs {
     /// Query parameter: drive_document_id
-    pub drive_document_id: Option<Option<String>>,
+    pub drive_document_id: Option<String>,
     /// Query parameter: mime_type
-    pub mime_type: Option<Option<String>>,
+    pub mime_type: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: upload_client_token
-    pub upload_client_token: Option<Option<String>>,
+    pub upload_client_token: Option<String>,
 }
 
 /// POST books/v1/cloudloading/addBook
@@ -779,7 +781,7 @@ pub fn books_cloudloading_add_book(
 
 pub fn books_cloudloading_delete_book_builder<R>(
     client: &SimpleHttpClient<R>,
-    volumeId: &Option<Option<String>>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -914,7 +916,7 @@ pub fn books_cloudloading_delete_book_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksCloudloadingDeleteBookArgs {
     /// Query parameter: volumeId
-    pub volumeId: Option<Option<String>>,
+    pub volumeId: Option<String>,
 }
 
 /// POST books/v1/cloudloading/deleteBook
@@ -1099,7 +1101,7 @@ pub fn books_cloudloading_update_book(
 
 pub fn books_dictionary_list_offline_metadata_builder<R>(
     client: &SimpleHttpClient<R>,
-    cpksver: &Option<Option<String>>,
+    cpksver: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1235,7 +1237,7 @@ pub fn books_dictionary_list_offline_metadata_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksDictionaryListOfflineMetadataArgs {
     /// Query parameter: cpksver
-    pub cpksver: Option<Option<String>>,
+    pub cpksver: Option<String>,
 }
 
 /// GET books/v1/dictionary/listOfflineMetadata
@@ -1268,7 +1270,7 @@ pub fn books_dictionary_list_offline_metadata(
 
 pub fn books_familysharing_get_family_info_builder<R>(
     client: &SimpleHttpClient<R>,
-    source: &Option<Option<String>>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1404,7 +1406,7 @@ pub fn books_familysharing_get_family_info_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksFamilysharingGetFamilyInfoArgs {
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET books/v1/familysharing/getFamilyInfo
@@ -1437,9 +1439,9 @@ pub fn books_familysharing_get_family_info(
 
 pub fn books_familysharing_share_builder<R>(
     client: &SimpleHttpClient<R>,
-    docId: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    volumeId: &Option<Option<String>>,
+    docId: &Option<String>,
+    source: &Option<String>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1580,11 +1582,11 @@ pub fn books_familysharing_share_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksFamilysharingShareArgs {
     /// Query parameter: docId
-    pub docId: Option<Option<String>>,
+    pub docId: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: volumeId
-    pub volumeId: Option<Option<String>>,
+    pub volumeId: Option<String>,
 }
 
 /// POST books/v1/familysharing/share
@@ -1618,9 +1620,9 @@ pub fn books_familysharing_share(
 
 pub fn books_familysharing_unshare_builder<R>(
     client: &SimpleHttpClient<R>,
-    docId: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    volumeId: &Option<Option<String>>,
+    docId: &Option<String>,
+    source: &Option<String>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1761,11 +1763,11 @@ pub fn books_familysharing_unshare_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksFamilysharingUnshareArgs {
     /// Query parameter: docId
-    pub docId: Option<Option<String>>,
+    pub docId: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: volumeId
-    pub volumeId: Option<Option<String>>,
+    pub volumeId: Option<String>,
 }
 
 /// POST books/v1/familysharing/unshare
@@ -1801,8 +1803,8 @@ pub fn books_layers_get_builder<R>(
     client: &SimpleHttpClient<R>,
     volumeId: &String,
     summaryId: &String,
-    contentVersion: &Option<Option<String>>,
-    source: &Option<Option<String>>,
+    contentVersion: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1949,9 +1951,9 @@ pub struct BooksLayersGetArgs {
     /// Path parameter: summaryId
     pub summaryId: String,
     /// Query parameter: contentVersion
-    pub contentVersion: Option<Option<String>>,
+    pub contentVersion: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET books/v1/volumes/{volumeId}/layersummary/{summaryId}
@@ -1993,10 +1995,10 @@ pub fn books_layers_get(
 pub fn books_layers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     volumeId: &String,
-    contentVersion: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    source: &Option<Option<String>>,
+    contentVersion: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2147,13 +2149,13 @@ pub struct BooksLayersListArgs {
     /// Path parameter: volumeId
     pub volumeId: String,
     /// Query parameter: contentVersion
-    pub contentVersion: Option<Option<String>>,
+    pub contentVersion: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET books/v1/volumes/{volumeId}/layersummary
@@ -2198,13 +2200,13 @@ pub fn books_layers_annotation_data_get_builder<R>(
     volumeId: &String,
     layerId: &String,
     annotationDataId: &String,
-    allowWebDefinitions: &Option<Option<String>>,
-    contentVersion: &Option<Option<String>>,
-    h: &Option<Option<String>>,
-    locale: &Option<Option<String>>,
-    scale: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    w: &Option<Option<String>>,
+    allowWebDefinitions: &Option<String>,
+    contentVersion: &Option<String>,
+    h: &Option<String>,
+    locale: &Option<String>,
+    scale: &Option<String>,
+    source: &Option<String>,
+    w: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2368,19 +2370,19 @@ pub struct BooksLayersAnnotationDataGetArgs {
     /// Path parameter: annotationDataId
     pub annotationDataId: String,
     /// Query parameter: allowWebDefinitions
-    pub allowWebDefinitions: Option<Option<String>>,
+    pub allowWebDefinitions: Option<String>,
     /// Query parameter: contentVersion
-    pub contentVersion: Option<Option<String>>,
+    pub contentVersion: Option<String>,
     /// Query parameter: h
-    pub h: Option<Option<String>>,
+    pub h: Option<String>,
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: scale
-    pub scale: Option<Option<String>>,
+    pub scale: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: w
-    pub w: Option<Option<String>>,
+    pub w: Option<String>,
 }
 
 /// GET books/v1/volumes/{volumeId}/layers/{layerId}/data/{annotationDataId}
@@ -2429,17 +2431,17 @@ pub fn books_layers_annotation_data_list_builder<R>(
     client: &SimpleHttpClient<R>,
     volumeId: &String,
     layerId: &String,
-    annotationDataId: &Option<Option<String>>,
-    contentVersion: &Option<Option<String>>,
-    h: &Option<Option<String>>,
-    locale: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    scale: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    updatedMax: &Option<Option<String>>,
-    updatedMin: &Option<Option<String>>,
-    w: &Option<Option<String>>,
+    annotationDataId: &Option<String>,
+    contentVersion: &Option<String>,
+    h: &Option<String>,
+    locale: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    scale: &Option<String>,
+    source: &Option<String>,
+    updatedMax: &Option<String>,
+    updatedMin: &Option<String>,
+    w: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2613,27 +2615,27 @@ pub struct BooksLayersAnnotationDataListArgs {
     /// Path parameter: layerId
     pub layerId: String,
     /// Query parameter: annotationDataId
-    pub annotationDataId: Option<Option<String>>,
+    pub annotationDataId: Option<String>,
     /// Query parameter: contentVersion
-    pub contentVersion: Option<Option<String>>,
+    pub contentVersion: Option<String>,
     /// Query parameter: h
-    pub h: Option<Option<String>>,
+    pub h: Option<String>,
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: scale
-    pub scale: Option<Option<String>>,
+    pub scale: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: updatedMax
-    pub updatedMax: Option<Option<String>>,
+    pub updatedMax: Option<String>,
     /// Query parameter: updatedMin
-    pub updatedMin: Option<Option<String>>,
+    pub updatedMin: Option<String>,
     /// Query parameter: w
-    pub w: Option<Option<String>>,
+    pub w: Option<String>,
 }
 
 /// GET books/v1/volumes/{volumeId}/layers/{layerId}/data
@@ -2686,8 +2688,8 @@ pub fn books_layers_volume_annotations_get_builder<R>(
     volumeId: &String,
     layerId: &String,
     annotationId: &String,
-    locale: &Option<Option<String>>,
-    source: &Option<Option<String>>,
+    locale: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2836,9 +2838,9 @@ pub struct BooksLayersVolumeAnnotationsGetArgs {
     /// Path parameter: annotationId
     pub annotationId: String,
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET books/v1/volumes/{volumeId}/layers/{layerId}/annotations/{annotationId}
@@ -2882,19 +2884,19 @@ pub fn books_layers_volume_annotations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     volumeId: &String,
     layerId: &String,
-    contentVersion: &Option<Option<String>>,
-    endOffset: &Option<Option<String>>,
-    endPosition: &Option<Option<String>>,
-    locale: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    startOffset: &Option<Option<String>>,
-    startPosition: &Option<Option<String>>,
-    updatedMax: &Option<Option<String>>,
-    updatedMin: &Option<Option<String>>,
-    volumeAnnotationsVersion: &Option<Option<String>>,
+    contentVersion: &Option<String>,
+    endOffset: &Option<String>,
+    endPosition: &Option<String>,
+    locale: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
+    source: &Option<String>,
+    startOffset: &Option<String>,
+    startPosition: &Option<String>,
+    updatedMax: &Option<String>,
+    updatedMin: &Option<String>,
+    volumeAnnotationsVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3074,31 +3076,31 @@ pub struct BooksLayersVolumeAnnotationsListArgs {
     /// Path parameter: layerId
     pub layerId: String,
     /// Query parameter: contentVersion
-    pub contentVersion: Option<Option<String>>,
+    pub contentVersion: Option<String>,
     /// Query parameter: endOffset
-    pub endOffset: Option<Option<String>>,
+    pub endOffset: Option<String>,
     /// Query parameter: endPosition
-    pub endPosition: Option<Option<String>>,
+    pub endPosition: Option<String>,
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: startOffset
-    pub startOffset: Option<Option<String>>,
+    pub startOffset: Option<String>,
     /// Query parameter: startPosition
-    pub startPosition: Option<Option<String>>,
+    pub startPosition: Option<String>,
     /// Query parameter: updatedMax
-    pub updatedMax: Option<Option<String>>,
+    pub updatedMax: Option<String>,
     /// Query parameter: updatedMin
-    pub updatedMin: Option<Option<String>>,
+    pub updatedMin: Option<String>,
     /// Query parameter: volumeAnnotationsVersion
-    pub volumeAnnotationsVersion: Option<Option<String>>,
+    pub volumeAnnotationsVersion: Option<String>,
 }
 
 /// GET books/v1/volumes/{volumeId}/layers/{layerId}
@@ -3150,7 +3152,7 @@ pub fn books_layers_volume_annotations_list(
 
 pub fn books_myconfig_get_user_settings_builder<R>(
     client: &SimpleHttpClient<R>,
-    country: &Option<Option<String>>,
+    country: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3287,7 +3289,7 @@ pub fn books_myconfig_get_user_settings_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksMyconfigGetUserSettingsArgs {
     /// Query parameter: country
-    pub country: Option<Option<String>>,
+    pub country: Option<String>,
 }
 
 /// GET books/v1/myconfig/getUserSettings
@@ -3322,10 +3324,10 @@ pub fn books_myconfig_get_user_settings(
 
 pub fn books_myconfig_release_download_access_builder<R>(
     client: &SimpleHttpClient<R>,
-    cpksver: &Option<Option<String>>,
-    locale: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    volumeIds: &Option<Option<String>>,
+    cpksver: &Option<String>,
+    locale: &Option<String>,
+    source: &Option<String>,
+    volumeIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3472,13 +3474,13 @@ pub fn books_myconfig_release_download_access_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksMyconfigReleaseDownloadAccessArgs {
     /// Query parameter: cpksver
-    pub cpksver: Option<Option<String>>,
+    pub cpksver: Option<String>,
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: volumeIds
-    pub volumeIds: Option<Option<String>>,
+    pub volumeIds: Option<String>,
 }
 
 /// POST books/v1/myconfig/releaseDownloadAccess
@@ -3519,12 +3521,12 @@ pub fn books_myconfig_release_download_access(
 
 pub fn books_myconfig_request_access_builder<R>(
     client: &SimpleHttpClient<R>,
-    cpksver: &Option<Option<String>>,
-    licenseTypes: &Option<Option<String>>,
-    locale: &Option<Option<String>>,
-    nonce: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    volumeId: &Option<Option<String>>,
+    cpksver: &Option<String>,
+    licenseTypes: &Option<String>,
+    locale: &Option<String>,
+    nonce: &Option<String>,
+    source: &Option<String>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3676,17 +3678,17 @@ pub fn books_myconfig_request_access_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksMyconfigRequestAccessArgs {
     /// Query parameter: cpksver
-    pub cpksver: Option<Option<String>>,
+    pub cpksver: Option<String>,
     /// Query parameter: licenseTypes
-    pub licenseTypes: Option<Option<String>>,
+    pub licenseTypes: Option<String>,
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: nonce
-    pub nonce: Option<Option<String>>,
+    pub nonce: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: volumeId
-    pub volumeId: Option<Option<String>>,
+    pub volumeId: Option<String>,
 }
 
 /// POST books/v1/myconfig/requestAccess
@@ -3729,14 +3731,14 @@ pub fn books_myconfig_request_access(
 
 pub fn books_myconfig_sync_volume_licenses_builder<R>(
     client: &SimpleHttpClient<R>,
-    cpksver: &Option<Option<String>>,
-    features: &Option<Option<String>>,
-    includeNonComicsSeries: &Option<Option<String>>,
-    locale: &Option<Option<String>>,
-    nonce: &Option<Option<String>>,
-    showPreorders: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    volumeIds: &Option<Option<String>>,
+    cpksver: &Option<String>,
+    features: &Option<String>,
+    includeNonComicsSeries: &Option<String>,
+    locale: &Option<String>,
+    nonce: &Option<String>,
+    showPreorders: &Option<String>,
+    source: &Option<String>,
+    volumeIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3893,21 +3895,21 @@ pub fn books_myconfig_sync_volume_licenses_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksMyconfigSyncVolumeLicensesArgs {
     /// Query parameter: cpksver
-    pub cpksver: Option<Option<String>>,
+    pub cpksver: Option<String>,
     /// Query parameter: features
-    pub features: Option<Option<String>>,
+    pub features: Option<String>,
     /// Query parameter: includeNonComicsSeries
-    pub includeNonComicsSeries: Option<Option<String>>,
+    pub includeNonComicsSeries: Option<String>,
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: nonce
-    pub nonce: Option<Option<String>>,
+    pub nonce: Option<String>,
     /// Query parameter: showPreorders
-    pub showPreorders: Option<Option<String>>,
+    pub showPreorders: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: volumeIds
-    pub volumeIds: Option<Option<String>>,
+    pub volumeIds: Option<String>,
 }
 
 /// POST books/v1/myconfig/syncVolumeLicenses
@@ -4104,7 +4106,7 @@ pub fn books_myconfig_update_user_settings(
 pub fn books_mylibrary_annotations_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     annotationId: &String,
-    source: &Option<Option<String>>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4244,7 +4246,7 @@ pub struct BooksMylibraryAnnotationsDeleteArgs {
     /// Path parameter: annotationId
     pub annotationId: String,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// DELETE books/v1/mylibrary/annotations/{annotationId}
@@ -4278,10 +4280,10 @@ pub fn books_mylibrary_annotations_delete(
 
 pub fn books_mylibrary_annotations_insert_builder<R>(
     client: &SimpleHttpClient<R>,
-    annotationId: &Option<Option<String>>,
-    country: &Option<Option<String>>,
-    showOnlySummaryInResponse: &Option<Option<String>>,
-    source: &Option<Option<String>>,
+    annotationId: &Option<String>,
+    country: &Option<String>,
+    showOnlySummaryInResponse: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4425,13 +4427,13 @@ pub fn books_mylibrary_annotations_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksMylibraryAnnotationsInsertArgs {
     /// Query parameter: annotationId
-    pub annotationId: Option<Option<String>>,
+    pub annotationId: Option<String>,
     /// Query parameter: country
-    pub country: Option<Option<String>>,
+    pub country: Option<String>,
     /// Query parameter: showOnlySummaryInResponse
-    pub showOnlySummaryInResponse: Option<Option<String>>,
+    pub showOnlySummaryInResponse: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// POST books/v1/mylibrary/annotations
@@ -4470,16 +4472,16 @@ pub fn books_mylibrary_annotations_insert(
 
 pub fn books_mylibrary_annotations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    contentVersion: &Option<Option<String>>,
-    layerId: &Option<Option<String>>,
-    layerIds: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showDeleted: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    updatedMax: &Option<Option<String>>,
-    updatedMin: &Option<Option<String>>,
-    volumeId: &Option<Option<String>>,
+    contentVersion: &Option<String>,
+    layerId: &Option<String>,
+    layerIds: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    showDeleted: &Option<String>,
+    source: &Option<String>,
+    updatedMax: &Option<String>,
+    updatedMin: &Option<String>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4641,25 +4643,25 @@ pub fn books_mylibrary_annotations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksMylibraryAnnotationsListArgs {
     /// Query parameter: contentVersion
-    pub contentVersion: Option<Option<String>>,
+    pub contentVersion: Option<String>,
     /// Query parameter: layerId
-    pub layerId: Option<Option<String>>,
+    pub layerId: Option<String>,
     /// Query parameter: layerIds
-    pub layerIds: Option<Option<String>>,
+    pub layerIds: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: updatedMax
-    pub updatedMax: Option<Option<String>>,
+    pub updatedMax: Option<String>,
     /// Query parameter: updatedMin
-    pub updatedMin: Option<Option<String>>,
+    pub updatedMin: Option<String>,
     /// Query parameter: volumeId
-    pub volumeId: Option<Option<String>>,
+    pub volumeId: Option<String>,
 }
 
 /// GET books/v1/mylibrary/annotations
@@ -4704,9 +4706,9 @@ pub fn books_mylibrary_annotations_list(
 
 pub fn books_mylibrary_annotations_summary_builder<R>(
     client: &SimpleHttpClient<R>,
-    layerIds: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    volumeId: &Option<Option<String>>,
+    layerIds: &Option<String>,
+    source: &Option<String>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4850,11 +4852,11 @@ pub fn books_mylibrary_annotations_summary_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksMylibraryAnnotationsSummaryArgs {
     /// Query parameter: layerIds
-    pub layerIds: Option<Option<String>>,
+    pub layerIds: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: volumeId
-    pub volumeId: Option<Option<String>>,
+    pub volumeId: Option<String>,
 }
 
 /// POST books/v1/mylibrary/annotations/summary
@@ -4895,7 +4897,7 @@ pub fn books_mylibrary_annotations_summary(
 pub fn books_mylibrary_annotations_update_builder<R>(
     client: &SimpleHttpClient<R>,
     annotationId: &String,
-    source: &Option<Option<String>>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5035,7 +5037,7 @@ pub struct BooksMylibraryAnnotationsUpdateArgs {
     /// Path parameter: annotationId
     pub annotationId: String,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// PUT books/v1/mylibrary/annotations/{annotationId}
@@ -5070,9 +5072,9 @@ pub fn books_mylibrary_annotations_update(
 pub fn books_mylibrary_bookshelves_add_volume_builder<R>(
     client: &SimpleHttpClient<R>,
     shelf: &String,
-    reason: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    volumeId: &Option<Option<String>>,
+    reason: &Option<String>,
+    source: &Option<String>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5218,11 +5220,11 @@ pub struct BooksMylibraryBookshelvesAddVolumeArgs {
     /// Path parameter: shelf
     pub shelf: String,
     /// Query parameter: reason
-    pub reason: Option<Option<String>>,
+    pub reason: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: volumeId
-    pub volumeId: Option<Option<String>>,
+    pub volumeId: Option<String>,
 }
 
 /// POST books/v1/mylibrary/bookshelves/{shelf}/addVolume
@@ -5262,7 +5264,7 @@ pub fn books_mylibrary_bookshelves_add_volume(
 pub fn books_mylibrary_bookshelves_clear_volumes_builder<R>(
     client: &SimpleHttpClient<R>,
     shelf: &String,
-    source: &Option<Option<String>>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5402,7 +5404,7 @@ pub struct BooksMylibraryBookshelvesClearVolumesArgs {
     /// Path parameter: shelf
     pub shelf: String,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// POST books/v1/mylibrary/bookshelves/{shelf}/clearVolumes
@@ -5437,7 +5439,7 @@ pub fn books_mylibrary_bookshelves_clear_volumes(
 pub fn books_mylibrary_bookshelves_get_builder<R>(
     client: &SimpleHttpClient<R>,
     shelf: &String,
-    source: &Option<Option<String>>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5577,7 +5579,7 @@ pub struct BooksMylibraryBookshelvesGetArgs {
     /// Path parameter: shelf
     pub shelf: String,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET books/v1/mylibrary/bookshelves/{shelf}
@@ -5610,7 +5612,7 @@ pub fn books_mylibrary_bookshelves_get(
 
 pub fn books_mylibrary_bookshelves_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    source: &Option<Option<String>>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5745,7 +5747,7 @@ pub fn books_mylibrary_bookshelves_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksMylibraryBookshelvesListArgs {
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET books/v1/mylibrary/bookshelves
@@ -5779,9 +5781,9 @@ pub fn books_mylibrary_bookshelves_list(
 pub fn books_mylibrary_bookshelves_move_volume_builder<R>(
     client: &SimpleHttpClient<R>,
     shelf: &String,
-    source: &Option<Option<String>>,
-    volumeId: &Option<Option<String>>,
-    volumePosition: &Option<Option<String>>,
+    source: &Option<String>,
+    volumeId: &Option<String>,
+    volumePosition: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5927,11 +5929,11 @@ pub struct BooksMylibraryBookshelvesMoveVolumeArgs {
     /// Path parameter: shelf
     pub shelf: String,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: volumeId
-    pub volumeId: Option<Option<String>>,
+    pub volumeId: Option<String>,
     /// Query parameter: volumePosition
-    pub volumePosition: Option<Option<String>>,
+    pub volumePosition: Option<String>,
 }
 
 /// POST books/v1/mylibrary/bookshelves/{shelf}/moveVolume
@@ -5971,9 +5973,9 @@ pub fn books_mylibrary_bookshelves_move_volume(
 pub fn books_mylibrary_bookshelves_remove_volume_builder<R>(
     client: &SimpleHttpClient<R>,
     shelf: &String,
-    reason: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    volumeId: &Option<Option<String>>,
+    reason: &Option<String>,
+    source: &Option<String>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6119,11 +6121,11 @@ pub struct BooksMylibraryBookshelvesRemoveVolumeArgs {
     /// Path parameter: shelf
     pub shelf: String,
     /// Query parameter: reason
-    pub reason: Option<Option<String>>,
+    pub reason: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: volumeId
-    pub volumeId: Option<Option<String>>,
+    pub volumeId: Option<String>,
 }
 
 /// POST books/v1/mylibrary/bookshelves/{shelf}/removeVolume
@@ -6163,13 +6165,13 @@ pub fn books_mylibrary_bookshelves_remove_volume(
 pub fn books_mylibrary_bookshelves_volumes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     shelf: &String,
-    country: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    q: &Option<Option<String>>,
-    showPreorders: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    startIndex: &Option<Option<String>>,
+    country: &Option<String>,
+    maxResults: &Option<String>,
+    projection: &Option<String>,
+    q: &Option<String>,
+    showPreorders: &Option<String>,
+    source: &Option<String>,
+    startIndex: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6327,19 +6329,19 @@ pub struct BooksMylibraryBookshelvesVolumesListArgs {
     /// Path parameter: shelf
     pub shelf: String,
     /// Query parameter: country
-    pub country: Option<Option<String>>,
+    pub country: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
     /// Query parameter: showPreorders
-    pub showPreorders: Option<Option<String>>,
+    pub showPreorders: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: startIndex
-    pub startIndex: Option<Option<String>>,
+    pub startIndex: Option<String>,
 }
 
 /// GET books/v1/mylibrary/bookshelves/{shelf}/volumes
@@ -6383,8 +6385,8 @@ pub fn books_mylibrary_bookshelves_volumes_list(
 pub fn books_mylibrary_readingpositions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     volumeId: &String,
-    contentVersion: &Option<Option<String>>,
-    source: &Option<Option<String>>,
+    contentVersion: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6529,9 +6531,9 @@ pub struct BooksMylibraryReadingpositionsGetArgs {
     /// Path parameter: volumeId
     pub volumeId: String,
     /// Query parameter: contentVersion
-    pub contentVersion: Option<Option<String>>,
+    pub contentVersion: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET books/v1/mylibrary/readingpositions/{volumeId}
@@ -6572,12 +6574,12 @@ pub fn books_mylibrary_readingpositions_get(
 pub fn books_mylibrary_readingpositions_set_position_builder<R>(
     client: &SimpleHttpClient<R>,
     volumeId: &String,
-    action: &Option<Option<String>>,
-    contentVersion: &Option<Option<String>>,
-    deviceCookie: &Option<Option<String>>,
-    position: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    timestamp: &Option<Option<String>>,
+    action: &Option<String>,
+    contentVersion: &Option<String>,
+    deviceCookie: &Option<String>,
+    position: &Option<String>,
+    source: &Option<String>,
+    timestamp: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6732,17 +6734,17 @@ pub struct BooksMylibraryReadingpositionsSetPositionArgs {
     /// Path parameter: volumeId
     pub volumeId: String,
     /// Query parameter: action
-    pub action: Option<Option<String>>,
+    pub action: Option<String>,
     /// Query parameter: contentVersion
-    pub contentVersion: Option<Option<String>>,
+    pub contentVersion: Option<String>,
     /// Query parameter: deviceCookie
-    pub deviceCookie: Option<Option<String>>,
+    pub deviceCookie: Option<String>,
     /// Query parameter: position
-    pub position: Option<Option<String>>,
+    pub position: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: timestamp
-    pub timestamp: Option<Option<String>>,
+    pub timestamp: Option<String>,
 }
 
 /// POST books/v1/mylibrary/readingpositions/{volumeId}/setPosition
@@ -6784,9 +6786,9 @@ pub fn books_mylibrary_readingpositions_set_position(
 
 pub fn books_notification_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    locale: &Option<Option<String>>,
-    notification_id: &Option<Option<String>>,
-    source: &Option<Option<String>>,
+    locale: &Option<String>,
+    notification_id: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6929,11 +6931,11 @@ pub fn books_notification_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksNotificationGetArgs {
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: notification_id
-    pub notification_id: Option<Option<String>>,
+    pub notification_id: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET books/v1/notification/get
@@ -6969,7 +6971,7 @@ pub fn books_notification_get(
 
 pub fn books_onboarding_list_categories_builder<R>(
     client: &SimpleHttpClient<R>,
-    locale: &Option<Option<String>>,
+    locale: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7104,7 +7106,7 @@ pub fn books_onboarding_list_categories_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksOnboardingListCategoriesArgs {
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
 }
 
 /// GET books/v1/onboarding/listCategories
@@ -7137,11 +7139,11 @@ pub fn books_onboarding_list_categories(
 
 pub fn books_onboarding_list_category_volumes_builder<R>(
     client: &SimpleHttpClient<R>,
-    categoryId: &Option<Option<String>>,
-    locale: &Option<Option<String>>,
-    maxAllowedMaturityRating: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    categoryId: &Option<String>,
+    locale: &Option<String>,
+    maxAllowedMaturityRating: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7289,15 +7291,15 @@ pub fn books_onboarding_list_category_volumes_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksOnboardingListCategoryVolumesArgs {
     /// Query parameter: categoryId
-    pub categoryId: Option<Option<String>>,
+    pub categoryId: Option<String>,
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: maxAllowedMaturityRating
-    pub maxAllowedMaturityRating: Option<Option<String>>,
+    pub maxAllowedMaturityRating: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET books/v1/onboarding/listCategoryVolumes
@@ -7337,9 +7339,9 @@ pub fn books_onboarding_list_category_volumes(
 
 pub fn books_personalizedstream_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    locale: &Option<Option<String>>,
-    maxAllowedMaturityRating: &Option<Option<String>>,
-    source: &Option<Option<String>>,
+    locale: &Option<String>,
+    maxAllowedMaturityRating: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7482,11 +7484,11 @@ pub fn books_personalizedstream_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksPersonalizedstreamGetArgs {
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: maxAllowedMaturityRating
-    pub maxAllowedMaturityRating: Option<Option<String>>,
+    pub maxAllowedMaturityRating: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET books/v1/personalizedstream/get
@@ -7526,14 +7528,14 @@ pub fn books_personalizedstream_get(
 
 pub fn books_promooffer_accept_builder<R>(
     client: &SimpleHttpClient<R>,
-    androidId: &Option<Option<String>>,
-    device: &Option<Option<String>>,
-    manufacturer: &Option<Option<String>>,
-    model: &Option<Option<String>>,
-    offerId: &Option<Option<String>>,
-    product: &Option<Option<String>>,
-    serial: &Option<Option<String>>,
-    volumeId: &Option<Option<String>>,
+    androidId: &Option<String>,
+    device: &Option<String>,
+    manufacturer: &Option<String>,
+    model: &Option<String>,
+    offerId: &Option<String>,
+    product: &Option<String>,
+    serial: &Option<String>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7689,21 +7691,21 @@ pub fn books_promooffer_accept_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksPromoofferAcceptArgs {
     /// Query parameter: androidId
-    pub androidId: Option<Option<String>>,
+    pub androidId: Option<String>,
     /// Query parameter: device
-    pub device: Option<Option<String>>,
+    pub device: Option<String>,
     /// Query parameter: manufacturer
-    pub manufacturer: Option<Option<String>>,
+    pub manufacturer: Option<String>,
     /// Query parameter: model
-    pub model: Option<Option<String>>,
+    pub model: Option<String>,
     /// Query parameter: offerId
-    pub offerId: Option<Option<String>>,
+    pub offerId: Option<String>,
     /// Query parameter: product
-    pub product: Option<Option<String>>,
+    pub product: Option<String>,
     /// Query parameter: serial
-    pub serial: Option<Option<String>>,
+    pub serial: Option<String>,
     /// Query parameter: volumeId
-    pub volumeId: Option<Option<String>>,
+    pub volumeId: Option<String>,
 }
 
 /// POST books/v1/promooffer/accept
@@ -7746,13 +7748,13 @@ pub fn books_promooffer_accept(
 
 pub fn books_promooffer_dismiss_builder<R>(
     client: &SimpleHttpClient<R>,
-    androidId: &Option<Option<String>>,
-    device: &Option<Option<String>>,
-    manufacturer: &Option<Option<String>>,
-    model: &Option<Option<String>>,
-    offerId: &Option<Option<String>>,
-    product: &Option<Option<String>>,
-    serial: &Option<Option<String>>,
+    androidId: &Option<String>,
+    device: &Option<String>,
+    manufacturer: &Option<String>,
+    model: &Option<String>,
+    offerId: &Option<String>,
+    product: &Option<String>,
+    serial: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7905,19 +7907,19 @@ pub fn books_promooffer_dismiss_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksPromoofferDismissArgs {
     /// Query parameter: androidId
-    pub androidId: Option<Option<String>>,
+    pub androidId: Option<String>,
     /// Query parameter: device
-    pub device: Option<Option<String>>,
+    pub device: Option<String>,
     /// Query parameter: manufacturer
-    pub manufacturer: Option<Option<String>>,
+    pub manufacturer: Option<String>,
     /// Query parameter: model
-    pub model: Option<Option<String>>,
+    pub model: Option<String>,
     /// Query parameter: offerId
-    pub offerId: Option<Option<String>>,
+    pub offerId: Option<String>,
     /// Query parameter: product
-    pub product: Option<Option<String>>,
+    pub product: Option<String>,
     /// Query parameter: serial
-    pub serial: Option<Option<String>>,
+    pub serial: Option<String>,
 }
 
 /// POST books/v1/promooffer/dismiss
@@ -7959,12 +7961,12 @@ pub fn books_promooffer_dismiss(
 
 pub fn books_promooffer_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    androidId: &Option<Option<String>>,
-    device: &Option<Option<String>>,
-    manufacturer: &Option<Option<String>>,
-    model: &Option<Option<String>>,
-    product: &Option<Option<String>>,
-    serial: &Option<Option<String>>,
+    androidId: &Option<String>,
+    device: &Option<String>,
+    manufacturer: &Option<String>,
+    model: &Option<String>,
+    product: &Option<String>,
+    serial: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8114,17 +8116,17 @@ pub fn books_promooffer_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksPromoofferGetArgs {
     /// Query parameter: androidId
-    pub androidId: Option<Option<String>>,
+    pub androidId: Option<String>,
     /// Query parameter: device
-    pub device: Option<Option<String>>,
+    pub device: Option<String>,
     /// Query parameter: manufacturer
-    pub manufacturer: Option<Option<String>>,
+    pub manufacturer: Option<String>,
     /// Query parameter: model
-    pub model: Option<Option<String>>,
+    pub model: Option<String>,
     /// Query parameter: product
-    pub product: Option<Option<String>>,
+    pub product: Option<String>,
     /// Query parameter: serial
-    pub serial: Option<Option<String>>,
+    pub serial: Option<String>,
 }
 
 /// GET books/v1/promooffer/get
@@ -8165,7 +8167,7 @@ pub fn books_promooffer_get(
 
 pub fn books_series_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    series_id: &Option<Option<String>>,
+    series_id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8300,7 +8302,7 @@ pub fn books_series_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksSeriesGetArgs {
     /// Query parameter: series_id
-    pub series_id: Option<Option<String>>,
+    pub series_id: Option<String>,
 }
 
 /// GET books/v1/series/get
@@ -8333,9 +8335,9 @@ pub fn books_series_get(
 
 pub fn books_series_membership_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    page_size: &Option<Option<String>>,
-    page_token: &Option<Option<String>>,
-    series_id: &Option<Option<String>>,
+    page_size: &Option<String>,
+    page_token: &Option<String>,
+    series_id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8478,11 +8480,11 @@ pub fn books_series_membership_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksSeriesMembershipGetArgs {
     /// Query parameter: page_size
-    pub page_size: Option<Option<String>>,
+    pub page_size: Option<String>,
     /// Query parameter: page_token
-    pub page_token: Option<Option<String>>,
+    pub page_token: Option<String>,
     /// Query parameter: series_id
-    pub series_id: Option<Option<String>>,
+    pub series_id: Option<String>,
 }
 
 /// GET books/v1/series/membership/get
@@ -8523,12 +8525,12 @@ pub fn books_series_membership_get(
 pub fn books_volumes_get_builder<R>(
     client: &SimpleHttpClient<R>,
     volumeId: &String,
-    country: &Option<Option<String>>,
-    includeNonComicsSeries: &Option<Option<String>>,
-    partner: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    user_library_consistent_read: &Option<Option<String>>,
+    country: &Option<String>,
+    includeNonComicsSeries: &Option<String>,
+    partner: &Option<String>,
+    projection: &Option<String>,
+    source: &Option<String>,
+    user_library_consistent_read: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8680,17 +8682,17 @@ pub struct BooksVolumesGetArgs {
     /// Path parameter: volumeId
     pub volumeId: String,
     /// Query parameter: country
-    pub country: Option<Option<String>>,
+    pub country: Option<String>,
     /// Query parameter: includeNonComicsSeries
-    pub includeNonComicsSeries: Option<Option<String>>,
+    pub includeNonComicsSeries: Option<String>,
     /// Query parameter: partner
-    pub partner: Option<Option<String>>,
+    pub partner: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: user_library_consistent_read
-    pub user_library_consistent_read: Option<Option<String>>,
+    pub user_library_consistent_read: Option<String>,
 }
 
 /// GET books/v1/volumes/{volumeId}
@@ -8732,20 +8734,20 @@ pub fn books_volumes_get(
 
 pub fn books_volumes_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    download: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    langRestrict: &Option<Option<String>>,
-    libraryRestrict: &Option<Option<String>>,
-    maxAllowedMaturityRating: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    partner: &Option<Option<String>>,
-    printType: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    q: &Option<Option<String>>,
-    showPreorders: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    startIndex: &Option<Option<String>>,
+    download: &Option<String>,
+    filter: &Option<String>,
+    langRestrict: &Option<String>,
+    libraryRestrict: &Option<String>,
+    maxAllowedMaturityRating: &Option<String>,
+    maxResults: &Option<String>,
+    orderBy: &Option<String>,
+    partner: &Option<String>,
+    printType: &Option<String>,
+    projection: &Option<String>,
+    q: &Option<String>,
+    showPreorders: &Option<String>,
+    source: &Option<String>,
+    startIndex: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8919,33 +8921,33 @@ pub fn books_volumes_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksVolumesListArgs {
     /// Query parameter: download
-    pub download: Option<Option<String>>,
+    pub download: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: langRestrict
-    pub langRestrict: Option<Option<String>>,
+    pub langRestrict: Option<String>,
     /// Query parameter: libraryRestrict
-    pub libraryRestrict: Option<Option<String>>,
+    pub libraryRestrict: Option<String>,
     /// Query parameter: maxAllowedMaturityRating
-    pub maxAllowedMaturityRating: Option<Option<String>>,
+    pub maxAllowedMaturityRating: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: partner
-    pub partner: Option<Option<String>>,
+    pub partner: Option<String>,
     /// Query parameter: printType
-    pub printType: Option<Option<String>>,
+    pub printType: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
     /// Query parameter: showPreorders
-    pub showPreorders: Option<Option<String>>,
+    pub showPreorders: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: startIndex
-    pub startIndex: Option<Option<String>>,
+    pub startIndex: Option<String>,
 }
 
 /// GET books/v1/volumes
@@ -8995,10 +8997,10 @@ pub fn books_volumes_list(
 pub fn books_volumes_associated_list_builder<R>(
     client: &SimpleHttpClient<R>,
     volumeId: &String,
-    association: &Option<Option<String>>,
-    locale: &Option<Option<String>>,
-    maxAllowedMaturityRating: &Option<Option<String>>,
-    source: &Option<Option<String>>,
+    association: &Option<String>,
+    locale: &Option<String>,
+    maxAllowedMaturityRating: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9147,13 +9149,13 @@ pub struct BooksVolumesAssociatedListArgs {
     /// Path parameter: volumeId
     pub volumeId: String,
     /// Query parameter: association
-    pub association: Option<Option<String>>,
+    pub association: Option<String>,
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: maxAllowedMaturityRating
-    pub maxAllowedMaturityRating: Option<Option<String>>,
+    pub maxAllowedMaturityRating: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET books/v1/volumes/{volumeId}/associated
@@ -9193,13 +9195,13 @@ pub fn books_volumes_associated_list(
 
 pub fn books_volumes_mybooks_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    acquireMethod: &Option<Option<String>>,
-    country: &Option<Option<String>>,
-    locale: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    processingState: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    startIndex: &Option<Option<String>>,
+    acquireMethod: &Option<String>,
+    country: &Option<String>,
+    locale: &Option<String>,
+    maxResults: &Option<String>,
+    processingState: &Option<String>,
+    source: &Option<String>,
+    startIndex: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9352,19 +9354,19 @@ pub fn books_volumes_mybooks_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksVolumesMybooksListArgs {
     /// Query parameter: acquireMethod
-    pub acquireMethod: Option<Option<String>>,
+    pub acquireMethod: Option<String>,
     /// Query parameter: country
-    pub country: Option<Option<String>>,
+    pub country: Option<String>,
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: processingState
-    pub processingState: Option<Option<String>>,
+    pub processingState: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: startIndex
-    pub startIndex: Option<Option<String>>,
+    pub startIndex: Option<String>,
 }
 
 /// GET books/v1/volumes/mybooks
@@ -9406,9 +9408,9 @@ pub fn books_volumes_mybooks_list(
 
 pub fn books_volumes_recommended_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    locale: &Option<Option<String>>,
-    maxAllowedMaturityRating: &Option<Option<String>>,
-    source: &Option<Option<String>>,
+    locale: &Option<String>,
+    maxAllowedMaturityRating: &Option<String>,
+    source: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9549,11 +9551,11 @@ pub fn books_volumes_recommended_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksVolumesRecommendedListArgs {
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: maxAllowedMaturityRating
-    pub maxAllowedMaturityRating: Option<Option<String>>,
+    pub maxAllowedMaturityRating: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
 }
 
 /// GET books/v1/volumes/recommended
@@ -9591,10 +9593,10 @@ pub fn books_volumes_recommended_list(
 
 pub fn books_volumes_recommended_rate_builder<R>(
     client: &SimpleHttpClient<R>,
-    locale: &Option<Option<String>>,
-    rating: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    volumeId: &Option<Option<String>>,
+    locale: &Option<String>,
+    rating: &Option<String>,
+    source: &Option<String>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9742,13 +9744,13 @@ pub fn books_volumes_recommended_rate_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksVolumesRecommendedRateArgs {
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: rating
-    pub rating: Option<Option<String>>,
+    pub rating: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: volumeId
-    pub volumeId: Option<Option<String>>,
+    pub volumeId: Option<String>,
 }
 
 /// POST books/v1/volumes/recommended/rate
@@ -9791,12 +9793,12 @@ pub fn books_volumes_recommended_rate(
 
 pub fn books_volumes_useruploaded_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    locale: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    processingState: &Option<Option<String>>,
-    source: &Option<Option<String>>,
-    startIndex: &Option<Option<String>>,
-    volumeId: &Option<Option<String>>,
+    locale: &Option<String>,
+    maxResults: &Option<String>,
+    processingState: &Option<String>,
+    source: &Option<String>,
+    startIndex: &Option<String>,
+    volumeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9946,17 +9948,17 @@ pub fn books_volumes_useruploaded_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BooksVolumesUseruploadedListArgs {
     /// Query parameter: locale
-    pub locale: Option<Option<String>>,
+    pub locale: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: processingState
-    pub processingState: Option<Option<String>>,
+    pub processingState: Option<String>,
     /// Query parameter: source
-    pub source: Option<Option<String>>,
+    pub source: Option<String>,
     /// Query parameter: startIndex
-    pub startIndex: Option<Option<String>>,
+    pub startIndex: Option<String>,
     /// Query parameter: volumeId
-    pub volumeId: Option<Option<String>>,
+    pub volumeId: Option<String>,
 }
 
 /// GET books/v1/volumes/useruploaded
@@ -10097,29 +10099,6 @@ impl ResourceIdentifier<BooksCloudloadingDeleteBookArgs> for Empty {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::books::Empty"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BooksCloudloadingResource
-// =============================================================================
-
-/// ResourceIdentifier implementation for BooksCloudloadingResource with BooksCloudloadingUpdateBookArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<BooksCloudloadingUpdateBookArgs> for BooksCloudloadingResource {
-    fn generate_resource_id(&self, input: &BooksCloudloadingUpdateBookArgs) -> String {
-        "gcp::books::BooksCloudloadingResource".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::books::BooksCloudloadingResource"
     }
 
     fn provider(&self) -> &'static str {
@@ -10457,29 +10436,6 @@ impl ResourceIdentifier<BooksMyconfigSyncVolumeLicensesArgs> for Volumes {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::books::Volumes"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Usersettings
-// =============================================================================
-
-/// ResourceIdentifier implementation for Usersettings with BooksMyconfigUpdateUserSettingsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<BooksMyconfigUpdateUserSettingsArgs> for Usersettings {
-    fn generate_resource_id(&self, input: &BooksMyconfigUpdateUserSettingsArgs) -> String {
-        "gcp::books::Usersettings".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::books::Usersettings"
     }
 
     fn provider(&self) -> &'static str {

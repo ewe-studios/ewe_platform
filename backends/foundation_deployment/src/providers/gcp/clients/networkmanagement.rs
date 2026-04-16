@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn networkmanagement_organizations_locations_get(
 pub fn networkmanagement_organizations_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct NetworkmanagementOrganizationsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations
@@ -879,10 +881,10 @@ pub fn networkmanagement_organizations_locations_global_operations_get(
 pub fn networkmanagement_organizations_locations_global_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1033,13 +1035,13 @@ pub struct NetworkmanagementOrganizationsLocationsGlobalOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/global/operations
@@ -1082,7 +1084,7 @@ pub fn networkmanagement_organizations_locations_global_operations_list(
 pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    vpcFlowLogsConfigId: &Option<Option<String>>,
+    vpcFlowLogsConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1223,7 +1225,7 @@ pub struct NetworkmanagementOrganizationsLocationsVpcFlowLogsConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: vpcFlowLogsConfigId
-    pub vpcFlowLogsConfigId: Option<Option<String>>,
+    pub vpcFlowLogsConfigId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/vpcFlowLogsConfigs
@@ -1590,10 +1592,10 @@ pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_get(
 pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1746,13 +1748,13 @@ pub struct NetworkmanagementOrganizationsLocationsVpcFlowLogsConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/vpcFlowLogsConfigs
@@ -1797,7 +1799,7 @@ pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_list(
 pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1937,7 +1939,7 @@ pub struct NetworkmanagementOrganizationsLocationsVpcFlowLogsConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/vpcFlowLogsConfigs/{vpcFlowLogsConfigsId}
@@ -2135,10 +2137,10 @@ pub fn networkmanagement_projects_locations_get(
 pub fn networkmanagement_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2289,13 +2291,13 @@ pub struct NetworkmanagementProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -2338,7 +2340,7 @@ pub fn networkmanagement_projects_locations_list(
 pub fn networkmanagement_projects_locations_global_connectivity_tests_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    testId: &Option<Option<String>>,
+    testId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2478,7 +2480,7 @@ pub struct NetworkmanagementProjectsLocationsGlobalConnectivityTestsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: testId
-    pub testId: Option<Option<String>>,
+    pub testId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/global/connectivityTests
@@ -2844,7 +2846,7 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_get(
 pub fn networkmanagement_projects_locations_global_connectivity_tests_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2986,7 +2988,7 @@ pub struct NetworkmanagementProjectsLocationsGlobalConnectivityTestsGetIamPolicy
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/global/connectivityTests/{connectivityTestsId}:getIamPolicy
@@ -3025,10 +3027,10 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_get_iam_po
 pub fn networkmanagement_projects_locations_global_connectivity_tests_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3181,13 +3183,13 @@ pub struct NetworkmanagementProjectsLocationsGlobalConnectivityTestsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/global/connectivityTests
@@ -3232,7 +3234,7 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_list(
 pub fn networkmanagement_projects_locations_global_connectivity_tests_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3372,7 +3374,7 @@ pub struct NetworkmanagementProjectsLocationsGlobalConnectivityTestsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/global/connectivityTests/{connectivityTestsId}
@@ -4396,10 +4398,10 @@ pub fn networkmanagement_projects_locations_global_operations_get(
 pub fn networkmanagement_projects_locations_global_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4550,13 +4552,13 @@ pub struct NetworkmanagementProjectsLocationsGlobalOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/global/operations
@@ -4599,7 +4601,7 @@ pub fn networkmanagement_projects_locations_global_operations_list(
 pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    vpcFlowLogsConfigId: &Option<Option<String>>,
+    vpcFlowLogsConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4739,7 +4741,7 @@ pub struct NetworkmanagementProjectsLocationsVpcFlowLogsConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: vpcFlowLogsConfigId
-    pub vpcFlowLogsConfigId: Option<Option<String>>,
+    pub vpcFlowLogsConfigId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/vpcFlowLogsConfigs
@@ -5104,10 +5106,10 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_get(
 pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5260,13 +5262,13 @@ pub struct NetworkmanagementProjectsLocationsVpcFlowLogsConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vpcFlowLogsConfigs
@@ -5311,7 +5313,7 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_list(
 pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5451,7 +5453,7 @@ pub struct NetworkmanagementProjectsLocationsVpcFlowLogsConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/vpcFlowLogsConfigs/{vpcFlowLogsConfigsId}
@@ -5491,9 +5493,9 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_query_org_vpc_
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5643,11 +5645,11 @@ pub struct NetworkmanagementProjectsLocationsVpcFlowLogsConfigsQueryOrgVpcFlowLo
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vpcFlowLogsConfigs:queryOrgVpcFlowLogsConfigs
@@ -5687,10 +5689,10 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_show_effective
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resource: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    resource: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5843,13 +5845,13 @@ pub struct NetworkmanagementProjectsLocationsVpcFlowLogsConfigsShowEffectiveFlow
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resource
-    pub resource: Option<Option<String>>,
+    pub resource: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vpcFlowLogsConfigs:showEffectiveFlowLogsConfigs

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -2770,7 +2772,7 @@ pub fn firebaseappcheck_projects_apps_generate_play_integrity_challenge(
 pub fn firebaseappcheck_projects_apps_app_attest_config_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    names: &Option<Option<String>>,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2921,7 +2923,7 @@ pub struct FirebaseappcheckProjectsAppsAppAttestConfigBatchGetArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: names
-    pub names: Option<Option<String>>,
+    pub names: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/apps/-/appAttestConfig:batchGet
@@ -3135,7 +3137,7 @@ pub fn firebaseappcheck_projects_apps_app_attest_config_get(
 pub fn firebaseappcheck_projects_apps_app_attest_config_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3280,7 +3282,7 @@ pub struct FirebaseappcheckProjectsAppsAppAttestConfigPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/apps/{appsId}/appAttestConfig
@@ -3822,8 +3824,8 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_get(
 pub fn firebaseappcheck_projects_apps_debug_tokens_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3971,9 +3973,9 @@ pub struct FirebaseappcheckProjectsAppsDebugTokensListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/apps/{appsId}/debugTokens
@@ -4016,7 +4018,7 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_list(
 pub fn firebaseappcheck_projects_apps_debug_tokens_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4160,7 +4162,7 @@ pub struct FirebaseappcheckProjectsAppsDebugTokensPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/apps/{appsId}/debugTokens/{debugTokensId}
@@ -4202,7 +4204,7 @@ pub fn firebaseappcheck_projects_apps_debug_tokens_patch(
 pub fn firebaseappcheck_projects_apps_device_check_config_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    names: &Option<Option<String>>,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4353,7 +4355,7 @@ pub struct FirebaseappcheckProjectsAppsDeviceCheckConfigBatchGetArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: names
-    pub names: Option<Option<String>>,
+    pub names: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/apps/-/deviceCheckConfig:batchGet
@@ -4567,7 +4569,7 @@ pub fn firebaseappcheck_projects_apps_device_check_config_get(
 pub fn firebaseappcheck_projects_apps_device_check_config_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4711,7 +4713,7 @@ pub struct FirebaseappcheckProjectsAppsDeviceCheckConfigPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/apps/{appsId}/deviceCheckConfig
@@ -4753,7 +4755,7 @@ pub fn firebaseappcheck_projects_apps_device_check_config_patch(
 pub fn firebaseappcheck_projects_apps_play_integrity_config_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    names: &Option<Option<String>>,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4904,7 +4906,7 @@ pub struct FirebaseappcheckProjectsAppsPlayIntegrityConfigBatchGetArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: names
-    pub names: Option<Option<String>>,
+    pub names: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/apps/-/playIntegrityConfig:batchGet
@@ -5119,7 +5121,7 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_get(
 pub fn firebaseappcheck_projects_apps_play_integrity_config_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5264,7 +5266,7 @@ pub struct FirebaseappcheckProjectsAppsPlayIntegrityConfigPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/apps/{appsId}/playIntegrityConfig
@@ -5306,7 +5308,7 @@ pub fn firebaseappcheck_projects_apps_play_integrity_config_patch(
 pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    names: &Option<Option<String>>,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5457,7 +5459,7 @@ pub struct FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigBatchGetArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: names
-    pub names: Option<Option<String>>,
+    pub names: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/apps/-/recaptchaEnterpriseConfig:batchGet
@@ -5675,7 +5677,7 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_get(
 pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5823,7 +5825,7 @@ pub struct FirebaseappcheckProjectsAppsRecaptchaEnterpriseConfigPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/apps/{appsId}/recaptchaEnterpriseConfig
@@ -5865,7 +5867,7 @@ pub fn firebaseappcheck_projects_apps_recaptcha_enterprise_config_patch(
 pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    names: &Option<Option<String>>,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6016,7 +6018,7 @@ pub struct FirebaseappcheckProjectsAppsRecaptchaV3ConfigBatchGetArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: names
-    pub names: Option<Option<String>>,
+    pub names: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/apps/-/recaptchaV3Config:batchGet
@@ -6230,7 +6232,7 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_get(
 pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6374,7 +6376,7 @@ pub struct FirebaseappcheckProjectsAppsRecaptchaV3ConfigPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/apps/{appsId}/recaptchaV3Config
@@ -6416,7 +6418,7 @@ pub fn firebaseappcheck_projects_apps_recaptcha_v3_config_patch(
 pub fn firebaseappcheck_projects_apps_safety_net_config_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    names: &Option<Option<String>>,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6567,7 +6569,7 @@ pub struct FirebaseappcheckProjectsAppsSafetyNetConfigBatchGetArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: names
-    pub names: Option<Option<String>>,
+    pub names: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/apps/-/safetyNetConfig:batchGet
@@ -6781,7 +6783,7 @@ pub fn firebaseappcheck_projects_apps_safety_net_config_get(
 pub fn firebaseappcheck_projects_apps_safety_net_config_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6926,7 +6928,7 @@ pub struct FirebaseappcheckProjectsAppsSafetyNetConfigPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/apps/{appsId}/safetyNetConfig
@@ -7308,8 +7310,8 @@ pub fn firebaseappcheck_projects_services_get(
 pub fn firebaseappcheck_projects_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7457,9 +7459,9 @@ pub struct FirebaseappcheckProjectsServicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/services
@@ -7502,7 +7504,7 @@ pub fn firebaseappcheck_projects_services_list(
 pub fn firebaseappcheck_projects_services_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7646,7 +7648,7 @@ pub struct FirebaseappcheckProjectsServicesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/services/{servicesId}
@@ -8035,7 +8037,7 @@ pub fn firebaseappcheck_projects_services_resource_policies_create(
 pub fn firebaseappcheck_projects_services_resource_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8177,7 +8179,7 @@ pub struct FirebaseappcheckProjectsServicesResourcePoliciesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/services/{servicesId}/resourcePolicies/{resourcePoliciesId}
@@ -8384,9 +8386,9 @@ pub fn firebaseappcheck_projects_services_resource_policies_get(
 pub fn firebaseappcheck_projects_services_resource_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8540,11 +8542,11 @@ pub struct FirebaseappcheckProjectsServicesResourcePoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/services/{servicesId}/resourcePolicies
@@ -8588,7 +8590,7 @@ pub fn firebaseappcheck_projects_services_resource_policies_list(
 pub fn firebaseappcheck_projects_services_resource_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8732,7 +8734,7 @@ pub struct FirebaseappcheckProjectsServicesResourcePoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/services/{servicesId}/resourcePolicies/{resourcePoliciesId}
@@ -8763,29 +8765,6 @@ pub fn firebaseappcheck_projects_services_resource_policies_patch(
         &args.updateMask,
     )?;
     firebaseappcheck_projects_services_resource_policies_patch_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1PublicJwkSet
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleFirebaseAppcheckV1PublicJwkSet with FirebaseappcheckJwksGetArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<FirebaseappcheckJwksGetArgs> for GoogleFirebaseAppcheckV1PublicJwkSet {
-    fn generate_resource_id(&self, input: &FirebaseappcheckJwksGetArgs) -> String {
-        "gcp::firebaseappcheck::GoogleFirebaseAppcheckV1PublicJwkSet".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::firebaseappcheck::GoogleFirebaseAppcheckV1PublicJwkSet"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================

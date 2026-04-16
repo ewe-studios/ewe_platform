@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -355,10 +357,10 @@ pub fn vmwareengine_projects_locations_get_dns_bind_permission(
 pub fn vmwareengine_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -509,13 +511,13 @@ pub struct VmwareengineProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -722,10 +724,10 @@ pub fn vmwareengine_projects_locations_announcements_get(
 pub fn vmwareengine_projects_locations_announcements_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -876,13 +878,13 @@ pub struct VmwareengineProjectsLocationsAnnouncementsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/announcements
@@ -925,8 +927,8 @@ pub fn vmwareengine_projects_locations_announcements_list(
 pub fn vmwareengine_projects_locations_datastores_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    datastoreId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    datastoreId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1069,9 +1071,9 @@ pub struct VmwareengineProjectsLocationsDatastoresCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: datastoreId
-    pub datastoreId: Option<Option<String>>,
+    pub datastoreId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datastores
@@ -1110,8 +1112,8 @@ pub fn vmwareengine_projects_locations_datastores_create(
 pub fn vmwareengine_projects_locations_datastores_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1254,9 +1256,9 @@ pub struct VmwareengineProjectsLocationsDatastoresDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
@@ -1455,11 +1457,11 @@ pub fn vmwareengine_projects_locations_datastores_get(
 pub fn vmwareengine_projects_locations_datastores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1613,15 +1615,15 @@ pub struct VmwareengineProjectsLocationsDatastoresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datastores
@@ -1665,8 +1667,8 @@ pub fn vmwareengine_projects_locations_datastores_list(
 pub fn vmwareengine_projects_locations_datastores_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1809,9 +1811,9 @@ pub struct VmwareengineProjectsLocationsDatastoresPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
@@ -2172,9 +2174,9 @@ pub fn vmwareengine_projects_locations_dns_bind_permission_revoke(
 pub fn vmwareengine_projects_locations_network_peerings_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    networkPeeringId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    networkPeeringId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2320,11 +2322,11 @@ pub struct VmwareengineProjectsLocationsNetworkPeeringsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: networkPeeringId
-    pub networkPeeringId: Option<Option<String>>,
+    pub networkPeeringId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/networkPeerings
@@ -2364,7 +2366,7 @@ pub fn vmwareengine_projects_locations_network_peerings_create(
 pub fn vmwareengine_projects_locations_network_peerings_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2504,7 +2506,7 @@ pub struct VmwareengineProjectsLocationsNetworkPeeringsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
@@ -2706,10 +2708,10 @@ pub fn vmwareengine_projects_locations_network_peerings_get(
 pub fn vmwareengine_projects_locations_network_peerings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2862,13 +2864,13 @@ pub struct VmwareengineProjectsLocationsNetworkPeeringsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings
@@ -2913,9 +2915,9 @@ pub fn vmwareengine_projects_locations_network_peerings_list(
 pub fn vmwareengine_projects_locations_network_peerings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3061,11 +3063,11 @@ pub struct VmwareengineProjectsLocationsNetworkPeeringsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
@@ -3105,9 +3107,9 @@ pub fn vmwareengine_projects_locations_network_peerings_patch(
 pub fn vmwareengine_projects_locations_network_peerings_peering_routes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3255,11 +3257,11 @@ pub struct VmwareengineProjectsLocationsNetworkPeeringsPeeringRoutesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}/peeringRoutes
@@ -3301,9 +3303,9 @@ pub fn vmwareengine_projects_locations_network_peerings_peering_routes_list(
 pub fn vmwareengine_projects_locations_network_policies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    networkPolicyId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    networkPolicyId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3449,11 +3451,11 @@ pub struct VmwareengineProjectsLocationsNetworkPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: networkPolicyId
-    pub networkPolicyId: Option<Option<String>>,
+    pub networkPolicyId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/networkPolicies
@@ -3493,7 +3495,7 @@ pub fn vmwareengine_projects_locations_network_policies_create(
 pub fn vmwareengine_projects_locations_network_policies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3633,7 +3635,7 @@ pub struct VmwareengineProjectsLocationsNetworkPoliciesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
@@ -3671,8 +3673,8 @@ pub fn vmwareengine_projects_locations_network_policies_delete(
 pub fn vmwareengine_projects_locations_network_policies_fetch_external_addresses_builder<R>(
     client: &SimpleHttpClient<R>,
     networkPolicy: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3821,9 +3823,9 @@ pub struct VmwareengineProjectsLocationsNetworkPoliciesFetchExternalAddressesArg
     /// Path parameter: networkPolicy
     pub networkPolicy: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}:fetchExternalAddresses
@@ -4031,10 +4033,10 @@ pub fn vmwareengine_projects_locations_network_policies_get(
 pub fn vmwareengine_projects_locations_network_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4187,13 +4189,13 @@ pub struct VmwareengineProjectsLocationsNetworkPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies
@@ -4238,9 +4240,9 @@ pub fn vmwareengine_projects_locations_network_policies_list(
 pub fn vmwareengine_projects_locations_network_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4386,11 +4388,11 @@ pub struct VmwareengineProjectsLocationsNetworkPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
@@ -4430,9 +4432,9 @@ pub fn vmwareengine_projects_locations_network_policies_patch(
 pub fn vmwareengine_projects_locations_network_policies_external_access_rules_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    externalAccessRuleId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    externalAccessRuleId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4580,11 +4582,11 @@ pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesCreate
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: externalAccessRuleId
-    pub externalAccessRuleId: Option<Option<String>>,
+    pub externalAccessRuleId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules
@@ -4625,7 +4627,7 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_cr
 pub fn vmwareengine_projects_locations_network_policies_external_access_rules_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4767,7 +4769,7 @@ pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesDelete
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
@@ -4974,10 +4976,10 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_ge
 pub fn vmwareengine_projects_locations_network_policies_external_access_rules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5131,13 +5133,13 @@ pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesListAr
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules
@@ -5183,9 +5185,9 @@ pub fn vmwareengine_projects_locations_network_policies_external_access_rules_li
 pub fn vmwareengine_projects_locations_network_policies_external_access_rules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5332,11 +5334,11 @@ pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesPatchA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
@@ -5537,9 +5539,9 @@ pub fn vmwareengine_projects_locations_node_types_get(
 pub fn vmwareengine_projects_locations_node_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5687,11 +5689,11 @@ pub struct VmwareengineProjectsLocationsNodeTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/nodeTypes
@@ -6053,10 +6055,10 @@ pub fn vmwareengine_projects_locations_operations_get(
 pub fn vmwareengine_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6207,13 +6209,13 @@ pub struct VmwareengineProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -6256,9 +6258,9 @@ pub fn vmwareengine_projects_locations_operations_list(
 pub fn vmwareengine_projects_locations_private_clouds_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    privateCloudId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    privateCloudId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6404,11 +6406,11 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: privateCloudId
-    pub privateCloudId: Option<Option<String>>,
+    pub privateCloudId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds
@@ -6448,9 +6450,9 @@ pub fn vmwareengine_projects_locations_private_clouds_create(
 pub fn vmwareengine_projects_locations_private_clouds_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    delayHours: &Option<Option<String>>,
-    force: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    delayHours: &Option<String>,
+    force: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6596,11 +6598,11 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: delayHours
-    pub delayHours: Option<Option<String>>,
+    pub delayHours: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
@@ -6970,7 +6972,7 @@ pub fn vmwareengine_projects_locations_private_clouds_get_dns_forwarding(
 pub fn vmwareengine_projects_locations_private_clouds_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7110,7 +7112,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:getIamPolicy
@@ -7148,10 +7150,10 @@ pub fn vmwareengine_projects_locations_private_clouds_get_iam_policy(
 pub fn vmwareengine_projects_locations_private_clouds_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7302,13 +7304,13 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds
@@ -7351,9 +7353,9 @@ pub fn vmwareengine_projects_locations_private_clouds_list(
 pub fn vmwareengine_projects_locations_private_clouds_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7499,11 +7501,11 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
@@ -8360,7 +8362,7 @@ pub fn vmwareengine_projects_locations_private_clouds_show_nsx_credentials(
 pub fn vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_builder<R>(
     client: &SimpleHttpClient<R>,
     privateCloud: &String,
-    username: &Option<Option<String>>,
+    username: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8501,7 +8503,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsShowVcenterCredentialsArgs 
     /// Path parameter: privateCloud
     pub privateCloud: String,
     /// Query parameter: username
-    pub username: Option<Option<String>>,
+    pub username: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:showVcenterCredentials
@@ -8871,8 +8873,8 @@ pub fn vmwareengine_projects_locations_private_clouds_undelete(
 pub fn vmwareengine_projects_locations_private_clouds_update_dns_forwarding_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9015,9 +9017,9 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsUpdateDnsForwardingArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding
@@ -9056,9 +9058,9 @@ pub fn vmwareengine_projects_locations_private_clouds_update_dns_forwarding(
 pub fn vmwareengine_projects_locations_private_clouds_clusters_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    clusterId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    clusterId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9204,11 +9206,11 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsClustersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: clusterId
-    pub clusterId: Option<Option<String>>,
+    pub clusterId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters
@@ -9248,7 +9250,7 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_create(
 pub fn vmwareengine_projects_locations_private_clouds_clusters_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9388,7 +9390,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsClustersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
@@ -9587,7 +9589,7 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_get(
 pub fn vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9728,7 +9730,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsClustersGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:getIamPolicy
@@ -9766,10 +9768,10 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy(
 pub fn vmwareengine_projects_locations_private_clouds_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9920,13 +9922,13 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsClustersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters
@@ -10132,9 +10134,9 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_mount_datastore(
 pub fn vmwareengine_projects_locations_private_clouds_clusters_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10280,11 +10282,11 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsClustersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
@@ -10987,8 +10989,8 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_get(
 pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11133,9 +11135,9 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsClustersNodesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes
@@ -11176,9 +11178,9 @@ pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_list(
 pub fn vmwareengine_projects_locations_private_clouds_external_addresses_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    externalAddressId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    externalAddressId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11325,11 +11327,11 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesCreateArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: externalAddressId
-    pub externalAddressId: Option<Option<String>>,
+    pub externalAddressId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses
@@ -11369,7 +11371,7 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_create(
 pub fn vmwareengine_projects_locations_private_clouds_external_addresses_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11510,7 +11512,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesDeleteArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
@@ -11714,10 +11716,10 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_get(
 pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11871,13 +11873,13 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses
@@ -11922,9 +11924,9 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list(
 pub fn vmwareengine_projects_locations_private_clouds_external_addresses_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12071,11 +12073,11 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesPatchArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
@@ -12115,8 +12117,8 @@ pub fn vmwareengine_projects_locations_private_clouds_external_addresses_patch(
 pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    hcxActivationKeyId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    hcxActivationKeyId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12260,9 +12262,9 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysCreateArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: hcxActivationKeyId
-    pub hcxActivationKeyId: Option<Option<String>>,
+    pub hcxActivationKeyId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys
@@ -12471,7 +12473,7 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_ia
 >(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12614,7 +12616,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetIamPoli
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:getIamPolicy
@@ -12655,8 +12657,8 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_ia
 pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12804,9 +12806,9 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys
@@ -13192,8 +13194,8 @@ pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_i
 pub fn vmwareengine_projects_locations_private_clouds_logging_servers_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    loggingServerId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    loggingServerId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13336,9 +13338,9 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: loggingServerId
-    pub loggingServerId: Option<Option<String>>,
+    pub loggingServerId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers
@@ -13377,7 +13379,7 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_create(
 pub fn vmwareengine_projects_locations_private_clouds_logging_servers_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13517,7 +13519,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
@@ -13721,10 +13723,10 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_get(
 pub fn vmwareengine_projects_locations_private_clouds_logging_servers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13877,13 +13879,13 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers
@@ -13928,8 +13930,8 @@ pub fn vmwareengine_projects_locations_private_clouds_logging_servers_list(
 pub fn vmwareengine_projects_locations_private_clouds_logging_servers_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14072,9 +14074,9 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
@@ -14115,8 +14117,8 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    managementDnsZoneBindingId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    managementDnsZoneBindingId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14262,9 +14264,9 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsCr
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: managementDnsZoneBindingId
-    pub managementDnsZoneBindingId: Option<Option<String>>,
+    pub managementDnsZoneBindingId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
@@ -14308,7 +14310,7 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14451,7 +14453,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsDe
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
@@ -14662,10 +14664,10 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14821,13 +14823,13 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsLi
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
@@ -14877,8 +14879,8 @@ pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindin
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15024,9 +15026,9 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsPa
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
@@ -15399,8 +15401,8 @@ pub fn vmwareengine_projects_locations_private_clouds_subnets_get(
 pub fn vmwareengine_projects_locations_private_clouds_subnets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15545,9 +15547,9 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsSubnetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets
@@ -15588,7 +15590,7 @@ pub fn vmwareengine_projects_locations_private_clouds_subnets_list(
 pub fn vmwareengine_projects_locations_private_clouds_subnets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15728,7 +15730,7 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsSubnetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}
@@ -15927,10 +15929,10 @@ pub fn vmwareengine_projects_locations_private_clouds_upgrades_get(
 pub fn vmwareengine_projects_locations_private_clouds_upgrades_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16081,13 +16083,13 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsUpgradesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades
@@ -16130,8 +16132,8 @@ pub fn vmwareengine_projects_locations_private_clouds_upgrades_list(
 pub fn vmwareengine_projects_locations_private_clouds_upgrades_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16274,9 +16276,9 @@ pub struct VmwareengineProjectsLocationsPrivateCloudsUpgradesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}
@@ -16315,9 +16317,9 @@ pub fn vmwareengine_projects_locations_private_clouds_upgrades_patch(
 pub fn vmwareengine_projects_locations_private_connections_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    privateConnectionId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    privateConnectionId: &Option<String>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16463,11 +16465,11 @@ pub struct VmwareengineProjectsLocationsPrivateConnectionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: privateConnectionId
-    pub privateConnectionId: Option<Option<String>>,
+    pub privateConnectionId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/privateConnections
@@ -16507,7 +16509,7 @@ pub fn vmwareengine_projects_locations_private_connections_create(
 pub fn vmwareengine_projects_locations_private_connections_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16647,7 +16649,7 @@ pub struct VmwareengineProjectsLocationsPrivateConnectionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
@@ -16850,10 +16852,10 @@ pub fn vmwareengine_projects_locations_private_connections_get(
 pub fn vmwareengine_projects_locations_private_connections_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17006,13 +17008,13 @@ pub struct VmwareengineProjectsLocationsPrivateConnectionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections
@@ -17057,9 +17059,9 @@ pub fn vmwareengine_projects_locations_private_connections_list(
 pub fn vmwareengine_projects_locations_private_connections_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17205,11 +17207,11 @@ pub struct VmwareengineProjectsLocationsPrivateConnectionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
@@ -17249,8 +17251,8 @@ pub fn vmwareengine_projects_locations_private_connections_patch(
 pub fn vmwareengine_projects_locations_private_connections_peering_routes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17399,9 +17401,9 @@ pub struct VmwareengineProjectsLocationsPrivateConnectionsPeeringRoutesListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}/peeringRoutes
@@ -17444,9 +17446,9 @@ pub fn vmwareengine_projects_locations_private_connections_peering_routes_list(
 pub fn vmwareengine_projects_locations_vmware_engine_networks_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
-    vmwareEngineNetworkId: &Option<Option<String>>,
+    requestId: &Option<String>,
+    validateOnly: &Option<String>,
+    vmwareEngineNetworkId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17592,11 +17594,11 @@ pub struct VmwareengineProjectsLocationsVmwareEngineNetworksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
     /// Query parameter: vmwareEngineNetworkId
-    pub vmwareEngineNetworkId: Option<Option<String>>,
+    pub vmwareEngineNetworkId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks
@@ -17636,8 +17638,8 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_create(
 pub fn vmwareengine_projects_locations_vmware_engine_networks_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    etag: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17780,9 +17782,9 @@ pub struct VmwareengineProjectsLocationsVmwareEngineNetworksDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
@@ -17986,10 +17988,10 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_get(
 pub fn vmwareengine_projects_locations_vmware_engine_networks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18142,13 +18144,13 @@ pub struct VmwareengineProjectsLocationsVmwareEngineNetworksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks
@@ -18193,9 +18195,9 @@ pub fn vmwareengine_projects_locations_vmware_engine_networks_list(
 pub fn vmwareengine_projects_locations_vmware_engine_networks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18341,11 +18343,11 @@ pub struct VmwareengineProjectsLocationsVmwareEngineNetworksPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -345,8 +347,8 @@ pub fn drive_accessproposals_get(
 pub fn drive_accessproposals_list_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -493,9 +495,9 @@ pub struct DriveAccessproposalsListArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET files/{fileId}/accessproposals
@@ -857,8 +859,8 @@ pub fn drive_approvals_get(
 pub fn drive_approvals_list_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1003,9 +1005,9 @@ pub struct DriveApprovalsListArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET files/{fileId}/approvals
@@ -1198,9 +1200,9 @@ pub fn drive_apps_get(
 
 pub fn drive_apps_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    appFilterExtensions: &Option<Option<String>>,
-    appFilterMimeTypes: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
+    appFilterExtensions: &Option<String>,
+    appFilterMimeTypes: &Option<String>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1341,11 +1343,11 @@ pub fn drive_apps_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveAppsListArgs {
     /// Query parameter: appFilterExtensions
-    pub appFilterExtensions: Option<Option<String>>,
+    pub appFilterExtensions: Option<String>,
     /// Query parameter: appFilterMimeTypes
-    pub appFilterMimeTypes: Option<Option<String>>,
+    pub appFilterMimeTypes: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET apps
@@ -1383,10 +1385,10 @@ pub fn drive_apps_list(
 
 pub fn drive_changes_get_start_page_token_builder<R>(
     client: &SimpleHttpClient<R>,
-    driveId: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
-    teamDriveId: &Option<Option<String>>,
+    driveId: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
+    teamDriveId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1532,13 +1534,13 @@ pub fn drive_changes_get_start_page_token_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveChangesGetStartPageTokenArgs {
     /// Query parameter: driveId
-    pub driveId: Option<Option<String>>,
+    pub driveId: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
     /// Query parameter: teamDriveId
-    pub teamDriveId: Option<Option<String>>,
+    pub teamDriveId: Option<String>,
 }
 
 /// GET changes/startPageToken
@@ -1579,20 +1581,20 @@ pub fn drive_changes_get_start_page_token(
 
 pub fn drive_changes_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    driveId: &Option<Option<String>>,
-    includeCorpusRemovals: &Option<Option<String>>,
-    includeItemsFromAllDrives: &Option<Option<String>>,
-    includeLabels: &Option<Option<String>>,
-    includePermissionsForView: &Option<Option<String>>,
-    includeRemoved: &Option<Option<String>>,
-    includeTeamDriveItems: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    restrictToMyDrive: &Option<Option<String>>,
-    spaces: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
-    teamDriveId: &Option<Option<String>>,
+    driveId: &Option<String>,
+    includeCorpusRemovals: &Option<String>,
+    includeItemsFromAllDrives: &Option<String>,
+    includeLabels: &Option<String>,
+    includePermissionsForView: &Option<String>,
+    includeRemoved: &Option<String>,
+    includeTeamDriveItems: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    restrictToMyDrive: &Option<String>,
+    spaces: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
+    teamDriveId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1766,33 +1768,33 @@ pub fn drive_changes_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveChangesListArgs {
     /// Query parameter: driveId
-    pub driveId: Option<Option<String>>,
+    pub driveId: Option<String>,
     /// Query parameter: includeCorpusRemovals
-    pub includeCorpusRemovals: Option<Option<String>>,
+    pub includeCorpusRemovals: Option<String>,
     /// Query parameter: includeItemsFromAllDrives
-    pub includeItemsFromAllDrives: Option<Option<String>>,
+    pub includeItemsFromAllDrives: Option<String>,
     /// Query parameter: includeLabels
-    pub includeLabels: Option<Option<String>>,
+    pub includeLabels: Option<String>,
     /// Query parameter: includePermissionsForView
-    pub includePermissionsForView: Option<Option<String>>,
+    pub includePermissionsForView: Option<String>,
     /// Query parameter: includeRemoved
-    pub includeRemoved: Option<Option<String>>,
+    pub includeRemoved: Option<String>,
     /// Query parameter: includeTeamDriveItems
-    pub includeTeamDriveItems: Option<Option<String>>,
+    pub includeTeamDriveItems: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: restrictToMyDrive
-    pub restrictToMyDrive: Option<Option<String>>,
+    pub restrictToMyDrive: Option<String>,
     /// Query parameter: spaces
-    pub spaces: Option<Option<String>>,
+    pub spaces: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
     /// Query parameter: teamDriveId
-    pub teamDriveId: Option<Option<String>>,
+    pub teamDriveId: Option<String>,
 }
 
 /// GET changes
@@ -1841,20 +1843,20 @@ pub fn drive_changes_list(
 
 pub fn drive_changes_watch_builder<R>(
     client: &SimpleHttpClient<R>,
-    driveId: &Option<Option<String>>,
-    includeCorpusRemovals: &Option<Option<String>>,
-    includeItemsFromAllDrives: &Option<Option<String>>,
-    includeLabels: &Option<Option<String>>,
-    includePermissionsForView: &Option<Option<String>>,
-    includeRemoved: &Option<Option<String>>,
-    includeTeamDriveItems: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    restrictToMyDrive: &Option<Option<String>>,
-    spaces: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
-    teamDriveId: &Option<Option<String>>,
+    driveId: &Option<String>,
+    includeCorpusRemovals: &Option<String>,
+    includeItemsFromAllDrives: &Option<String>,
+    includeLabels: &Option<String>,
+    includePermissionsForView: &Option<String>,
+    includeRemoved: &Option<String>,
+    includeTeamDriveItems: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    restrictToMyDrive: &Option<String>,
+    spaces: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
+    teamDriveId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2028,33 +2030,33 @@ pub fn drive_changes_watch_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveChangesWatchArgs {
     /// Query parameter: driveId
-    pub driveId: Option<Option<String>>,
+    pub driveId: Option<String>,
     /// Query parameter: includeCorpusRemovals
-    pub includeCorpusRemovals: Option<Option<String>>,
+    pub includeCorpusRemovals: Option<String>,
     /// Query parameter: includeItemsFromAllDrives
-    pub includeItemsFromAllDrives: Option<Option<String>>,
+    pub includeItemsFromAllDrives: Option<String>,
     /// Query parameter: includeLabels
-    pub includeLabels: Option<Option<String>>,
+    pub includeLabels: Option<String>,
     /// Query parameter: includePermissionsForView
-    pub includePermissionsForView: Option<Option<String>>,
+    pub includePermissionsForView: Option<String>,
     /// Query parameter: includeRemoved
-    pub includeRemoved: Option<Option<String>>,
+    pub includeRemoved: Option<String>,
     /// Query parameter: includeTeamDriveItems
-    pub includeTeamDriveItems: Option<Option<String>>,
+    pub includeTeamDriveItems: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: restrictToMyDrive
-    pub restrictToMyDrive: Option<Option<String>>,
+    pub restrictToMyDrive: Option<String>,
     /// Query parameter: spaces
-    pub spaces: Option<Option<String>>,
+    pub spaces: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
     /// Query parameter: teamDriveId
-    pub teamDriveId: Option<Option<String>>,
+    pub teamDriveId: Option<String>,
 }
 
 /// POST changes/watch
@@ -2570,7 +2572,7 @@ pub fn drive_comments_get_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
     commentId: &String,
-    includeDeleted: &Option<Option<String>>,
+    includeDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2712,7 +2714,7 @@ pub struct DriveCommentsGetArgs {
     /// Path parameter: commentId
     pub commentId: String,
     /// Query parameter: includeDeleted
-    pub includeDeleted: Option<Option<String>>,
+    pub includeDeleted: Option<String>,
 }
 
 /// GET files/{fileId}/comments/{commentId}
@@ -2747,10 +2749,10 @@ pub fn drive_comments_get(
 pub fn drive_comments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    includeDeleted: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startModifiedTime: &Option<Option<String>>,
+    includeDeleted: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    startModifiedTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2899,13 +2901,13 @@ pub struct DriveCommentsListArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: includeDeleted
-    pub includeDeleted: Option<Option<String>>,
+    pub includeDeleted: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startModifiedTime
-    pub startModifiedTime: Option<Option<String>>,
+    pub startModifiedTime: Option<String>,
 }
 
 /// GET files/{fileId}/comments
@@ -3108,7 +3110,7 @@ pub fn drive_comments_update(
 
 pub fn drive_drives_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3243,7 +3245,7 @@ pub fn drive_drives_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveDrivesCreateArgs {
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST drives
@@ -3277,8 +3279,8 @@ pub fn drive_drives_create(
 pub fn drive_drives_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     driveId: &String,
-    allowItemDeletion: &Option<Option<String>>,
-    useDomainAdminAccess: &Option<Option<String>>,
+    allowItemDeletion: &Option<String>,
+    useDomainAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3415,9 +3417,9 @@ pub struct DriveDrivesDeleteArgs {
     /// Path parameter: driveId
     pub driveId: String,
     /// Query parameter: allowItemDeletion
-    pub allowItemDeletion: Option<Option<String>>,
+    pub allowItemDeletion: Option<String>,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<Option<String>>,
+    pub useDomainAdminAccess: Option<String>,
 }
 
 /// DELETE drives/{driveId}
@@ -3456,7 +3458,7 @@ pub fn drive_drives_delete(
 pub fn drive_drives_get_builder<R>(
     client: &SimpleHttpClient<R>,
     driveId: &String,
-    useDomainAdminAccess: &Option<Option<String>>,
+    useDomainAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3593,7 +3595,7 @@ pub struct DriveDrivesGetArgs {
     /// Path parameter: driveId
     pub driveId: String,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<Option<String>>,
+    pub useDomainAdminAccess: Option<String>,
 }
 
 /// GET drives/{driveId}
@@ -3786,10 +3788,10 @@ pub fn drive_drives_hide(
 
 pub fn drive_drives_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    q: &Option<Option<String>>,
-    useDomainAdminAccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    q: &Option<String>,
+    useDomainAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3933,13 +3935,13 @@ pub fn drive_drives_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveDrivesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<Option<String>>,
+    pub useDomainAdminAccess: Option<String>,
 }
 
 /// GET drives
@@ -4139,7 +4141,7 @@ pub fn drive_drives_unhide(
 pub fn drive_drives_update_builder<R>(
     client: &SimpleHttpClient<R>,
     driveId: &String,
-    useDomainAdminAccess: &Option<Option<String>>,
+    useDomainAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4276,7 +4278,7 @@ pub struct DriveDrivesUpdateArgs {
     /// Path parameter: driveId
     pub driveId: String,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<Option<String>>,
+    pub useDomainAdminAccess: Option<String>,
 }
 
 /// PATCH drives/{driveId}
@@ -4310,14 +4312,14 @@ pub fn drive_drives_update(
 pub fn drive_files_copy_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    enforceSingleParent: &Option<Option<String>>,
-    ignoreDefaultVisibility: &Option<Option<String>>,
-    includeLabels: &Option<Option<String>>,
-    includePermissionsForView: &Option<Option<String>>,
-    keepRevisionForever: &Option<Option<String>>,
-    ocrLanguage: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
+    enforceSingleParent: &Option<String>,
+    ignoreDefaultVisibility: &Option<String>,
+    includeLabels: &Option<String>,
+    includePermissionsForView: &Option<String>,
+    keepRevisionForever: &Option<String>,
+    ocrLanguage: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4475,21 +4477,21 @@ pub struct DriveFilesCopyArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: enforceSingleParent
-    pub enforceSingleParent: Option<Option<String>>,
+    pub enforceSingleParent: Option<String>,
     /// Query parameter: ignoreDefaultVisibility
-    pub ignoreDefaultVisibility: Option<Option<String>>,
+    pub ignoreDefaultVisibility: Option<String>,
     /// Query parameter: includeLabels
-    pub includeLabels: Option<Option<String>>,
+    pub includeLabels: Option<String>,
     /// Query parameter: includePermissionsForView
-    pub includePermissionsForView: Option<Option<String>>,
+    pub includePermissionsForView: Option<String>,
     /// Query parameter: keepRevisionForever
-    pub keepRevisionForever: Option<Option<String>>,
+    pub keepRevisionForever: Option<String>,
     /// Query parameter: ocrLanguage
-    pub ocrLanguage: Option<Option<String>>,
+    pub ocrLanguage: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
 }
 
 /// POST files/{fileId}/copy
@@ -4533,15 +4535,15 @@ pub fn drive_files_copy(
 
 pub fn drive_files_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    enforceSingleParent: &Option<Option<String>>,
-    ignoreDefaultVisibility: &Option<Option<String>>,
-    includeLabels: &Option<Option<String>>,
-    includePermissionsForView: &Option<Option<String>>,
-    keepRevisionForever: &Option<Option<String>>,
-    ocrLanguage: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
-    useContentAsIndexableText: &Option<Option<String>>,
+    enforceSingleParent: &Option<String>,
+    ignoreDefaultVisibility: &Option<String>,
+    includeLabels: &Option<String>,
+    includePermissionsForView: &Option<String>,
+    keepRevisionForever: &Option<String>,
+    ocrLanguage: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
+    useContentAsIndexableText: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4700,23 +4702,23 @@ pub fn drive_files_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveFilesCreateArgs {
     /// Query parameter: enforceSingleParent
-    pub enforceSingleParent: Option<Option<String>>,
+    pub enforceSingleParent: Option<String>,
     /// Query parameter: ignoreDefaultVisibility
-    pub ignoreDefaultVisibility: Option<Option<String>>,
+    pub ignoreDefaultVisibility: Option<String>,
     /// Query parameter: includeLabels
-    pub includeLabels: Option<Option<String>>,
+    pub includeLabels: Option<String>,
     /// Query parameter: includePermissionsForView
-    pub includePermissionsForView: Option<Option<String>>,
+    pub includePermissionsForView: Option<String>,
     /// Query parameter: keepRevisionForever
-    pub keepRevisionForever: Option<Option<String>>,
+    pub keepRevisionForever: Option<String>,
     /// Query parameter: ocrLanguage
-    pub ocrLanguage: Option<Option<String>>,
+    pub ocrLanguage: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
     /// Query parameter: useContentAsIndexableText
-    pub useContentAsIndexableText: Option<Option<String>>,
+    pub useContentAsIndexableText: Option<String>,
 }
 
 /// POST files
@@ -4761,9 +4763,9 @@ pub fn drive_files_create(
 pub fn drive_files_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    enforceSingleParent: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
+    enforceSingleParent: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4903,11 +4905,11 @@ pub struct DriveFilesDeleteArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: enforceSingleParent
-    pub enforceSingleParent: Option<Option<String>>,
+    pub enforceSingleParent: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
 }
 
 /// DELETE files/{fileId}
@@ -4947,8 +4949,8 @@ pub fn drive_files_delete(
 pub fn drive_files_download_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    mimeType: &Option<Option<String>>,
-    revisionId: &Option<Option<String>>,
+    mimeType: &Option<String>,
+    revisionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5091,9 +5093,9 @@ pub struct DriveFilesDownloadArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: mimeType
-    pub mimeType: Option<Option<String>>,
+    pub mimeType: Option<String>,
     /// Query parameter: revisionId
-    pub revisionId: Option<Option<String>>,
+    pub revisionId: Option<String>,
 }
 
 /// POST files/{fileId}/download
@@ -5127,8 +5129,8 @@ pub fn drive_files_download(
 
 pub fn drive_files_empty_trash_builder<R>(
     client: &SimpleHttpClient<R>,
-    driveId: &Option<Option<String>>,
-    enforceSingleParent: &Option<Option<String>>,
+    driveId: &Option<String>,
+    enforceSingleParent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5263,9 +5265,9 @@ pub fn drive_files_empty_trash_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveFilesEmptyTrashArgs {
     /// Query parameter: driveId
-    pub driveId: Option<Option<String>>,
+    pub driveId: Option<String>,
     /// Query parameter: enforceSingleParent
-    pub enforceSingleParent: Option<Option<String>>,
+    pub enforceSingleParent: Option<String>,
 }
 
 /// DELETE files/trash
@@ -5300,7 +5302,7 @@ pub fn drive_files_empty_trash(
 pub fn drive_files_export_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    mimeType: &Option<Option<String>>,
+    mimeType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5437,7 +5439,7 @@ pub struct DriveFilesExportArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: mimeType
-    pub mimeType: Option<Option<String>>,
+    pub mimeType: Option<String>,
 }
 
 /// GET files/{fileId}/export
@@ -5470,8 +5472,8 @@ pub fn drive_files_export(
 
 pub fn drive_files_generate_cse_token_builder<R>(
     client: &SimpleHttpClient<R>,
-    fileId: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    fileId: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5611,9 +5613,9 @@ pub fn drive_files_generate_cse_token_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveFilesGenerateCseTokenArgs {
     /// Query parameter: fileId
-    pub fileId: Option<Option<String>>,
+    pub fileId: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET files/generateCseToken
@@ -5648,9 +5650,9 @@ pub fn drive_files_generate_cse_token(
 
 pub fn drive_files_generate_ids_builder<R>(
     client: &SimpleHttpClient<R>,
-    count: &Option<Option<String>>,
-    space: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    count: &Option<String>,
+    space: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5793,11 +5795,11 @@ pub fn drive_files_generate_ids_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveFilesGenerateIdsArgs {
     /// Query parameter: count
-    pub count: Option<Option<String>>,
+    pub count: Option<String>,
     /// Query parameter: space
-    pub space: Option<Option<String>>,
+    pub space: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET files/generateIds
@@ -5834,11 +5836,11 @@ pub fn drive_files_generate_ids(
 pub fn drive_files_get_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    acknowledgeAbuse: &Option<Option<String>>,
-    includeLabels: &Option<Option<String>>,
-    includePermissionsForView: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
+    acknowledgeAbuse: &Option<String>,
+    includeLabels: &Option<String>,
+    includePermissionsForView: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5987,15 +5989,15 @@ pub struct DriveFilesGetArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: acknowledgeAbuse
-    pub acknowledgeAbuse: Option<Option<String>>,
+    pub acknowledgeAbuse: Option<String>,
     /// Query parameter: includeLabels
-    pub includeLabels: Option<Option<String>>,
+    pub includeLabels: Option<String>,
     /// Query parameter: includePermissionsForView
-    pub includePermissionsForView: Option<Option<String>>,
+    pub includePermissionsForView: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
 }
 
 /// GET files/{fileId}
@@ -6036,21 +6038,21 @@ pub fn drive_files_get(
 
 pub fn drive_files_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    corpora: &Option<Option<String>>,
-    corpus: &Option<Option<String>>,
-    driveId: &Option<Option<String>>,
-    includeItemsFromAllDrives: &Option<Option<String>>,
-    includeLabels: &Option<Option<String>>,
-    includePermissionsForView: &Option<Option<String>>,
-    includeTeamDriveItems: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    q: &Option<Option<String>>,
-    spaces: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
-    teamDriveId: &Option<Option<String>>,
+    corpora: &Option<String>,
+    corpus: &Option<String>,
+    driveId: &Option<String>,
+    includeItemsFromAllDrives: &Option<String>,
+    includeLabels: &Option<String>,
+    includePermissionsForView: &Option<String>,
+    includeTeamDriveItems: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    q: &Option<String>,
+    spaces: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
+    teamDriveId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6227,35 +6229,35 @@ pub fn drive_files_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveFilesListArgs {
     /// Query parameter: corpora
-    pub corpora: Option<Option<String>>,
+    pub corpora: Option<String>,
     /// Query parameter: corpus
-    pub corpus: Option<Option<String>>,
+    pub corpus: Option<String>,
     /// Query parameter: driveId
-    pub driveId: Option<Option<String>>,
+    pub driveId: Option<String>,
     /// Query parameter: includeItemsFromAllDrives
-    pub includeItemsFromAllDrives: Option<Option<String>>,
+    pub includeItemsFromAllDrives: Option<String>,
     /// Query parameter: includeLabels
-    pub includeLabels: Option<Option<String>>,
+    pub includeLabels: Option<String>,
     /// Query parameter: includePermissionsForView
-    pub includePermissionsForView: Option<Option<String>>,
+    pub includePermissionsForView: Option<String>,
     /// Query parameter: includeTeamDriveItems
-    pub includeTeamDriveItems: Option<Option<String>>,
+    pub includeTeamDriveItems: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
     /// Query parameter: spaces
-    pub spaces: Option<Option<String>>,
+    pub spaces: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
     /// Query parameter: teamDriveId
-    pub teamDriveId: Option<Option<String>>,
+    pub teamDriveId: Option<String>,
 }
 
 /// GET files
@@ -6306,8 +6308,8 @@ pub fn drive_files_list(
 pub fn drive_files_list_labels_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6450,9 +6452,9 @@ pub struct DriveFilesListLabelsArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET files/{fileId}/listLabels
@@ -6651,16 +6653,16 @@ pub fn drive_files_modify_labels(
 pub fn drive_files_update_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    addParents: &Option<Option<String>>,
-    enforceSingleParent: &Option<Option<String>>,
-    includeLabels: &Option<Option<String>>,
-    includePermissionsForView: &Option<Option<String>>,
-    keepRevisionForever: &Option<Option<String>>,
-    ocrLanguage: &Option<Option<String>>,
-    removeParents: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
-    useContentAsIndexableText: &Option<Option<String>>,
+    addParents: &Option<String>,
+    enforceSingleParent: &Option<String>,
+    includeLabels: &Option<String>,
+    includePermissionsForView: &Option<String>,
+    keepRevisionForever: &Option<String>,
+    ocrLanguage: &Option<String>,
+    removeParents: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
+    useContentAsIndexableText: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6824,25 +6826,25 @@ pub struct DriveFilesUpdateArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: addParents
-    pub addParents: Option<Option<String>>,
+    pub addParents: Option<String>,
     /// Query parameter: enforceSingleParent
-    pub enforceSingleParent: Option<Option<String>>,
+    pub enforceSingleParent: Option<String>,
     /// Query parameter: includeLabels
-    pub includeLabels: Option<Option<String>>,
+    pub includeLabels: Option<String>,
     /// Query parameter: includePermissionsForView
-    pub includePermissionsForView: Option<Option<String>>,
+    pub includePermissionsForView: Option<String>,
     /// Query parameter: keepRevisionForever
-    pub keepRevisionForever: Option<Option<String>>,
+    pub keepRevisionForever: Option<String>,
     /// Query parameter: ocrLanguage
-    pub ocrLanguage: Option<Option<String>>,
+    pub ocrLanguage: Option<String>,
     /// Query parameter: removeParents
-    pub removeParents: Option<Option<String>>,
+    pub removeParents: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
     /// Query parameter: useContentAsIndexableText
-    pub useContentAsIndexableText: Option<Option<String>>,
+    pub useContentAsIndexableText: Option<String>,
 }
 
 /// PATCH files/{fileId}
@@ -6889,11 +6891,11 @@ pub fn drive_files_update(
 pub fn drive_files_watch_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    acknowledgeAbuse: &Option<Option<String>>,
-    includeLabels: &Option<Option<String>>,
-    includePermissionsForView: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
+    acknowledgeAbuse: &Option<String>,
+    includeLabels: &Option<String>,
+    includePermissionsForView: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7042,15 +7044,15 @@ pub struct DriveFilesWatchArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: acknowledgeAbuse
-    pub acknowledgeAbuse: Option<Option<String>>,
+    pub acknowledgeAbuse: Option<String>,
     /// Query parameter: includeLabels
-    pub includeLabels: Option<Option<String>>,
+    pub includeLabels: Option<String>,
     /// Query parameter: includePermissionsForView
-    pub includePermissionsForView: Option<Option<String>>,
+    pub includePermissionsForView: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
 }
 
 /// POST files/{fileId}/watch
@@ -7249,15 +7251,15 @@ pub fn drive_operations_get(
 pub fn drive_permissions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    emailMessage: &Option<Option<String>>,
-    enforceExpansiveAccess: &Option<Option<String>>,
-    enforceSingleParent: &Option<Option<String>>,
-    moveToNewOwnersRoot: &Option<Option<String>>,
-    sendNotificationEmail: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
-    transferOwnership: &Option<Option<String>>,
-    useDomainAdminAccess: &Option<Option<String>>,
+    emailMessage: &Option<String>,
+    enforceExpansiveAccess: &Option<String>,
+    enforceSingleParent: &Option<String>,
+    moveToNewOwnersRoot: &Option<String>,
+    sendNotificationEmail: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
+    transferOwnership: &Option<String>,
+    useDomainAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7421,23 +7423,23 @@ pub struct DrivePermissionsCreateArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: emailMessage
-    pub emailMessage: Option<Option<String>>,
+    pub emailMessage: Option<String>,
     /// Query parameter: enforceExpansiveAccess
-    pub enforceExpansiveAccess: Option<Option<String>>,
+    pub enforceExpansiveAccess: Option<String>,
     /// Query parameter: enforceSingleParent
-    pub enforceSingleParent: Option<Option<String>>,
+    pub enforceSingleParent: Option<String>,
     /// Query parameter: moveToNewOwnersRoot
-    pub moveToNewOwnersRoot: Option<Option<String>>,
+    pub moveToNewOwnersRoot: Option<String>,
     /// Query parameter: sendNotificationEmail
-    pub sendNotificationEmail: Option<Option<String>>,
+    pub sendNotificationEmail: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
     /// Query parameter: transferOwnership
-    pub transferOwnership: Option<Option<String>>,
+    pub transferOwnership: Option<String>,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<Option<String>>,
+    pub useDomainAdminAccess: Option<String>,
 }
 
 /// POST files/{fileId}/permissions
@@ -7484,10 +7486,10 @@ pub fn drive_permissions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
     permissionId: &String,
-    enforceExpansiveAccess: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
-    useDomainAdminAccess: &Option<Option<String>>,
+    enforceExpansiveAccess: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
+    useDomainAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7635,13 +7637,13 @@ pub struct DrivePermissionsDeleteArgs {
     /// Path parameter: permissionId
     pub permissionId: String,
     /// Query parameter: enforceExpansiveAccess
-    pub enforceExpansiveAccess: Option<Option<String>>,
+    pub enforceExpansiveAccess: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<Option<String>>,
+    pub useDomainAdminAccess: Option<String>,
 }
 
 /// DELETE files/{fileId}/permissions/{permissionId}
@@ -7684,9 +7686,9 @@ pub fn drive_permissions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
     permissionId: &String,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
-    useDomainAdminAccess: &Option<Option<String>>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
+    useDomainAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7834,11 +7836,11 @@ pub struct DrivePermissionsGetArgs {
     /// Path parameter: permissionId
     pub permissionId: String,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<Option<String>>,
+    pub useDomainAdminAccess: Option<String>,
 }
 
 /// GET files/{fileId}/permissions/{permissionId}
@@ -7879,12 +7881,12 @@ pub fn drive_permissions_get(
 pub fn drive_permissions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    includePermissionsForView: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
-    useDomainAdminAccess: &Option<Option<String>>,
+    includePermissionsForView: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
+    useDomainAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8041,17 +8043,17 @@ pub struct DrivePermissionsListArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: includePermissionsForView
-    pub includePermissionsForView: Option<Option<String>>,
+    pub includePermissionsForView: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<Option<String>>,
+    pub useDomainAdminAccess: Option<String>,
 }
 
 /// GET files/{fileId}/permissions
@@ -8097,12 +8099,12 @@ pub fn drive_permissions_update_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
     permissionId: &String,
-    enforceExpansiveAccess: &Option<Option<String>>,
-    removeExpiration: &Option<Option<String>>,
-    supportsAllDrives: &Option<Option<String>>,
-    supportsTeamDrives: &Option<Option<String>>,
-    transferOwnership: &Option<Option<String>>,
-    useDomainAdminAccess: &Option<Option<String>>,
+    enforceExpansiveAccess: &Option<String>,
+    removeExpiration: &Option<String>,
+    supportsAllDrives: &Option<String>,
+    supportsTeamDrives: &Option<String>,
+    transferOwnership: &Option<String>,
+    useDomainAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8259,17 +8261,17 @@ pub struct DrivePermissionsUpdateArgs {
     /// Path parameter: permissionId
     pub permissionId: String,
     /// Query parameter: enforceExpansiveAccess
-    pub enforceExpansiveAccess: Option<Option<String>>,
+    pub enforceExpansiveAccess: Option<String>,
     /// Query parameter: removeExpiration
-    pub removeExpiration: Option<Option<String>>,
+    pub removeExpiration: Option<String>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<Option<String>>,
+    pub supportsAllDrives: Option<String>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<Option<String>>,
+    pub supportsTeamDrives: Option<String>,
     /// Query parameter: transferOwnership
-    pub transferOwnership: Option<Option<String>>,
+    pub transferOwnership: Option<String>,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<Option<String>>,
+    pub useDomainAdminAccess: Option<String>,
 }
 
 /// PATCH files/{fileId}/permissions/{permissionId}
@@ -8642,7 +8644,7 @@ pub fn drive_replies_get_builder<R>(
     fileId: &String,
     commentId: &String,
     replyId: &String,
-    includeDeleted: &Option<Option<String>>,
+    includeDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8786,7 +8788,7 @@ pub struct DriveRepliesGetArgs {
     /// Path parameter: replyId
     pub replyId: String,
     /// Query parameter: includeDeleted
-    pub includeDeleted: Option<Option<String>>,
+    pub includeDeleted: Option<String>,
 }
 
 /// GET files/{fileId}/comments/{commentId}/replies/{replyId}
@@ -8827,9 +8829,9 @@ pub fn drive_replies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
     commentId: &String,
-    includeDeleted: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    includeDeleted: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8977,11 +8979,11 @@ pub struct DriveRepliesListArgs {
     /// Path parameter: commentId
     pub commentId: String,
     /// Query parameter: includeDeleted
-    pub includeDeleted: Option<Option<String>>,
+    pub includeDeleted: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET files/{fileId}/comments/{commentId}/replies
@@ -9350,7 +9352,7 @@ pub fn drive_revisions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
     revisionId: &String,
-    acknowledgeAbuse: &Option<Option<String>>,
+    acknowledgeAbuse: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9492,7 +9494,7 @@ pub struct DriveRevisionsGetArgs {
     /// Path parameter: revisionId
     pub revisionId: String,
     /// Query parameter: acknowledgeAbuse
-    pub acknowledgeAbuse: Option<Option<String>>,
+    pub acknowledgeAbuse: Option<String>,
 }
 
 /// GET files/{fileId}/revisions/{revisionId}
@@ -9531,8 +9533,8 @@ pub fn drive_revisions_get(
 pub fn drive_revisions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     fileId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9677,9 +9679,9 @@ pub struct DriveRevisionsListArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET files/{fileId}/revisions
@@ -9878,7 +9880,7 @@ pub fn drive_revisions_update(
 
 pub fn drive_teamdrives_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10013,7 +10015,7 @@ pub fn drive_teamdrives_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveTeamdrivesCreateArgs {
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST teamdrives
@@ -10204,7 +10206,7 @@ pub fn drive_teamdrives_delete(
 pub fn drive_teamdrives_get_builder<R>(
     client: &SimpleHttpClient<R>,
     teamDriveId: &String,
-    useDomainAdminAccess: &Option<Option<String>>,
+    useDomainAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10344,7 +10346,7 @@ pub struct DriveTeamdrivesGetArgs {
     /// Path parameter: teamDriveId
     pub teamDriveId: String,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<Option<String>>,
+    pub useDomainAdminAccess: Option<String>,
 }
 
 /// GET teamdrives/{teamDriveId}
@@ -10378,10 +10380,10 @@ pub fn drive_teamdrives_get(
 
 pub fn drive_teamdrives_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    q: &Option<Option<String>>,
-    useDomainAdminAccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    q: &Option<String>,
+    useDomainAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10527,13 +10529,13 @@ pub fn drive_teamdrives_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveTeamdrivesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<Option<String>>,
+    pub useDomainAdminAccess: Option<String>,
 }
 
 /// GET teamdrives
@@ -10575,7 +10577,7 @@ pub fn drive_teamdrives_list(
 pub fn drive_teamdrives_update_builder<R>(
     client: &SimpleHttpClient<R>,
     teamDriveId: &String,
-    useDomainAdminAccess: &Option<Option<String>>,
+    useDomainAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10715,7 +10717,7 @@ pub struct DriveTeamdrivesUpdateArgs {
     /// Path parameter: teamDriveId
     pub teamDriveId: String,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<Option<String>>,
+    pub useDomainAdminAccess: Option<String>,
 }
 
 /// PATCH teamdrives/{teamDriveId}
@@ -10739,29 +10741,6 @@ pub fn drive_teamdrives_update(
     let builder =
         drive_teamdrives_update_builder(client, &args.teamDriveId, &args.useDomainAdminAccess)?;
     drive_teamdrives_update_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for About
-// =============================================================================
-
-/// ResourceIdentifier implementation for About with DriveAboutGetArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<DriveAboutGetArgs> for About {
-    fn generate_resource_id(&self, input: &DriveAboutGetArgs) -> String {
-        "gcp::drive::About".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::drive::About"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================

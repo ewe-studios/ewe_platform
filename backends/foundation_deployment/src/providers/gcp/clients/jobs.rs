@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,12 +192,12 @@ pub fn jobs_projects_operations_get(
 pub fn jobs_projects_tenants_complete_query_builder<R>(
     client: &SimpleHttpClient<R>,
     tenant: &String,
-    company: &Option<Option<String>>,
-    languageCodes: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    scope: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    company: &Option<String>,
+    languageCodes: &Option<String>,
+    pageSize: &Option<String>,
+    query: &Option<String>,
+    scope: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -352,17 +354,17 @@ pub struct JobsProjectsTenantsCompleteQueryArgs {
     /// Path parameter: tenant
     pub tenant: String,
     /// Query parameter: company
-    pub company: Option<Option<String>>,
+    pub company: Option<String>,
     /// Query parameter: languageCodes
-    pub languageCodes: Option<Option<String>>,
+    pub languageCodes: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: scope
-    pub scope: Option<Option<String>>,
+    pub scope: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}:completeQuery
@@ -884,8 +886,8 @@ pub fn jobs_projects_tenants_get(
 pub fn jobs_projects_tenants_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1027,9 +1029,9 @@ pub struct JobsProjectsTenantsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/projects/{projectsId}/tenants
@@ -1066,7 +1068,7 @@ pub fn jobs_projects_tenants_list(
 pub fn jobs_projects_tenants_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1206,7 +1208,7 @@ pub struct JobsProjectsTenantsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/projects/{projectsId}/tenants/{tenantsId}
@@ -1880,9 +1882,9 @@ pub fn jobs_projects_tenants_companies_get(
 pub fn jobs_projects_tenants_companies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    requireOpenJobs: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    requireOpenJobs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2030,11 +2032,11 @@ pub struct JobsProjectsTenantsCompaniesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: requireOpenJobs
-    pub requireOpenJobs: Option<Option<String>>,
+    pub requireOpenJobs: Option<String>,
 }
 
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies
@@ -2076,7 +2078,7 @@ pub fn jobs_projects_tenants_companies_list(
 pub fn jobs_projects_tenants_companies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2216,7 +2218,7 @@ pub struct JobsProjectsTenantsCompaniesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
@@ -3211,10 +3213,10 @@ pub fn jobs_projects_tenants_jobs_get(
 pub fn jobs_projects_tenants_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    jobView: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    jobView: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3365,13 +3367,13 @@ pub struct JobsProjectsTenantsJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: jobView
-    pub jobView: Option<Option<String>>,
+    pub jobView: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs
@@ -3414,7 +3416,7 @@ pub fn jobs_projects_tenants_jobs_list(
 pub fn jobs_projects_tenants_jobs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3554,7 +3556,7 @@ pub struct JobsProjectsTenantsJobsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}

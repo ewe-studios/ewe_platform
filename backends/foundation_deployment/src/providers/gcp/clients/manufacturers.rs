@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -356,8 +358,8 @@ pub fn manufacturers_accounts_languages_product_certifications_get(
 pub fn manufacturers_accounts_languages_product_certifications_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -504,9 +506,9 @@ pub struct ManufacturersAccountsLanguagesProductCertificationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications
@@ -549,7 +551,7 @@ pub fn manufacturers_accounts_languages_product_certifications_list(
 pub fn manufacturers_accounts_languages_product_certifications_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -691,7 +693,7 @@ pub struct ManufacturersAccountsLanguagesProductCertificationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
@@ -895,7 +897,7 @@ pub fn manufacturers_accounts_products_get_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
     name: &String,
-    include: &Option<Option<String>>,
+    include: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1037,7 +1039,7 @@ pub struct ManufacturersAccountsProductsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: include
-    pub include: Option<Option<String>>,
+    pub include: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/products/{productsId}
@@ -1076,9 +1078,9 @@ pub fn manufacturers_accounts_products_get(
 pub fn manufacturers_accounts_products_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    include: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    include: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1226,11 +1228,11 @@ pub struct ManufacturersAccountsProductsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: include
-    pub include: Option<Option<String>>,
+    pub include: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/products

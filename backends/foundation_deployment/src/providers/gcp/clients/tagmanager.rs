@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -189,8 +191,8 @@ pub fn tagmanager_accounts_get(
 
 pub fn tagmanager_accounts_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    includeGoogleTags: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    includeGoogleTags: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -330,9 +332,9 @@ pub fn tagmanager_accounts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TagmanagerAccountsListArgs {
     /// Query parameter: includeGoogleTags
-    pub includeGoogleTags: Option<Option<String>>,
+    pub includeGoogleTags: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts
@@ -369,7 +371,7 @@ pub fn tagmanager_accounts_list(
 pub fn tagmanager_accounts_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -509,7 +511,7 @@ pub struct TagmanagerAccountsUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}
@@ -543,9 +545,9 @@ pub fn tagmanager_accounts_update(
 pub fn tagmanager_accounts_containers_combine_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    allowUserPermissionFeatureUpdate: &Option<Option<String>>,
-    containerId: &Option<Option<String>>,
-    settingSource: &Option<Option<String>>,
+    allowUserPermissionFeatureUpdate: &Option<String>,
+    containerId: &Option<String>,
+    settingSource: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -691,11 +693,11 @@ pub struct TagmanagerAccountsContainersCombineArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: allowUserPermissionFeatureUpdate
-    pub allowUserPermissionFeatureUpdate: Option<Option<String>>,
+    pub allowUserPermissionFeatureUpdate: Option<String>,
     /// Query parameter: containerId
-    pub containerId: Option<Option<String>>,
+    pub containerId: Option<String>,
     /// Query parameter: settingSource
-    pub settingSource: Option<Option<String>>,
+    pub settingSource: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}:combine
@@ -1212,7 +1214,7 @@ pub fn tagmanager_accounts_containers_get(
 pub fn tagmanager_accounts_containers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1354,7 +1356,7 @@ pub struct TagmanagerAccountsContainersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers
@@ -1390,8 +1392,8 @@ pub fn tagmanager_accounts_containers_list(
 
 pub fn tagmanager_accounts_containers_lookup_builder<R>(
     client: &SimpleHttpClient<R>,
-    destinationId: &Option<Option<String>>,
-    tagId: &Option<Option<String>>,
+    destinationId: &Option<String>,
+    tagId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1530,9 +1532,9 @@ pub fn tagmanager_accounts_containers_lookup_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TagmanagerAccountsContainersLookupArgs {
     /// Query parameter: destinationId
-    pub destinationId: Option<Option<String>>,
+    pub destinationId: Option<String>,
     /// Query parameter: tagId
-    pub tagId: Option<Option<String>>,
+    pub tagId: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/containers:lookup
@@ -1567,12 +1569,12 @@ pub fn tagmanager_accounts_containers_lookup(
 pub fn tagmanager_accounts_containers_move_tag_id_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    allowUserPermissionFeatureUpdate: &Option<Option<String>>,
-    copySettings: &Option<Option<String>>,
-    copyTermsOfService: &Option<Option<String>>,
-    copyUsers: &Option<Option<String>>,
-    tagId: &Option<Option<String>>,
-    tagName: &Option<Option<String>>,
+    allowUserPermissionFeatureUpdate: &Option<String>,
+    copySettings: &Option<String>,
+    copyTermsOfService: &Option<String>,
+    copyUsers: &Option<String>,
+    tagId: &Option<String>,
+    tagName: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1727,17 +1729,17 @@ pub struct TagmanagerAccountsContainersMoveTagIdArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: allowUserPermissionFeatureUpdate
-    pub allowUserPermissionFeatureUpdate: Option<Option<String>>,
+    pub allowUserPermissionFeatureUpdate: Option<String>,
     /// Query parameter: copySettings
-    pub copySettings: Option<Option<String>>,
+    pub copySettings: Option<String>,
     /// Query parameter: copyTermsOfService
-    pub copyTermsOfService: Option<Option<String>>,
+    pub copyTermsOfService: Option<String>,
     /// Query parameter: copyUsers
-    pub copyUsers: Option<Option<String>>,
+    pub copyUsers: Option<String>,
     /// Query parameter: tagId
-    pub tagId: Option<Option<String>>,
+    pub tagId: Option<String>,
     /// Query parameter: tagName
-    pub tagName: Option<Option<String>>,
+    pub tagName: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}:move_tag_id
@@ -1948,7 +1950,7 @@ pub fn tagmanager_accounts_containers_snippet(
 pub fn tagmanager_accounts_containers_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2088,7 +2090,7 @@ pub struct TagmanagerAccountsContainersUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}
@@ -2283,8 +2285,8 @@ pub fn tagmanager_accounts_containers_destinations_get(
 pub fn tagmanager_accounts_containers_destinations_link_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    allowUserPermissionFeatureUpdate: &Option<Option<String>>,
-    destinationId: &Option<Option<String>>,
+    allowUserPermissionFeatureUpdate: &Option<String>,
+    destinationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2427,9 +2429,9 @@ pub struct TagmanagerAccountsContainersDestinationsLinkArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: allowUserPermissionFeatureUpdate
-    pub allowUserPermissionFeatureUpdate: Option<Option<String>>,
+    pub allowUserPermissionFeatureUpdate: Option<String>,
     /// Query parameter: destinationId
-    pub destinationId: Option<Option<String>>,
+    pub destinationId: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations:link
@@ -3109,7 +3111,7 @@ pub fn tagmanager_accounts_containers_environments_get(
 pub fn tagmanager_accounts_containers_environments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3251,7 +3253,7 @@ pub struct TagmanagerAccountsContainersEnvironmentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments
@@ -3452,7 +3454,7 @@ pub fn tagmanager_accounts_containers_environments_reauthorize(
 pub fn tagmanager_accounts_containers_environments_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3592,7 +3594,7 @@ pub struct TagmanagerAccountsContainersEnvironmentsUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
@@ -3795,8 +3797,8 @@ pub fn tagmanager_accounts_containers_version_headers_latest(
 pub fn tagmanager_accounts_containers_version_headers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    includeDeleted: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    includeDeleted: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3943,9 +3945,9 @@ pub struct TagmanagerAccountsContainersVersionHeadersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: includeDeleted
-    pub includeDeleted: Option<Option<String>>,
+    pub includeDeleted: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/version_headers
@@ -4145,7 +4147,7 @@ pub fn tagmanager_accounts_containers_versions_delete(
 pub fn tagmanager_accounts_containers_versions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    containerVersionId: &Option<Option<String>>,
+    containerVersionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4287,7 +4289,7 @@ pub struct TagmanagerAccountsContainersVersionsGetArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: containerVersionId
-    pub containerVersionId: Option<Option<String>>,
+    pub containerVersionId: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
@@ -4491,7 +4493,7 @@ pub fn tagmanager_accounts_containers_versions_live(
 pub fn tagmanager_accounts_containers_versions_publish_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4635,7 +4637,7 @@ pub struct TagmanagerAccountsContainersVersionsPublishArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:publish
@@ -5005,7 +5007,7 @@ pub fn tagmanager_accounts_containers_versions_undelete(
 pub fn tagmanager_accounts_containers_versions_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5147,7 +5149,7 @@ pub struct TagmanagerAccountsContainersVersionsUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
@@ -6170,7 +6172,7 @@ pub fn tagmanager_accounts_containers_workspaces_get_status(
 pub fn tagmanager_accounts_containers_workspaces_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6312,7 +6314,7 @@ pub struct TagmanagerAccountsContainersWorkspacesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces
@@ -6517,7 +6519,7 @@ pub fn tagmanager_accounts_containers_workspaces_quick_preview(
 pub fn tagmanager_accounts_containers_workspaces_resolve_conflict_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6654,7 +6656,7 @@ pub struct TagmanagerAccountsContainersWorkspacesResolveConflictArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:resolve_conflict
@@ -6856,7 +6858,7 @@ pub fn tagmanager_accounts_containers_workspaces_sync(
 pub fn tagmanager_accounts_containers_workspaces_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6996,7 +6998,7 @@ pub struct TagmanagerAccountsContainersWorkspacesUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
@@ -7034,7 +7036,7 @@ pub fn tagmanager_accounts_containers_workspaces_update(
 pub fn tagmanager_accounts_containers_workspaces_built_in_variables_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    type_rs: &Option<Option<String>>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7178,7 +7180,7 @@ pub struct TagmanagerAccountsContainersWorkspacesBuiltInVariablesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
@@ -7220,7 +7222,7 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_create(
 pub fn tagmanager_accounts_containers_workspaces_built_in_variables_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    type_rs: &Option<Option<String>>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7357,7 +7359,7 @@ pub struct TagmanagerAccountsContainersWorkspacesBuiltInVariablesDeleteArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// DELETE tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
@@ -7395,7 +7397,7 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_delete(
 pub fn tagmanager_accounts_containers_workspaces_built_in_variables_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7539,7 +7541,7 @@ pub struct TagmanagerAccountsContainersWorkspacesBuiltInVariablesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
@@ -7581,7 +7583,7 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_list(
 pub fn tagmanager_accounts_containers_workspaces_built_in_variables_revert_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    type_rs: &Option<Option<String>>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7725,7 +7727,7 @@ pub struct TagmanagerAccountsContainersWorkspacesBuiltInVariablesRevertArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables:revert
@@ -8247,7 +8249,7 @@ pub fn tagmanager_accounts_containers_workspaces_clients_get(
 pub fn tagmanager_accounts_containers_workspaces_clients_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8389,7 +8391,7 @@ pub struct TagmanagerAccountsContainersWorkspacesClientsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients
@@ -8429,7 +8431,7 @@ pub fn tagmanager_accounts_containers_workspaces_clients_list(
 pub fn tagmanager_accounts_containers_workspaces_clients_revert_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8571,7 +8573,7 @@ pub struct TagmanagerAccountsContainersWorkspacesClientsRevertArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}:revert
@@ -8611,7 +8613,7 @@ pub fn tagmanager_accounts_containers_workspaces_clients_revert(
 pub fn tagmanager_accounts_containers_workspaces_clients_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8751,7 +8753,7 @@ pub struct TagmanagerAccountsContainersWorkspacesClientsUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
@@ -9108,7 +9110,7 @@ pub fn tagmanager_accounts_containers_workspaces_folders_delete(
 pub fn tagmanager_accounts_containers_workspaces_folders_entities_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9250,7 +9252,7 @@ pub struct TagmanagerAccountsContainersWorkspacesFoldersEntitiesArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:entities
@@ -9451,7 +9453,7 @@ pub fn tagmanager_accounts_containers_workspaces_folders_get(
 pub fn tagmanager_accounts_containers_workspaces_folders_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9593,7 +9595,7 @@ pub struct TagmanagerAccountsContainersWorkspacesFoldersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders
@@ -9633,9 +9635,9 @@ pub fn tagmanager_accounts_containers_workspaces_folders_list(
 pub fn tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    tagId: &Option<Option<String>>,
-    triggerId: &Option<Option<String>>,
-    variableId: &Option<Option<String>>,
+    tagId: &Option<String>,
+    triggerId: &Option<String>,
+    variableId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9779,11 +9781,11 @@ pub struct TagmanagerAccountsContainersWorkspacesFoldersMoveEntitiesToFolderArgs
     /// Path parameter: path
     pub path: String,
     /// Query parameter: tagId
-    pub tagId: Option<Option<String>>,
+    pub tagId: Option<String>,
     /// Query parameter: triggerId
-    pub triggerId: Option<Option<String>>,
+    pub triggerId: Option<String>,
     /// Query parameter: variableId
-    pub variableId: Option<Option<String>>,
+    pub variableId: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:move_entities_to_folder
@@ -9824,7 +9826,7 @@ pub fn tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder
 pub fn tagmanager_accounts_containers_workspaces_folders_revert_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9966,7 +9968,7 @@ pub struct TagmanagerAccountsContainersWorkspacesFoldersRevertArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:revert
@@ -10006,7 +10008,7 @@ pub fn tagmanager_accounts_containers_workspaces_folders_revert(
 pub fn tagmanager_accounts_containers_workspaces_folders_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10146,7 +10148,7 @@ pub struct TagmanagerAccountsContainersWorkspacesFoldersUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
@@ -10664,7 +10666,7 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_get(
 pub fn tagmanager_accounts_containers_workspaces_gtag_config_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10806,7 +10808,7 @@ pub struct TagmanagerAccountsContainersWorkspacesGtagConfigListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config
@@ -10846,7 +10848,7 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_list(
 pub fn tagmanager_accounts_containers_workspaces_gtag_config_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10986,7 +10988,7 @@ pub struct TagmanagerAccountsContainersWorkspacesGtagConfigUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
@@ -11503,7 +11505,7 @@ pub fn tagmanager_accounts_containers_workspaces_tags_get(
 pub fn tagmanager_accounts_containers_workspaces_tags_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11645,7 +11647,7 @@ pub struct TagmanagerAccountsContainersWorkspacesTagsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags
@@ -11685,7 +11687,7 @@ pub fn tagmanager_accounts_containers_workspaces_tags_list(
 pub fn tagmanager_accounts_containers_workspaces_tags_revert_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11827,7 +11829,7 @@ pub struct TagmanagerAccountsContainersWorkspacesTagsRevertArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}:revert
@@ -11867,7 +11869,7 @@ pub fn tagmanager_accounts_containers_workspaces_tags_revert(
 pub fn tagmanager_accounts_containers_workspaces_tags_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12007,7 +12009,7 @@ pub struct TagmanagerAccountsContainersWorkspacesTagsUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
@@ -12533,10 +12535,10 @@ pub fn tagmanager_accounts_containers_workspaces_templates_get(
 pub fn tagmanager_accounts_containers_workspaces_templates_import_from_gallery_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    acknowledgePermissions: &Option<Option<String>>,
-    galleryOwner: &Option<Option<String>>,
-    galleryRepository: &Option<Option<String>>,
-    gallerySha: &Option<Option<String>>,
+    acknowledgePermissions: &Option<String>,
+    galleryOwner: &Option<String>,
+    galleryRepository: &Option<String>,
+    gallerySha: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12688,13 +12690,13 @@ pub struct TagmanagerAccountsContainersWorkspacesTemplatesImportFromGalleryArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: acknowledgePermissions
-    pub acknowledgePermissions: Option<Option<String>>,
+    pub acknowledgePermissions: Option<String>,
     /// Query parameter: galleryOwner
-    pub galleryOwner: Option<Option<String>>,
+    pub galleryOwner: Option<String>,
     /// Query parameter: galleryRepository
-    pub galleryRepository: Option<Option<String>>,
+    pub galleryRepository: Option<String>,
     /// Query parameter: gallerySha
-    pub gallerySha: Option<Option<String>>,
+    pub gallerySha: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates:import_from_gallery
@@ -12737,7 +12739,7 @@ pub fn tagmanager_accounts_containers_workspaces_templates_import_from_gallery(
 pub fn tagmanager_accounts_containers_workspaces_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12879,7 +12881,7 @@ pub struct TagmanagerAccountsContainersWorkspacesTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates
@@ -12919,7 +12921,7 @@ pub fn tagmanager_accounts_containers_workspaces_templates_list(
 pub fn tagmanager_accounts_containers_workspaces_templates_revert_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13061,7 +13063,7 @@ pub struct TagmanagerAccountsContainersWorkspacesTemplatesRevertArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}:revert
@@ -13101,7 +13103,7 @@ pub fn tagmanager_accounts_containers_workspaces_templates_revert(
 pub fn tagmanager_accounts_containers_workspaces_templates_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13243,7 +13245,7 @@ pub struct TagmanagerAccountsContainersWorkspacesTemplatesUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
@@ -13774,7 +13776,7 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_get(
 pub fn tagmanager_accounts_containers_workspaces_transformations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13918,7 +13920,7 @@ pub struct TagmanagerAccountsContainersWorkspacesTransformationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations
@@ -13960,7 +13962,7 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_list(
 pub fn tagmanager_accounts_containers_workspaces_transformations_revert_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14104,7 +14106,7 @@ pub struct TagmanagerAccountsContainersWorkspacesTransformationsRevertArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}:revert
@@ -14146,7 +14148,7 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_revert(
 pub fn tagmanager_accounts_containers_workspaces_transformations_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14288,7 +14290,7 @@ pub struct TagmanagerAccountsContainersWorkspacesTransformationsUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
@@ -14808,7 +14810,7 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_get(
 pub fn tagmanager_accounts_containers_workspaces_triggers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14950,7 +14952,7 @@ pub struct TagmanagerAccountsContainersWorkspacesTriggersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers
@@ -14990,7 +14992,7 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_list(
 pub fn tagmanager_accounts_containers_workspaces_triggers_revert_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15132,7 +15134,7 @@ pub struct TagmanagerAccountsContainersWorkspacesTriggersRevertArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}:revert
@@ -15172,7 +15174,7 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_revert(
 pub fn tagmanager_accounts_containers_workspaces_triggers_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15312,7 +15314,7 @@ pub struct TagmanagerAccountsContainersWorkspacesTriggersUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
@@ -15830,7 +15832,7 @@ pub fn tagmanager_accounts_containers_workspaces_variables_get(
 pub fn tagmanager_accounts_containers_workspaces_variables_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15972,7 +15974,7 @@ pub struct TagmanagerAccountsContainersWorkspacesVariablesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables
@@ -16012,7 +16014,7 @@ pub fn tagmanager_accounts_containers_workspaces_variables_list(
 pub fn tagmanager_accounts_containers_workspaces_variables_revert_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16154,7 +16156,7 @@ pub struct TagmanagerAccountsContainersWorkspacesVariablesRevertArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}:revert
@@ -16194,7 +16196,7 @@ pub fn tagmanager_accounts_containers_workspaces_variables_revert(
 pub fn tagmanager_accounts_containers_workspaces_variables_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16334,7 +16336,7 @@ pub struct TagmanagerAccountsContainersWorkspacesVariablesUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
@@ -16851,7 +16853,7 @@ pub fn tagmanager_accounts_containers_workspaces_zones_get(
 pub fn tagmanager_accounts_containers_workspaces_zones_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16993,7 +16995,7 @@ pub struct TagmanagerAccountsContainersWorkspacesZonesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones
@@ -17033,7 +17035,7 @@ pub fn tagmanager_accounts_containers_workspaces_zones_list(
 pub fn tagmanager_accounts_containers_workspaces_zones_revert_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17175,7 +17177,7 @@ pub struct TagmanagerAccountsContainersWorkspacesZonesRevertArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// POST tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}:revert
@@ -17215,7 +17217,7 @@ pub fn tagmanager_accounts_containers_workspaces_zones_revert(
 pub fn tagmanager_accounts_containers_workspaces_zones_update_builder<R>(
     client: &SimpleHttpClient<R>,
     path: &String,
-    fingerprint: &Option<Option<String>>,
+    fingerprint: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17355,7 +17357,7 @@ pub struct TagmanagerAccountsContainersWorkspacesZonesUpdateArgs {
     /// Path parameter: path
     pub path: String,
     /// Query parameter: fingerprint
-    pub fingerprint: Option<Option<String>>,
+    pub fingerprint: Option<String>,
 }
 
 /// PUT tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
@@ -17878,7 +17880,7 @@ pub fn tagmanager_accounts_user_permissions_get(
 pub fn tagmanager_accounts_user_permissions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageToken: &Option<Option<String>>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18022,7 +18024,7 @@ pub struct TagmanagerAccountsUserPermissionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET tagmanager/v2/accounts/{accountsId}/user_permissions

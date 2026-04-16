@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -187,9 +189,9 @@ pub fn places_places_autocomplete(
 pub fn places_places_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
-    regionCode: &Option<Option<String>>,
-    sessionToken: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    regionCode: &Option<String>,
+    sessionToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -334,11 +336,11 @@ pub struct PlacesPlacesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: regionCode
-    pub regionCode: Option<Option<String>>,
+    pub regionCode: Option<String>,
     /// Query parameter: sessionToken
-    pub sessionToken: Option<Option<String>>,
+    pub sessionToken: Option<String>,
 }
 
 /// GET v1/places/{placesId}
@@ -692,9 +694,9 @@ pub fn places_places_search_text(
 pub fn places_places_photos_get_media_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    maxHeightPx: &Option<Option<String>>,
-    maxWidthPx: &Option<Option<String>>,
-    skipHttpRedirect: &Option<Option<String>>,
+    maxHeightPx: &Option<String>,
+    maxWidthPx: &Option<String>,
+    skipHttpRedirect: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -844,11 +846,11 @@ pub struct PlacesPlacesPhotosGetMediaArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: maxHeightPx
-    pub maxHeightPx: Option<Option<String>>,
+    pub maxHeightPx: Option<String>,
     /// Query parameter: maxWidthPx
-    pub maxWidthPx: Option<Option<String>>,
+    pub maxWidthPx: Option<String>,
     /// Query parameter: skipHttpRedirect
-    pub skipHttpRedirect: Option<Option<String>>,
+    pub skipHttpRedirect: Option<String>,
 }
 
 /// GET v1/places/{placesId}/photos/{photosId}/media
@@ -884,31 +886,6 @@ pub fn places_places_photos_get_media(
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for GoogleMapsPlacesV1AutocompletePlacesResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleMapsPlacesV1AutocompletePlacesResponse with PlacesPlacesAutocompleteArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PlacesPlacesAutocompleteArgs>
-    for GoogleMapsPlacesV1AutocompletePlacesResponse
-{
-    fn generate_resource_id(&self, input: &PlacesPlacesAutocompleteArgs) -> String {
-        "gcp::places::GoogleMapsPlacesV1AutocompletePlacesResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::places::GoogleMapsPlacesV1AutocompletePlacesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for GoogleMapsPlacesV1Place
 // =============================================================================
 
@@ -924,52 +901,6 @@ impl ResourceIdentifier<PlacesPlacesGetArgs> for GoogleMapsPlacesV1Place {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::places::GoogleMapsPlacesV1Place"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleMapsPlacesV1SearchNearbyResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleMapsPlacesV1SearchNearbyResponse with PlacesPlacesSearchNearbyArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PlacesPlacesSearchNearbyArgs> for GoogleMapsPlacesV1SearchNearbyResponse {
-    fn generate_resource_id(&self, input: &PlacesPlacesSearchNearbyArgs) -> String {
-        "gcp::places::GoogleMapsPlacesV1SearchNearbyResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::places::GoogleMapsPlacesV1SearchNearbyResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleMapsPlacesV1SearchTextResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleMapsPlacesV1SearchTextResponse with PlacesPlacesSearchTextArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PlacesPlacesSearchTextArgs> for GoogleMapsPlacesV1SearchTextResponse {
-    fn generate_resource_id(&self, input: &PlacesPlacesSearchTextArgs) -> String {
-        "gcp::places::GoogleMapsPlacesV1SearchTextResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::places::GoogleMapsPlacesV1SearchTextResponse"
     }
 
     fn provider(&self) -> &'static str {

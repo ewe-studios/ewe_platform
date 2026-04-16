@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -512,10 +514,10 @@ pub fn pubsublite_admin_projects_locations_operations_get(
 pub fn pubsublite_admin_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -666,13 +668,13 @@ pub struct PubsubliteAdminProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/operations
@@ -715,7 +717,7 @@ pub fn pubsublite_admin_projects_locations_operations_list(
 pub fn pubsublite_admin_projects_locations_reservations_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    reservationId: &Option<Option<String>>,
+    reservationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -855,7 +857,7 @@ pub struct PubsubliteAdminProjectsLocationsReservationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: reservationId
-    pub reservationId: Option<Option<String>>,
+    pub reservationId: Option<String>,
 }
 
 /// POST v1/admin/projects/{projectsId}/locations/{locationsId}/reservations
@@ -1214,8 +1216,8 @@ pub fn pubsublite_admin_projects_locations_reservations_get(
 pub fn pubsublite_admin_projects_locations_reservations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1360,9 +1362,9 @@ pub struct PubsubliteAdminProjectsLocationsReservationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/reservations
@@ -1403,7 +1405,7 @@ pub fn pubsublite_admin_projects_locations_reservations_list(
 pub fn pubsublite_admin_projects_locations_reservations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1543,7 +1545,7 @@ pub struct PubsubliteAdminProjectsLocationsReservationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/admin/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}
@@ -1581,8 +1583,8 @@ pub fn pubsublite_admin_projects_locations_reservations_patch(
 pub fn pubsublite_admin_projects_locations_reservations_topics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1729,9 +1731,9 @@ pub struct PubsubliteAdminProjectsLocationsReservationsTopicsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/topics
@@ -1774,8 +1776,8 @@ pub fn pubsublite_admin_projects_locations_reservations_topics_list(
 pub fn pubsublite_admin_projects_locations_subscriptions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    skipBacklog: &Option<Option<String>>,
-    subscriptionId: &Option<Option<String>>,
+    skipBacklog: &Option<String>,
+    subscriptionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1920,9 +1922,9 @@ pub struct PubsubliteAdminProjectsLocationsSubscriptionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: skipBacklog
-    pub skipBacklog: Option<Option<String>>,
+    pub skipBacklog: Option<String>,
     /// Query parameter: subscriptionId
-    pub subscriptionId: Option<Option<String>>,
+    pub subscriptionId: Option<String>,
 }
 
 /// POST v1/admin/projects/{projectsId}/locations/{locationsId}/subscriptions
@@ -2289,8 +2291,8 @@ pub fn pubsublite_admin_projects_locations_subscriptions_get(
 pub fn pubsublite_admin_projects_locations_subscriptions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2435,9 +2437,9 @@ pub struct PubsubliteAdminProjectsLocationsSubscriptionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/subscriptions
@@ -2478,7 +2480,7 @@ pub fn pubsublite_admin_projects_locations_subscriptions_list(
 pub fn pubsublite_admin_projects_locations_subscriptions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2620,7 +2622,7 @@ pub struct PubsubliteAdminProjectsLocationsSubscriptionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/admin/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}
@@ -2821,7 +2823,7 @@ pub fn pubsublite_admin_projects_locations_subscriptions_seek(
 pub fn pubsublite_admin_projects_locations_topics_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    topicId: &Option<Option<String>>,
+    topicId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2961,7 +2963,7 @@ pub struct PubsubliteAdminProjectsLocationsTopicsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: topicId
-    pub topicId: Option<Option<String>>,
+    pub topicId: Option<String>,
 }
 
 /// POST v1/admin/projects/{projectsId}/locations/{locationsId}/topics
@@ -3484,8 +3486,8 @@ pub fn pubsublite_admin_projects_locations_topics_get_partitions(
 pub fn pubsublite_admin_projects_locations_topics_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3630,9 +3632,9 @@ pub struct PubsubliteAdminProjectsLocationsTopicsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/topics
@@ -3673,7 +3675,7 @@ pub fn pubsublite_admin_projects_locations_topics_list(
 pub fn pubsublite_admin_projects_locations_topics_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3813,7 +3815,7 @@ pub struct PubsubliteAdminProjectsLocationsTopicsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/admin/projects/{projectsId}/locations/{locationsId}/topics/{topicsId}
@@ -3851,8 +3853,8 @@ pub fn pubsublite_admin_projects_locations_topics_patch(
 pub fn pubsublite_admin_projects_locations_topics_subscriptions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3999,9 +4001,9 @@ pub struct PubsubliteAdminProjectsLocationsTopicsSubscriptionsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/topics/{topicsId}/subscriptions
@@ -4211,8 +4213,8 @@ pub fn pubsublite_cursor_projects_locations_subscriptions_commit_cursor(
 pub fn pubsublite_cursor_projects_locations_subscriptions_cursors_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4359,9 +4361,9 @@ pub struct PubsubliteCursorProjectsLocationsSubscriptionsCursorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/cursor/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}/cursors

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -501,7 +503,7 @@ pub fn health_users_get_settings(
 pub fn health_users_update_profile_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -638,7 +640,7 @@ pub struct HealthUsersUpdateProfileArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/users/{usersId}/profile
@@ -672,7 +674,7 @@ pub fn health_users_update_profile(
 pub fn health_users_update_settings_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -809,7 +811,7 @@ pub struct HealthUsersUpdateSettingsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v4/users/{usersId}/settings
@@ -1331,7 +1333,7 @@ pub fn health_users_data_types_data_points_daily_roll_up(
 pub fn health_users_data_types_data_points_export_exercise_tcx_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    partialData: &Option<Option<String>>,
+    partialData: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1473,7 +1475,7 @@ pub struct HealthUsersDataTypesDataPointsExportExerciseTcxArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: partialData
-    pub partialData: Option<Option<String>>,
+    pub partialData: Option<String>,
 }
 
 /// GET v4/users/{usersId}/dataTypes/{dataTypesId}/dataPoints/{dataPointsId}:exportExerciseTcx
@@ -1513,9 +1515,9 @@ pub fn health_users_data_types_data_points_export_exercise_tcx(
 pub fn health_users_data_types_data_points_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1663,11 +1665,11 @@ pub struct HealthUsersDataTypesDataPointsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/users/{usersId}/dataTypes/{dataTypesId}/dataPoints
@@ -1869,10 +1871,10 @@ pub fn health_users_data_types_data_points_patch(
 pub fn health_users_data_types_data_points_reconcile_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataSourceFamily: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    dataSourceFamily: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2025,13 +2027,13 @@ pub struct HealthUsersDataTypesDataPointsReconcileArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataSourceFamily
-    pub dataSourceFamily: Option<Option<String>>,
+    pub dataSourceFamily: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v4/users/{usersId}/dataTypes/{dataTypesId}/dataPoints:reconcile

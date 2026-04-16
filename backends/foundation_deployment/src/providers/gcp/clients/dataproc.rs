@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -683,8 +685,8 @@ pub fn dataproc_projects_locations_autoscaling_policies_get_iam_policy(
 pub fn dataproc_projects_locations_autoscaling_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -831,9 +833,9 @@ pub struct DataprocProjectsLocationsAutoscalingPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoscalingPolicies
@@ -1535,8 +1537,8 @@ pub fn dataproc_projects_locations_batches_analyze(
 pub fn dataproc_projects_locations_batches_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    batchId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    batchId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1679,9 +1681,9 @@ pub struct DataprocProjectsLocationsBatchesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: batchId
-    pub batchId: Option<Option<String>>,
+    pub batchId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/batches
@@ -2040,10 +2042,10 @@ pub fn dataproc_projects_locations_batches_get(
 pub fn dataproc_projects_locations_batches_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2194,13 +2196,13 @@ pub struct DataprocProjectsLocationsBatchesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches
@@ -2243,7 +2245,7 @@ pub fn dataproc_projects_locations_batches_list(
 pub fn dataproc_projects_locations_batches_spark_applications_access_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2387,7 +2389,7 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:access
@@ -2429,7 +2431,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_access(
 pub fn dataproc_projects_locations_batches_spark_applications_access_environment_info_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2576,7 +2578,7 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessEnvironmentInf
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessEnvironmentInfo
@@ -2619,8 +2621,8 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_environment
 pub fn dataproc_projects_locations_batches_spark_applications_access_job_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    jobId: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    jobId: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2767,9 +2769,9 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessJobArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: jobId
-    pub jobId: Option<Option<String>>,
+    pub jobId: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessJob
@@ -2812,8 +2814,8 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_job(
 pub fn dataproc_projects_locations_batches_spark_applications_access_sql_plan_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    executionId: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    executionId: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2962,9 +2964,9 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessSqlPlanArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: executionId
-    pub executionId: Option<Option<String>>,
+    pub executionId: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessSqlPlan
@@ -3007,10 +3009,10 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_sql_plan(
 pub fn dataproc_projects_locations_batches_spark_applications_access_sql_query_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    details: &Option<Option<String>>,
-    executionId: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    planDescription: &Option<Option<String>>,
+    details: &Option<String>,
+    executionId: &Option<String>,
+    parent: &Option<String>,
+    planDescription: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3164,13 +3166,13 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessSqlQueryArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: details
-    pub details: Option<Option<String>>,
+    pub details: Option<String>,
     /// Query parameter: executionId
-    pub executionId: Option<Option<String>>,
+    pub executionId: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: planDescription
-    pub planDescription: Option<Option<String>>,
+    pub planDescription: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessSqlQuery
@@ -3215,10 +3217,10 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_sql_query(
 pub fn dataproc_projects_locations_batches_spark_applications_access_stage_attempt_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
-    stageAttemptId: &Option<Option<String>>,
-    stageId: &Option<Option<String>>,
-    summaryMetricsMask: &Option<Option<String>>,
+    parent: &Option<String>,
+    stageAttemptId: &Option<String>,
+    stageId: &Option<String>,
+    summaryMetricsMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3373,13 +3375,13 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessStageAttemptAr
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: stageAttemptId
-    pub stageAttemptId: Option<Option<String>>,
+    pub stageAttemptId: Option<String>,
     /// Query parameter: stageId
-    pub stageId: Option<Option<String>>,
+    pub stageId: Option<String>,
     /// Query parameter: summaryMetricsMask
-    pub summaryMetricsMask: Option<Option<String>>,
+    pub summaryMetricsMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessStageAttempt
@@ -3425,8 +3427,8 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_stage_attem
 pub fn dataproc_projects_locations_batches_spark_applications_access_stage_rdd_graph_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
-    stageId: &Option<Option<String>>,
+    parent: &Option<String>,
+    stageId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3579,9 +3581,9 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessStageRddGraphA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: stageId
-    pub stageId: Option<Option<String>>,
+    pub stageId: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessStageRddGraph
@@ -3625,13 +3627,13 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_stage_rdd_g
 pub fn dataproc_projects_locations_batches_spark_applications_search_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    applicationStatus: &Option<Option<String>>,
-    maxEndTime: &Option<Option<String>>,
-    maxTime: &Option<Option<String>>,
-    minEndTime: &Option<Option<String>>,
-    minTime: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    applicationStatus: &Option<String>,
+    maxEndTime: &Option<String>,
+    maxTime: &Option<String>,
+    minEndTime: &Option<String>,
+    minTime: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3793,19 +3795,19 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: applicationStatus
-    pub applicationStatus: Option<Option<String>>,
+    pub applicationStatus: Option<String>,
     /// Query parameter: maxEndTime
-    pub maxEndTime: Option<Option<String>>,
+    pub maxEndTime: Option<String>,
     /// Query parameter: maxTime
-    pub maxTime: Option<Option<String>>,
+    pub maxTime: Option<String>,
     /// Query parameter: minEndTime
-    pub minEndTime: Option<Option<String>>,
+    pub minEndTime: Option<String>,
     /// Query parameter: minTime
-    pub minTime: Option<Option<String>>,
+    pub minTime: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications:search
@@ -3855,11 +3857,11 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_executor_st
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    stageAttemptId: &Option<Option<String>>,
-    stageId: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    stageAttemptId: &Option<String>,
+    stageId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4022,15 +4024,15 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchExecutorStageS
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: stageAttemptId
-    pub stageAttemptId: Option<Option<String>>,
+    pub stageAttemptId: Option<String>,
     /// Query parameter: stageId
-    pub stageId: Option<Option<String>>,
+    pub stageId: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchExecutorStageSummary
@@ -4070,10 +4072,10 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_executor_st
 pub fn dataproc_projects_locations_batches_spark_applications_search_executors_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    executorStatus: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    executorStatus: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4228,13 +4230,13 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchExecutorsArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: executorStatus
-    pub executorStatus: Option<Option<String>>,
+    pub executorStatus: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchExecutors
@@ -4279,10 +4281,10 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_executors(
 pub fn dataproc_projects_locations_batches_spark_applications_search_jobs_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    jobStatus: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    jobStatus: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4435,13 +4437,13 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchJobsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: jobStatus
-    pub jobStatus: Option<Option<String>>,
+    pub jobStatus: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchJobs
@@ -4486,11 +4488,11 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_jobs(
 pub fn dataproc_projects_locations_batches_spark_applications_search_sql_queries_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    details: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    planDescription: &Option<Option<String>>,
+    details: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    planDescription: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4647,15 +4649,15 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchSqlQueriesArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: details
-    pub details: Option<Option<String>>,
+    pub details: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: planDescription
-    pub planDescription: Option<Option<String>>,
+    pub planDescription: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchSqlQueries
@@ -4704,13 +4706,13 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attem
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    sortRuntime: &Option<Option<String>>,
-    stageAttemptId: &Option<Option<String>>,
-    stageId: &Option<Option<String>>,
-    taskStatus: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    sortRuntime: &Option<String>,
+    stageAttemptId: &Option<String>,
+    stageId: &Option<String>,
+    taskStatus: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4876,19 +4878,19 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchStageAttemptTa
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: sortRuntime
-    pub sortRuntime: Option<Option<String>>,
+    pub sortRuntime: Option<String>,
     /// Query parameter: stageAttemptId
-    pub stageAttemptId: Option<Option<String>>,
+    pub stageAttemptId: Option<String>,
     /// Query parameter: stageId
-    pub stageId: Option<Option<String>>,
+    pub stageId: Option<String>,
     /// Query parameter: taskStatus
-    pub taskStatus: Option<Option<String>>,
+    pub taskStatus: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchStageAttemptTasks
@@ -4939,11 +4941,11 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attem
 pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attempts_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    stageId: &Option<Option<String>>,
-    summaryMetricsMask: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    stageId: &Option<String>,
+    summaryMetricsMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5101,15 +5103,15 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchStageAttemptsA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: stageId
-    pub stageId: Option<Option<String>>,
+    pub stageId: Option<String>,
     /// Query parameter: summaryMetricsMask
-    pub summaryMetricsMask: Option<Option<String>>,
+    pub summaryMetricsMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchStageAttempts
@@ -5156,11 +5158,11 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attem
 pub fn dataproc_projects_locations_batches_spark_applications_search_stages_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    stageStatus: &Option<Option<String>>,
-    summaryMetricsMask: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    stageStatus: &Option<String>,
+    summaryMetricsMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5316,15 +5318,15 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchStagesArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: stageStatus
-    pub stageStatus: Option<Option<String>>,
+    pub stageStatus: Option<String>,
     /// Query parameter: summaryMetricsMask
-    pub summaryMetricsMask: Option<Option<String>>,
+    pub summaryMetricsMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchStages
@@ -5370,7 +5372,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stages(
 pub fn dataproc_projects_locations_batches_spark_applications_summarize_executors_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5516,7 +5518,7 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsSummarizeExecutorsAr
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:summarizeExecutors
@@ -5559,7 +5561,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_executor
 pub fn dataproc_projects_locations_batches_spark_applications_summarize_jobs_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5703,7 +5705,7 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsSummarizeJobsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:summarizeJobs
@@ -5747,9 +5749,9 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_stage_at
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
-    stageAttemptId: &Option<Option<String>>,
-    stageId: &Option<Option<String>>,
+    parent: &Option<String>,
+    stageAttemptId: &Option<String>,
+    stageId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5906,11 +5908,11 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsSummarizeStageAttemp
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: stageAttemptId
-    pub stageAttemptId: Option<Option<String>>,
+    pub stageAttemptId: Option<String>,
     /// Query parameter: stageId
-    pub stageId: Option<Option<String>>,
+    pub stageId: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:summarizeStageAttemptTasks
@@ -5950,7 +5952,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_stage_at
 pub fn dataproc_projects_locations_batches_spark_applications_summarize_stages_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6096,7 +6098,7 @@ pub struct DataprocProjectsLocationsBatchesSparkApplicationsSummarizeStagesArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:summarizeStages
@@ -6787,10 +6789,10 @@ pub fn dataproc_projects_locations_operations_get(
 pub fn dataproc_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6941,13 +6943,13 @@ pub struct DataprocProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -7479,9 +7481,9 @@ pub fn dataproc_projects_locations_session_templates_get(
 pub fn dataproc_projects_locations_session_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7631,11 +7633,11 @@ pub struct DataprocProjectsLocationsSessionTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessionTemplates
@@ -7843,8 +7845,8 @@ pub fn dataproc_projects_locations_session_templates_patch(
 pub fn dataproc_projects_locations_sessions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
-    sessionId: &Option<Option<String>>,
+    requestId: &Option<String>,
+    sessionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7987,9 +7989,9 @@ pub struct DataprocProjectsLocationsSessionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: sessionId
-    pub sessionId: Option<Option<String>>,
+    pub sessionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/sessions
@@ -8028,7 +8030,7 @@ pub fn dataproc_projects_locations_sessions_create(
 pub fn dataproc_projects_locations_sessions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8168,7 +8170,7 @@ pub struct DataprocProjectsLocationsSessionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}
@@ -8363,9 +8365,9 @@ pub fn dataproc_projects_locations_sessions_get(
 pub fn dataproc_projects_locations_sessions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8513,11 +8515,11 @@ pub struct DataprocProjectsLocationsSessionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions
@@ -8719,7 +8721,7 @@ pub fn dataproc_projects_locations_sessions_terminate(
 pub fn dataproc_projects_locations_sessions_spark_applications_access_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8863,7 +8865,7 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:access
@@ -8905,7 +8907,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access(
 pub fn dataproc_projects_locations_sessions_spark_applications_access_environment_info_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9056,7 +9058,7 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessEnvironmentIn
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessEnvironmentInfo
@@ -9099,8 +9101,8 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_environmen
 pub fn dataproc_projects_locations_sessions_spark_applications_access_job_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    jobId: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    jobId: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9247,9 +9249,9 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessJobArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: jobId
-    pub jobId: Option<Option<String>>,
+    pub jobId: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessJob
@@ -9292,8 +9294,8 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_job(
 pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_plan_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    executionId: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    executionId: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9448,9 +9450,9 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessSqlPlanArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: executionId
-    pub executionId: Option<Option<String>>,
+    pub executionId: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessSqlPlan
@@ -9496,10 +9498,10 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_plan(
 pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_query_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    details: &Option<Option<String>>,
-    executionId: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    planDescription: &Option<Option<String>>,
+    details: &Option<String>,
+    executionId: &Option<String>,
+    parent: &Option<String>,
+    planDescription: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9654,13 +9656,13 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessSqlQueryArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: details
-    pub details: Option<Option<String>>,
+    pub details: Option<String>,
     /// Query parameter: executionId
-    pub executionId: Option<Option<String>>,
+    pub executionId: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: planDescription
-    pub planDescription: Option<Option<String>>,
+    pub planDescription: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessSqlQuery
@@ -9705,10 +9707,10 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_query(
 pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_attempt_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
-    stageAttemptId: &Option<Option<String>>,
-    stageId: &Option<Option<String>>,
-    summaryMetricsMask: &Option<Option<String>>,
+    parent: &Option<String>,
+    stageAttemptId: &Option<String>,
+    stageId: &Option<String>,
+    summaryMetricsMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9866,13 +9868,13 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessStageAttemptA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: stageAttemptId
-    pub stageAttemptId: Option<Option<String>>,
+    pub stageAttemptId: Option<String>,
     /// Query parameter: stageId
-    pub stageId: Option<Option<String>>,
+    pub stageId: Option<String>,
     /// Query parameter: summaryMetricsMask
-    pub summaryMetricsMask: Option<Option<String>>,
+    pub summaryMetricsMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessStageAttempt
@@ -9918,8 +9920,8 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_atte
 pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_graph_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
-    stageId: &Option<Option<String>>,
+    parent: &Option<String>,
+    stageId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10075,9 +10077,9 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessStageRddGraph
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: stageId
-    pub stageId: Option<Option<String>>,
+    pub stageId: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessStageRddGraph
@@ -10124,13 +10126,13 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_
 pub fn dataproc_projects_locations_sessions_spark_applications_search_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    applicationStatus: &Option<Option<String>>,
-    maxEndTime: &Option<Option<String>>,
-    maxTime: &Option<Option<String>>,
-    minEndTime: &Option<Option<String>>,
-    minTime: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    applicationStatus: &Option<String>,
+    maxEndTime: &Option<String>,
+    maxTime: &Option<String>,
+    minEndTime: &Option<String>,
+    minTime: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10292,19 +10294,19 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: applicationStatus
-    pub applicationStatus: Option<Option<String>>,
+    pub applicationStatus: Option<String>,
     /// Query parameter: maxEndTime
-    pub maxEndTime: Option<Option<String>>,
+    pub maxEndTime: Option<String>,
     /// Query parameter: maxTime
-    pub maxTime: Option<Option<String>>,
+    pub maxTime: Option<String>,
     /// Query parameter: minEndTime
-    pub minEndTime: Option<Option<String>>,
+    pub minEndTime: Option<String>,
     /// Query parameter: minTime
-    pub minTime: Option<Option<String>>,
+    pub minTime: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications:search
@@ -10354,11 +10356,11 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_executor_s
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    stageAttemptId: &Option<Option<String>>,
-    stageId: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    stageAttemptId: &Option<String>,
+    stageId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10524,15 +10526,15 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchExecutorStage
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: stageAttemptId
-    pub stageAttemptId: Option<Option<String>>,
+    pub stageAttemptId: Option<String>,
     /// Query parameter: stageId
-    pub stageId: Option<Option<String>>,
+    pub stageId: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchExecutorStageSummary
@@ -10575,10 +10577,10 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_executor_s
 pub fn dataproc_projects_locations_sessions_spark_applications_search_executors_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    executorStatus: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    executorStatus: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10733,13 +10735,13 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchExecutorsArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: executorStatus
-    pub executorStatus: Option<Option<String>>,
+    pub executorStatus: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchExecutors
@@ -10784,11 +10786,11 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_executors(
 pub fn dataproc_projects_locations_sessions_spark_applications_search_jobs_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    jobIds: &Option<Option<String>>,
-    jobStatus: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    jobIds: &Option<String>,
+    jobStatus: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10944,15 +10946,15 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchJobsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: jobIds
-    pub jobIds: Option<Option<String>>,
+    pub jobIds: Option<String>,
     /// Query parameter: jobStatus
-    pub jobStatus: Option<Option<String>>,
+    pub jobStatus: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchJobs
@@ -10998,12 +11000,12 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_jobs(
 pub fn dataproc_projects_locations_sessions_spark_applications_search_sql_queries_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    details: &Option<Option<String>>,
-    operationIds: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    planDescription: &Option<Option<String>>,
+    details: &Option<String>,
+    operationIds: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    planDescription: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11164,17 +11166,17 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchSqlQueriesArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: details
-    pub details: Option<Option<String>>,
+    pub details: Option<String>,
     /// Query parameter: operationIds
-    pub operationIds: Option<Option<String>>,
+    pub operationIds: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: planDescription
-    pub planDescription: Option<Option<String>>,
+    pub planDescription: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchSqlQueries
@@ -11224,13 +11226,13 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_atte
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    sortRuntime: &Option<Option<String>>,
-    stageAttemptId: &Option<Option<String>>,
-    stageId: &Option<Option<String>>,
-    taskStatus: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    sortRuntime: &Option<String>,
+    stageAttemptId: &Option<String>,
+    stageId: &Option<String>,
+    taskStatus: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11402,19 +11404,19 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchStageAttemptT
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: sortRuntime
-    pub sortRuntime: Option<Option<String>>,
+    pub sortRuntime: Option<String>,
     /// Query parameter: stageAttemptId
-    pub stageAttemptId: Option<Option<String>>,
+    pub stageAttemptId: Option<String>,
     /// Query parameter: stageId
-    pub stageId: Option<Option<String>>,
+    pub stageId: Option<String>,
     /// Query parameter: taskStatus
-    pub taskStatus: Option<Option<String>>,
+    pub taskStatus: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchStageAttemptTasks
@@ -11468,11 +11470,11 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_atte
 pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_attempts_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    stageId: &Option<Option<String>>,
-    summaryMetricsMask: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    stageId: &Option<String>,
+    summaryMetricsMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11634,15 +11636,15 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchStageAttempts
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: stageId
-    pub stageId: Option<Option<String>>,
+    pub stageId: Option<String>,
     /// Query parameter: summaryMetricsMask
-    pub summaryMetricsMask: Option<Option<String>>,
+    pub summaryMetricsMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchStageAttempts
@@ -11689,12 +11691,12 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_atte
 pub fn dataproc_projects_locations_sessions_spark_applications_search_stages_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    stageIds: &Option<Option<String>>,
-    stageStatus: &Option<Option<String>>,
-    summaryMetricsMask: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    stageIds: &Option<String>,
+    stageStatus: &Option<String>,
+    summaryMetricsMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11854,17 +11856,17 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchStagesArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: stageIds
-    pub stageIds: Option<Option<String>>,
+    pub stageIds: Option<String>,
     /// Query parameter: stageStatus
-    pub stageStatus: Option<Option<String>>,
+    pub stageStatus: Option<String>,
     /// Query parameter: summaryMetricsMask
-    pub summaryMetricsMask: Option<Option<String>>,
+    pub summaryMetricsMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchStages
@@ -11911,7 +11913,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stages(
 pub fn dataproc_projects_locations_sessions_spark_applications_summarize_executors_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12060,7 +12062,7 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsSummarizeExecutorsA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:summarizeExecutors
@@ -12103,8 +12105,8 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_executo
 pub fn dataproc_projects_locations_sessions_spark_applications_summarize_jobs_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    jobIds: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    jobIds: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12253,9 +12255,9 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsSummarizeJobsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: jobIds
-    pub jobIds: Option<Option<String>>,
+    pub jobIds: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:summarizeJobs
@@ -12300,9 +12302,9 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stage_a
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
-    stageAttemptId: &Option<Option<String>>,
-    stageId: &Option<Option<String>>,
+    parent: &Option<String>,
+    stageAttemptId: &Option<String>,
+    stageId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12462,11 +12464,11 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsSummarizeStageAttem
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: stageAttemptId
-    pub stageAttemptId: Option<Option<String>>,
+    pub stageAttemptId: Option<String>,
     /// Query parameter: stageId
-    pub stageId: Option<Option<String>>,
+    pub stageId: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:summarizeStageAttemptTasks
@@ -12509,8 +12511,8 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stage_a
 pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stages_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    parent: &Option<Option<String>>,
-    stageIds: &Option<Option<String>>,
+    parent: &Option<String>,
+    stageIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12659,9 +12661,9 @@ pub struct DataprocProjectsLocationsSessionsSparkApplicationsSummarizeStagesArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: stageIds
-    pub stageIds: Option<Option<String>>,
+    pub stageIds: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:summarizeStages
@@ -13039,7 +13041,7 @@ pub fn dataproc_projects_locations_workflow_templates_create(
 pub fn dataproc_projects_locations_workflow_templates_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    version: &Option<Option<String>>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13179,7 +13181,7 @@ pub struct DataprocProjectsLocationsWorkflowTemplatesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: version
-    pub version: Option<Option<String>>,
+    pub version: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}
@@ -13217,7 +13219,7 @@ pub fn dataproc_projects_locations_workflow_templates_delete(
 pub fn dataproc_projects_locations_workflow_templates_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    version: &Option<Option<String>>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13359,7 +13361,7 @@ pub struct DataprocProjectsLocationsWorkflowTemplatesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: version
-    pub version: Option<Option<String>>,
+    pub version: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}
@@ -13723,7 +13725,7 @@ pub fn dataproc_projects_locations_workflow_templates_instantiate(
 pub fn dataproc_projects_locations_workflow_templates_instantiate_inline_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13863,7 +13865,7 @@ pub struct DataprocProjectsLocationsWorkflowTemplatesInstantiateInlineArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates:instantiateInline
@@ -13901,8 +13903,8 @@ pub fn dataproc_projects_locations_workflow_templates_instantiate_inline(
 pub fn dataproc_projects_locations_workflow_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14049,9 +14051,9 @@ pub struct DataprocProjectsLocationsWorkflowTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates
@@ -15246,8 +15248,8 @@ pub fn dataproc_projects_regions_autoscaling_policies_get_iam_policy(
 pub fn dataproc_projects_regions_autoscaling_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15394,9 +15396,9 @@ pub struct DataprocProjectsRegionsAutoscalingPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/regions/{regionsId}/autoscalingPolicies
@@ -15939,8 +15941,8 @@ pub fn dataproc_projects_regions_clusters_create_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
-    actionOnFailedPrimaryWorkers: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    actionOnFailedPrimaryWorkers: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16085,9 +16087,9 @@ pub struct DataprocProjectsRegionsClustersCreateArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: actionOnFailedPrimaryWorkers
-    pub actionOnFailedPrimaryWorkers: Option<Option<String>>,
+    pub actionOnFailedPrimaryWorkers: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectId}/regions/{region}/clusters
@@ -16129,9 +16131,9 @@ pub fn dataproc_projects_regions_clusters_delete_builder<R>(
     projectId: &String,
     region: &String,
     clusterName: &String,
-    clusterUuid: &Option<Option<String>>,
-    gracefulTerminationTimeout: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    clusterUuid: &Option<String>,
+    gracefulTerminationTimeout: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16281,11 +16283,11 @@ pub struct DataprocProjectsRegionsClustersDeleteArgs {
     /// Path parameter: clusterName
     pub clusterName: String,
     /// Query parameter: clusterUuid
-    pub clusterUuid: Option<Option<String>>,
+    pub clusterUuid: Option<String>,
     /// Query parameter: gracefulTerminationTimeout
-    pub gracefulTerminationTimeout: Option<Option<String>>,
+    pub gracefulTerminationTimeout: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/projects/{projectId}/regions/{region}/clusters/{clusterName}
@@ -17002,9 +17004,9 @@ pub fn dataproc_projects_regions_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17154,11 +17156,11 @@ pub struct DataprocProjectsRegionsClustersListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectId}/regions/{region}/clusters
@@ -17203,9 +17205,9 @@ pub fn dataproc_projects_regions_clusters_patch_builder<R>(
     projectId: &String,
     region: &String,
     clusterName: &String,
-    gracefulDecommissionTimeout: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    gracefulDecommissionTimeout: &Option<String>,
+    requestId: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17355,11 +17357,11 @@ pub struct DataprocProjectsRegionsClustersPatchArgs {
     /// Path parameter: clusterName
     pub clusterName: String,
     /// Query parameter: gracefulDecommissionTimeout
-    pub gracefulDecommissionTimeout: Option<Option<String>>,
+    pub gracefulDecommissionTimeout: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectId}/regions/{region}/clusters/{clusterName}
@@ -18244,9 +18246,9 @@ pub fn dataproc_projects_regions_clusters_test_iam_permissions(
 pub fn dataproc_projects_regions_clusters_node_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    nodeGroupId: &Option<Option<String>>,
-    parentOperationId: &Option<Option<String>>,
-    requestId: &Option<Option<String>>,
+    nodeGroupId: &Option<String>,
+    parentOperationId: &Option<String>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18392,11 +18394,11 @@ pub struct DataprocProjectsRegionsClustersNodeGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: nodeGroupId
-    pub nodeGroupId: Option<Option<String>>,
+    pub nodeGroupId: Option<String>,
     /// Query parameter: parentOperationId
-    pub parentOperationId: Option<Option<String>>,
+    pub parentOperationId: Option<String>,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/regions/{regionsId}/clusters/{clustersId}/nodeGroups
@@ -19592,11 +19594,11 @@ pub fn dataproc_projects_regions_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     region: &String,
-    clusterName: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    jobStateMatcher: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    clusterName: &Option<String>,
+    filter: &Option<String>,
+    jobStateMatcher: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19752,15 +19754,15 @@ pub struct DataprocProjectsRegionsJobsListArgs {
     /// Path parameter: region
     pub region: String,
     /// Query parameter: clusterName
-    pub clusterName: Option<Option<String>>,
+    pub clusterName: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: jobStateMatcher
-    pub jobStateMatcher: Option<Option<String>>,
+    pub jobStateMatcher: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectId}/regions/{region}/jobs
@@ -19807,7 +19809,7 @@ pub fn dataproc_projects_regions_jobs_patch_builder<R>(
     projectId: &String,
     region: &String,
     jobId: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19951,7 +19953,7 @@ pub struct DataprocProjectsRegionsJobsPatchArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectId}/regions/{region}/jobs/{jobId}
@@ -21292,10 +21294,10 @@ pub fn dataproc_projects_regions_operations_get_iam_policy(
 pub fn dataproc_projects_regions_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21446,13 +21448,13 @@ pub struct DataprocProjectsRegionsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/regions/{regionsId}/operations
@@ -21990,7 +21992,7 @@ pub fn dataproc_projects_regions_workflow_templates_create(
 pub fn dataproc_projects_regions_workflow_templates_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    version: &Option<Option<String>>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22130,7 +22132,7 @@ pub struct DataprocProjectsRegionsWorkflowTemplatesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: version
-    pub version: Option<Option<String>>,
+    pub version: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}
@@ -22168,7 +22170,7 @@ pub fn dataproc_projects_regions_workflow_templates_delete(
 pub fn dataproc_projects_regions_workflow_templates_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    version: &Option<Option<String>>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22310,7 +22312,7 @@ pub struct DataprocProjectsRegionsWorkflowTemplatesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: version
-    pub version: Option<Option<String>>,
+    pub version: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}
@@ -22674,7 +22676,7 @@ pub fn dataproc_projects_regions_workflow_templates_instantiate(
 pub fn dataproc_projects_regions_workflow_templates_instantiate_inline_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22814,7 +22816,7 @@ pub struct DataprocProjectsRegionsWorkflowTemplatesInstantiateInlineArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates:instantiateInline
@@ -22852,8 +22854,8 @@ pub fn dataproc_projects_regions_workflow_templates_instantiate_inline(
 pub fn dataproc_projects_regions_workflow_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23000,9 +23002,9 @@ pub struct DataprocProjectsRegionsWorkflowTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates

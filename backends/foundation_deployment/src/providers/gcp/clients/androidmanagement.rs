@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,10 +31,10 @@ use serde::Serialize;
 
 pub fn androidmanagement_enterprises_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    agreementAccepted: &Option<Option<String>>,
-    enterpriseToken: &Option<Option<String>>,
-    projectId: &Option<Option<String>>,
-    signupUrlName: &Option<Option<String>>,
+    agreementAccepted: &Option<String>,
+    enterpriseToken: &Option<String>,
+    projectId: &Option<String>,
+    signupUrlName: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -176,13 +178,13 @@ pub fn androidmanagement_enterprises_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroidmanagementEnterprisesCreateArgs {
     /// Query parameter: agreementAccepted
-    pub agreementAccepted: Option<Option<String>>,
+    pub agreementAccepted: Option<String>,
     /// Query parameter: enterpriseToken
-    pub enterpriseToken: Option<Option<String>>,
+    pub enterpriseToken: Option<String>,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
     /// Query parameter: signupUrlName
-    pub signupUrlName: Option<Option<String>>,
+    pub signupUrlName: Option<String>,
 }
 
 /// POST v1/enterprises
@@ -710,10 +712,10 @@ pub fn androidmanagement_enterprises_get(
 
 pub fn androidmanagement_enterprises_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    projectId: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    projectId: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -859,13 +861,13 @@ pub fn androidmanagement_enterprises_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroidmanagementEnterprisesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/enterprises
@@ -907,7 +909,7 @@ pub fn androidmanagement_enterprises_list(
 pub fn androidmanagement_enterprises_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1047,7 +1049,7 @@ pub struct AndroidmanagementEnterprisesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/enterprises/{enterprisesId}
@@ -1082,7 +1084,7 @@ pub fn androidmanagement_enterprises_patch(
 pub fn androidmanagement_enterprises_applications_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
+    languageCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1222,7 +1224,7 @@ pub struct AndroidmanagementEnterprisesApplicationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
 }
 
 /// GET v1/enterprises/{enterprisesId}/applications/{applicationsId}
@@ -1260,8 +1262,8 @@ pub fn androidmanagement_enterprises_applications_get(
 pub fn androidmanagement_enterprises_devices_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    wipeDataFlags: &Option<Option<String>>,
-    wipeReasonMessage: &Option<Option<String>>,
+    wipeDataFlags: &Option<String>,
+    wipeReasonMessage: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1404,9 +1406,9 @@ pub struct AndroidmanagementEnterprisesDevicesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: wipeDataFlags
-    pub wipeDataFlags: Option<Option<String>>,
+    pub wipeDataFlags: Option<String>,
     /// Query parameter: wipeReasonMessage
-    pub wipeReasonMessage: Option<Option<String>>,
+    pub wipeReasonMessage: Option<String>,
 }
 
 /// DELETE v1/enterprises/{enterprisesId}/devices/{devicesId}
@@ -1765,8 +1767,8 @@ pub fn androidmanagement_enterprises_devices_issue_command(
 pub fn androidmanagement_enterprises_devices_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1911,9 +1913,9 @@ pub struct AndroidmanagementEnterprisesDevicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/enterprises/{enterprisesId}/devices
@@ -1954,7 +1956,7 @@ pub fn androidmanagement_enterprises_devices_list(
 pub fn androidmanagement_enterprises_devices_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2094,7 +2096,7 @@ pub struct AndroidmanagementEnterprisesDevicesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/enterprises/{enterprisesId}/devices/{devicesId}
@@ -2450,10 +2452,10 @@ pub fn androidmanagement_enterprises_devices_operations_get(
 pub fn androidmanagement_enterprises_devices_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2604,13 +2606,13 @@ pub struct AndroidmanagementEnterprisesDevicesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}/operations
@@ -3143,8 +3145,8 @@ pub fn androidmanagement_enterprises_enrollment_tokens_get(
 pub fn androidmanagement_enterprises_enrollment_tokens_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3291,9 +3293,9 @@ pub struct AndroidmanagementEnterprisesEnrollmentTokensListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/enterprises/{enterprisesId}/enrollmentTokens
@@ -3665,8 +3667,8 @@ pub fn androidmanagement_enterprises_migration_tokens_get(
 pub fn androidmanagement_enterprises_migration_tokens_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3813,9 +3815,9 @@ pub struct AndroidmanagementEnterprisesMigrationTokensListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/enterprises/{enterprisesId}/migrationTokens
@@ -4178,8 +4180,8 @@ pub fn androidmanagement_enterprises_policies_get(
 pub fn androidmanagement_enterprises_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4324,9 +4326,9 @@ pub struct AndroidmanagementEnterprisesPoliciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/enterprises/{enterprisesId}/policies
@@ -4537,7 +4539,7 @@ pub fn androidmanagement_enterprises_policies_modify_policy_applications(
 pub fn androidmanagement_enterprises_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4677,7 +4679,7 @@ pub struct AndroidmanagementEnterprisesPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/enterprises/{enterprisesId}/policies/{policiesId}
@@ -5362,8 +5364,8 @@ pub fn androidmanagement_enterprises_web_apps_get(
 pub fn androidmanagement_enterprises_web_apps_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5508,9 +5510,9 @@ pub struct AndroidmanagementEnterprisesWebAppsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/enterprises/{enterprisesId}/webApps
@@ -5551,7 +5553,7 @@ pub fn androidmanagement_enterprises_web_apps_list(
 pub fn androidmanagement_enterprises_web_apps_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5691,7 +5693,7 @@ pub struct AndroidmanagementEnterprisesWebAppsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/enterprises/{enterprisesId}/webApps/{webAppsId}
@@ -6049,10 +6051,10 @@ pub fn androidmanagement_provisioning_info_get(
 
 pub fn androidmanagement_signup_urls_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    adminEmail: &Option<Option<String>>,
-    allowedDomains: &Option<Option<String>>,
-    callbackUrl: &Option<Option<String>>,
-    projectId: &Option<Option<String>>,
+    adminEmail: &Option<String>,
+    allowedDomains: &Option<String>,
+    callbackUrl: &Option<String>,
+    projectId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6196,13 +6198,13 @@ pub fn androidmanagement_signup_urls_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroidmanagementSignupUrlsCreateArgs {
     /// Query parameter: adminEmail
-    pub adminEmail: Option<Option<String>>,
+    pub adminEmail: Option<String>,
     /// Query parameter: allowedDomains
-    pub allowedDomains: Option<Option<String>>,
+    pub allowedDomains: Option<String>,
     /// Query parameter: callbackUrl
-    pub callbackUrl: Option<Option<String>>,
+    pub callbackUrl: Option<String>,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
 }
 
 /// POST v1/signupUrls

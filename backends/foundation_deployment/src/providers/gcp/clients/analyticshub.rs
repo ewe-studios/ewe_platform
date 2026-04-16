@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,8 +32,8 @@ use serde::Serialize;
 pub fn analyticshub_organizations_locations_data_exchanges_list_builder<R>(
     client: &SimpleHttpClient<R>,
     organization: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -178,9 +180,9 @@ pub struct AnalyticshubOrganizationsLocationsDataExchangesListArgs {
     /// Path parameter: organization
     pub organization: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/dataExchanges
@@ -223,7 +225,7 @@ pub fn analyticshub_organizations_locations_data_exchanges_list(
 pub fn analyticshub_projects_locations_data_exchanges_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataExchangeId: &Option<Option<String>>,
+    dataExchangeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -365,7 +367,7 @@ pub struct AnalyticshubProjectsLocationsDataExchangesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataExchangeId
-    pub dataExchangeId: Option<Option<String>>,
+    pub dataExchangeId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataExchanges
@@ -893,8 +895,8 @@ pub fn analyticshub_projects_locations_data_exchanges_get_iam_policy(
 pub fn analyticshub_projects_locations_data_exchanges_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1039,9 +1041,9 @@ pub struct AnalyticshubProjectsLocationsDataExchangesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges
@@ -1082,9 +1084,9 @@ pub fn analyticshub_projects_locations_data_exchanges_list(
 pub fn analyticshub_projects_locations_data_exchanges_list_subscriptions_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    includeDeletedSubscriptions: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    includeDeletedSubscriptions: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1235,11 +1237,11 @@ pub struct AnalyticshubProjectsLocationsDataExchangesListSubscriptionsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: includeDeletedSubscriptions
-    pub includeDeletedSubscriptions: Option<Option<String>>,
+    pub includeDeletedSubscriptions: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}:listSubscriptions
@@ -1283,7 +1285,7 @@ pub fn analyticshub_projects_locations_data_exchanges_list_subscriptions(
 pub fn analyticshub_projects_locations_data_exchanges_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1425,7 +1427,7 @@ pub struct AnalyticshubProjectsLocationsDataExchangesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}
@@ -1960,7 +1962,7 @@ pub fn analyticshub_projects_locations_data_exchanges_test_iam_permissions(
 pub fn analyticshub_projects_locations_data_exchanges_listings_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    listingId: &Option<Option<String>>,
+    listingId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2100,7 +2102,7 @@ pub struct AnalyticshubProjectsLocationsDataExchangesListingsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: listingId
-    pub listingId: Option<Option<String>>,
+    pub listingId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings
@@ -2138,7 +2140,7 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_create(
 pub fn analyticshub_projects_locations_data_exchanges_listings_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    deleteCommercial: &Option<Option<String>>,
+    deleteCommercial: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2278,7 +2280,7 @@ pub struct AnalyticshubProjectsLocationsDataExchangesListingsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: deleteCommercial
-    pub deleteCommercial: Option<Option<String>>,
+    pub deleteCommercial: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}
@@ -2641,8 +2643,8 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_get_iam_policy(
 pub fn analyticshub_projects_locations_data_exchanges_listings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2787,9 +2789,9 @@ pub struct AnalyticshubProjectsLocationsDataExchangesListingsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings
@@ -2830,9 +2832,9 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_list(
 pub fn analyticshub_projects_locations_data_exchanges_listings_list_subscriptions_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    includeDeletedSubscriptions: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    includeDeletedSubscriptions: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2984,11 +2986,11 @@ pub struct AnalyticshubProjectsLocationsDataExchangesListingsListSubscriptionsAr
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: includeDeletedSubscriptions
-    pub includeDeletedSubscriptions: Option<Option<String>>,
+    pub includeDeletedSubscriptions: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}:listSubscriptions
@@ -3033,7 +3035,7 @@ pub fn analyticshub_projects_locations_data_exchanges_listings_list_subscription
 pub fn analyticshub_projects_locations_data_exchanges_listings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3173,7 +3175,7 @@ pub struct AnalyticshubProjectsLocationsDataExchangesListingsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/listings/{listingsId}
@@ -3881,7 +3883,7 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_approve(
 pub fn analyticshub_projects_locations_data_exchanges_query_templates_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    queryTemplateId: &Option<Option<String>>,
+    queryTemplateId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4023,7 +4025,7 @@ pub struct AnalyticshubProjectsLocationsDataExchangesQueryTemplatesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: queryTemplateId
-    pub queryTemplateId: Option<Option<String>>,
+    pub queryTemplateId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates
@@ -4391,8 +4393,8 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_get(
 pub fn analyticshub_projects_locations_data_exchanges_query_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4539,9 +4541,9 @@ pub struct AnalyticshubProjectsLocationsDataExchangesQueryTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates
@@ -4584,7 +4586,7 @@ pub fn analyticshub_projects_locations_data_exchanges_query_templates_list(
 pub fn analyticshub_projects_locations_data_exchanges_query_templates_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4726,7 +4728,7 @@ pub struct AnalyticshubProjectsLocationsDataExchangesQueryTemplatesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataExchanges/{dataExchangesId}/queryTemplates/{queryTemplatesId}
@@ -5419,9 +5421,9 @@ pub fn analyticshub_projects_locations_subscriptions_get_iam_policy(
 pub fn analyticshub_projects_locations_subscriptions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5569,11 +5571,11 @@ pub struct AnalyticshubProjectsLocationsSubscriptionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/subscriptions

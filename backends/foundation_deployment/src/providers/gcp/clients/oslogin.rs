@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -194,8 +196,8 @@ pub fn oslogin_projects_locations_sign_ssh_public_key(
 pub fn oslogin_users_get_login_profile_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    projectId: &Option<Option<String>>,
-    systemId: &Option<Option<String>>,
+    projectId: &Option<String>,
+    systemId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -340,9 +342,9 @@ pub struct OsloginUsersGetLoginProfileArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
     /// Query parameter: systemId
-    pub systemId: Option<Option<String>>,
+    pub systemId: Option<String>,
 }
 
 /// GET v1/users/{usersId}/loginProfile
@@ -383,8 +385,8 @@ pub fn oslogin_users_get_login_profile(
 pub fn oslogin_users_import_ssh_public_key_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    projectId: &Option<Option<String>>,
-    regions: &Option<Option<String>>,
+    projectId: &Option<String>,
+    regions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -531,9 +533,9 @@ pub struct OsloginUsersImportSshPublicKeyArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
     /// Query parameter: regions
-    pub regions: Option<Option<String>>,
+    pub regions: Option<String>,
 }
 
 /// POST v1/users/{usersId}:importSshPublicKey
@@ -1388,7 +1390,7 @@ pub fn oslogin_users_ssh_public_keys_get(
 pub fn oslogin_users_ssh_public_keys_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1530,7 +1532,7 @@ pub struct OsloginUsersSshPublicKeysPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}

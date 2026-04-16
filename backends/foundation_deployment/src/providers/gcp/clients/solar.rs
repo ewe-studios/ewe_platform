@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,11 +31,11 @@ use serde::Serialize;
 
 pub fn solar_building_insights_find_closest_builder<R>(
     client: &SimpleHttpClient<R>,
-    exactQualityRequired: &Option<Option<String>>,
-    experiments: &Option<Option<String>>,
-    location_latitude: &Option<Option<String>>,
-    location_longitude: &Option<Option<String>>,
-    requiredQuality: &Option<Option<String>>,
+    exactQualityRequired: &Option<String>,
+    experiments: &Option<String>,
+    location_latitude: &Option<String>,
+    location_longitude: &Option<String>,
+    requiredQuality: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -182,15 +184,15 @@ pub fn solar_building_insights_find_closest_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SolarBuildingInsightsFindClosestArgs {
     /// Query parameter: exactQualityRequired
-    pub exactQualityRequired: Option<Option<String>>,
+    pub exactQualityRequired: Option<String>,
     /// Query parameter: experiments
-    pub experiments: Option<Option<String>>,
+    pub experiments: Option<String>,
     /// Query parameter: location_latitude
-    pub location_latitude: Option<Option<String>>,
+    pub location_latitude: Option<String>,
     /// Query parameter: location_longitude
-    pub location_longitude: Option<Option<String>>,
+    pub location_longitude: Option<String>,
     /// Query parameter: requiredQuality
-    pub requiredQuality: Option<Option<String>>,
+    pub requiredQuality: Option<String>,
 }
 
 /// GET v1/buildingInsights:findClosest
@@ -232,14 +234,14 @@ pub fn solar_building_insights_find_closest(
 
 pub fn solar_data_layers_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    exactQualityRequired: &Option<Option<String>>,
-    experiments: &Option<Option<String>>,
-    location_latitude: &Option<Option<String>>,
-    location_longitude: &Option<Option<String>>,
-    pixelSizeMeters: &Option<Option<String>>,
-    radiusMeters: &Option<Option<String>>,
-    requiredQuality: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    exactQualityRequired: &Option<String>,
+    experiments: &Option<String>,
+    location_latitude: &Option<String>,
+    location_longitude: &Option<String>,
+    pixelSizeMeters: &Option<String>,
+    radiusMeters: &Option<String>,
+    requiredQuality: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -395,21 +397,21 @@ pub fn solar_data_layers_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SolarDataLayersGetArgs {
     /// Query parameter: exactQualityRequired
-    pub exactQualityRequired: Option<Option<String>>,
+    pub exactQualityRequired: Option<String>,
     /// Query parameter: experiments
-    pub experiments: Option<Option<String>>,
+    pub experiments: Option<String>,
     /// Query parameter: location_latitude
-    pub location_latitude: Option<Option<String>>,
+    pub location_latitude: Option<String>,
     /// Query parameter: location_longitude
-    pub location_longitude: Option<Option<String>>,
+    pub location_longitude: Option<String>,
     /// Query parameter: pixelSizeMeters
-    pub pixelSizeMeters: Option<Option<String>>,
+    pub pixelSizeMeters: Option<String>,
     /// Query parameter: radiusMeters
-    pub radiusMeters: Option<Option<String>>,
+    pub radiusMeters: Option<String>,
     /// Query parameter: requiredQuality
-    pub requiredQuality: Option<Option<String>>,
+    pub requiredQuality: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/dataLayers:get
@@ -452,7 +454,7 @@ pub fn solar_data_layers_get(
 
 pub fn solar_geo_tiff_get_builder<R>(
     client: &SimpleHttpClient<R>,
-    id: &Option<Option<String>>,
+    id: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -587,7 +589,7 @@ pub fn solar_geo_tiff_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SolarGeoTiffGetArgs {
     /// Query parameter: id
-    pub id: Option<Option<String>>,
+    pub id: Option<String>,
 }
 
 /// GET v1/geoTiff:get

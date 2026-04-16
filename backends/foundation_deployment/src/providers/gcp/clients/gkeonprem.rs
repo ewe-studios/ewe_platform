@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -190,10 +192,10 @@ pub fn gkeonprem_projects_locations_get(
 pub fn gkeonprem_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -344,13 +346,13 @@ pub struct GkeonpremProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -393,9 +395,9 @@ pub fn gkeonprem_projects_locations_list(
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    allowPreflightFailure: &Option<Option<String>>,
-    bareMetalAdminClusterId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowPreflightFailure: &Option<String>,
+    bareMetalAdminClusterId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -541,11 +543,11 @@ pub struct GkeonpremProjectsLocationsBareMetalAdminClustersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: allowPreflightFailure
-    pub allowPreflightFailure: Option<Option<String>>,
+    pub allowPreflightFailure: Option<String>,
     /// Query parameter: bareMetalAdminClusterId
-    pub bareMetalAdminClusterId: Option<Option<String>>,
+    pub bareMetalAdminClusterId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters
@@ -748,8 +750,8 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_enroll(
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -894,9 +896,9 @@ pub struct GkeonpremProjectsLocationsBareMetalAdminClustersGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}
@@ -937,7 +939,7 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get(
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1077,7 +1079,7 @@ pub struct GkeonpremProjectsLocationsBareMetalAdminClustersGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}:getIamPolicy
@@ -1115,10 +1117,10 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get_iam_policy(
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    allowMissing: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1271,13 +1273,13 @@ pub struct GkeonpremProjectsLocationsBareMetalAdminClustersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters
@@ -1322,8 +1324,8 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_list(
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1466,9 +1468,9 @@ pub struct GkeonpremProjectsLocationsBareMetalAdminClustersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}
@@ -1507,7 +1509,7 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_patch(
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_query_version_config_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    upgradeConfig_clusterName: &Option<Option<String>>,
+    upgradeConfig_clusterName: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1652,7 +1654,7 @@ pub struct GkeonpremProjectsLocationsBareMetalAdminClustersQueryVersionConfigArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: upgradeConfig_clusterName
-    pub upgradeConfig_clusterName: Option<Option<String>>,
+    pub upgradeConfig_clusterName: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters:queryVersionConfig
@@ -2031,10 +2033,10 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_test_iam_permissio
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_unenroll_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    ignoreErrors: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    ignoreErrors: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2183,13 +2185,13 @@ pub struct GkeonpremProjectsLocationsBareMetalAdminClustersUnenrollArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: ignoreErrors
-    pub ignoreErrors: Option<Option<String>>,
+    pub ignoreErrors: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}:unenroll
@@ -2392,10 +2394,10 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_get(
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2547,13 +2549,13 @@ pub struct GkeonpremProjectsLocationsBareMetalAdminClustersOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}/operations
@@ -2596,9 +2598,9 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list(
 pub fn gkeonprem_projects_locations_bare_metal_clusters_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    allowPreflightFailure: &Option<Option<String>>,
-    bareMetalClusterId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowPreflightFailure: &Option<String>,
+    bareMetalClusterId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2744,11 +2746,11 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: allowPreflightFailure
-    pub allowPreflightFailure: Option<Option<String>>,
+    pub allowPreflightFailure: Option<String>,
     /// Query parameter: bareMetalClusterId
-    pub bareMetalClusterId: Option<Option<String>>,
+    pub bareMetalClusterId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters
@@ -2788,11 +2790,11 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_create(
 pub fn gkeonprem_projects_locations_bare_metal_clusters_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
-    ignoreErrors: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    force: &Option<String>,
+    ignoreErrors: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2944,15 +2946,15 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: ignoreErrors
-    pub ignoreErrors: Option<Option<String>>,
+    pub ignoreErrors: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}
@@ -3155,8 +3157,8 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_enroll(
 pub fn gkeonprem_projects_locations_bare_metal_clusters_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3301,9 +3303,9 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}
@@ -3344,7 +3346,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_get(
 pub fn gkeonprem_projects_locations_bare_metal_clusters_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3484,7 +3486,7 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}:getIamPolicy
@@ -3522,11 +3524,11 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_get_iam_policy(
 pub fn gkeonprem_projects_locations_bare_metal_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    allowMissing: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3682,15 +3684,15 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters
@@ -3736,9 +3738,9 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_list(
 pub fn gkeonprem_projects_locations_bare_metal_clusters_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3884,11 +3886,11 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}
@@ -3928,9 +3930,9 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_patch(
 pub fn gkeonprem_projects_locations_bare_metal_clusters_query_version_config_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    createConfig_adminClusterMembership: &Option<Option<String>>,
-    createConfig_adminClusterName: &Option<Option<String>>,
-    upgradeConfig_clusterName: &Option<Option<String>>,
+    createConfig_adminClusterMembership: &Option<String>,
+    createConfig_adminClusterName: &Option<String>,
+    upgradeConfig_clusterName: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4080,11 +4082,11 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersQueryVersionConfigArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: createConfig_adminClusterMembership
-    pub createConfig_adminClusterMembership: Option<Option<String>>,
+    pub createConfig_adminClusterMembership: Option<String>,
     /// Query parameter: createConfig_adminClusterName
-    pub createConfig_adminClusterName: Option<Option<String>>,
+    pub createConfig_adminClusterName: Option<String>,
     /// Query parameter: upgradeConfig_clusterName
-    pub upgradeConfig_clusterName: Option<Option<String>>,
+    pub upgradeConfig_clusterName: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters:queryVersionConfig
@@ -4462,10 +4464,10 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_test_iam_permissions(
 pub fn gkeonprem_projects_locations_bare_metal_clusters_unenroll_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    force: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4614,13 +4616,13 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersUnenrollArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}:unenroll
@@ -4661,8 +4663,8 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_unenroll(
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    bareMetalNodePoolId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    bareMetalNodePoolId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4807,9 +4809,9 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsCreateAr
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: bareMetalNodePoolId
-    pub bareMetalNodePoolId: Option<Option<String>>,
+    pub bareMetalNodePoolId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools
@@ -4849,10 +4851,10 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_cr
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    ignoreErrors: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    ignoreErrors: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5003,13 +5005,13 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsDeleteAr
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: ignoreErrors
-    pub ignoreErrors: Option<Option<String>>,
+    pub ignoreErrors: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}
@@ -5217,7 +5219,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_en
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5360,7 +5362,7 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsGetArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}
@@ -5401,7 +5403,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_ge
 >(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5544,7 +5546,7 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsGetIamPo
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}:getIamPolicy
@@ -5580,9 +5582,9 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_ge
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5733,11 +5735,11 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsListArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools
@@ -5782,9 +5784,9 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_li
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5931,11 +5933,11 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsPatchArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}
@@ -6313,9 +6315,9 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_te
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_unenroll_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6464,11 +6466,11 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsUnenroll
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}:unenroll
@@ -6678,10 +6680,10 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_op
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6832,13 +6834,13 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsOperatio
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}/operations
@@ -7038,10 +7040,10 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_get(
 pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7192,13 +7194,13 @@ pub struct GkeonpremProjectsLocationsBareMetalClustersOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/operations
@@ -7721,10 +7723,10 @@ pub fn gkeonprem_projects_locations_operations_get(
 pub fn gkeonprem_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7875,13 +7877,13 @@ pub struct GkeonpremProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -7924,10 +7926,10 @@ pub fn gkeonprem_projects_locations_operations_list(
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    allowPreflightFailure: &Option<Option<String>>,
-    skipValidations: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
-    vmwareAdminClusterId: &Option<Option<String>>,
+    allowPreflightFailure: &Option<String>,
+    skipValidations: &Option<String>,
+    validateOnly: &Option<String>,
+    vmwareAdminClusterId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8076,13 +8078,13 @@ pub struct GkeonpremProjectsLocationsVmwareAdminClustersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: allowPreflightFailure
-    pub allowPreflightFailure: Option<Option<String>>,
+    pub allowPreflightFailure: Option<String>,
     /// Query parameter: skipValidations
-    pub skipValidations: Option<Option<String>>,
+    pub skipValidations: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
     /// Query parameter: vmwareAdminClusterId
-    pub vmwareAdminClusterId: Option<Option<String>>,
+    pub vmwareAdminClusterId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters
@@ -8284,8 +8286,8 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_enroll(
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8430,9 +8432,9 @@ pub struct GkeonpremProjectsLocationsVmwareAdminClustersGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}
@@ -8473,7 +8475,7 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_get(
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8613,7 +8615,7 @@ pub struct GkeonpremProjectsLocationsVmwareAdminClustersGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}:getIamPolicy
@@ -8651,10 +8653,10 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_get_iam_policy(
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    allowMissing: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8807,13 +8809,13 @@ pub struct GkeonpremProjectsLocationsVmwareAdminClustersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters
@@ -8858,9 +8860,9 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_list(
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    skipValidations: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    skipValidations: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9006,11 +9008,11 @@ pub struct GkeonpremProjectsLocationsVmwareAdminClustersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: skipValidations
-    pub skipValidations: Option<Option<String>>,
+    pub skipValidations: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}
@@ -9385,10 +9387,10 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_test_iam_permissions(
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_unenroll_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    ignoreErrors: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    ignoreErrors: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9537,13 +9539,13 @@ pub struct GkeonpremProjectsLocationsVmwareAdminClustersUnenrollArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: ignoreErrors
-    pub ignoreErrors: Option<Option<String>>,
+    pub ignoreErrors: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}:unenroll
@@ -9746,10 +9748,10 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_get(
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9900,13 +9902,13 @@ pub struct GkeonpremProjectsLocationsVmwareAdminClustersOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}/operations
@@ -9949,10 +9951,10 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_list(
 pub fn gkeonprem_projects_locations_vmware_clusters_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    allowPreflightFailure: &Option<Option<String>>,
-    skipValidations: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
-    vmwareClusterId: &Option<Option<String>>,
+    allowPreflightFailure: &Option<String>,
+    skipValidations: &Option<String>,
+    validateOnly: &Option<String>,
+    vmwareClusterId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10101,13 +10103,13 @@ pub struct GkeonpremProjectsLocationsVmwareClustersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: allowPreflightFailure
-    pub allowPreflightFailure: Option<Option<String>>,
+    pub allowPreflightFailure: Option<String>,
     /// Query parameter: skipValidations
-    pub skipValidations: Option<Option<String>>,
+    pub skipValidations: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
     /// Query parameter: vmwareClusterId
-    pub vmwareClusterId: Option<Option<String>>,
+    pub vmwareClusterId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters
@@ -10148,11 +10150,11 @@ pub fn gkeonprem_projects_locations_vmware_clusters_create(
 pub fn gkeonprem_projects_locations_vmware_clusters_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
-    ignoreErrors: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    force: &Option<String>,
+    ignoreErrors: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10304,15 +10306,15 @@ pub struct GkeonpremProjectsLocationsVmwareClustersDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: ignoreErrors
-    pub ignoreErrors: Option<Option<String>>,
+    pub ignoreErrors: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}
@@ -10515,8 +10517,8 @@ pub fn gkeonprem_projects_locations_vmware_clusters_enroll(
 pub fn gkeonprem_projects_locations_vmware_clusters_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10661,9 +10663,9 @@ pub struct GkeonpremProjectsLocationsVmwareClustersGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}
@@ -10704,7 +10706,7 @@ pub fn gkeonprem_projects_locations_vmware_clusters_get(
 pub fn gkeonprem_projects_locations_vmware_clusters_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10844,7 +10846,7 @@ pub struct GkeonpremProjectsLocationsVmwareClustersGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}:getIamPolicy
@@ -10882,11 +10884,11 @@ pub fn gkeonprem_projects_locations_vmware_clusters_get_iam_policy(
 pub fn gkeonprem_projects_locations_vmware_clusters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    allowMissing: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11042,15 +11044,15 @@ pub struct GkeonpremProjectsLocationsVmwareClustersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters
@@ -11096,9 +11098,9 @@ pub fn gkeonprem_projects_locations_vmware_clusters_list(
 pub fn gkeonprem_projects_locations_vmware_clusters_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    skipValidations: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    skipValidations: &Option<String>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11244,11 +11246,11 @@ pub struct GkeonpremProjectsLocationsVmwareClustersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: skipValidations
-    pub skipValidations: Option<Option<String>>,
+    pub skipValidations: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}
@@ -11288,9 +11290,9 @@ pub fn gkeonprem_projects_locations_vmware_clusters_patch(
 pub fn gkeonprem_projects_locations_vmware_clusters_query_version_config_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    createConfig_adminClusterMembership: &Option<Option<String>>,
-    createConfig_adminClusterName: &Option<Option<String>>,
-    upgradeConfig_clusterName: &Option<Option<String>>,
+    createConfig_adminClusterMembership: &Option<String>,
+    createConfig_adminClusterName: &Option<String>,
+    upgradeConfig_clusterName: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11440,11 +11442,11 @@ pub struct GkeonpremProjectsLocationsVmwareClustersQueryVersionConfigArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: createConfig_adminClusterMembership
-    pub createConfig_adminClusterMembership: Option<Option<String>>,
+    pub createConfig_adminClusterMembership: Option<String>,
     /// Query parameter: createConfig_adminClusterName
-    pub createConfig_adminClusterName: Option<Option<String>>,
+    pub createConfig_adminClusterName: Option<String>,
     /// Query parameter: upgradeConfig_clusterName
-    pub upgradeConfig_clusterName: Option<Option<String>>,
+    pub upgradeConfig_clusterName: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters:queryVersionConfig
@@ -11822,10 +11824,10 @@ pub fn gkeonprem_projects_locations_vmware_clusters_test_iam_permissions(
 pub fn gkeonprem_projects_locations_vmware_clusters_unenroll_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    force: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11974,13 +11976,13 @@ pub struct GkeonpremProjectsLocationsVmwareClustersUnenrollArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}:unenroll
@@ -12182,10 +12184,10 @@ pub fn gkeonprem_projects_locations_vmware_clusters_operations_get(
 pub fn gkeonprem_projects_locations_vmware_clusters_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12336,13 +12338,13 @@ pub struct GkeonpremProjectsLocationsVmwareClustersOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/operations
@@ -12385,8 +12387,8 @@ pub fn gkeonprem_projects_locations_vmware_clusters_operations_list(
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    validateOnly: &Option<Option<String>>,
-    vmwareNodePoolId: &Option<Option<String>>,
+    validateOnly: &Option<String>,
+    vmwareNodePoolId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12529,9 +12531,9 @@ pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
     /// Query parameter: vmwareNodePoolId
-    pub vmwareNodePoolId: Option<Option<String>>,
+    pub vmwareNodePoolId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools
@@ -12570,10 +12572,10 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_create(
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    ignoreErrors: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    ignoreErrors: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12722,13 +12724,13 @@ pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: ignoreErrors
-    pub ignoreErrors: Option<Option<String>>,
+    pub ignoreErrors: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}
@@ -12932,7 +12934,7 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_enroll(
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13074,7 +13076,7 @@ pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}
@@ -13112,7 +13114,7 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get(
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13254,7 +13256,7 @@ pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsGetIamPolicyAr
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}:getIamPolicy
@@ -13293,9 +13295,9 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_po
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13445,11 +13447,11 @@ pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools
@@ -13493,8 +13495,8 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list(
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13637,9 +13639,9 @@ pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}
@@ -14019,9 +14021,9 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_p
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_unenroll_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    etag: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    etag: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14168,11 +14170,11 @@ pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsUnenrollArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}:unenroll
@@ -14377,10 +14379,10 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14533,13 +14535,13 @@ pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsOperationsList
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}/operations

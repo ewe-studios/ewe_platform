@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,7 +31,7 @@ use serde::Serialize;
 
 pub fn aiplatform_batch_prediction_jobs_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -168,7 +170,7 @@ pub fn aiplatform_batch_prediction_jobs_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiplatformBatchPredictionJobsCreateArgs {
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// POST v1/batchPredictionJobs
@@ -373,11 +375,11 @@ pub fn aiplatform_batch_prediction_jobs_get(
 
 pub fn aiplatform_batch_prediction_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -535,15 +537,15 @@ pub fn aiplatform_batch_prediction_jobs_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiplatformBatchPredictionJobsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/batchPredictionJobs
@@ -1087,10 +1089,10 @@ pub fn aiplatform_custom_jobs_operations_get(
 pub fn aiplatform_custom_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1244,13 +1246,13 @@ pub struct AiplatformCustomJobsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/customJobs/{customJobsId}/operations
@@ -1295,7 +1297,7 @@ pub fn aiplatform_custom_jobs_operations_list(
 pub fn aiplatform_custom_jobs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1439,7 +1441,7 @@ pub struct AiplatformCustomJobsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/customJobs/{customJobsId}/operations/{operationsId}:wait
@@ -1974,10 +1976,10 @@ pub fn aiplatform_data_labeling_jobs_operations_get(
 pub fn aiplatform_data_labeling_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2131,13 +2133,13 @@ pub struct AiplatformDataLabelingJobsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/dataLabelingJobs/{dataLabelingJobsId}/operations
@@ -2182,7 +2184,7 @@ pub fn aiplatform_data_labeling_jobs_operations_list(
 pub fn aiplatform_data_labeling_jobs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2326,7 +2328,7 @@ pub struct AiplatformDataLabelingJobsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/dataLabelingJobs/{dataLabelingJobsId}/operations/{operationsId}:wait
@@ -2364,7 +2366,7 @@ pub fn aiplatform_data_labeling_jobs_operations_wait(
 
 pub fn aiplatform_datasets_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2503,7 +2505,7 @@ pub fn aiplatform_datasets_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiplatformDatasetsCreateArgs {
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// POST v1/datasets
@@ -2706,7 +2708,7 @@ pub fn aiplatform_datasets_delete(
 pub fn aiplatform_datasets_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2847,7 +2849,7 @@ pub struct AiplatformDatasetsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/datasets/{datasetsId}
@@ -2884,12 +2886,12 @@ pub fn aiplatform_datasets_get(
 
 pub fn aiplatform_datasets_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3044,17 +3046,17 @@ pub fn aiplatform_datasets_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiplatformDatasetsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/datasets
@@ -3100,7 +3102,7 @@ pub fn aiplatform_datasets_list(
 pub fn aiplatform_datasets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3241,7 +3243,7 @@ pub struct AiplatformDatasetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/datasets/{datasetsId}
@@ -3777,10 +3779,10 @@ pub fn aiplatform_datasets_annotation_specs_operations_get(
 pub fn aiplatform_datasets_annotation_specs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3934,13 +3936,13 @@ pub struct AiplatformDatasetsAnnotationSpecsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/datasets/{datasetsId}/annotationSpecs/{annotationSpecsId}/operations
@@ -3985,7 +3987,7 @@ pub fn aiplatform_datasets_annotation_specs_operations_list(
 pub fn aiplatform_datasets_annotation_specs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4129,7 +4131,7 @@ pub struct AiplatformDatasetsAnnotationSpecsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/datasets/{datasetsId}/annotationSpecs/{annotationSpecsId}/operations/{operationsId}:wait
@@ -4670,10 +4672,10 @@ pub fn aiplatform_datasets_data_items_annotations_operations_get(
 pub fn aiplatform_datasets_data_items_annotations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4827,13 +4829,13 @@ pub struct AiplatformDatasetsDataItemsAnnotationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/datasets/{datasetsId}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations
@@ -4878,7 +4880,7 @@ pub fn aiplatform_datasets_data_items_annotations_operations_list(
 pub fn aiplatform_datasets_data_items_annotations_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5022,7 +5024,7 @@ pub struct AiplatformDatasetsDataItemsAnnotationsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/datasets/{datasetsId}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations/{operationsId}:wait
@@ -5560,10 +5562,10 @@ pub fn aiplatform_datasets_data_items_operations_get(
 pub fn aiplatform_datasets_data_items_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5717,13 +5719,13 @@ pub struct AiplatformDatasetsDataItemsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/datasets/{datasetsId}/dataItems/{dataItemsId}/operations
@@ -5768,7 +5770,7 @@ pub fn aiplatform_datasets_data_items_operations_list(
 pub fn aiplatform_datasets_data_items_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5912,7 +5914,7 @@ pub struct AiplatformDatasetsDataItemsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/datasets/{datasetsId}/dataItems/{dataItemsId}/operations/{operationsId}:wait
@@ -6287,7 +6289,7 @@ pub fn aiplatform_datasets_dataset_versions_delete(
 pub fn aiplatform_datasets_dataset_versions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6431,7 +6433,7 @@ pub struct AiplatformDatasetsDatasetVersionsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/datasets/{datasetsId}/datasetVersions/{datasetVersionsId}
@@ -6470,11 +6472,11 @@ pub fn aiplatform_datasets_dataset_versions_get(
 pub fn aiplatform_datasets_dataset_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6634,15 +6636,15 @@ pub struct AiplatformDatasetsDatasetVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/datasets/{datasetsId}/datasetVersions
@@ -6688,7 +6690,7 @@ pub fn aiplatform_datasets_dataset_versions_list(
 pub fn aiplatform_datasets_dataset_versions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6832,7 +6834,7 @@ pub struct AiplatformDatasetsDatasetVersionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/datasets/{datasetsId}/datasetVersions/{datasetVersionsId}
@@ -7535,10 +7537,10 @@ pub fn aiplatform_datasets_operations_get(
 pub fn aiplatform_datasets_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7692,13 +7694,13 @@ pub struct AiplatformDatasetsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/datasets/{datasetsId}/operations
@@ -7743,7 +7745,7 @@ pub fn aiplatform_datasets_operations_list(
 pub fn aiplatform_datasets_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7887,7 +7889,7 @@ pub struct AiplatformDatasetsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/datasets/{datasetsId}/operations/{operationsId}:wait
@@ -8421,10 +8423,10 @@ pub fn aiplatform_datasets_saved_queries_operations_get(
 pub fn aiplatform_datasets_saved_queries_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8578,13 +8580,13 @@ pub struct AiplatformDatasetsSavedQueriesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/datasets/{datasetsId}/savedQueries/{savedQueriesId}/operations
@@ -8629,7 +8631,7 @@ pub fn aiplatform_datasets_saved_queries_operations_list(
 pub fn aiplatform_datasets_saved_queries_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8773,7 +8775,7 @@ pub struct AiplatformDatasetsSavedQueriesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/datasets/{datasetsId}/savedQueries/{savedQueriesId}/operations/{operationsId}:wait
@@ -9313,10 +9315,10 @@ pub fn aiplatform_deployment_resource_pools_operations_get(
 pub fn aiplatform_deployment_resource_pools_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9470,13 +9472,13 @@ pub struct AiplatformDeploymentResourcePoolsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/deploymentResourcePools/{deploymentResourcePoolsId}/operations
@@ -9521,7 +9523,7 @@ pub fn aiplatform_deployment_resource_pools_operations_list(
 pub fn aiplatform_deployment_resource_pools_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9665,7 +9667,7 @@ pub struct AiplatformDeploymentResourcePoolsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/deploymentResourcePools/{deploymentResourcePoolsId}/operations/{operationsId}:wait
@@ -11547,10 +11549,10 @@ pub fn aiplatform_endpoints_operations_get(
 pub fn aiplatform_endpoints_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11704,13 +11706,13 @@ pub struct AiplatformEndpointsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/endpoints/{endpointsId}/operations
@@ -11755,7 +11757,7 @@ pub fn aiplatform_endpoints_operations_list(
 pub fn aiplatform_endpoints_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11899,7 +11901,7 @@ pub struct AiplatformEndpointsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/endpoints/{endpointsId}/operations/{operationsId}:wait
@@ -12269,10 +12271,10 @@ pub fn aiplatform_feature_groups_features_operations_get(
 pub fn aiplatform_feature_groups_features_operations_list_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12426,13 +12428,13 @@ pub struct AiplatformFeatureGroupsFeaturesOperationsListWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/featureGroups/{featureGroupsId}/features/{featuresId}/operations/{operationsId}:wait
@@ -12477,7 +12479,7 @@ pub fn aiplatform_feature_groups_features_operations_list_wait(
 pub fn aiplatform_feature_groups_features_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12621,7 +12623,7 @@ pub struct AiplatformFeatureGroupsFeaturesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/featureGroups/{featureGroupsId}/features/{featuresId}/operations/{operationsId}:wait
@@ -12995,10 +12997,10 @@ pub fn aiplatform_feature_groups_operations_get(
 pub fn aiplatform_feature_groups_operations_list_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13152,13 +13154,13 @@ pub struct AiplatformFeatureGroupsOperationsListWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/featureGroups/{featureGroupsId}/operations/{operationsId}:wait
@@ -13203,7 +13205,7 @@ pub fn aiplatform_feature_groups_operations_list_wait(
 pub fn aiplatform_feature_groups_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13347,7 +13349,7 @@ pub struct AiplatformFeatureGroupsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/featureGroups/{featureGroupsId}/operations/{operationsId}:wait
@@ -13721,10 +13723,10 @@ pub fn aiplatform_feature_online_stores_feature_views_operations_get(
 pub fn aiplatform_feature_online_stores_feature_views_operations_list_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13878,13 +13880,13 @@ pub struct AiplatformFeatureOnlineStoresFeatureViewsOperationsListWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}/operations/{operationsId}:wait
@@ -13929,7 +13931,7 @@ pub fn aiplatform_feature_online_stores_feature_views_operations_list_wait(
 pub fn aiplatform_feature_online_stores_feature_views_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14073,7 +14075,7 @@ pub struct AiplatformFeatureOnlineStoresFeatureViewsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}/operations/{operationsId}:wait
@@ -14447,10 +14449,10 @@ pub fn aiplatform_feature_online_stores_operations_get(
 pub fn aiplatform_feature_online_stores_operations_list_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14604,13 +14606,13 @@ pub struct AiplatformFeatureOnlineStoresOperationsListWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/featureOnlineStores/{featureOnlineStoresId}/operations/{operationsId}:wait
@@ -14655,7 +14657,7 @@ pub fn aiplatform_feature_online_stores_operations_list_wait(
 pub fn aiplatform_feature_online_stores_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14799,7 +14801,7 @@ pub struct AiplatformFeatureOnlineStoresOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/featureOnlineStores/{featureOnlineStoresId}/operations/{operationsId}:wait
@@ -15342,10 +15344,10 @@ pub fn aiplatform_featurestores_entity_types_features_operations_get(
 pub fn aiplatform_featurestores_entity_types_features_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15499,13 +15501,13 @@ pub struct AiplatformFeaturestoresEntityTypesFeaturesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features/{featuresId}/operations
@@ -15550,7 +15552,7 @@ pub fn aiplatform_featurestores_entity_types_features_operations_list(
 pub fn aiplatform_featurestores_entity_types_features_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15694,7 +15696,7 @@ pub struct AiplatformFeaturestoresEntityTypesFeaturesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features/{featuresId}/operations/{operationsId}:wait
@@ -16234,10 +16236,10 @@ pub fn aiplatform_featurestores_entity_types_operations_get(
 pub fn aiplatform_featurestores_entity_types_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16391,13 +16393,13 @@ pub struct AiplatformFeaturestoresEntityTypesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/operations
@@ -16442,7 +16444,7 @@ pub fn aiplatform_featurestores_entity_types_operations_list(
 pub fn aiplatform_featurestores_entity_types_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16586,7 +16588,7 @@ pub struct AiplatformFeaturestoresEntityTypesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/operations/{operationsId}:wait
@@ -17124,10 +17126,10 @@ pub fn aiplatform_featurestores_operations_get(
 pub fn aiplatform_featurestores_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17281,13 +17283,13 @@ pub struct AiplatformFeaturestoresOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/featurestores/{featurestoresId}/operations
@@ -17332,7 +17334,7 @@ pub fn aiplatform_featurestores_operations_list(
 pub fn aiplatform_featurestores_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17476,7 +17478,7 @@ pub struct AiplatformFeaturestoresOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/featurestores/{featurestoresId}/operations/{operationsId}:wait
@@ -18013,10 +18015,10 @@ pub fn aiplatform_hyperparameter_tuning_jobs_operations_get(
 pub fn aiplatform_hyperparameter_tuning_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18170,13 +18172,13 @@ pub struct AiplatformHyperparameterTuningJobsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/hyperparameterTuningJobs/{hyperparameterTuningJobsId}/operations
@@ -18221,7 +18223,7 @@ pub fn aiplatform_hyperparameter_tuning_jobs_operations_list(
 pub fn aiplatform_hyperparameter_tuning_jobs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18365,7 +18367,7 @@ pub struct AiplatformHyperparameterTuningJobsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/hyperparameterTuningJobs/{hyperparameterTuningJobsId}/operations/{operationsId}:wait
@@ -18903,10 +18905,10 @@ pub fn aiplatform_index_endpoints_operations_get(
 pub fn aiplatform_index_endpoints_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19060,13 +19062,13 @@ pub struct AiplatformIndexEndpointsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/indexEndpoints/{indexEndpointsId}/operations
@@ -19111,7 +19113,7 @@ pub fn aiplatform_index_endpoints_operations_list(
 pub fn aiplatform_index_endpoints_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19255,7 +19257,7 @@ pub struct AiplatformIndexEndpointsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/indexEndpoints/{indexEndpointsId}/operations/{operationsId}:wait
@@ -19790,10 +19792,10 @@ pub fn aiplatform_indexes_operations_get(
 pub fn aiplatform_indexes_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19947,13 +19949,13 @@ pub struct AiplatformIndexesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/indexes/{indexesId}/operations
@@ -19998,7 +20000,7 @@ pub fn aiplatform_indexes_operations_list(
 pub fn aiplatform_indexes_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20142,7 +20144,7 @@ pub struct AiplatformIndexesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/indexes/{indexesId}/operations/{operationsId}:wait
@@ -20847,10 +20849,10 @@ pub fn aiplatform_metadata_stores_artifacts_operations_get(
 pub fn aiplatform_metadata_stores_artifacts_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21004,13 +21006,13 @@ pub struct AiplatformMetadataStoresArtifactsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/metadataStores/{metadataStoresId}/artifacts/{artifactsId}/operations
@@ -21055,7 +21057,7 @@ pub fn aiplatform_metadata_stores_artifacts_operations_list(
 pub fn aiplatform_metadata_stores_artifacts_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21199,7 +21201,7 @@ pub struct AiplatformMetadataStoresArtifactsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/metadataStores/{metadataStoresId}/artifacts/{artifactsId}/operations/{operationsId}:wait
@@ -21739,10 +21741,10 @@ pub fn aiplatform_metadata_stores_contexts_operations_get(
 pub fn aiplatform_metadata_stores_contexts_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21896,13 +21898,13 @@ pub struct AiplatformMetadataStoresContextsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/metadataStores/{metadataStoresId}/contexts/{contextsId}/operations
@@ -21947,7 +21949,7 @@ pub fn aiplatform_metadata_stores_contexts_operations_list(
 pub fn aiplatform_metadata_stores_contexts_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22091,7 +22093,7 @@ pub struct AiplatformMetadataStoresContextsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/metadataStores/{metadataStoresId}/contexts/{contextsId}/operations/{operationsId}:wait
@@ -22631,10 +22633,10 @@ pub fn aiplatform_metadata_stores_executions_operations_get(
 pub fn aiplatform_metadata_stores_executions_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22788,13 +22790,13 @@ pub struct AiplatformMetadataStoresExecutionsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/metadataStores/{metadataStoresId}/executions/{executionsId}/operations
@@ -22839,7 +22841,7 @@ pub fn aiplatform_metadata_stores_executions_operations_list(
 pub fn aiplatform_metadata_stores_executions_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22983,7 +22985,7 @@ pub struct AiplatformMetadataStoresExecutionsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/metadataStores/{metadataStoresId}/executions/{executionsId}/operations/{operationsId}:wait
@@ -23521,10 +23523,10 @@ pub fn aiplatform_metadata_stores_operations_get(
 pub fn aiplatform_metadata_stores_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23678,13 +23680,13 @@ pub struct AiplatformMetadataStoresOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/metadataStores/{metadataStoresId}/operations
@@ -23729,7 +23731,7 @@ pub fn aiplatform_metadata_stores_operations_list(
 pub fn aiplatform_metadata_stores_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23873,7 +23875,7 @@ pub struct AiplatformMetadataStoresOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/metadataStores/{metadataStoresId}/operations/{operationsId}:wait
@@ -24408,10 +24410,10 @@ pub fn aiplatform_migratable_resources_operations_get(
 pub fn aiplatform_migratable_resources_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24565,13 +24567,13 @@ pub struct AiplatformMigratableResourcesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/migratableResources/{migratableResourcesId}/operations
@@ -24616,7 +24618,7 @@ pub fn aiplatform_migratable_resources_operations_list(
 pub fn aiplatform_migratable_resources_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24760,7 +24762,7 @@ pub struct AiplatformMigratableResourcesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/migratableResources/{migratableResourcesId}/operations/{operationsId}:wait
@@ -25298,10 +25300,10 @@ pub fn aiplatform_model_deployment_monitoring_jobs_operations_get(
 pub fn aiplatform_model_deployment_monitoring_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25455,13 +25457,13 @@ pub struct AiplatformModelDeploymentMonitoringJobsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}/operations
@@ -25506,7 +25508,7 @@ pub fn aiplatform_model_deployment_monitoring_jobs_operations_list(
 pub fn aiplatform_model_deployment_monitoring_jobs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25650,7 +25652,7 @@ pub struct AiplatformModelDeploymentMonitoringJobsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}/operations/{operationsId}:wait
@@ -26188,10 +26190,10 @@ pub fn aiplatform_models_evaluations_operations_get(
 pub fn aiplatform_models_evaluations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26345,13 +26347,13 @@ pub struct AiplatformModelsEvaluationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/models/{modelsId}/evaluations/{evaluationsId}/operations
@@ -26396,7 +26398,7 @@ pub fn aiplatform_models_evaluations_operations_list(
 pub fn aiplatform_models_evaluations_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26540,7 +26542,7 @@ pub struct AiplatformModelsEvaluationsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/models/{modelsId}/evaluations/{evaluationsId}/operations/{operationsId}:wait
@@ -27075,10 +27077,10 @@ pub fn aiplatform_models_operations_get(
 pub fn aiplatform_models_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27232,13 +27234,13 @@ pub struct AiplatformModelsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/models/{modelsId}/operations
@@ -27283,7 +27285,7 @@ pub fn aiplatform_models_operations_list(
 pub fn aiplatform_models_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27427,7 +27429,7 @@ pub struct AiplatformModelsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/models/{modelsId}/operations/{operationsId}:wait
@@ -27961,10 +27963,10 @@ pub fn aiplatform_notebook_execution_jobs_operations_get(
 pub fn aiplatform_notebook_execution_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28118,13 +28120,13 @@ pub struct AiplatformNotebookExecutionJobsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/notebookExecutionJobs/{notebookExecutionJobsId}/operations
@@ -28169,7 +28171,7 @@ pub fn aiplatform_notebook_execution_jobs_operations_list(
 pub fn aiplatform_notebook_execution_jobs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28313,7 +28315,7 @@ pub struct AiplatformNotebookExecutionJobsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/notebookExecutionJobs/{notebookExecutionJobsId}/operations/{operationsId}:wait
@@ -28853,10 +28855,10 @@ pub fn aiplatform_notebook_runtime_templates_operations_get(
 pub fn aiplatform_notebook_runtime_templates_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29010,13 +29012,13 @@ pub struct AiplatformNotebookRuntimeTemplatesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}/operations
@@ -29061,7 +29063,7 @@ pub fn aiplatform_notebook_runtime_templates_operations_list(
 pub fn aiplatform_notebook_runtime_templates_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29205,7 +29207,7 @@ pub struct AiplatformNotebookRuntimeTemplatesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}/operations/{operationsId}:wait
@@ -29743,10 +29745,10 @@ pub fn aiplatform_notebook_runtimes_operations_get(
 pub fn aiplatform_notebook_runtimes_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29900,13 +29902,13 @@ pub struct AiplatformNotebookRuntimesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/notebookRuntimes/{notebookRuntimesId}/operations
@@ -29951,7 +29953,7 @@ pub fn aiplatform_notebook_runtimes_operations_list(
 pub fn aiplatform_notebook_runtimes_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30095,7 +30097,7 @@ pub struct AiplatformNotebookRuntimesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/notebookRuntimes/{notebookRuntimesId}/operations/{operationsId}:wait
@@ -30623,11 +30625,11 @@ pub fn aiplatform_operations_get(
 
 pub fn aiplatform_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    name: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    name: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30779,15 +30781,15 @@ pub fn aiplatform_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiplatformOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/operations
@@ -30832,7 +30834,7 @@ pub fn aiplatform_operations_list(
 pub fn aiplatform_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30976,7 +30978,7 @@ pub struct AiplatformOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/operations/{operationsId}:wait
@@ -31510,10 +31512,10 @@ pub fn aiplatform_persistent_resources_operations_get(
 pub fn aiplatform_persistent_resources_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31667,13 +31669,13 @@ pub struct AiplatformPersistentResourcesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/persistentResources/{persistentResourcesId}/operations
@@ -31718,7 +31720,7 @@ pub fn aiplatform_persistent_resources_operations_list(
 pub fn aiplatform_persistent_resources_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31862,7 +31864,7 @@ pub struct AiplatformPersistentResourcesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/persistentResources/{persistentResourcesId}/operations/{operationsId}:wait
@@ -32397,10 +32399,10 @@ pub fn aiplatform_pipeline_jobs_operations_get(
 pub fn aiplatform_pipeline_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32554,13 +32556,13 @@ pub struct AiplatformPipelineJobsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/pipelineJobs/{pipelineJobsId}/operations
@@ -32605,7 +32607,7 @@ pub fn aiplatform_pipeline_jobs_operations_list(
 pub fn aiplatform_pipeline_jobs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32749,7 +32751,7 @@ pub struct AiplatformPipelineJobsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/pipelineJobs/{pipelineJobsId}/operations/{operationsId}:wait
@@ -34996,10 +34998,10 @@ pub fn aiplatform_projects_locations_get_rag_engine_config(
 pub fn aiplatform_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35152,13 +35154,13 @@ pub struct AiplatformProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -36213,10 +36215,10 @@ pub fn aiplatform_projects_locations_batch_prediction_jobs_get(
 pub fn aiplatform_projects_locations_batch_prediction_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36376,13 +36378,13 @@ pub struct AiplatformProjectsLocationsBatchPredictionJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batchPredictionJobs
@@ -36931,8 +36933,8 @@ pub fn aiplatform_projects_locations_cached_contents_get(
 pub fn aiplatform_projects_locations_cached_contents_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37083,9 +37085,9 @@ pub struct AiplatformProjectsLocationsCachedContentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cachedContents
@@ -37128,7 +37130,7 @@ pub fn aiplatform_projects_locations_cached_contents_list(
 pub fn aiplatform_projects_locations_cached_contents_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -37272,7 +37274,7 @@ pub struct AiplatformProjectsLocationsCachedContentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/cachedContents/{cachedContentsId}
@@ -37982,10 +37984,10 @@ pub fn aiplatform_projects_locations_custom_jobs_get(
 pub fn aiplatform_projects_locations_custom_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -38139,13 +38141,13 @@ pub struct AiplatformProjectsLocationsCustomJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customJobs
@@ -38689,10 +38691,10 @@ pub fn aiplatform_projects_locations_custom_jobs_operations_get(
 pub fn aiplatform_projects_locations_custom_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -38846,13 +38848,13 @@ pub struct AiplatformProjectsLocationsCustomJobsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customJobs/{customJobsId}/operations
@@ -38897,7 +38899,7 @@ pub fn aiplatform_projects_locations_custom_jobs_operations_list(
 pub fn aiplatform_projects_locations_custom_jobs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39041,7 +39043,7 @@ pub struct AiplatformProjectsLocationsCustomJobsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/customJobs/{customJobsId}/operations/{operationsId}:wait
@@ -39754,11 +39756,11 @@ pub fn aiplatform_projects_locations_data_labeling_jobs_get(
 pub fn aiplatform_projects_locations_data_labeling_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -39918,15 +39920,15 @@ pub struct AiplatformProjectsLocationsDataLabelingJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataLabelingJobs
@@ -40474,10 +40476,10 @@ pub fn aiplatform_projects_locations_data_labeling_jobs_operations_get(
 pub fn aiplatform_projects_locations_data_labeling_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40631,13 +40633,13 @@ pub struct AiplatformProjectsLocationsDataLabelingJobsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataLabelingJobs/{dataLabelingJobsId}/operations
@@ -40682,7 +40684,7 @@ pub fn aiplatform_projects_locations_data_labeling_jobs_operations_list(
 pub fn aiplatform_projects_locations_data_labeling_jobs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -40826,7 +40828,7 @@ pub struct AiplatformProjectsLocationsDataLabelingJobsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataLabelingJobs/{dataLabelingJobsId}/operations/{operationsId}:wait
@@ -41372,7 +41374,7 @@ pub fn aiplatform_projects_locations_datasets_export(
 pub fn aiplatform_projects_locations_datasets_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41516,7 +41518,7 @@ pub struct AiplatformProjectsLocationsDatasetsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
@@ -41555,7 +41557,7 @@ pub fn aiplatform_projects_locations_datasets_get(
 pub fn aiplatform_projects_locations_datasets_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -41697,7 +41699,7 @@ pub struct AiplatformProjectsLocationsDatasetsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:getIamPolicy
@@ -41905,11 +41907,11 @@ pub fn aiplatform_projects_locations_datasets_import(
 pub fn aiplatform_projects_locations_datasets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42066,15 +42068,15 @@ pub struct AiplatformProjectsLocationsDatasetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets
@@ -42120,7 +42122,7 @@ pub fn aiplatform_projects_locations_datasets_list(
 pub fn aiplatform_projects_locations_datasets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42264,7 +42266,7 @@ pub struct AiplatformProjectsLocationsDatasetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}
@@ -42303,19 +42305,19 @@ pub fn aiplatform_projects_locations_datasets_patch(
 pub fn aiplatform_projects_locations_datasets_search_data_items_builder<R>(
     client: &SimpleHttpClient<R>,
     dataset: &String,
-    annotationFilters: &Option<Option<String>>,
-    annotationsFilter: &Option<Option<String>>,
-    annotationsLimit: &Option<Option<String>>,
-    dataItemFilter: &Option<Option<String>>,
-    dataLabelingJob: &Option<Option<String>>,
-    fieldMask: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    orderByAnnotation_orderBy: &Option<Option<String>>,
-    orderByAnnotation_savedQuery: &Option<Option<String>>,
-    orderByDataItem: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    savedQuery: &Option<Option<String>>,
+    annotationFilters: &Option<String>,
+    annotationsFilter: &Option<String>,
+    annotationsLimit: &Option<String>,
+    dataItemFilter: &Option<String>,
+    dataLabelingJob: &Option<String>,
+    fieldMask: &Option<String>,
+    orderBy: &Option<String>,
+    orderByAnnotation_orderBy: &Option<String>,
+    orderByAnnotation_savedQuery: &Option<String>,
+    orderByDataItem: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    savedQuery: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42496,31 +42498,31 @@ pub struct AiplatformProjectsLocationsDatasetsSearchDataItemsArgs {
     /// Path parameter: dataset
     pub dataset: String,
     /// Query parameter: annotationFilters
-    pub annotationFilters: Option<Option<String>>,
+    pub annotationFilters: Option<String>,
     /// Query parameter: annotationsFilter
-    pub annotationsFilter: Option<Option<String>>,
+    pub annotationsFilter: Option<String>,
     /// Query parameter: annotationsLimit
-    pub annotationsLimit: Option<Option<String>>,
+    pub annotationsLimit: Option<String>,
     /// Query parameter: dataItemFilter
-    pub dataItemFilter: Option<Option<String>>,
+    pub dataItemFilter: Option<String>,
     /// Query parameter: dataLabelingJob
-    pub dataLabelingJob: Option<Option<String>>,
+    pub dataLabelingJob: Option<String>,
     /// Query parameter: fieldMask
-    pub fieldMask: Option<Option<String>>,
+    pub fieldMask: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: orderByAnnotation_orderBy
-    pub orderByAnnotation_orderBy: Option<Option<String>>,
+    pub orderByAnnotation_orderBy: Option<String>,
     /// Query parameter: orderByAnnotation_savedQuery
-    pub orderByAnnotation_savedQuery: Option<Option<String>>,
+    pub orderByAnnotation_savedQuery: Option<String>,
     /// Query parameter: orderByDataItem
-    pub orderByDataItem: Option<Option<String>>,
+    pub orderByDataItem: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: savedQuery
-    pub savedQuery: Option<Option<String>>,
+    pub savedQuery: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:searchDataItems
@@ -42739,7 +42741,7 @@ pub fn aiplatform_projects_locations_datasets_set_iam_policy(
 pub fn aiplatform_projects_locations_datasets_test_iam_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    permissions: &Option<Option<String>>,
+    permissions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -42883,7 +42885,7 @@ pub struct AiplatformProjectsLocationsDatasetsTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: permissions
-    pub permissions: Option<Option<String>>,
+    pub permissions: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}:testIamPermissions
@@ -42925,7 +42927,7 @@ pub fn aiplatform_projects_locations_datasets_test_iam_permissions(
 pub fn aiplatform_projects_locations_datasets_annotation_specs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43069,7 +43071,7 @@ pub struct AiplatformProjectsLocationsDatasetsAnnotationSpecsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/annotationSpecs/{annotationSpecsId}
@@ -43618,10 +43620,10 @@ pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_get(
 pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43776,13 +43778,13 @@ pub struct AiplatformProjectsLocationsDatasetsAnnotationSpecsOperationsListArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/annotationSpecs/{annotationSpecsId}/operations
@@ -43827,7 +43829,7 @@ pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_list(
 pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -43972,7 +43974,7 @@ pub struct AiplatformProjectsLocationsDatasetsAnnotationSpecsOperationsWaitArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/annotationSpecs/{annotationSpecsId}/operations/{operationsId}:wait
@@ -44014,11 +44016,11 @@ pub fn aiplatform_projects_locations_datasets_annotation_specs_operations_wait(
 pub fn aiplatform_projects_locations_datasets_data_items_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -44175,15 +44177,15 @@ pub struct AiplatformProjectsLocationsDatasetsDataItemsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dataItems
@@ -44229,11 +44231,11 @@ pub fn aiplatform_projects_locations_datasets_data_items_list(
 pub fn aiplatform_projects_locations_datasets_data_items_annotations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -44390,15 +44392,15 @@ pub struct AiplatformProjectsLocationsDatasetsDataItemsAnnotationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/annotations
@@ -44956,10 +44958,10 @@ pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_
 pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -45115,13 +45117,13 @@ pub struct AiplatformProjectsLocationsDatasetsDataItemsAnnotationsOperationsList
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations
@@ -45167,7 +45169,7 @@ pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_
 pub fn aiplatform_projects_locations_datasets_data_items_annotations_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -45313,7 +45315,7 @@ pub struct AiplatformProjectsLocationsDatasetsDataItemsAnnotationsOperationsWait
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/annotations/{annotationsId}/operations/{operationsId}:wait
@@ -45858,10 +45860,10 @@ pub fn aiplatform_projects_locations_datasets_data_items_operations_get(
 pub fn aiplatform_projects_locations_datasets_data_items_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46015,13 +46017,13 @@ pub struct AiplatformProjectsLocationsDatasetsDataItemsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/operations
@@ -46066,7 +46068,7 @@ pub fn aiplatform_projects_locations_datasets_data_items_operations_list(
 pub fn aiplatform_projects_locations_datasets_data_items_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46210,7 +46212,7 @@ pub struct AiplatformProjectsLocationsDatasetsDataItemsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/dataItems/{dataItemsId}/operations/{operationsId}:wait
@@ -46592,7 +46594,7 @@ pub fn aiplatform_projects_locations_datasets_dataset_versions_delete(
 pub fn aiplatform_projects_locations_datasets_dataset_versions_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46736,7 +46738,7 @@ pub struct AiplatformProjectsLocationsDatasetsDatasetVersionsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/datasetVersions/{datasetVersionsId}
@@ -46778,11 +46780,11 @@ pub fn aiplatform_projects_locations_datasets_dataset_versions_get(
 pub fn aiplatform_projects_locations_datasets_dataset_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -46942,15 +46944,15 @@ pub struct AiplatformProjectsLocationsDatasetsDatasetVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/datasetVersions
@@ -46996,7 +46998,7 @@ pub fn aiplatform_projects_locations_datasets_dataset_versions_list(
 pub fn aiplatform_projects_locations_datasets_dataset_versions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -47140,7 +47142,7 @@ pub struct AiplatformProjectsLocationsDatasetsDatasetVersionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/datasetVersions/{datasetVersionsId}
@@ -47851,10 +47853,10 @@ pub fn aiplatform_projects_locations_datasets_operations_get(
 pub fn aiplatform_projects_locations_datasets_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48008,13 +48010,13 @@ pub struct AiplatformProjectsLocationsDatasetsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/operations
@@ -48059,7 +48061,7 @@ pub fn aiplatform_projects_locations_datasets_operations_list(
 pub fn aiplatform_projects_locations_datasets_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48203,7 +48205,7 @@ pub struct AiplatformProjectsLocationsDatasetsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/operations/{operationsId}:wait
@@ -48414,11 +48416,11 @@ pub fn aiplatform_projects_locations_datasets_saved_queries_delete(
 pub fn aiplatform_projects_locations_datasets_saved_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -48575,15 +48577,15 @@ pub struct AiplatformProjectsLocationsDatasetsSavedQueriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/savedQueries
@@ -49133,10 +49135,10 @@ pub fn aiplatform_projects_locations_datasets_saved_queries_operations_get(
 pub fn aiplatform_projects_locations_datasets_saved_queries_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -49290,13 +49292,13 @@ pub struct AiplatformProjectsLocationsDatasetsSavedQueriesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/savedQueries/{savedQueriesId}/operations
@@ -49341,7 +49343,7 @@ pub fn aiplatform_projects_locations_datasets_saved_queries_operations_list(
 pub fn aiplatform_projects_locations_datasets_saved_queries_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -49485,7 +49487,7 @@ pub struct AiplatformProjectsLocationsDatasetsSavedQueriesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/datasets/{datasetsId}/savedQueries/{savedQueriesId}/operations/{operationsId}:wait
@@ -50037,8 +50039,8 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_get(
 pub fn aiplatform_projects_locations_deployment_resource_pools_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -50192,9 +50194,9 @@ pub struct AiplatformProjectsLocationsDeploymentResourcePoolsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deploymentResourcePools
@@ -50240,7 +50242,7 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_list(
 pub fn aiplatform_projects_locations_deployment_resource_pools_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -50384,7 +50386,7 @@ pub struct AiplatformProjectsLocationsDeploymentResourcePoolsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/deploymentResourcePools/{deploymentResourcePoolsId}
@@ -50426,8 +50428,8 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_patch(
 pub fn aiplatform_projects_locations_deployment_resource_pools_query_deployed_models_builder<R>(
     client: &SimpleHttpClient<R>,
     deploymentResourcePool: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -50580,9 +50582,9 @@ pub struct AiplatformProjectsLocationsDeploymentResourcePoolsQueryDeployedModels
     /// Path parameter: deploymentResourcePool
     pub deploymentResourcePool: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deploymentResourcePools/{deploymentResourcePoolsId}:queryDeployedModels
@@ -51133,10 +51135,10 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_operations_get(
 pub fn aiplatform_projects_locations_deployment_resource_pools_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51291,13 +51293,13 @@ pub struct AiplatformProjectsLocationsDeploymentResourcePoolsOperationsListArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deploymentResourcePools/{deploymentResourcePoolsId}/operations
@@ -51342,7 +51344,7 @@ pub fn aiplatform_projects_locations_deployment_resource_pools_operations_list(
 pub fn aiplatform_projects_locations_deployment_resource_pools_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -51487,7 +51489,7 @@ pub struct AiplatformProjectsLocationsDeploymentResourcePoolsOperationsWaitArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/deploymentResourcePools/{deploymentResourcePoolsId}/operations/{operationsId}:wait
@@ -51869,7 +51871,7 @@ pub fn aiplatform_projects_locations_endpoints_count_tokens(
 pub fn aiplatform_projects_locations_endpoints_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    endpointId: &Option<Option<String>>,
+    endpointId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -52013,7 +52015,7 @@ pub struct AiplatformProjectsLocationsEndpointsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: endpointId
-    pub endpointId: Option<Option<String>>,
+    pub endpointId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/endpoints
@@ -53409,12 +53411,12 @@ pub fn aiplatform_projects_locations_endpoints_get(
 pub fn aiplatform_projects_locations_endpoints_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    gdcZone: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    gdcZone: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -53574,17 +53576,17 @@ pub struct AiplatformProjectsLocationsEndpointsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: gdcZone
-    pub gdcZone: Option<Option<String>>,
+    pub gdcZone: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/endpoints
@@ -53802,7 +53804,7 @@ pub fn aiplatform_projects_locations_endpoints_mutate_deployed_model(
 pub fn aiplatform_projects_locations_endpoints_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -53946,7 +53948,7 @@ pub struct AiplatformProjectsLocationsEndpointsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/endpoints/{endpointsId}
@@ -55680,7 +55682,7 @@ pub fn aiplatform_projects_locations_endpoints_deployed_models_invoke_invoke(
 pub fn aiplatform_projects_locations_endpoints_google_science_inference_builder<R>(
     client: &SimpleHttpClient<R>,
     endpoint: &String,
-    deployedModelId: &Option<Option<String>>,
+    deployedModelId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -55822,7 +55824,7 @@ pub struct AiplatformProjectsLocationsEndpointsGoogleScienceInferenceArgs {
     /// Path parameter: endpoint
     pub endpoint: String,
     /// Query parameter: deployedModelId
-    pub deployedModelId: Option<Option<String>>,
+    pub deployedModelId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/endpoints/google/science/inference
@@ -56034,7 +56036,7 @@ pub fn aiplatform_projects_locations_endpoints_invoke_invoke(
 pub fn aiplatform_projects_locations_endpoints_openapi_completions_builder<R>(
     client: &SimpleHttpClient<R>,
     endpoint: &String,
-    deployedModelId: &Option<Option<String>>,
+    deployedModelId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -56176,7 +56178,7 @@ pub struct AiplatformProjectsLocationsEndpointsOpenapiCompletionsArgs {
     /// Path parameter: endpoint
     pub endpoint: String,
     /// Query parameter: deployedModelId
-    pub deployedModelId: Option<Option<String>>,
+    pub deployedModelId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/endpoints/openapi/completions
@@ -56216,7 +56218,7 @@ pub fn aiplatform_projects_locations_endpoints_openapi_completions(
 pub fn aiplatform_projects_locations_endpoints_openapi_embeddings_builder<R>(
     client: &SimpleHttpClient<R>,
     endpoint: &String,
-    deployedModelId: &Option<Option<String>>,
+    deployedModelId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -56358,7 +56360,7 @@ pub struct AiplatformProjectsLocationsEndpointsOpenapiEmbeddingsArgs {
     /// Path parameter: endpoint
     pub endpoint: String,
     /// Query parameter: deployedModelId
-    pub deployedModelId: Option<Option<String>>,
+    pub deployedModelId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/endpoints/openapi/embeddings
@@ -56398,7 +56400,7 @@ pub fn aiplatform_projects_locations_endpoints_openapi_embeddings(
 pub fn aiplatform_projects_locations_endpoints_openapi_responses_builder<R>(
     client: &SimpleHttpClient<R>,
     endpoint: &String,
-    deployedModelId: &Option<Option<String>>,
+    deployedModelId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -56540,7 +56542,7 @@ pub struct AiplatformProjectsLocationsEndpointsOpenapiResponsesArgs {
     /// Path parameter: endpoint
     pub endpoint: String,
     /// Query parameter: deployedModelId
-    pub deployedModelId: Option<Option<String>>,
+    pub deployedModelId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/endpoints/openapi/responses
@@ -57079,10 +57081,10 @@ pub fn aiplatform_projects_locations_endpoints_operations_get(
 pub fn aiplatform_projects_locations_endpoints_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -57236,13 +57238,13 @@ pub struct AiplatformProjectsLocationsEndpointsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/endpoints/{endpointsId}/operations
@@ -57287,7 +57289,7 @@ pub fn aiplatform_projects_locations_endpoints_operations_list(
 pub fn aiplatform_projects_locations_endpoints_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -57431,7 +57433,7 @@ pub struct AiplatformProjectsLocationsEndpointsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/endpoints/{endpointsId}/operations/{operationsId}:wait
@@ -57979,10 +57981,10 @@ pub fn aiplatform_projects_locations_evaluation_items_get(
 pub fn aiplatform_projects_locations_evaluation_items_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -58139,13 +58141,13 @@ pub struct AiplatformProjectsLocationsEvaluationItemsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluationItems
@@ -58859,10 +58861,10 @@ pub fn aiplatform_projects_locations_evaluation_runs_get(
 pub fn aiplatform_projects_locations_evaluation_runs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -59019,13 +59021,13 @@ pub struct AiplatformProjectsLocationsEvaluationRunsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluationRuns
@@ -59575,10 +59577,10 @@ pub fn aiplatform_projects_locations_evaluation_sets_get(
 pub fn aiplatform_projects_locations_evaluation_sets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -59735,13 +59737,13 @@ pub struct AiplatformProjectsLocationsEvaluationSetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluationSets
@@ -59786,7 +59788,7 @@ pub fn aiplatform_projects_locations_evaluation_sets_list(
 pub fn aiplatform_projects_locations_evaluation_sets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -59930,7 +59932,7 @@ pub struct AiplatformProjectsLocationsEvaluationSetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/evaluationSets/{evaluationSetsId}
@@ -59972,7 +59974,7 @@ pub fn aiplatform_projects_locations_evaluation_sets_patch(
 pub fn aiplatform_projects_locations_feature_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    featureGroupId: &Option<Option<String>>,
+    featureGroupId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60116,7 +60118,7 @@ pub struct AiplatformProjectsLocationsFeatureGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: featureGroupId
-    pub featureGroupId: Option<Option<String>>,
+    pub featureGroupId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureGroups
@@ -60158,7 +60160,7 @@ pub fn aiplatform_projects_locations_feature_groups_create(
 pub fn aiplatform_projects_locations_feature_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60302,7 +60304,7 @@ pub struct AiplatformProjectsLocationsFeatureGroupsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/featureGroups/{featureGroupsId}
@@ -60512,7 +60514,7 @@ pub fn aiplatform_projects_locations_feature_groups_get(
 pub fn aiplatform_projects_locations_feature_groups_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60654,7 +60656,7 @@ pub struct AiplatformProjectsLocationsFeatureGroupsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureGroups/{featureGroupsId}:getIamPolicy
@@ -60694,10 +60696,10 @@ pub fn aiplatform_projects_locations_feature_groups_get_iam_policy(
 pub fn aiplatform_projects_locations_feature_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -60851,13 +60853,13 @@ pub struct AiplatformProjectsLocationsFeatureGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featureGroups
@@ -60902,7 +60904,7 @@ pub fn aiplatform_projects_locations_feature_groups_list(
 pub fn aiplatform_projects_locations_feature_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -61046,7 +61048,7 @@ pub struct AiplatformProjectsLocationsFeatureGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/featureGroups/{featureGroupsId}
@@ -61255,7 +61257,7 @@ pub fn aiplatform_projects_locations_feature_groups_set_iam_policy(
 pub fn aiplatform_projects_locations_feature_groups_test_iam_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    permissions: &Option<Option<String>>,
+    permissions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -61399,7 +61401,7 @@ pub struct AiplatformProjectsLocationsFeatureGroupsTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: permissions
-    pub permissions: Option<Option<String>>,
+    pub permissions: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureGroups/{featureGroupsId}:testIamPermissions
@@ -61612,7 +61614,7 @@ pub fn aiplatform_projects_locations_feature_groups_features_batch_create(
 pub fn aiplatform_projects_locations_feature_groups_features_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    featureId: &Option<Option<String>>,
+    featureId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -61756,7 +61758,7 @@ pub struct AiplatformProjectsLocationsFeatureGroupsFeaturesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: featureId
-    pub featureId: Option<Option<String>>,
+    pub featureId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureGroups/{featureGroupsId}/features
@@ -62136,12 +62138,12 @@ pub fn aiplatform_projects_locations_feature_groups_features_get(
 pub fn aiplatform_projects_locations_feature_groups_features_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    latestStatsCount: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    latestStatsCount: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -62301,17 +62303,17 @@ pub struct AiplatformProjectsLocationsFeatureGroupsFeaturesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: latestStatsCount
-    pub latestStatsCount: Option<Option<String>>,
+    pub latestStatsCount: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featureGroups/{featureGroupsId}/features
@@ -62358,7 +62360,7 @@ pub fn aiplatform_projects_locations_feature_groups_features_list(
 pub fn aiplatform_projects_locations_feature_groups_features_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -62502,7 +62504,7 @@ pub struct AiplatformProjectsLocationsFeatureGroupsFeaturesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/featureGroups/{featureGroupsId}/features/{featuresId}
@@ -62881,10 +62883,10 @@ pub fn aiplatform_projects_locations_feature_groups_features_operations_get(
 pub fn aiplatform_projects_locations_feature_groups_features_operations_list_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -63039,13 +63041,13 @@ pub struct AiplatformProjectsLocationsFeatureGroupsFeaturesOperationsListWaitArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featureGroups/{featureGroupsId}/features/{featuresId}/operations/{operationsId}:wait
@@ -63091,7 +63093,7 @@ pub fn aiplatform_projects_locations_feature_groups_features_operations_list_wai
 pub fn aiplatform_projects_locations_feature_groups_features_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -63235,7 +63237,7 @@ pub struct AiplatformProjectsLocationsFeatureGroupsFeaturesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureGroups/{featureGroupsId}/features/{featuresId}/operations/{operationsId}:wait
@@ -63611,10 +63613,10 @@ pub fn aiplatform_projects_locations_feature_groups_operations_get(
 pub fn aiplatform_projects_locations_feature_groups_operations_list_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -63768,13 +63770,13 @@ pub struct AiplatformProjectsLocationsFeatureGroupsOperationsListWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featureGroups/{featureGroupsId}/operations/{operationsId}:wait
@@ -63819,7 +63821,7 @@ pub fn aiplatform_projects_locations_feature_groups_operations_list_wait(
 pub fn aiplatform_projects_locations_feature_groups_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -63963,7 +63965,7 @@ pub struct AiplatformProjectsLocationsFeatureGroupsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureGroups/{featureGroupsId}/operations/{operationsId}:wait
@@ -64005,7 +64007,7 @@ pub fn aiplatform_projects_locations_feature_groups_operations_wait(
 pub fn aiplatform_projects_locations_feature_online_stores_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    featureOnlineStoreId: &Option<Option<String>>,
+    featureOnlineStoreId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -64149,7 +64151,7 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: featureOnlineStoreId
-    pub featureOnlineStoreId: Option<Option<String>>,
+    pub featureOnlineStoreId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores
@@ -64191,7 +64193,7 @@ pub fn aiplatform_projects_locations_feature_online_stores_create(
 pub fn aiplatform_projects_locations_feature_online_stores_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -64335,7 +64337,7 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}
@@ -64546,7 +64548,7 @@ pub fn aiplatform_projects_locations_feature_online_stores_get(
 pub fn aiplatform_projects_locations_feature_online_stores_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -64688,7 +64690,7 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}:getIamPolicy
@@ -64728,10 +64730,10 @@ pub fn aiplatform_projects_locations_feature_online_stores_get_iam_policy(
 pub fn aiplatform_projects_locations_feature_online_stores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -64891,13 +64893,13 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores
@@ -64945,7 +64947,7 @@ pub fn aiplatform_projects_locations_feature_online_stores_list(
 pub fn aiplatform_projects_locations_feature_online_stores_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65089,7 +65091,7 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}
@@ -65298,7 +65300,7 @@ pub fn aiplatform_projects_locations_feature_online_stores_set_iam_policy(
 pub fn aiplatform_projects_locations_feature_online_stores_test_iam_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    permissions: &Option<Option<String>>,
+    permissions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65443,7 +65445,7 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresTestIamPermissionsArgs 
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: permissions
-    pub permissions: Option<Option<String>>,
+    pub permissions: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}:testIamPermissions
@@ -65485,8 +65487,8 @@ pub fn aiplatform_projects_locations_feature_online_stores_test_iam_permissions(
 pub fn aiplatform_projects_locations_feature_online_stores_feature_views_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    featureViewId: &Option<Option<String>>,
-    runSyncImmediately: &Option<Option<String>>,
+    featureViewId: &Option<String>,
+    runSyncImmediately: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -65634,9 +65636,9 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresFeatureViewsCreateArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: featureViewId
-    pub featureViewId: Option<Option<String>>,
+    pub featureViewId: Option<String>,
     /// Query parameter: runSyncImmediately
-    pub runSyncImmediately: Option<Option<String>>,
+    pub runSyncImmediately: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews
@@ -66560,7 +66562,7 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_get(
 pub fn aiplatform_projects_locations_feature_online_stores_feature_views_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -66705,7 +66707,7 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresFeatureViewsGetIamPolic
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}:getIamPolicy
@@ -66748,10 +66750,10 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_get_iam
 pub fn aiplatform_projects_locations_feature_online_stores_feature_views_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -66906,13 +66908,13 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresFeatureViewsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews
@@ -66957,7 +66959,7 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_list(
 pub fn aiplatform_projects_locations_feature_online_stores_feature_views_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -67102,7 +67104,7 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresFeatureViewsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}
@@ -67666,7 +67668,7 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_test_ia
 >(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    permissions: &Option<Option<String>>,
+    permissions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -67810,7 +67812,7 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresFeatureViewsTestIamPerm
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: permissions
-    pub permissions: Option<Option<String>>,
+    pub permissions: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}:testIamPermissions
@@ -68024,10 +68026,10 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_feature
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -68184,13 +68186,13 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresFeatureViewsFeatureView
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}/featureViewSyncs
@@ -68577,10 +68579,10 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operati
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -68734,13 +68736,13 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresFeatureViewsOperationsL
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}/operations/{operationsId}:wait
@@ -68782,7 +68784,7 @@ pub fn aiplatform_projects_locations_feature_online_stores_feature_views_operati
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -68929,7 +68931,7 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresFeatureViewsOperationsW
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/featureViews/{featureViewsId}/operations/{operationsId}:wait
@@ -69310,10 +69312,10 @@ pub fn aiplatform_projects_locations_feature_online_stores_operations_get(
 pub fn aiplatform_projects_locations_feature_online_stores_operations_list_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -69468,13 +69470,13 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresOperationsListWaitArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/operations/{operationsId}:wait
@@ -69519,7 +69521,7 @@ pub fn aiplatform_projects_locations_feature_online_stores_operations_list_wait(
 pub fn aiplatform_projects_locations_feature_online_stores_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -69663,7 +69665,7 @@ pub struct AiplatformProjectsLocationsFeatureOnlineStoresOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featureOnlineStores/{featureOnlineStoresId}/operations/{operationsId}:wait
@@ -69876,7 +69878,7 @@ pub fn aiplatform_projects_locations_featurestores_batch_read_feature_values(
 pub fn aiplatform_projects_locations_featurestores_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    featurestoreId: &Option<Option<String>>,
+    featurestoreId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -70020,7 +70022,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: featurestoreId
-    pub featurestoreId: Option<Option<String>>,
+    pub featurestoreId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featurestores
@@ -70062,7 +70064,7 @@ pub fn aiplatform_projects_locations_featurestores_create(
 pub fn aiplatform_projects_locations_featurestores_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -70206,7 +70208,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}
@@ -70416,7 +70418,7 @@ pub fn aiplatform_projects_locations_featurestores_get(
 pub fn aiplatform_projects_locations_featurestores_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -70558,7 +70560,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}:getIamPolicy
@@ -70598,11 +70600,11 @@ pub fn aiplatform_projects_locations_featurestores_get_iam_policy(
 pub fn aiplatform_projects_locations_featurestores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -70759,15 +70761,15 @@ pub struct AiplatformProjectsLocationsFeaturestoresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featurestores
@@ -70813,7 +70815,7 @@ pub fn aiplatform_projects_locations_featurestores_list(
 pub fn aiplatform_projects_locations_featurestores_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -70957,7 +70959,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}
@@ -70999,9 +71001,9 @@ pub fn aiplatform_projects_locations_featurestores_patch(
 pub fn aiplatform_projects_locations_featurestores_search_features_builder<R>(
     client: &SimpleHttpClient<R>,
     location: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -71152,11 +71154,11 @@ pub struct AiplatformProjectsLocationsFeaturestoresSearchFeaturesArgs {
     /// Path parameter: location
     pub location: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featurestores:searchFeatures
@@ -71365,7 +71367,7 @@ pub fn aiplatform_projects_locations_featurestores_set_iam_policy(
 pub fn aiplatform_projects_locations_featurestores_test_iam_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    permissions: &Option<Option<String>>,
+    permissions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -71509,7 +71511,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: permissions
-    pub permissions: Option<Option<String>>,
+    pub permissions: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}:testIamPermissions
@@ -71551,7 +71553,7 @@ pub fn aiplatform_projects_locations_featurestores_test_iam_permissions(
 pub fn aiplatform_projects_locations_featurestores_entity_types_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    entityTypeId: &Option<Option<String>>,
+    entityTypeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -71695,7 +71697,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresEntityTypesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: entityTypeId
-    pub entityTypeId: Option<Option<String>>,
+    pub entityTypeId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes
@@ -71737,7 +71739,7 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_create(
 pub fn aiplatform_projects_locations_featurestores_entity_types_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -71881,7 +71883,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresEntityTypesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}
@@ -72440,7 +72442,7 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_get(
 pub fn aiplatform_projects_locations_featurestores_entity_types_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -72583,7 +72585,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresEntityTypesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}:getIamPolicy
@@ -72797,11 +72799,11 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_import_feature_v
 pub fn aiplatform_projects_locations_featurestores_entity_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -72958,15 +72960,15 @@ pub struct AiplatformProjectsLocationsFeaturestoresEntityTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes
@@ -73012,7 +73014,7 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_list(
 pub fn aiplatform_projects_locations_featurestores_entity_types_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -73156,7 +73158,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresEntityTypesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}
@@ -73713,7 +73715,7 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_streaming_read_f
 pub fn aiplatform_projects_locations_featurestores_entity_types_test_iam_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    permissions: &Option<Option<String>>,
+    permissions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -73859,7 +73861,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresEntityTypesTestIamPermissions
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: permissions
-    pub permissions: Option<Option<String>>,
+    pub permissions: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}:testIamPermissions
@@ -74254,7 +74256,7 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_batch_c
 pub fn aiplatform_projects_locations_featurestores_entity_types_features_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    featureId: &Option<Option<String>>,
+    featureId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -74399,7 +74401,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresEntityTypesFeaturesCreateArgs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: featureId
-    pub featureId: Option<Option<String>>,
+    pub featureId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features
@@ -74782,12 +74784,12 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_get(
 pub fn aiplatform_projects_locations_featurestores_entity_types_features_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    latestStatsCount: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    latestStatsCount: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -74948,17 +74950,17 @@ pub struct AiplatformProjectsLocationsFeaturestoresEntityTypesFeaturesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: latestStatsCount
-    pub latestStatsCount: Option<Option<String>>,
+    pub latestStatsCount: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features
@@ -75005,7 +75007,7 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_list(
 pub fn aiplatform_projects_locations_featurestores_entity_types_features_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -75150,7 +75152,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresEntityTypesFeaturesPatchArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features/{featuresId}
@@ -75712,10 +75714,10 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_operati
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -75872,13 +75874,13 @@ pub struct AiplatformProjectsLocationsFeaturestoresEntityTypesFeaturesOperations
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features/{featuresId}/operations
@@ -75928,7 +75930,7 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_features_operati
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -76075,7 +76077,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresEntityTypesFeaturesOperations
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/features/{featuresId}/operations/{operationsId}:wait
@@ -76627,10 +76629,10 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_operations_get(
 pub fn aiplatform_projects_locations_featurestores_entity_types_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -76785,13 +76787,13 @@ pub struct AiplatformProjectsLocationsFeaturestoresEntityTypesOperationsListArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/operations
@@ -76836,7 +76838,7 @@ pub fn aiplatform_projects_locations_featurestores_entity_types_operations_list(
 pub fn aiplatform_projects_locations_featurestores_entity_types_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -76981,7 +76983,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresEntityTypesOperationsWaitArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/entityTypes/{entityTypesId}/operations/{operationsId}:wait
@@ -77522,10 +77524,10 @@ pub fn aiplatform_projects_locations_featurestores_operations_get(
 pub fn aiplatform_projects_locations_featurestores_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -77679,13 +77681,13 @@ pub struct AiplatformProjectsLocationsFeaturestoresOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/operations
@@ -77730,7 +77732,7 @@ pub fn aiplatform_projects_locations_featurestores_operations_list(
 pub fn aiplatform_projects_locations_featurestores_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -77874,7 +77876,7 @@ pub struct AiplatformProjectsLocationsFeaturestoresOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/featurestores/{featurestoresId}/operations/{operationsId}:wait
@@ -78594,10 +78596,10 @@ pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_get(
 pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -78757,13 +78759,13 @@ pub struct AiplatformProjectsLocationsHyperparameterTuningJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/hyperparameterTuningJobs
@@ -79318,10 +79320,10 @@ pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_get(
 pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -79476,13 +79478,13 @@ pub struct AiplatformProjectsLocationsHyperparameterTuningJobsOperationsListArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/hyperparameterTuningJobs/{hyperparameterTuningJobsId}/operations
@@ -79527,7 +79529,7 @@ pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_list(
 pub fn aiplatform_projects_locations_hyperparameter_tuning_jobs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -79672,7 +79674,7 @@ pub struct AiplatformProjectsLocationsHyperparameterTuningJobsOperationsWaitArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/hyperparameterTuningJobs/{hyperparameterTuningJobsId}/operations/{operationsId}:wait
@@ -80562,10 +80564,10 @@ pub fn aiplatform_projects_locations_index_endpoints_get(
 pub fn aiplatform_projects_locations_index_endpoints_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -80722,13 +80724,13 @@ pub struct AiplatformProjectsLocationsIndexEndpointsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/indexEndpoints
@@ -80944,7 +80946,7 @@ pub fn aiplatform_projects_locations_index_endpoints_mutate_deployed_index(
 pub fn aiplatform_projects_locations_index_endpoints_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -81088,7 +81090,7 @@ pub struct AiplatformProjectsLocationsIndexEndpointsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}
@@ -81977,10 +81979,10 @@ pub fn aiplatform_projects_locations_index_endpoints_operations_get(
 pub fn aiplatform_projects_locations_index_endpoints_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -82134,13 +82136,13 @@ pub struct AiplatformProjectsLocationsIndexEndpointsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}/operations
@@ -82185,7 +82187,7 @@ pub fn aiplatform_projects_locations_index_endpoints_operations_list(
 pub fn aiplatform_projects_locations_index_endpoints_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -82329,7 +82331,7 @@ pub struct AiplatformProjectsLocationsIndexEndpointsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/indexEndpoints/{indexEndpointsId}/operations/{operationsId}:wait
@@ -82875,10 +82877,10 @@ pub fn aiplatform_projects_locations_indexes_get(
 pub fn aiplatform_projects_locations_indexes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -83032,13 +83034,13 @@ pub struct AiplatformProjectsLocationsIndexesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/indexes
@@ -83083,7 +83085,7 @@ pub fn aiplatform_projects_locations_indexes_list(
 pub fn aiplatform_projects_locations_indexes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -83227,7 +83229,7 @@ pub struct AiplatformProjectsLocationsIndexesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/indexes/{indexesId}
@@ -84104,10 +84106,10 @@ pub fn aiplatform_projects_locations_indexes_operations_get(
 pub fn aiplatform_projects_locations_indexes_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -84261,13 +84263,13 @@ pub struct AiplatformProjectsLocationsIndexesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/indexes/{indexesId}/operations
@@ -84312,7 +84314,7 @@ pub fn aiplatform_projects_locations_indexes_operations_list(
 pub fn aiplatform_projects_locations_indexes_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -84456,7 +84458,7 @@ pub struct AiplatformProjectsLocationsIndexesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/indexes/{indexesId}/operations/{operationsId}:wait
@@ -84498,7 +84500,7 @@ pub fn aiplatform_projects_locations_indexes_operations_wait(
 pub fn aiplatform_projects_locations_metadata_stores_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    metadataStoreId: &Option<Option<String>>,
+    metadataStoreId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -84642,7 +84644,7 @@ pub struct AiplatformProjectsLocationsMetadataStoresCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: metadataStoreId
-    pub metadataStoreId: Option<Option<String>>,
+    pub metadataStoreId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/metadataStores
@@ -84684,7 +84686,7 @@ pub fn aiplatform_projects_locations_metadata_stores_create(
 pub fn aiplatform_projects_locations_metadata_stores_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -84828,7 +84830,7 @@ pub struct AiplatformProjectsLocationsMetadataStoresDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}
@@ -85038,8 +85040,8 @@ pub fn aiplatform_projects_locations_metadata_stores_get(
 pub fn aiplatform_projects_locations_metadata_stores_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -85190,9 +85192,9 @@ pub struct AiplatformProjectsLocationsMetadataStoresListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataStores
@@ -85235,7 +85237,7 @@ pub fn aiplatform_projects_locations_metadata_stores_list(
 pub fn aiplatform_projects_locations_metadata_stores_artifacts_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    artifactId: &Option<Option<String>>,
+    artifactId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -85379,7 +85381,7 @@ pub struct AiplatformProjectsLocationsMetadataStoresArtifactsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: artifactId
-    pub artifactId: Option<Option<String>>,
+    pub artifactId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts
@@ -85421,7 +85423,7 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_create(
 pub fn aiplatform_projects_locations_metadata_stores_artifacts_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -85565,7 +85567,7 @@ pub struct AiplatformProjectsLocationsMetadataStoresArtifactsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}
@@ -85774,10 +85776,10 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_get(
 pub fn aiplatform_projects_locations_metadata_stores_artifacts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -85931,13 +85933,13 @@ pub struct AiplatformProjectsLocationsMetadataStoresArtifactsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts
@@ -85982,8 +85984,8 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_list(
 pub fn aiplatform_projects_locations_metadata_stores_artifacts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -86130,9 +86132,9 @@ pub struct AiplatformProjectsLocationsMetadataStoresArtifactsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}
@@ -86348,8 +86350,8 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_query_artifact_li
 >(
     client: &SimpleHttpClient<R>,
     artifact: &String,
-    filter: &Option<Option<String>>,
-    maxHops: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxHops: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -86496,9 +86498,9 @@ pub struct AiplatformProjectsLocationsMetadataStoresArtifactsQueryArtifactLineag
     /// Path parameter: artifact
     pub artifact: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxHops
-    pub maxHops: Option<Option<String>>,
+    pub maxHops: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}:queryArtifactLineageSubgraph
@@ -87045,10 +87047,10 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_get(
 pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -87203,13 +87205,13 @@ pub struct AiplatformProjectsLocationsMetadataStoresArtifactsOperationsListArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}/operations
@@ -87254,7 +87256,7 @@ pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_list(
 pub fn aiplatform_projects_locations_metadata_stores_artifacts_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -87399,7 +87401,7 @@ pub struct AiplatformProjectsLocationsMetadataStoresArtifactsOperationsWaitArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/artifacts/{artifactsId}/operations/{operationsId}:wait
@@ -87798,7 +87800,7 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_add_context_childr
 pub fn aiplatform_projects_locations_metadata_stores_contexts_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    contextId: &Option<Option<String>>,
+    contextId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -87942,7 +87944,7 @@ pub struct AiplatformProjectsLocationsMetadataStoresContextsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: contextId
-    pub contextId: Option<Option<String>>,
+    pub contextId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts
@@ -87984,8 +87986,8 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_create(
 pub fn aiplatform_projects_locations_metadata_stores_contexts_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    force: &Option<Option<String>>,
+    etag: &Option<String>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -88132,9 +88134,9 @@ pub struct AiplatformProjectsLocationsMetadataStoresContextsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}
@@ -88346,10 +88348,10 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_get(
 pub fn aiplatform_projects_locations_metadata_stores_contexts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -88503,13 +88505,13 @@ pub struct AiplatformProjectsLocationsMetadataStoresContextsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts
@@ -88554,8 +88556,8 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_list(
 pub fn aiplatform_projects_locations_metadata_stores_contexts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -88702,9 +88704,9 @@ pub struct AiplatformProjectsLocationsMetadataStoresContextsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}
@@ -89773,10 +89775,10 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_get(
 pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -89931,13 +89933,13 @@ pub struct AiplatformProjectsLocationsMetadataStoresContextsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}/operations
@@ -89982,7 +89984,7 @@ pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_list(
 pub fn aiplatform_projects_locations_metadata_stores_contexts_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -90127,7 +90129,7 @@ pub struct AiplatformProjectsLocationsMetadataStoresContextsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/contexts/{contextsId}/operations/{operationsId}:wait
@@ -90347,7 +90349,7 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_add_execution_ev
 pub fn aiplatform_projects_locations_metadata_stores_executions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    executionId: &Option<Option<String>>,
+    executionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -90491,7 +90493,7 @@ pub struct AiplatformProjectsLocationsMetadataStoresExecutionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: executionId
-    pub executionId: Option<Option<String>>,
+    pub executionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions
@@ -90533,7 +90535,7 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_create(
 pub fn aiplatform_projects_locations_metadata_stores_executions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -90677,7 +90679,7 @@ pub struct AiplatformProjectsLocationsMetadataStoresExecutionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}
@@ -90886,10 +90888,10 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_get(
 pub fn aiplatform_projects_locations_metadata_stores_executions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -91043,13 +91045,13 @@ pub struct AiplatformProjectsLocationsMetadataStoresExecutionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions
@@ -91094,8 +91096,8 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_list(
 pub fn aiplatform_projects_locations_metadata_stores_executions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -91242,9 +91244,9 @@ pub struct AiplatformProjectsLocationsMetadataStoresExecutionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}
@@ -92135,10 +92137,10 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_operations_get(
 pub fn aiplatform_projects_locations_metadata_stores_executions_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -92293,13 +92295,13 @@ pub struct AiplatformProjectsLocationsMetadataStoresExecutionsOperationsListArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}/operations
@@ -92344,7 +92346,7 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_operations_list(
 pub fn aiplatform_projects_locations_metadata_stores_executions_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -92489,7 +92491,7 @@ pub struct AiplatformProjectsLocationsMetadataStoresExecutionsOperationsWaitArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/executions/{executionsId}/operations/{operationsId}:wait
@@ -92531,7 +92533,7 @@ pub fn aiplatform_projects_locations_metadata_stores_executions_operations_wait(
 pub fn aiplatform_projects_locations_metadata_stores_metadata_schemas_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    metadataSchemaId: &Option<Option<String>>,
+    metadataSchemaId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -92675,7 +92677,7 @@ pub struct AiplatformProjectsLocationsMetadataStoresMetadataSchemasCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: metadataSchemaId
-    pub metadataSchemaId: Option<Option<String>>,
+    pub metadataSchemaId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/metadataSchemas
@@ -92887,9 +92889,9 @@ pub fn aiplatform_projects_locations_metadata_stores_metadata_schemas_get(
 pub fn aiplatform_projects_locations_metadata_stores_metadata_schemas_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -93043,11 +93045,11 @@ pub struct AiplatformProjectsLocationsMetadataStoresMetadataSchemasListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/metadataSchemas
@@ -93592,10 +93594,10 @@ pub fn aiplatform_projects_locations_metadata_stores_operations_get(
 pub fn aiplatform_projects_locations_metadata_stores_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -93749,13 +93751,13 @@ pub struct AiplatformProjectsLocationsMetadataStoresOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/operations
@@ -93800,7 +93802,7 @@ pub fn aiplatform_projects_locations_metadata_stores_operations_list(
 pub fn aiplatform_projects_locations_metadata_stores_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -93944,7 +93946,7 @@ pub struct AiplatformProjectsLocationsMetadataStoresOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/metadataStores/{metadataStoresId}/operations/{operationsId}:wait
@@ -94838,10 +94840,10 @@ pub fn aiplatform_projects_locations_migratable_resources_operations_get(
 pub fn aiplatform_projects_locations_migratable_resources_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -94995,13 +94997,13 @@ pub struct AiplatformProjectsLocationsMigratableResourcesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migratableResources/{migratableResourcesId}/operations
@@ -95046,7 +95048,7 @@ pub fn aiplatform_projects_locations_migratable_resources_operations_list(
 pub fn aiplatform_projects_locations_migratable_resources_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -95190,7 +95192,7 @@ pub struct AiplatformProjectsLocationsMigratableResourcesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/migratableResources/{migratableResourcesId}/operations/{operationsId}:wait
@@ -95751,10 +95753,10 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_get(
 pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -95914,13 +95916,13 @@ pub struct AiplatformProjectsLocationsModelDeploymentMonitoringJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/modelDeploymentMonitoringJobs
@@ -95968,7 +95970,7 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_list(
 pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -96112,7 +96114,7 @@ pub struct AiplatformProjectsLocationsModelDeploymentMonitoringJobsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}
@@ -97184,10 +97186,10 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations
 pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -97343,13 +97345,13 @@ pub struct AiplatformProjectsLocationsModelDeploymentMonitoringJobsOperationsLis
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}/operations
@@ -97395,7 +97397,7 @@ pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations
 pub fn aiplatform_projects_locations_model_deployment_monitoring_jobs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -97541,7 +97543,7 @@ pub struct AiplatformProjectsLocationsModelDeploymentMonitoringJobsOperationsWai
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/modelDeploymentMonitoringJobs/{modelDeploymentMonitoringJobsId}/operations/{operationsId}:wait
@@ -98424,7 +98426,7 @@ pub fn aiplatform_projects_locations_models_get(
 pub fn aiplatform_projects_locations_models_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -98566,7 +98568,7 @@ pub struct AiplatformProjectsLocationsModelsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/models/{modelsId}:getIamPolicy
@@ -98606,11 +98608,11 @@ pub fn aiplatform_projects_locations_models_get_iam_policy(
 pub fn aiplatform_projects_locations_models_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -98766,15 +98768,15 @@ pub struct AiplatformProjectsLocationsModelsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/models
@@ -98820,8 +98822,8 @@ pub fn aiplatform_projects_locations_models_list(
 pub fn aiplatform_projects_locations_models_list_checkpoints_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -98975,9 +98977,9 @@ pub struct AiplatformProjectsLocationsModelsListCheckpointsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/models/{modelsId}:listCheckpoints
@@ -99023,11 +99025,11 @@ pub fn aiplatform_projects_locations_models_list_checkpoints(
 pub fn aiplatform_projects_locations_models_list_versions_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -99184,15 +99186,15 @@ pub struct AiplatformProjectsLocationsModelsListVersionsArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/models/{modelsId}:listVersions
@@ -99407,7 +99409,7 @@ pub fn aiplatform_projects_locations_models_merge_version_aliases(
 pub fn aiplatform_projects_locations_models_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -99551,7 +99553,7 @@ pub struct AiplatformProjectsLocationsModelsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/models/{modelsId}
@@ -99755,7 +99757,7 @@ pub fn aiplatform_projects_locations_models_set_iam_policy(
 pub fn aiplatform_projects_locations_models_test_iam_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    permissions: &Option<Option<String>>,
+    permissions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -99899,7 +99901,7 @@ pub struct AiplatformProjectsLocationsModelsTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: permissions
-    pub permissions: Option<Option<String>>,
+    pub permissions: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/models/{modelsId}:testIamPermissions
@@ -100617,10 +100619,10 @@ pub fn aiplatform_projects_locations_models_evaluations_import(
 pub fn aiplatform_projects_locations_models_evaluations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -100777,13 +100779,13 @@ pub struct AiplatformProjectsLocationsModelsEvaluationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/models/{modelsId}/evaluations
@@ -101330,10 +101332,10 @@ pub fn aiplatform_projects_locations_models_evaluations_operations_get(
 pub fn aiplatform_projects_locations_models_evaluations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -101487,13 +101489,13 @@ pub struct AiplatformProjectsLocationsModelsEvaluationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/models/{modelsId}/evaluations/{evaluationsId}/operations
@@ -101538,7 +101540,7 @@ pub fn aiplatform_projects_locations_models_evaluations_operations_list(
 pub fn aiplatform_projects_locations_models_evaluations_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -101682,7 +101684,7 @@ pub struct AiplatformProjectsLocationsModelsEvaluationsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/models/{modelsId}/evaluations/{evaluationsId}/operations/{operationsId}:wait
@@ -102075,10 +102077,10 @@ pub fn aiplatform_projects_locations_models_evaluations_slices_get(
 pub fn aiplatform_projects_locations_models_evaluations_slices_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -102238,13 +102240,13 @@ pub struct AiplatformProjectsLocationsModelsEvaluationsSlicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/models/{modelsId}/evaluations/{evaluationsId}/slices
@@ -102790,10 +102792,10 @@ pub fn aiplatform_projects_locations_models_operations_get(
 pub fn aiplatform_projects_locations_models_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -102947,13 +102949,13 @@ pub struct AiplatformProjectsLocationsModelsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/models/{modelsId}/operations
@@ -102998,7 +103000,7 @@ pub fn aiplatform_projects_locations_models_operations_list(
 pub fn aiplatform_projects_locations_models_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -103142,7 +103144,7 @@ pub struct AiplatformProjectsLocationsModelsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/models/{modelsId}/operations/{operationsId}:wait
@@ -103852,10 +103854,10 @@ pub fn aiplatform_projects_locations_nas_jobs_get(
 pub fn aiplatform_projects_locations_nas_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -104009,13 +104011,13 @@ pub struct AiplatformProjectsLocationsNasJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/nasJobs
@@ -104229,8 +104231,8 @@ pub fn aiplatform_projects_locations_nas_jobs_nas_trial_details_get(
 pub fn aiplatform_projects_locations_nas_jobs_nas_trial_details_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -104381,9 +104383,9 @@ pub struct AiplatformProjectsLocationsNasJobsNasTrialDetailsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/nasJobs/{nasJobsId}/nasTrialDetails
@@ -104426,7 +104428,7 @@ pub fn aiplatform_projects_locations_nas_jobs_nas_trial_details_list(
 pub fn aiplatform_projects_locations_notebook_execution_jobs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    notebookExecutionJobId: &Option<Option<String>>,
+    notebookExecutionJobId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -104570,7 +104572,7 @@ pub struct AiplatformProjectsLocationsNotebookExecutionJobsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: notebookExecutionJobId
-    pub notebookExecutionJobId: Option<Option<String>>,
+    pub notebookExecutionJobId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/notebookExecutionJobs
@@ -104781,7 +104783,7 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_delete(
 pub fn aiplatform_projects_locations_notebook_execution_jobs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -104926,7 +104928,7 @@ pub struct AiplatformProjectsLocationsNotebookExecutionJobsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notebookExecutionJobs/{notebookExecutionJobsId}
@@ -104966,11 +104968,11 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_get(
 pub fn aiplatform_projects_locations_notebook_execution_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -105133,15 +105135,15 @@ pub struct AiplatformProjectsLocationsNotebookExecutionJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notebookExecutionJobs
@@ -105694,10 +105696,10 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_get(
 pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -105851,13 +105853,13 @@ pub struct AiplatformProjectsLocationsNotebookExecutionJobsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notebookExecutionJobs/{notebookExecutionJobsId}/operations
@@ -105902,7 +105904,7 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_list(
 pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -106046,7 +106048,7 @@ pub struct AiplatformProjectsLocationsNotebookExecutionJobsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/notebookExecutionJobs/{notebookExecutionJobsId}/operations/{operationsId}:wait
@@ -106088,7 +106090,7 @@ pub fn aiplatform_projects_locations_notebook_execution_jobs_operations_wait(
 pub fn aiplatform_projects_locations_notebook_runtime_templates_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    notebookRuntimeTemplateId: &Option<Option<String>>,
+    notebookRuntimeTemplateId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -106232,7 +106234,7 @@ pub struct AiplatformProjectsLocationsNotebookRuntimeTemplatesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: notebookRuntimeTemplateId
-    pub notebookRuntimeTemplateId: Option<Option<String>>,
+    pub notebookRuntimeTemplateId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/notebookRuntimeTemplates
@@ -106614,7 +106616,7 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_get(
 pub fn aiplatform_projects_locations_notebook_runtime_templates_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -106757,7 +106759,7 @@ pub struct AiplatformProjectsLocationsNotebookRuntimeTemplatesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}:getIamPolicy
@@ -106797,11 +106799,11 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_get_iam_policy(
 pub fn aiplatform_projects_locations_notebook_runtime_templates_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -106964,15 +106966,15 @@ pub struct AiplatformProjectsLocationsNotebookRuntimeTemplatesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notebookRuntimeTemplates
@@ -107021,7 +107023,7 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_list(
 pub fn aiplatform_projects_locations_notebook_runtime_templates_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -107166,7 +107168,7 @@ pub struct AiplatformProjectsLocationsNotebookRuntimeTemplatesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}
@@ -107376,7 +107378,7 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_set_iam_policy(
 pub fn aiplatform_projects_locations_notebook_runtime_templates_test_iam_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    permissions: &Option<Option<String>>,
+    permissions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -107522,7 +107524,7 @@ pub struct AiplatformProjectsLocationsNotebookRuntimeTemplatesTestIamPermissions
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: permissions
-    pub permissions: Option<Option<String>>,
+    pub permissions: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}:testIamPermissions
@@ -108072,10 +108074,10 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_get(
 pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -108230,13 +108232,13 @@ pub struct AiplatformProjectsLocationsNotebookRuntimeTemplatesOperationsListArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}/operations
@@ -108281,7 +108283,7 @@ pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_list(
 pub fn aiplatform_projects_locations_notebook_runtime_templates_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -108426,7 +108428,7 @@ pub struct AiplatformProjectsLocationsNotebookRuntimeTemplatesOperationsWaitArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/notebookRuntimeTemplates/{notebookRuntimeTemplatesId}/operations/{operationsId}:wait
@@ -108974,11 +108976,11 @@ pub fn aiplatform_projects_locations_notebook_runtimes_get(
 pub fn aiplatform_projects_locations_notebook_runtimes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -109138,15 +109140,15 @@ pub struct AiplatformProjectsLocationsNotebookRuntimesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notebookRuntimes
@@ -110199,10 +110201,10 @@ pub fn aiplatform_projects_locations_notebook_runtimes_operations_get(
 pub fn aiplatform_projects_locations_notebook_runtimes_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -110356,13 +110358,13 @@ pub struct AiplatformProjectsLocationsNotebookRuntimesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notebookRuntimes/{notebookRuntimesId}/operations
@@ -110407,7 +110409,7 @@ pub fn aiplatform_projects_locations_notebook_runtimes_operations_list(
 pub fn aiplatform_projects_locations_notebook_runtimes_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -110551,7 +110553,7 @@ pub struct AiplatformProjectsLocationsNotebookRuntimesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/notebookRuntimes/{notebookRuntimesId}/operations/{operationsId}:wait
@@ -111089,10 +111091,10 @@ pub fn aiplatform_projects_locations_operations_get(
 pub fn aiplatform_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -111246,13 +111248,13 @@ pub struct AiplatformProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -111297,7 +111299,7 @@ pub fn aiplatform_projects_locations_operations_list(
 pub fn aiplatform_projects_locations_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -111441,7 +111443,7 @@ pub struct AiplatformProjectsLocationsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:wait
@@ -111480,7 +111482,7 @@ pub fn aiplatform_projects_locations_operations_wait(
 pub fn aiplatform_projects_locations_persistent_resources_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    persistentResourceId: &Option<Option<String>>,
+    persistentResourceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -111624,7 +111626,7 @@ pub struct AiplatformProjectsLocationsPersistentResourcesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: persistentResourceId
-    pub persistentResourceId: Option<Option<String>>,
+    pub persistentResourceId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/persistentResources
@@ -112004,8 +112006,8 @@ pub fn aiplatform_projects_locations_persistent_resources_get(
 pub fn aiplatform_projects_locations_persistent_resources_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -112159,9 +112161,9 @@ pub struct AiplatformProjectsLocationsPersistentResourcesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/persistentResources
@@ -112207,7 +112209,7 @@ pub fn aiplatform_projects_locations_persistent_resources_list(
 pub fn aiplatform_projects_locations_persistent_resources_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -112351,7 +112353,7 @@ pub struct AiplatformProjectsLocationsPersistentResourcesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/persistentResources/{persistentResourcesId}
@@ -113064,10 +113066,10 @@ pub fn aiplatform_projects_locations_persistent_resources_operations_get(
 pub fn aiplatform_projects_locations_persistent_resources_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -113221,13 +113223,13 @@ pub struct AiplatformProjectsLocationsPersistentResourcesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/persistentResources/{persistentResourcesId}/operations
@@ -113272,7 +113274,7 @@ pub fn aiplatform_projects_locations_persistent_resources_operations_list(
 pub fn aiplatform_projects_locations_persistent_resources_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -113416,7 +113418,7 @@ pub struct AiplatformProjectsLocationsPersistentResourcesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/persistentResources/{persistentResourcesId}/operations/{operationsId}:wait
@@ -113960,7 +113962,7 @@ pub fn aiplatform_projects_locations_pipeline_jobs_cancel(
 pub fn aiplatform_projects_locations_pipeline_jobs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pipelineJobId: &Option<Option<String>>,
+    pipelineJobId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -114104,7 +114106,7 @@ pub struct AiplatformProjectsLocationsPipelineJobsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pipelineJobId
-    pub pipelineJobId: Option<Option<String>>,
+    pub pipelineJobId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/pipelineJobs
@@ -114482,11 +114484,11 @@ pub fn aiplatform_projects_locations_pipeline_jobs_get(
 pub fn aiplatform_projects_locations_pipeline_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -114643,15 +114645,15 @@ pub struct AiplatformProjectsLocationsPipelineJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelineJobs
@@ -115196,10 +115198,10 @@ pub fn aiplatform_projects_locations_pipeline_jobs_operations_get(
 pub fn aiplatform_projects_locations_pipeline_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -115353,13 +115355,13 @@ pub struct AiplatformProjectsLocationsPipelineJobsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pipelineJobs/{pipelineJobsId}/operations
@@ -115404,7 +115406,7 @@ pub fn aiplatform_projects_locations_pipeline_jobs_operations_list(
 pub fn aiplatform_projects_locations_pipeline_jobs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -115548,7 +115550,7 @@ pub struct AiplatformProjectsLocationsPipelineJobsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/pipelineJobs/{pipelineJobsId}/operations/{operationsId}:wait
@@ -117808,7 +117810,7 @@ pub fn aiplatform_projects_locations_rag_corpora_create(
 pub fn aiplatform_projects_locations_rag_corpora_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -117952,7 +117954,7 @@ pub struct AiplatformProjectsLocationsRagCorporaDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/ragCorpora/{ragCorporaId}
@@ -118159,8 +118161,8 @@ pub fn aiplatform_projects_locations_rag_corpora_get(
 pub fn aiplatform_projects_locations_rag_corpora_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -118308,9 +118310,9 @@ pub struct AiplatformProjectsLocationsRagCorporaListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ragCorpora
@@ -119020,10 +119022,10 @@ pub fn aiplatform_projects_locations_rag_corpora_operations_get(
 pub fn aiplatform_projects_locations_rag_corpora_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -119177,13 +119179,13 @@ pub struct AiplatformProjectsLocationsRagCorporaOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ragCorpora/{ragCorporaId}/operations
@@ -119228,7 +119230,7 @@ pub fn aiplatform_projects_locations_rag_corpora_operations_list(
 pub fn aiplatform_projects_locations_rag_corpora_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -119372,7 +119374,7 @@ pub struct AiplatformProjectsLocationsRagCorporaOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/ragCorpora/{ragCorporaId}/operations/{operationsId}:wait
@@ -119414,7 +119416,7 @@ pub fn aiplatform_projects_locations_rag_corpora_operations_wait(
 pub fn aiplatform_projects_locations_rag_corpora_rag_files_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    forceDelete: &Option<Option<String>>,
+    forceDelete: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -119558,7 +119560,7 @@ pub struct AiplatformProjectsLocationsRagCorporaRagFilesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: forceDelete
-    pub forceDelete: Option<Option<String>>,
+    pub forceDelete: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles/{ragFilesId}
@@ -119938,8 +119940,8 @@ pub fn aiplatform_projects_locations_rag_corpora_rag_files_import(
 pub fn aiplatform_projects_locations_rag_corpora_rag_files_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -120087,9 +120089,9 @@ pub struct AiplatformProjectsLocationsRagCorporaRagFilesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles
@@ -120634,10 +120636,10 @@ pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_get(
 pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -120791,13 +120793,13 @@ pub struct AiplatformProjectsLocationsRagCorporaRagFilesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles/{ragFilesId}/operations
@@ -120842,7 +120844,7 @@ pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_list(
 pub fn aiplatform_projects_locations_rag_corpora_rag_files_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -120986,7 +120988,7 @@ pub struct AiplatformProjectsLocationsRagCorporaRagFilesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/ragCorpora/{ragCorporaId}/ragFiles/{ragFilesId}/operations/{operationsId}:wait
@@ -121529,10 +121531,10 @@ pub fn aiplatform_projects_locations_rag_engine_config_operations_get(
 pub fn aiplatform_projects_locations_rag_engine_config_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -121686,13 +121688,13 @@ pub struct AiplatformProjectsLocationsRagEngineConfigOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ragEngineConfig/operations
@@ -121737,7 +121739,7 @@ pub fn aiplatform_projects_locations_rag_engine_config_operations_list(
 pub fn aiplatform_projects_locations_rag_engine_config_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -121881,7 +121883,7 @@ pub struct AiplatformProjectsLocationsRagEngineConfigOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/ragEngineConfig/operations/{operationsId}:wait
@@ -122092,7 +122094,7 @@ pub fn aiplatform_projects_locations_reasoning_engines_create(
 pub fn aiplatform_projects_locations_reasoning_engines_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -122236,7 +122238,7 @@ pub struct AiplatformProjectsLocationsReasoningEnginesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}
@@ -122616,7 +122618,7 @@ pub fn aiplatform_projects_locations_reasoning_engines_get(
 pub fn aiplatform_projects_locations_reasoning_engines_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -122758,7 +122760,7 @@ pub struct AiplatformProjectsLocationsReasoningEnginesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}:getIamPolicy
@@ -122798,9 +122800,9 @@ pub fn aiplatform_projects_locations_reasoning_engines_get_iam_policy(
 pub fn aiplatform_projects_locations_reasoning_engines_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -122954,11 +122956,11 @@ pub struct AiplatformProjectsLocationsReasoningEnginesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines
@@ -123002,7 +123004,7 @@ pub fn aiplatform_projects_locations_reasoning_engines_list(
 pub fn aiplatform_projects_locations_reasoning_engines_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -123146,7 +123148,7 @@ pub struct AiplatformProjectsLocationsReasoningEnginesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}
@@ -123693,7 +123695,7 @@ pub fn aiplatform_projects_locations_reasoning_engines_stream_query(
 pub fn aiplatform_projects_locations_reasoning_engines_test_iam_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    permissions: &Option<Option<String>>,
+    permissions: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -123837,7 +123839,7 @@ pub struct AiplatformProjectsLocationsReasoningEnginesTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: permissions
-    pub permissions: Option<Option<String>>,
+    pub permissions: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}:testIamPermissions
@@ -123879,7 +123881,7 @@ pub fn aiplatform_projects_locations_reasoning_engines_test_iam_permissions(
 pub fn aiplatform_projects_locations_reasoning_engines_memories_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    memoryId: &Option<Option<String>>,
+    memoryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -124023,7 +124025,7 @@ pub struct AiplatformProjectsLocationsReasoningEnginesMemoriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: memoryId
-    pub memoryId: Option<Option<String>>,
+    pub memoryId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories
@@ -124575,10 +124577,10 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_get(
 pub fn aiplatform_projects_locations_reasoning_engines_memories_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -124732,13 +124734,13 @@ pub struct AiplatformProjectsLocationsReasoningEnginesMemoriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories
@@ -124783,7 +124785,7 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_list(
 pub fn aiplatform_projects_locations_reasoning_engines_memories_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -124927,7 +124929,7 @@ pub struct AiplatformProjectsLocationsReasoningEnginesMemoriesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}
@@ -125989,10 +125991,10 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_get(
 pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -126147,13 +126149,13 @@ pub struct AiplatformProjectsLocationsReasoningEnginesMemoriesOperationsListArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}/operations
@@ -126198,7 +126200,7 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_list(
 pub fn aiplatform_projects_locations_reasoning_engines_memories_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -126343,7 +126345,7 @@ pub struct AiplatformProjectsLocationsReasoningEnginesMemoriesOperationsWaitArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}/operations/{operationsId}:wait
@@ -126556,9 +126558,9 @@ pub fn aiplatform_projects_locations_reasoning_engines_memories_revisions_get(
 pub fn aiplatform_projects_locations_reasoning_engines_memories_revisions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -126713,11 +126715,11 @@ pub struct AiplatformProjectsLocationsReasoningEnginesMemoriesRevisionsListArgs 
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}/revisions
@@ -127262,10 +127264,10 @@ pub fn aiplatform_projects_locations_reasoning_engines_operations_get(
 pub fn aiplatform_projects_locations_reasoning_engines_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -127419,13 +127421,13 @@ pub struct AiplatformProjectsLocationsReasoningEnginesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/operations
@@ -127470,7 +127472,7 @@ pub fn aiplatform_projects_locations_reasoning_engines_operations_list(
 pub fn aiplatform_projects_locations_reasoning_engines_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -127614,7 +127616,7 @@ pub struct AiplatformProjectsLocationsReasoningEnginesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/operations/{operationsId}:wait
@@ -128354,9 +128356,9 @@ pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_get(
 pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -128514,11 +128516,11 @@ pub struct AiplatformProjectsLocationsReasoningEnginesSandboxEnvironmentsListArg
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sandboxEnvironments
@@ -129079,7 +129081,7 @@ pub fn aiplatform_projects_locations_reasoning_engines_sandbox_environments_oper
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -129226,7 +129228,7 @@ pub struct AiplatformProjectsLocationsReasoningEnginesSandboxEnvironmentsOperati
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sandboxEnvironments/{sandboxEnvironmentsId}/operations/{operationsId}:wait
@@ -129437,7 +129439,7 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_append_event(
 pub fn aiplatform_projects_locations_reasoning_engines_sessions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    sessionId: &Option<Option<String>>,
+    sessionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -129581,7 +129583,7 @@ pub struct AiplatformProjectsLocationsReasoningEnginesSessionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: sessionId
-    pub sessionId: Option<Option<String>>,
+    pub sessionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions
@@ -129962,10 +129964,10 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_get(
 pub fn aiplatform_projects_locations_reasoning_engines_sessions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -130119,13 +130121,13 @@ pub struct AiplatformProjectsLocationsReasoningEnginesSessionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions
@@ -130170,7 +130172,7 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_list(
 pub fn aiplatform_projects_locations_reasoning_engines_sessions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -130314,7 +130316,7 @@ pub struct AiplatformProjectsLocationsReasoningEnginesSessionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}
@@ -130356,10 +130358,10 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_patch(
 pub fn aiplatform_projects_locations_reasoning_engines_sessions_events_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -130512,13 +130514,13 @@ pub struct AiplatformProjectsLocationsReasoningEnginesSessionsEventsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}/events
@@ -131070,10 +131072,10 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_get(
 pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -131228,13 +131230,13 @@ pub struct AiplatformProjectsLocationsReasoningEnginesSessionsOperationsListArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}/operations
@@ -131279,7 +131281,7 @@ pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_list(
 pub fn aiplatform_projects_locations_reasoning_engines_sessions_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -131424,7 +131426,7 @@ pub struct AiplatformProjectsLocationsReasoningEnginesSessionsOperationsWaitArgs
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}/operations/{operationsId}:wait
@@ -131970,10 +131972,10 @@ pub fn aiplatform_projects_locations_schedules_get(
 pub fn aiplatform_projects_locations_schedules_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -132127,13 +132129,13 @@ pub struct AiplatformProjectsLocationsSchedulesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schedules
@@ -132178,7 +132180,7 @@ pub fn aiplatform_projects_locations_schedules_list(
 pub fn aiplatform_projects_locations_schedules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -132322,7 +132324,7 @@ pub struct AiplatformProjectsLocationsSchedulesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/schedules/{schedulesId}
@@ -133191,10 +133193,10 @@ pub fn aiplatform_projects_locations_schedules_operations_get(
 pub fn aiplatform_projects_locations_schedules_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -133348,13 +133350,13 @@ pub struct AiplatformProjectsLocationsSchedulesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schedules/{schedulesId}/operations
@@ -133399,7 +133401,7 @@ pub fn aiplatform_projects_locations_schedules_operations_list(
 pub fn aiplatform_projects_locations_schedules_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -133543,7 +133545,7 @@ pub struct AiplatformProjectsLocationsSchedulesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/schedules/{schedulesId}/operations/{operationsId}:wait
@@ -133754,7 +133756,7 @@ pub fn aiplatform_projects_locations_specialist_pools_create(
 pub fn aiplatform_projects_locations_specialist_pools_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -133898,7 +133900,7 @@ pub struct AiplatformProjectsLocationsSpecialistPoolsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/specialistPools/{specialistPoolsId}
@@ -134108,9 +134110,9 @@ pub fn aiplatform_projects_locations_specialist_pools_get(
 pub fn aiplatform_projects_locations_specialist_pools_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -134264,11 +134266,11 @@ pub struct AiplatformProjectsLocationsSpecialistPoolsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/specialistPools
@@ -134312,7 +134314,7 @@ pub fn aiplatform_projects_locations_specialist_pools_list(
 pub fn aiplatform_projects_locations_specialist_pools_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -134456,7 +134458,7 @@ pub struct AiplatformProjectsLocationsSpecialistPoolsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/specialistPools/{specialistPoolsId}
@@ -134999,10 +135001,10 @@ pub fn aiplatform_projects_locations_specialist_pools_operations_get(
 pub fn aiplatform_projects_locations_specialist_pools_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -135156,13 +135158,13 @@ pub struct AiplatformProjectsLocationsSpecialistPoolsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/specialistPools/{specialistPoolsId}/operations
@@ -135207,7 +135209,7 @@ pub fn aiplatform_projects_locations_specialist_pools_operations_list(
 pub fn aiplatform_projects_locations_specialist_pools_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -135351,7 +135353,7 @@ pub struct AiplatformProjectsLocationsSpecialistPoolsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/specialistPools/{specialistPoolsId}/operations/{operationsId}:wait
@@ -135893,8 +135895,8 @@ pub fn aiplatform_projects_locations_studies_get(
 pub fn aiplatform_projects_locations_studies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -136042,9 +136044,9 @@ pub struct AiplatformProjectsLocationsStudiesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies
@@ -136753,10 +136755,10 @@ pub fn aiplatform_projects_locations_studies_operations_get(
 pub fn aiplatform_projects_locations_studies_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -136910,13 +136912,13 @@ pub struct AiplatformProjectsLocationsStudiesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/operations
@@ -136961,7 +136963,7 @@ pub fn aiplatform_projects_locations_studies_operations_list(
 pub fn aiplatform_projects_locations_studies_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -137105,7 +137107,7 @@ pub struct AiplatformProjectsLocationsStudiesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/operations/{operationsId}:wait
@@ -138162,8 +138164,8 @@ pub fn aiplatform_projects_locations_studies_trials_get(
 pub fn aiplatform_projects_locations_studies_trials_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -138310,9 +138312,9 @@ pub struct AiplatformProjectsLocationsStudiesTrialsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/trials
@@ -139363,10 +139365,10 @@ pub fn aiplatform_projects_locations_studies_trials_operations_get(
 pub fn aiplatform_projects_locations_studies_trials_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -139520,13 +139522,13 @@ pub struct AiplatformProjectsLocationsStudiesTrialsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}/operations
@@ -139571,7 +139573,7 @@ pub fn aiplatform_projects_locations_studies_trials_operations_list(
 pub fn aiplatform_projects_locations_studies_trials_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -139715,7 +139717,7 @@ pub struct AiplatformProjectsLocationsStudiesTrialsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/studies/{studiesId}/trials/{trialsId}/operations/{operationsId}:wait
@@ -139757,7 +139759,7 @@ pub fn aiplatform_projects_locations_studies_trials_operations_wait(
 pub fn aiplatform_projects_locations_tensorboards_batch_read_builder<R>(
     client: &SimpleHttpClient<R>,
     tensorboard: &String,
-    timeSeries: &Option<Option<String>>,
+    timeSeries: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -139908,7 +139910,7 @@ pub struct AiplatformProjectsLocationsTensorboardsBatchReadArgs {
     /// Path parameter: tensorboard
     pub tensorboard: String,
     /// Query parameter: timeSeries
-    pub timeSeries: Option<Option<String>>,
+    pub timeSeries: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}:batchRead
@@ -140457,11 +140459,11 @@ pub fn aiplatform_projects_locations_tensorboards_get(
 pub fn aiplatform_projects_locations_tensorboards_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -140618,15 +140620,15 @@ pub struct AiplatformProjectsLocationsTensorboardsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tensorboards
@@ -140672,7 +140674,7 @@ pub fn aiplatform_projects_locations_tensorboards_list(
 pub fn aiplatform_projects_locations_tensorboards_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -140816,7 +140818,7 @@ pub struct AiplatformProjectsLocationsTensorboardsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}
@@ -141385,7 +141387,7 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_batch_create(
 pub fn aiplatform_projects_locations_tensorboards_experiments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    tensorboardExperimentId: &Option<Option<String>>,
+    tensorboardExperimentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -141530,7 +141532,7 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: tensorboardExperimentId
-    pub tensorboardExperimentId: Option<Option<String>>,
+    pub tensorboardExperimentId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments
@@ -141911,11 +141913,11 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_get(
 pub fn aiplatform_projects_locations_tensorboards_experiments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -142078,15 +142080,15 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments
@@ -142135,7 +142137,7 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_list(
 pub fn aiplatform_projects_locations_tensorboards_experiments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -142280,7 +142282,7 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}
@@ -143007,10 +143009,10 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_operations_get(
 pub fn aiplatform_projects_locations_tensorboards_experiments_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -143165,13 +143167,13 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsOperationsListArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/operations
@@ -143216,7 +143218,7 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_operations_list(
 pub fn aiplatform_projects_locations_tensorboards_experiments_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -143361,7 +143363,7 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsOperationsWaitArgs 
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/operations/{operationsId}:wait
@@ -143585,7 +143587,7 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_batch_create(
 pub fn aiplatform_projects_locations_tensorboards_experiments_runs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    tensorboardRunId: &Option<Option<String>>,
+    tensorboardRunId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -143729,7 +143731,7 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsRunsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: tensorboardRunId
-    pub tensorboardRunId: Option<Option<String>>,
+    pub tensorboardRunId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs
@@ -144111,11 +144113,11 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_get(
 pub fn aiplatform_projects_locations_tensorboards_experiments_runs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -144275,15 +144277,15 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsRunsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs
@@ -144329,7 +144331,7 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_list(
 pub fn aiplatform_projects_locations_tensorboards_experiments_runs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -144473,7 +144475,7 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsRunsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}
@@ -145206,10 +145208,10 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_ge
 pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -145364,13 +145366,13 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsRunsOperationsListA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/operations
@@ -145416,7 +145418,7 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_li
 pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -145561,7 +145563,7 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsRunsOperationsWaitA
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/operations/{operationsId}:wait
@@ -145604,7 +145606,7 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_operations_wa
 pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    tensorboardTimeSeriesId: &Option<Option<String>>,
+    tensorboardTimeSeriesId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -145751,7 +145753,7 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsRunsTimeSeriesCreat
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: tensorboardTimeSeriesId
-    pub tensorboardTimeSeriesId: Option<Option<String>>,
+    pub tensorboardTimeSeriesId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries
@@ -146321,11 +146323,11 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_g
 pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -146489,15 +146491,15 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsRunsTimeSeriesListA
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries
@@ -146547,7 +146549,7 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_l
 pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -146694,7 +146696,7 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsRunsTimeSeriesPatch
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}
@@ -146737,8 +146739,8 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_p
 pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_read_builder<R>(
     client: &SimpleHttpClient<R>,
     tensorboardTimeSeries: &String,
-    filter: &Option<Option<String>>,
-    maxDataPoints: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxDataPoints: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -146893,9 +146895,9 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsRunsTimeSeriesReadA
     /// Path parameter: tensorboardTimeSeries
     pub tensorboardTimeSeries: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxDataPoints
-    pub maxDataPoints: Option<Option<String>>,
+    pub maxDataPoints: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}:read
@@ -146944,7 +146946,7 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_r
 >(
     client: &SimpleHttpClient<R>,
     timeSeries: &String,
-    blobIds: &Option<Option<String>>,
+    blobIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -147095,7 +147097,7 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsRunsTimeSeriesReadB
     /// Path parameter: timeSeries
     pub timeSeries: String,
     /// Query parameter: blobIds
-    pub blobIds: Option<Option<String>>,
+    pub blobIds: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}:readBlobData
@@ -147644,10 +147646,10 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_o
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -147801,13 +147803,13 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsRunsTimeSeriesOpera
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations
@@ -147849,7 +147851,7 @@ pub fn aiplatform_projects_locations_tensorboards_experiments_runs_time_series_o
 >(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -147993,7 +147995,7 @@ pub struct AiplatformProjectsLocationsTensorboardsExperimentsRunsTimeSeriesOpera
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations/{operationsId}:wait
@@ -148532,10 +148534,10 @@ pub fn aiplatform_projects_locations_tensorboards_operations_get(
 pub fn aiplatform_projects_locations_tensorboards_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -148689,13 +148691,13 @@ pub struct AiplatformProjectsLocationsTensorboardsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/operations
@@ -148740,7 +148742,7 @@ pub fn aiplatform_projects_locations_tensorboards_operations_list(
 pub fn aiplatform_projects_locations_tensorboards_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -148884,7 +148886,7 @@ pub struct AiplatformProjectsLocationsTensorboardsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/tensorboards/{tensorboardsId}/operations/{operationsId}:wait
@@ -149599,10 +149601,10 @@ pub fn aiplatform_projects_locations_training_pipelines_get(
 pub fn aiplatform_projects_locations_training_pipelines_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -149759,13 +149761,13 @@ pub struct AiplatformProjectsLocationsTrainingPipelinesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/trainingPipelines
@@ -150312,10 +150314,10 @@ pub fn aiplatform_projects_locations_training_pipelines_operations_get(
 pub fn aiplatform_projects_locations_training_pipelines_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -150469,13 +150471,13 @@ pub struct AiplatformProjectsLocationsTrainingPipelinesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/trainingPipelines/{trainingPipelinesId}/operations
@@ -150520,7 +150522,7 @@ pub fn aiplatform_projects_locations_training_pipelines_operations_list(
 pub fn aiplatform_projects_locations_training_pipelines_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -150664,7 +150666,7 @@ pub struct AiplatformProjectsLocationsTrainingPipelinesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/trainingPipelines/{trainingPipelinesId}/operations/{operationsId}:wait
@@ -151206,9 +151208,9 @@ pub fn aiplatform_projects_locations_tuning_jobs_get(
 pub fn aiplatform_projects_locations_tuning_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -151359,11 +151361,11 @@ pub struct AiplatformProjectsLocationsTuningJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tuningJobs
@@ -152075,10 +152077,10 @@ pub fn aiplatform_projects_locations_tuning_jobs_operations_get(
 pub fn aiplatform_projects_locations_tuning_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -152232,13 +152234,13 @@ pub struct AiplatformProjectsLocationsTuningJobsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/tuningJobs/{tuningJobsId}/operations
@@ -152959,10 +152961,10 @@ pub fn aiplatform_publishers_models_generate_content(
 pub fn aiplatform_publishers_models_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    huggingFaceToken: &Option<Option<String>>,
-    isHuggingFaceModel: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    huggingFaceToken: &Option<String>,
+    isHuggingFaceModel: &Option<String>,
+    languageCode: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -153115,13 +153117,13 @@ pub struct AiplatformPublishersModelsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: huggingFaceToken
-    pub huggingFaceToken: Option<Option<String>>,
+    pub huggingFaceToken: Option<String>,
     /// Query parameter: isHuggingFaceModel
-    pub isHuggingFaceModel: Option<Option<String>>,
+    pub isHuggingFaceModel: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/publishers/{publishersId}/models/{modelsId}
@@ -154169,10 +154171,10 @@ pub fn aiplatform_rag_corpora_operations_get(
 pub fn aiplatform_rag_corpora_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -154326,13 +154328,13 @@ pub struct AiplatformRagCorporaOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/ragCorpora/{ragCorporaId}/operations
@@ -154377,7 +154379,7 @@ pub fn aiplatform_rag_corpora_operations_list(
 pub fn aiplatform_rag_corpora_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -154521,7 +154523,7 @@ pub struct AiplatformRagCorporaOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/ragCorpora/{ragCorporaId}/operations/{operationsId}:wait
@@ -155056,10 +155058,10 @@ pub fn aiplatform_rag_corpora_rag_files_operations_get(
 pub fn aiplatform_rag_corpora_rag_files_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -155213,13 +155215,13 @@ pub struct AiplatformRagCorporaRagFilesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/ragCorpora/{ragCorporaId}/ragFiles/{ragFilesId}/operations
@@ -155264,7 +155266,7 @@ pub fn aiplatform_rag_corpora_rag_files_operations_list(
 pub fn aiplatform_rag_corpora_rag_files_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -155408,7 +155410,7 @@ pub struct AiplatformRagCorporaRagFilesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/ragCorpora/{ragCorporaId}/ragFiles/{ragFilesId}/operations/{operationsId}:wait
@@ -155945,10 +155947,10 @@ pub fn aiplatform_rag_engine_config_operations_get(
 
 pub fn aiplatform_rag_engine_config_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -156097,13 +156099,13 @@ pub fn aiplatform_rag_engine_config_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiplatformRagEngineConfigOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/ragEngineConfig/operations
@@ -156147,7 +156149,7 @@ pub fn aiplatform_rag_engine_config_operations_list(
 pub fn aiplatform_rag_engine_config_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -156291,7 +156293,7 @@ pub struct AiplatformRagEngineConfigOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/ragEngineConfig/operations/{operationsId}:wait
@@ -156329,7 +156331,7 @@ pub fn aiplatform_rag_engine_config_operations_wait(
 
 pub fn aiplatform_reasoning_engines_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    parent: &Option<Option<String>>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -156468,7 +156470,7 @@ pub fn aiplatform_reasoning_engines_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiplatformReasoningEnginesCreateArgs {
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// POST v1/reasoningEngines
@@ -156506,7 +156508,7 @@ pub fn aiplatform_reasoning_engines_create(
 pub fn aiplatform_reasoning_engines_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -156650,7 +156652,7 @@ pub struct AiplatformReasoningEnginesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/reasoningEngines/{reasoningEnginesId}
@@ -157024,10 +157026,10 @@ pub fn aiplatform_reasoning_engines_get(
 
 pub fn aiplatform_reasoning_engines_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -157179,13 +157181,13 @@ pub fn aiplatform_reasoning_engines_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiplatformReasoningEnginesListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/reasoningEngines
@@ -157229,7 +157231,7 @@ pub fn aiplatform_reasoning_engines_list(
 pub fn aiplatform_reasoning_engines_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -157373,7 +157375,7 @@ pub struct AiplatformReasoningEnginesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/reasoningEngines/{reasoningEnginesId}
@@ -158245,10 +158247,10 @@ pub fn aiplatform_reasoning_engines_memories_operations_get(
 pub fn aiplatform_reasoning_engines_memories_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -158402,13 +158404,13 @@ pub struct AiplatformReasoningEnginesMemoriesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}/operations
@@ -158453,7 +158455,7 @@ pub fn aiplatform_reasoning_engines_memories_operations_list(
 pub fn aiplatform_reasoning_engines_memories_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -158597,7 +158599,7 @@ pub struct AiplatformReasoningEnginesMemoriesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/reasoningEngines/{reasoningEnginesId}/memories/{memoriesId}/operations/{operationsId}:wait
@@ -159135,10 +159137,10 @@ pub fn aiplatform_reasoning_engines_operations_get(
 pub fn aiplatform_reasoning_engines_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -159292,13 +159294,13 @@ pub struct AiplatformReasoningEnginesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/reasoningEngines/{reasoningEnginesId}/operations
@@ -159343,7 +159345,7 @@ pub fn aiplatform_reasoning_engines_operations_list(
 pub fn aiplatform_reasoning_engines_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -159487,7 +159489,7 @@ pub struct AiplatformReasoningEnginesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/reasoningEngines/{reasoningEnginesId}/operations/{operationsId}:wait
@@ -160212,9 +160214,9 @@ pub fn aiplatform_reasoning_engines_sandbox_environments_get(
 pub fn aiplatform_reasoning_engines_sandbox_environments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -160371,11 +160373,11 @@ pub struct AiplatformReasoningEnginesSandboxEnvironmentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/reasoningEngines/{reasoningEnginesId}/sandboxEnvironments
@@ -160924,7 +160926,7 @@ pub fn aiplatform_reasoning_engines_sandbox_environments_operations_get(
 pub fn aiplatform_reasoning_engines_sandbox_environments_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -161068,7 +161070,7 @@ pub struct AiplatformReasoningEnginesSandboxEnvironmentsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/reasoningEngines/{reasoningEnginesId}/sandboxEnvironments/{sandboxEnvironmentsId}/operations/{operationsId}:wait
@@ -161608,10 +161610,10 @@ pub fn aiplatform_reasoning_engines_sessions_operations_get(
 pub fn aiplatform_reasoning_engines_sessions_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -161765,13 +161767,13 @@ pub struct AiplatformReasoningEnginesSessionsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}/operations
@@ -161816,7 +161818,7 @@ pub fn aiplatform_reasoning_engines_sessions_operations_list(
 pub fn aiplatform_reasoning_engines_sessions_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -161960,7 +161962,7 @@ pub struct AiplatformReasoningEnginesSessionsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/reasoningEngines/{reasoningEnginesId}/sessions/{sessionsId}/operations/{operationsId}:wait
@@ -162498,10 +162500,10 @@ pub fn aiplatform_schedules_operations_get(
 pub fn aiplatform_schedules_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -162655,13 +162657,13 @@ pub struct AiplatformSchedulesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/schedules/{schedulesId}/operations
@@ -162706,7 +162708,7 @@ pub fn aiplatform_schedules_operations_list(
 pub fn aiplatform_schedules_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -162850,7 +162852,7 @@ pub struct AiplatformSchedulesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/schedules/{schedulesId}/operations/{operationsId}:wait
@@ -163384,10 +163386,10 @@ pub fn aiplatform_specialist_pools_operations_get(
 pub fn aiplatform_specialist_pools_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -163541,13 +163543,13 @@ pub struct AiplatformSpecialistPoolsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/specialistPools/{specialistPoolsId}/operations
@@ -163592,7 +163594,7 @@ pub fn aiplatform_specialist_pools_operations_list(
 pub fn aiplatform_specialist_pools_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -163736,7 +163738,7 @@ pub struct AiplatformSpecialistPoolsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/specialistPools/{specialistPoolsId}/operations/{operationsId}:wait
@@ -164271,10 +164273,10 @@ pub fn aiplatform_studies_operations_get(
 pub fn aiplatform_studies_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -164428,13 +164430,13 @@ pub struct AiplatformStudiesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/studies/{studiesId}/operations
@@ -164479,7 +164481,7 @@ pub fn aiplatform_studies_operations_list(
 pub fn aiplatform_studies_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -164623,7 +164625,7 @@ pub struct AiplatformStudiesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/studies/{studiesId}/operations/{operationsId}:wait
@@ -165157,10 +165159,10 @@ pub fn aiplatform_studies_trials_operations_get(
 pub fn aiplatform_studies_trials_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -165314,13 +165316,13 @@ pub struct AiplatformStudiesTrialsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/studies/{studiesId}/trials/{trialsId}/operations
@@ -165365,7 +165367,7 @@ pub fn aiplatform_studies_trials_operations_list(
 pub fn aiplatform_studies_trials_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -165509,7 +165511,7 @@ pub struct AiplatformStudiesTrialsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/studies/{studiesId}/trials/{trialsId}/operations/{operationsId}:wait
@@ -166046,10 +166048,10 @@ pub fn aiplatform_tensorboards_experiments_operations_get(
 pub fn aiplatform_tensorboards_experiments_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -166203,13 +166205,13 @@ pub struct AiplatformTensorboardsExperimentsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/tensorboards/{tensorboardsId}/experiments/{experimentsId}/operations
@@ -166254,7 +166256,7 @@ pub fn aiplatform_tensorboards_experiments_operations_list(
 pub fn aiplatform_tensorboards_experiments_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -166398,7 +166400,7 @@ pub struct AiplatformTensorboardsExperimentsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/tensorboards/{tensorboardsId}/experiments/{experimentsId}/operations/{operationsId}:wait
@@ -166939,10 +166941,10 @@ pub fn aiplatform_tensorboards_experiments_runs_operations_get(
 pub fn aiplatform_tensorboards_experiments_runs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -167096,13 +167098,13 @@ pub struct AiplatformTensorboardsExperimentsRunsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/operations
@@ -167147,7 +167149,7 @@ pub fn aiplatform_tensorboards_experiments_runs_operations_list(
 pub fn aiplatform_tensorboards_experiments_runs_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -167291,7 +167293,7 @@ pub struct AiplatformTensorboardsExperimentsRunsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/operations/{operationsId}:wait
@@ -167837,10 +167839,10 @@ pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_get(
 pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -167994,13 +167996,13 @@ pub struct AiplatformTensorboardsExperimentsRunsTimeSeriesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations
@@ -168045,7 +168047,7 @@ pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_list(
 pub fn aiplatform_tensorboards_experiments_runs_time_series_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -168189,7 +168191,7 @@ pub struct AiplatformTensorboardsExperimentsRunsTimeSeriesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/tensorboards/{tensorboardsId}/experiments/{experimentsId}/runs/{runsId}/timeSeries/{timeSeriesId}/operations/{operationsId}:wait
@@ -168727,10 +168729,10 @@ pub fn aiplatform_tensorboards_operations_get(
 pub fn aiplatform_tensorboards_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -168884,13 +168886,13 @@ pub struct AiplatformTensorboardsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/tensorboards/{tensorboardsId}/operations
@@ -168935,7 +168937,7 @@ pub fn aiplatform_tensorboards_operations_list(
 pub fn aiplatform_tensorboards_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -169079,7 +169081,7 @@ pub struct AiplatformTensorboardsOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/tensorboards/{tensorboardsId}/operations/{operationsId}:wait
@@ -169614,10 +169616,10 @@ pub fn aiplatform_training_pipelines_operations_get(
 pub fn aiplatform_training_pipelines_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -169771,13 +169773,13 @@ pub struct AiplatformTrainingPipelinesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/trainingPipelines/{trainingPipelinesId}/operations
@@ -169822,7 +169824,7 @@ pub fn aiplatform_training_pipelines_operations_list(
 pub fn aiplatform_training_pipelines_operations_wait_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    timeout: &Option<Option<String>>,
+    timeout: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -169966,7 +169968,7 @@ pub struct AiplatformTrainingPipelinesOperationsWaitArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: timeout
-    pub timeout: Option<Option<String>>,
+    pub timeout: Option<String>,
 }
 
 /// POST v1/trainingPipelines/{trainingPipelinesId}/operations/{operationsId}:wait
@@ -170501,10 +170503,10 @@ pub fn aiplatform_tuning_jobs_operations_get(
 pub fn aiplatform_tuning_jobs_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -170658,13 +170660,13 @@ pub struct AiplatformTuningJobsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/tuningJobs/{tuningJobsId}/operations
@@ -198388,79 +198390,6 @@ impl ResourceIdentifier<AiplatformTuningJobsOperationsListArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::aiplatform::GoogleLongrunningListOperationsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleLongrunningOperation
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleLongrunningOperation with AiplatformEvaluateDatasetArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AiplatformEvaluateDatasetArgs> for GoogleLongrunningOperation {
-    fn generate_resource_id(&self, input: &AiplatformEvaluateDatasetArgs) -> String {
-        "gcp::aiplatform::GoogleLongrunningOperation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::aiplatform::GoogleLongrunningOperation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleCloudAiplatformV1EvaluateInstancesResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleCloudAiplatformV1EvaluateInstancesResponse with AiplatformEvaluateInstancesArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AiplatformEvaluateInstancesArgs>
-    for GoogleCloudAiplatformV1EvaluateInstancesResponse
-{
-    fn generate_resource_id(&self, input: &AiplatformEvaluateInstancesArgs) -> String {
-        "gcp::aiplatform::GoogleCloudAiplatformV1EvaluateInstancesResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::aiplatform::GoogleCloudAiplatformV1EvaluateInstancesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleCloudAiplatformV1GenerateInstanceRubricsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleCloudAiplatformV1GenerateInstanceRubricsResponse with AiplatformGenerateInstanceRubricsArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AiplatformGenerateInstanceRubricsArgs>
-    for GoogleCloudAiplatformV1GenerateInstanceRubricsResponse
-{
-    fn generate_resource_id(&self, input: &AiplatformGenerateInstanceRubricsArgs) -> String {
-        "gcp::aiplatform::GoogleCloudAiplatformV1GenerateInstanceRubricsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::aiplatform::GoogleCloudAiplatformV1GenerateInstanceRubricsResponse"
     }
 
     fn provider(&self) -> &'static str {

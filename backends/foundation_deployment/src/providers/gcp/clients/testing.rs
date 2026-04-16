@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,7 +31,7 @@ use serde::Serialize;
 
 pub fn testing_application_detail_service_get_apk_details_builder<R>(
     client: &SimpleHttpClient<R>,
-    bundleLocation_gcsPath: &Option<Option<String>>,
+    bundleLocation_gcsPath: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -167,7 +169,7 @@ pub fn testing_application_detail_service_get_apk_details_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TestingApplicationDetailServiceGetApkDetailsArgs {
     /// Query parameter: bundleLocation_gcsPath
-    pub bundleLocation_gcsPath: Option<Option<String>>,
+    pub bundleLocation_gcsPath: Option<String>,
 }
 
 /// POST v1/applicationDetailService/getApkDetails
@@ -694,9 +696,9 @@ pub fn testing_projects_device_sessions_get(
 pub fn testing_projects_device_sessions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -846,11 +848,11 @@ pub struct TestingProjectsDeviceSessionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/deviceSessions
@@ -894,7 +896,7 @@ pub fn testing_projects_device_sessions_list(
 pub fn testing_projects_device_sessions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1036,7 +1038,7 @@ pub struct TestingProjectsDeviceSessionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}
@@ -1241,7 +1243,7 @@ pub fn testing_projects_test_matrices_cancel(
 pub fn testing_projects_test_matrices_create_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1381,7 +1383,7 @@ pub struct TestingProjectsTestMatricesCreateArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// POST v1/projects/{projectId}/testMatrices
@@ -1580,8 +1582,8 @@ pub fn testing_projects_test_matrices_get(
 pub fn testing_test_environment_catalog_get_builder<R>(
     client: &SimpleHttpClient<R>,
     environmentType: &String,
-    includeViewableModels: &Option<Option<String>>,
-    projectId: &Option<Option<String>>,
+    includeViewableModels: &Option<String>,
+    projectId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1726,9 +1728,9 @@ pub struct TestingTestEnvironmentCatalogGetArgs {
     /// Path parameter: environmentType
     pub environmentType: String,
     /// Query parameter: includeViewableModels
-    pub includeViewableModels: Option<Option<String>>,
+    pub includeViewableModels: Option<String>,
     /// Query parameter: projectId
-    pub projectId: Option<Option<String>>,
+    pub projectId: Option<String>,
 }
 
 /// GET v1/testEnvironmentCatalog/{environmentType}

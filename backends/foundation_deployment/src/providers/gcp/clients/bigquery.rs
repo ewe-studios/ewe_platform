@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -31,7 +33,7 @@ pub fn bigquery_datasets_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
-    deleteContents: &Option<Option<String>>,
+    deleteContents: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -170,7 +172,7 @@ pub struct BigqueryDatasetsDeleteArgs {
     /// Path parameter: datasetId
     pub datasetId: String,
     /// Query parameter: deleteContents
-    pub deleteContents: Option<Option<String>>,
+    pub deleteContents: Option<String>,
 }
 
 /// DELETE projects/{projectsId}/datasets/{datasetsId}
@@ -210,8 +212,8 @@ pub fn bigquery_datasets_get_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
-    accessPolicyVersion: &Option<Option<String>>,
-    datasetView: &Option<Option<String>>,
+    accessPolicyVersion: &Option<String>,
+    datasetView: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -356,9 +358,9 @@ pub struct BigqueryDatasetsGetArgs {
     /// Path parameter: datasetId
     pub datasetId: String,
     /// Query parameter: accessPolicyVersion
-    pub accessPolicyVersion: Option<Option<String>>,
+    pub accessPolicyVersion: Option<String>,
     /// Query parameter: datasetView
-    pub datasetView: Option<Option<String>>,
+    pub datasetView: Option<String>,
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}
@@ -398,7 +400,7 @@ pub fn bigquery_datasets_get(
 pub fn bigquery_datasets_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    accessPolicyVersion: &Option<Option<String>>,
+    accessPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -538,7 +540,7 @@ pub struct BigqueryDatasetsInsertArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: accessPolicyVersion
-    pub accessPolicyVersion: Option<Option<String>>,
+    pub accessPolicyVersion: Option<String>,
 }
 
 /// POST projects/{projectsId}/datasets
@@ -573,10 +575,10 @@ pub fn bigquery_datasets_insert(
 pub fn bigquery_datasets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    all: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    all: &Option<String>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -725,13 +727,13 @@ pub struct BigqueryDatasetsListArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: all
-    pub all: Option<Option<String>>,
+    pub all: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET projects/{projectsId}/datasets
@@ -773,8 +775,8 @@ pub fn bigquery_datasets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
-    accessPolicyVersion: &Option<Option<String>>,
-    updateMode: &Option<Option<String>>,
+    accessPolicyVersion: &Option<String>,
+    updateMode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -919,9 +921,9 @@ pub struct BigqueryDatasetsPatchArgs {
     /// Path parameter: datasetId
     pub datasetId: String,
     /// Query parameter: accessPolicyVersion
-    pub accessPolicyVersion: Option<Option<String>>,
+    pub accessPolicyVersion: Option<String>,
     /// Query parameter: updateMode
-    pub updateMode: Option<Option<String>>,
+    pub updateMode: Option<String>,
 }
 
 /// PATCH projects/{projectsId}/datasets/{datasetsId}
@@ -1125,8 +1127,8 @@ pub fn bigquery_datasets_update_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
-    accessPolicyVersion: &Option<Option<String>>,
-    updateMode: &Option<Option<String>>,
+    accessPolicyVersion: &Option<String>,
+    updateMode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1271,9 +1273,9 @@ pub struct BigqueryDatasetsUpdateArgs {
     /// Path parameter: datasetId
     pub datasetId: String,
     /// Query parameter: accessPolicyVersion
-    pub accessPolicyVersion: Option<Option<String>>,
+    pub accessPolicyVersion: Option<String>,
     /// Query parameter: updateMode
-    pub updateMode: Option<Option<String>>,
+    pub updateMode: Option<String>,
 }
 
 /// PUT projects/{projectsId}/datasets/{datasetsId}
@@ -1314,7 +1316,7 @@ pub fn bigquery_jobs_cancel_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
-    location: &Option<Option<String>>,
+    location: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1458,7 +1460,7 @@ pub struct BigqueryJobsCancelArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
 }
 
 /// POST projects/{projectsId}/jobs/{jobsId}/cancel
@@ -1496,7 +1498,7 @@ pub fn bigquery_jobs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
-    location: &Option<Option<String>>,
+    location: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1635,7 +1637,7 @@ pub struct BigqueryJobsDeleteArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
 }
 
 /// DELETE projects/{projectsId}/jobs/{jobsId}/delete
@@ -1671,7 +1673,7 @@ pub fn bigquery_jobs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
-    location: &Option<Option<String>>,
+    location: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1813,7 +1815,7 @@ pub struct BigqueryJobsGetArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
 }
 
 /// GET projects/{projectsId}/jobs/{jobsId}
@@ -1848,13 +1850,13 @@ pub fn bigquery_jobs_get_query_results_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     jobId: &String,
-    formatOptions_timestampOutputFormat: &Option<Option<String>>,
-    formatOptions_useInt64Timestamp: &Option<Option<String>>,
-    location: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startIndex: &Option<Option<String>>,
-    timeoutMs: &Option<Option<String>>,
+    formatOptions_timestampOutputFormat: &Option<String>,
+    formatOptions_useInt64Timestamp: &Option<String>,
+    location: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    startIndex: &Option<String>,
+    timeoutMs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2016,19 +2018,19 @@ pub struct BigqueryJobsGetQueryResultsArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: formatOptions_timestampOutputFormat
-    pub formatOptions_timestampOutputFormat: Option<Option<String>>,
+    pub formatOptions_timestampOutputFormat: Option<String>,
     /// Query parameter: formatOptions_useInt64Timestamp
-    pub formatOptions_useInt64Timestamp: Option<Option<String>>,
+    pub formatOptions_useInt64Timestamp: Option<String>,
     /// Query parameter: location
-    pub location: Option<Option<String>>,
+    pub location: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startIndex
-    pub startIndex: Option<Option<String>>,
+    pub startIndex: Option<String>,
     /// Query parameter: timeoutMs
-    pub timeoutMs: Option<Option<String>>,
+    pub timeoutMs: Option<String>,
 }
 
 /// GET projects/{projectsId}/queries/{queriesId}
@@ -2235,14 +2237,14 @@ pub fn bigquery_jobs_insert(
 pub fn bigquery_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
-    allUsers: &Option<Option<String>>,
-    maxCreationTime: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    minCreationTime: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parentJobId: &Option<Option<String>>,
-    projection: &Option<Option<String>>,
-    stateFilter: &Option<Option<String>>,
+    allUsers: &Option<String>,
+    maxCreationTime: &Option<String>,
+    maxResults: &Option<String>,
+    minCreationTime: &Option<String>,
+    pageToken: &Option<String>,
+    parentJobId: &Option<String>,
+    projection: &Option<String>,
+    stateFilter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2403,21 +2405,21 @@ pub struct BigqueryJobsListArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: allUsers
-    pub allUsers: Option<Option<String>>,
+    pub allUsers: Option<String>,
     /// Query parameter: maxCreationTime
-    pub maxCreationTime: Option<Option<String>>,
+    pub maxCreationTime: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: minCreationTime
-    pub minCreationTime: Option<Option<String>>,
+    pub minCreationTime: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parentJobId
-    pub parentJobId: Option<Option<String>>,
+    pub parentJobId: Option<String>,
     /// Query parameter: projection
-    pub projection: Option<Option<String>>,
+    pub projection: Option<String>,
     /// Query parameter: stateFilter
-    pub stateFilter: Option<Option<String>>,
+    pub stateFilter: Option<String>,
 }
 
 /// GET projects/{projectsId}/jobs
@@ -2958,8 +2960,8 @@ pub fn bigquery_models_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3106,9 +3108,9 @@ pub struct BigqueryModelsListArgs {
     /// Path parameter: datasetId
     pub datasetId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}/models
@@ -3480,8 +3482,8 @@ pub fn bigquery_projects_get_service_account(
 
 pub fn bigquery_projects_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3619,9 +3621,9 @@ pub fn bigquery_projects_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BigqueryProjectsListArgs {
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET projects
@@ -3825,7 +3827,7 @@ pub fn bigquery_routines_get_builder<R>(
     projectId: &String,
     datasetId: &String,
     routineId: &String,
-    readMask: &Option<Option<String>>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3969,7 +3971,7 @@ pub struct BigqueryRoutinesGetArgs {
     /// Path parameter: routineId
     pub routineId: String,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}
@@ -4333,10 +4335,10 @@ pub fn bigquery_routines_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
-    filter: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    filter: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4489,13 +4491,13 @@ pub struct BigqueryRoutinesListArgs {
     /// Path parameter: datasetId
     pub datasetId: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}/routines
@@ -5211,7 +5213,7 @@ pub fn bigquery_row_access_policies_delete_builder<R>(
     datasetId: &String,
     tableId: &String,
     policyId: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5357,7 +5359,7 @@ pub struct BigqueryRowAccessPoliciesDeleteArgs {
     /// Path parameter: policyId
     pub policyId: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}
@@ -5919,8 +5921,8 @@ pub fn bigquery_row_access_policies_list_builder<R>(
     projectId: &String,
     datasetId: &String,
     tableId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6073,9 +6075,9 @@ pub struct BigqueryRowAccessPoliciesListArgs {
     /// Path parameter: tableId
     pub tableId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies
@@ -6652,12 +6654,12 @@ pub fn bigquery_tabledata_list_builder<R>(
     projectId: &String,
     datasetId: &String,
     tableId: &String,
-    formatOptions_timestampOutputFormat: &Option<Option<String>>,
-    formatOptions_useInt64Timestamp: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    selectedFields: &Option<Option<String>>,
-    startIndex: &Option<Option<String>>,
+    formatOptions_timestampOutputFormat: &Option<String>,
+    formatOptions_useInt64Timestamp: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    selectedFields: &Option<String>,
+    startIndex: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6818,17 +6820,17 @@ pub struct BigqueryTabledataListArgs {
     /// Path parameter: tableId
     pub tableId: String,
     /// Query parameter: formatOptions_timestampOutputFormat
-    pub formatOptions_timestampOutputFormat: Option<Option<String>>,
+    pub formatOptions_timestampOutputFormat: Option<String>,
     /// Query parameter: formatOptions_useInt64Timestamp
-    pub formatOptions_useInt64Timestamp: Option<Option<String>>,
+    pub formatOptions_useInt64Timestamp: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: selectedFields
-    pub selectedFields: Option<Option<String>>,
+    pub selectedFields: Option<String>,
     /// Query parameter: startIndex
-    pub startIndex: Option<Option<String>>,
+    pub startIndex: Option<String>,
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/data
@@ -7041,8 +7043,8 @@ pub fn bigquery_tables_get_builder<R>(
     projectId: &String,
     datasetId: &String,
     tableId: &String,
-    selectedFields: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    selectedFields: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7189,9 +7191,9 @@ pub struct BigqueryTablesGetArgs {
     /// Path parameter: tableId
     pub tableId: String,
     /// Query parameter: selectedFields
-    pub selectedFields: Option<Option<String>>,
+    pub selectedFields: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
@@ -7556,8 +7558,8 @@ pub fn bigquery_tables_list_builder<R>(
     client: &SimpleHttpClient<R>,
     projectId: &String,
     datasetId: &String,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7702,9 +7704,9 @@ pub struct BigqueryTablesListArgs {
     /// Path parameter: datasetId
     pub datasetId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables
@@ -7746,7 +7748,7 @@ pub fn bigquery_tables_patch_builder<R>(
     projectId: &String,
     datasetId: &String,
     tableId: &String,
-    autodetect_schema: &Option<Option<String>>,
+    autodetect_schema: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7890,7 +7892,7 @@ pub struct BigqueryTablesPatchArgs {
     /// Path parameter: tableId
     pub tableId: String,
     /// Query parameter: autodetect_schema
-    pub autodetect_schema: Option<Option<String>>,
+    pub autodetect_schema: Option<String>,
 }
 
 /// PATCH projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
@@ -8260,7 +8262,7 @@ pub fn bigquery_tables_update_builder<R>(
     projectId: &String,
     datasetId: &String,
     tableId: &String,
-    autodetect_schema: &Option<Option<String>>,
+    autodetect_schema: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8404,7 +8406,7 @@ pub struct BigqueryTablesUpdateArgs {
     /// Path parameter: tableId
     pub tableId: String,
     /// Query parameter: autodetect_schema
-    pub autodetect_schema: Option<Option<String>>,
+    pub autodetect_schema: Option<String>,
 }
 
 /// PUT projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,7 +32,7 @@ use serde::Serialize;
 pub fn homegraph_agent_users_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     agentUserId: &String,
-    requestId: &Option<Option<String>>,
+    requestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -170,7 +172,7 @@ pub struct HomegraphAgentUsersDeleteArgs {
     /// Path parameter: agentUserId
     pub agentUserId: String,
     /// Query parameter: requestId
-    pub requestId: Option<Option<String>>,
+    pub requestId: Option<String>,
 }
 
 /// DELETE v1/agentUsers/{agentUsersId}
@@ -828,103 +830,6 @@ impl ResourceIdentifier<HomegraphAgentUsersDeleteArgs> for Empty {
 
     fn resource_kind(&self) -> &'static str {
         "gcp::homegraph::Empty"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for QueryResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for QueryResponse with HomegraphDevicesQueryArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<HomegraphDevicesQueryArgs> for QueryResponse {
-    fn generate_resource_id(&self, input: &HomegraphDevicesQueryArgs) -> String {
-        "gcp::homegraph::QueryResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::homegraph::QueryResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for ReportStateAndNotificationResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for ReportStateAndNotificationResponse with HomegraphDevicesReportStateAndNotificationArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<HomegraphDevicesReportStateAndNotificationArgs>
-    for ReportStateAndNotificationResponse
-{
-    fn generate_resource_id(
-        &self,
-        input: &HomegraphDevicesReportStateAndNotificationArgs,
-    ) -> String {
-        "gcp::homegraph::ReportStateAndNotificationResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::homegraph::ReportStateAndNotificationResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for RequestSyncDevicesResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for RequestSyncDevicesResponse with HomegraphDevicesRequestSyncArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<HomegraphDevicesRequestSyncArgs> for RequestSyncDevicesResponse {
-    fn generate_resource_id(&self, input: &HomegraphDevicesRequestSyncArgs) -> String {
-        "gcp::homegraph::RequestSyncDevicesResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::homegraph::RequestSyncDevicesResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SyncResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SyncResponse with HomegraphDevicesSyncArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<HomegraphDevicesSyncArgs> for SyncResponse {
-    fn generate_resource_id(&self, input: &HomegraphDevicesSyncArgs) -> String {
-        "gcp::homegraph::SyncResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::homegraph::SyncResponse"
     }
 
     fn provider(&self) -> &'static str {

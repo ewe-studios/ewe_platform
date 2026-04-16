@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -832,7 +834,7 @@ pub fn gmail_users_drafts_get_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-    format: &Option<Option<String>>,
+    format: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -974,7 +976,7 @@ pub struct GmailUsersDraftsGetArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: format
-    pub format: Option<Option<String>>,
+    pub format: Option<String>,
 }
 
 /// GET gmail/v1/users/{userId}/drafts/{id}
@@ -1008,10 +1010,10 @@ pub fn gmail_users_drafts_get(
 pub fn gmail_users_drafts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
-    includeSpamTrash: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    q: &Option<Option<String>>,
+    includeSpamTrash: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    q: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1162,13 +1164,13 @@ pub struct GmailUsersDraftsListArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: includeSpamTrash
-    pub includeSpamTrash: Option<Option<String>>,
+    pub includeSpamTrash: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
 }
 
 /// GET gmail/v1/users/{userId}/drafts
@@ -1534,11 +1536,11 @@ pub fn gmail_users_drafts_update(
 pub fn gmail_users_history_list_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
-    historyTypes: &Option<Option<String>>,
-    labelId: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    startHistoryId: &Option<Option<String>>,
+    historyTypes: &Option<String>,
+    labelId: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    startHistoryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1692,15 +1694,15 @@ pub struct GmailUsersHistoryListArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: historyTypes
-    pub historyTypes: Option<Option<String>>,
+    pub historyTypes: Option<String>,
     /// Query parameter: labelId
-    pub labelId: Option<Option<String>>,
+    pub labelId: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: startHistoryId
-    pub startHistoryId: Option<Option<String>>,
+    pub startHistoryId: Option<String>,
 }
 
 /// GET gmail/v1/users/{userId}/history
@@ -3192,8 +3194,8 @@ pub fn gmail_users_messages_get_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-    format: &Option<Option<String>>,
-    metadataHeaders: &Option<Option<String>>,
+    format: &Option<String>,
+    metadataHeaders: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3338,9 +3340,9 @@ pub struct GmailUsersMessagesGetArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: format
-    pub format: Option<Option<String>>,
+    pub format: Option<String>,
     /// Query parameter: metadataHeaders
-    pub metadataHeaders: Option<Option<String>>,
+    pub metadataHeaders: Option<String>,
 }
 
 /// GET gmail/v1/users/{userId}/messages/{id}
@@ -3380,10 +3382,10 @@ pub fn gmail_users_messages_get(
 pub fn gmail_users_messages_import_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
-    deleted: &Option<Option<String>>,
-    internalDateSource: &Option<Option<String>>,
-    neverMarkSpam: &Option<Option<String>>,
-    processForCalendar: &Option<Option<String>>,
+    deleted: &Option<String>,
+    internalDateSource: &Option<String>,
+    neverMarkSpam: &Option<String>,
+    processForCalendar: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3532,13 +3534,13 @@ pub struct GmailUsersMessagesImportArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
     /// Query parameter: internalDateSource
-    pub internalDateSource: Option<Option<String>>,
+    pub internalDateSource: Option<String>,
     /// Query parameter: neverMarkSpam
-    pub neverMarkSpam: Option<Option<String>>,
+    pub neverMarkSpam: Option<String>,
     /// Query parameter: processForCalendar
-    pub processForCalendar: Option<Option<String>>,
+    pub processForCalendar: Option<String>,
 }
 
 /// POST gmail/v1/users/{userId}/messages/import
@@ -3579,8 +3581,8 @@ pub fn gmail_users_messages_import(
 pub fn gmail_users_messages_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
-    deleted: &Option<Option<String>>,
-    internalDateSource: &Option<Option<String>>,
+    deleted: &Option<String>,
+    internalDateSource: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3723,9 +3725,9 @@ pub struct GmailUsersMessagesInsertArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: deleted
-    pub deleted: Option<Option<String>>,
+    pub deleted: Option<String>,
     /// Query parameter: internalDateSource
-    pub internalDateSource: Option<Option<String>>,
+    pub internalDateSource: Option<String>,
 }
 
 /// POST gmail/v1/users/{userId}/messages
@@ -3764,11 +3766,11 @@ pub fn gmail_users_messages_insert(
 pub fn gmail_users_messages_list_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
-    includeSpamTrash: &Option<Option<String>>,
-    labelIds: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    q: &Option<Option<String>>,
+    includeSpamTrash: &Option<String>,
+    labelIds: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    q: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3922,15 +3924,15 @@ pub struct GmailUsersMessagesListArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: includeSpamTrash
-    pub includeSpamTrash: Option<Option<String>>,
+    pub includeSpamTrash: Option<String>,
     /// Query parameter: labelIds
-    pub labelIds: Option<Option<String>>,
+    pub labelIds: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
 }
 
 /// GET gmail/v1/users/{userId}/messages
@@ -6921,8 +6923,8 @@ pub fn gmail_users_settings_cse_identities_get(
 pub fn gmail_users_settings_cse_identities_list_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7067,9 +7069,9 @@ pub struct GmailUsersSettingsCseIdentitiesListArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET gmail/v1/users/{userId}/settings/cse/identities
@@ -7929,8 +7931,8 @@ pub fn gmail_users_settings_cse_keypairs_get(
 pub fn gmail_users_settings_cse_keypairs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8075,9 +8077,9 @@ pub struct GmailUsersSettingsCseKeypairsListArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET gmail/v1/users/{userId}/settings/cse/keypairs
@@ -12389,8 +12391,8 @@ pub fn gmail_users_threads_get_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
     id: &String,
-    format: &Option<Option<String>>,
-    metadataHeaders: &Option<Option<String>>,
+    format: &Option<String>,
+    metadataHeaders: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12535,9 +12537,9 @@ pub struct GmailUsersThreadsGetArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: format
-    pub format: Option<Option<String>>,
+    pub format: Option<String>,
     /// Query parameter: metadataHeaders
-    pub metadataHeaders: Option<Option<String>>,
+    pub metadataHeaders: Option<String>,
 }
 
 /// GET gmail/v1/users/{userId}/threads/{id}
@@ -12577,11 +12579,11 @@ pub fn gmail_users_threads_get(
 pub fn gmail_users_threads_list_builder<R>(
     client: &SimpleHttpClient<R>,
     userId: &String,
-    includeSpamTrash: &Option<Option<String>>,
-    labelIds: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    q: &Option<Option<String>>,
+    includeSpamTrash: &Option<String>,
+    labelIds: &Option<String>,
+    maxResults: &Option<String>,
+    pageToken: &Option<String>,
+    q: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12735,15 +12737,15 @@ pub struct GmailUsersThreadsListArgs {
     /// Path parameter: userId
     pub userId: String,
     /// Query parameter: includeSpamTrash
-    pub includeSpamTrash: Option<Option<String>>,
+    pub includeSpamTrash: Option<String>,
     /// Query parameter: labelIds
-    pub labelIds: Option<Option<String>>,
+    pub labelIds: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: q
-    pub q: Option<Option<String>>,
+    pub q: Option<String>,
 }
 
 /// GET gmail/v1/users/{userId}/threads

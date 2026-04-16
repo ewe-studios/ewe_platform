@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -366,10 +368,10 @@ pub fn apihub_projects_locations_get(
 pub fn apihub_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -522,13 +524,13 @@ pub struct ApihubProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -752,10 +754,10 @@ pub fn apihub_projects_locations_lookup_runtime_project_attachment(
 pub fn apihub_projects_locations_retrieve_api_views_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -909,13 +911,13 @@ pub struct ApihubProjectsLocationsRetrieveApiViewsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:retrieveApiViews
@@ -1293,9 +1295,9 @@ pub fn apihub_projects_locations_addons_get(
 pub fn apihub_projects_locations_addons_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1445,11 +1447,11 @@ pub struct ApihubProjectsLocationsAddonsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addons
@@ -1661,7 +1663,7 @@ pub fn apihub_projects_locations_addons_manage_config(
 pub fn apihub_projects_locations_api_hub_instances_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    apiHubInstanceId: &Option<Option<String>>,
+    apiHubInstanceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1805,7 +1807,7 @@ pub struct ApihubProjectsLocationsApiHubInstancesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: apiHubInstanceId
-    pub apiHubInstanceId: Option<Option<String>>,
+    pub apiHubInstanceId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances
@@ -2352,7 +2354,7 @@ pub fn apihub_projects_locations_api_hub_instances_lookup(
 pub fn apihub_projects_locations_api_hub_instances_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2496,7 +2498,7 @@ pub struct ApihubProjectsLocationsApiHubInstancesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
@@ -2538,7 +2540,7 @@ pub fn apihub_projects_locations_api_hub_instances_patch(
 pub fn apihub_projects_locations_apis_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    apiId: &Option<Option<String>>,
+    apiId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2680,7 +2682,7 @@ pub struct ApihubProjectsLocationsApisCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: apiId
-    pub apiId: Option<Option<String>>,
+    pub apiId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis
@@ -2716,7 +2718,7 @@ pub fn apihub_projects_locations_apis_create(
 pub fn apihub_projects_locations_apis_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2856,7 +2858,7 @@ pub struct ApihubProjectsLocationsApisDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
@@ -3054,9 +3056,9 @@ pub fn apihub_projects_locations_apis_get(
 pub fn apihub_projects_locations_apis_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3206,11 +3208,11 @@ pub struct ApihubProjectsLocationsApisListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis
@@ -3254,7 +3256,7 @@ pub fn apihub_projects_locations_apis_list(
 pub fn apihub_projects_locations_apis_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3396,7 +3398,7 @@ pub struct ApihubProjectsLocationsApisPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
@@ -3433,7 +3435,7 @@ pub fn apihub_projects_locations_apis_patch(
 pub fn apihub_projects_locations_apis_versions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    versionId: &Option<Option<String>>,
+    versionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3577,7 +3579,7 @@ pub struct ApihubProjectsLocationsApisVersionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: versionId
-    pub versionId: Option<Option<String>>,
+    pub versionId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
@@ -3619,7 +3621,7 @@ pub fn apihub_projects_locations_apis_versions_create(
 pub fn apihub_projects_locations_apis_versions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3759,7 +3761,7 @@ pub struct ApihubProjectsLocationsApisVersionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
@@ -3962,9 +3964,9 @@ pub fn apihub_projects_locations_apis_versions_get(
 pub fn apihub_projects_locations_apis_versions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4115,11 +4117,11 @@ pub struct ApihubProjectsLocationsApisVersionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
@@ -4163,7 +4165,7 @@ pub fn apihub_projects_locations_apis_versions_list(
 pub fn apihub_projects_locations_apis_versions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4307,7 +4309,7 @@ pub struct ApihubProjectsLocationsApisVersionsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
@@ -4518,7 +4520,7 @@ pub fn apihub_projects_locations_apis_versions_definitions_get(
 pub fn apihub_projects_locations_apis_versions_operations_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    apiOperationId: &Option<Option<String>>,
+    apiOperationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4662,7 +4664,7 @@ pub struct ApihubProjectsLocationsApisVersionsOperationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: apiOperationId
-    pub apiOperationId: Option<Option<String>>,
+    pub apiOperationId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations
@@ -5034,9 +5036,9 @@ pub fn apihub_projects_locations_apis_versions_operations_get(
 pub fn apihub_projects_locations_apis_versions_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5187,11 +5189,11 @@ pub struct ApihubProjectsLocationsApisVersionsOperationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations
@@ -5235,7 +5237,7 @@ pub fn apihub_projects_locations_apis_versions_operations_list(
 pub fn apihub_projects_locations_apis_versions_operations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5379,7 +5381,7 @@ pub struct ApihubProjectsLocationsApisVersionsOperationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
@@ -5421,7 +5423,7 @@ pub fn apihub_projects_locations_apis_versions_operations_patch(
 pub fn apihub_projects_locations_apis_versions_specs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    specId: &Option<Option<String>>,
+    specId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5563,7 +5565,7 @@ pub struct ApihubProjectsLocationsApisVersionsSpecsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: specId
-    pub specId: Option<Option<String>>,
+    pub specId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
@@ -5763,7 +5765,7 @@ pub fn apihub_projects_locations_apis_versions_specs_delete(
 pub fn apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    specContentType: &Option<Option<String>>,
+    specContentType: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5915,7 +5917,7 @@ pub struct ApihubProjectsLocationsApisVersionsSpecsFetchAdditionalSpecContentArg
     /// Path parameter: name
     pub name: String,
     /// Query parameter: specContentType
-    pub specContentType: Option<Option<String>>,
+    pub specContentType: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:fetchAdditionalSpecContent
@@ -6454,9 +6456,9 @@ pub fn apihub_projects_locations_apis_versions_specs_lint(
 pub fn apihub_projects_locations_apis_versions_specs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6606,11 +6608,11 @@ pub struct ApihubProjectsLocationsApisVersionsSpecsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
@@ -6654,7 +6656,7 @@ pub fn apihub_projects_locations_apis_versions_specs_list(
 pub fn apihub_projects_locations_apis_versions_specs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6796,7 +6798,7 @@ pub struct ApihubProjectsLocationsApisVersionsSpecsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
@@ -6836,7 +6838,7 @@ pub fn apihub_projects_locations_apis_versions_specs_patch(
 pub fn apihub_projects_locations_attributes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    attributeId: &Option<Option<String>>,
+    attributeId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6980,7 +6982,7 @@ pub struct ApihubProjectsLocationsAttributesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: attributeId
-    pub attributeId: Option<Option<String>>,
+    pub attributeId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/attributes
@@ -7350,9 +7352,9 @@ pub fn apihub_projects_locations_attributes_get(
 pub fn apihub_projects_locations_attributes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7502,11 +7504,11 @@ pub struct ApihubProjectsLocationsAttributesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/attributes
@@ -7550,7 +7552,7 @@ pub fn apihub_projects_locations_attributes_list(
 pub fn apihub_projects_locations_attributes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7694,7 +7696,7 @@ pub struct ApihubProjectsLocationsAttributesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
@@ -7733,7 +7735,7 @@ pub fn apihub_projects_locations_attributes_patch(
 pub fn apihub_projects_locations_curations_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    curationId: &Option<Option<String>>,
+    curationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7877,7 +7879,7 @@ pub struct ApihubProjectsLocationsCurationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: curationId
-    pub curationId: Option<Option<String>>,
+    pub curationId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/curations
@@ -8244,9 +8246,9 @@ pub fn apihub_projects_locations_curations_get(
 pub fn apihub_projects_locations_curations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8396,11 +8398,11 @@ pub struct ApihubProjectsLocationsCurationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/curations
@@ -8444,7 +8446,7 @@ pub fn apihub_projects_locations_curations_list(
 pub fn apihub_projects_locations_curations_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8588,7 +8590,7 @@ pub struct ApihubProjectsLocationsCurationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
@@ -8627,7 +8629,7 @@ pub fn apihub_projects_locations_curations_patch(
 pub fn apihub_projects_locations_dependencies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dependencyId: &Option<Option<String>>,
+    dependencyId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8771,7 +8773,7 @@ pub struct ApihubProjectsLocationsDependenciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dependencyId
-    pub dependencyId: Option<Option<String>>,
+    pub dependencyId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dependencies
@@ -9141,9 +9143,9 @@ pub fn apihub_projects_locations_dependencies_get(
 pub fn apihub_projects_locations_dependencies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9294,11 +9296,11 @@ pub struct ApihubProjectsLocationsDependenciesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies
@@ -9342,7 +9344,7 @@ pub fn apihub_projects_locations_dependencies_list(
 pub fn apihub_projects_locations_dependencies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9486,7 +9488,7 @@ pub struct ApihubProjectsLocationsDependenciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
@@ -9525,7 +9527,7 @@ pub fn apihub_projects_locations_dependencies_patch(
 pub fn apihub_projects_locations_deployments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    deploymentId: &Option<Option<String>>,
+    deploymentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9669,7 +9671,7 @@ pub struct ApihubProjectsLocationsDeploymentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: deploymentId
-    pub deploymentId: Option<Option<String>>,
+    pub deploymentId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/deployments
@@ -10039,9 +10041,9 @@ pub fn apihub_projects_locations_deployments_get(
 pub fn apihub_projects_locations_deployments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10192,11 +10194,11 @@ pub struct ApihubProjectsLocationsDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
@@ -10240,7 +10242,7 @@ pub fn apihub_projects_locations_deployments_list(
 pub fn apihub_projects_locations_deployments_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10384,7 +10386,7 @@ pub struct ApihubProjectsLocationsDeploymentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
@@ -10593,8 +10595,8 @@ pub fn apihub_projects_locations_discovered_api_observations_get(
 pub fn apihub_projects_locations_discovered_api_observations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10748,9 +10750,9 @@ pub struct ApihubProjectsLocationsDiscoveredApiObservationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations
@@ -10973,8 +10975,8 @@ pub fn apihub_projects_locations_discovered_api_observations_discovered_api_oper
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11131,9 +11133,9 @@ pub struct ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperatio
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}/discoveredApiOperations
@@ -11176,7 +11178,7 @@ pub fn apihub_projects_locations_discovered_api_observations_discovered_api_oper
 pub fn apihub_projects_locations_external_apis_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    externalApiId: &Option<Option<String>>,
+    externalApiId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11320,7 +11322,7 @@ pub struct ApihubProjectsLocationsExternalApisCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: externalApiId
-    pub externalApiId: Option<Option<String>>,
+    pub externalApiId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/externalApis
@@ -11690,8 +11692,8 @@ pub fn apihub_projects_locations_external_apis_get(
 pub fn apihub_projects_locations_external_apis_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11839,9 +11841,9 @@ pub struct ApihubProjectsLocationsExternalApisListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis
@@ -11884,7 +11886,7 @@ pub fn apihub_projects_locations_external_apis_list(
 pub fn apihub_projects_locations_external_apis_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12028,7 +12030,7 @@ pub struct ApihubProjectsLocationsExternalApisPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
@@ -12070,7 +12072,7 @@ pub fn apihub_projects_locations_external_apis_patch(
 pub fn apihub_projects_locations_host_project_registrations_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    hostProjectRegistrationId: &Option<Option<String>>,
+    hostProjectRegistrationId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12215,7 +12217,7 @@ pub struct ApihubProjectsLocationsHostProjectRegistrationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: hostProjectRegistrationId
-    pub hostProjectRegistrationId: Option<Option<String>>,
+    pub hostProjectRegistrationId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations
@@ -12427,10 +12429,10 @@ pub fn apihub_projects_locations_host_project_registrations_get(
 pub fn apihub_projects_locations_host_project_registrations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12590,13 +12592,13 @@ pub struct ApihubProjectsLocationsHostProjectRegistrationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations
@@ -13132,10 +13134,10 @@ pub fn apihub_projects_locations_operations_get(
 pub fn apihub_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13289,13 +13291,13 @@ pub struct ApihubProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -13340,7 +13342,7 @@ pub fn apihub_projects_locations_operations_list(
 pub fn apihub_projects_locations_plugins_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pluginId: &Option<Option<String>>,
+    pluginId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13482,7 +13484,7 @@ pub struct ApihubProjectsLocationsPluginsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pluginId
-    pub pluginId: Option<Option<String>>,
+    pub pluginId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/plugins
@@ -14347,9 +14349,9 @@ pub fn apihub_projects_locations_plugins_get_style_guide(
 pub fn apihub_projects_locations_plugins_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14499,11 +14501,11 @@ pub struct ApihubProjectsLocationsPluginsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins
@@ -14547,7 +14549,7 @@ pub fn apihub_projects_locations_plugins_list(
 pub fn apihub_projects_locations_plugins_update_style_guide_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14691,7 +14693,7 @@ pub struct ApihubProjectsLocationsPluginsUpdateStyleGuideArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide
@@ -14733,7 +14735,7 @@ pub fn apihub_projects_locations_plugins_update_style_guide(
 pub fn apihub_projects_locations_plugins_instances_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pluginInstanceId: &Option<Option<String>>,
+    pluginInstanceId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14877,7 +14879,7 @@ pub struct ApihubProjectsLocationsPluginsInstancesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pluginInstanceId
-    pub pluginInstanceId: Option<Option<String>>,
+    pub pluginInstanceId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances
@@ -15762,9 +15764,9 @@ pub fn apihub_projects_locations_plugins_instances_get(
 pub fn apihub_projects_locations_plugins_instances_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15915,11 +15917,11 @@ pub struct ApihubProjectsLocationsPluginsInstancesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances
@@ -16142,7 +16144,7 @@ pub fn apihub_projects_locations_plugins_instances_manage_source_data(
 pub fn apihub_projects_locations_plugins_instances_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16286,7 +16288,7 @@ pub struct ApihubProjectsLocationsPluginsInstancesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
@@ -16497,7 +16499,7 @@ pub fn apihub_projects_locations_plugins_style_guide_get_contents(
 pub fn apihub_projects_locations_runtime_project_attachments_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    runtimeProjectAttachmentId: &Option<Option<String>>,
+    runtimeProjectAttachmentId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16642,7 +16644,7 @@ pub struct ApihubProjectsLocationsRuntimeProjectAttachmentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: runtimeProjectAttachmentId
-    pub runtimeProjectAttachmentId: Option<Option<String>>,
+    pub runtimeProjectAttachmentId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments
@@ -17015,10 +17017,10 @@ pub fn apihub_projects_locations_runtime_project_attachments_get(
 pub fn apihub_projects_locations_runtime_project_attachments_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17178,13 +17180,13 @@ pub struct ApihubProjectsLocationsRuntimeProjectAttachmentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments

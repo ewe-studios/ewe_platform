@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,7 +31,7 @@ use serde::Serialize;
 
 pub fn civicinfo_divisions_query_division_by_address_builder<R>(
     client: &SimpleHttpClient<R>,
-    address: &Option<Option<String>>,
+    address: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -169,7 +171,7 @@ pub fn civicinfo_divisions_query_division_by_address_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CivicinfoDivisionsQueryDivisionByAddressArgs {
     /// Query parameter: address
-    pub address: Option<Option<String>>,
+    pub address: Option<String>,
 }
 
 /// GET civicinfo/v2/divisionsByAddress
@@ -206,7 +208,7 @@ pub fn civicinfo_divisions_query_division_by_address(
 
 pub fn civicinfo_divisions_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    query: &Option<Option<String>>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -346,7 +348,7 @@ pub fn civicinfo_divisions_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CivicinfoDivisionsSearchArgs {
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET civicinfo/v2/divisions
@@ -383,7 +385,7 @@ pub fn civicinfo_divisions_search(
 
 pub fn civicinfo_elections_election_query_builder<R>(
     client: &SimpleHttpClient<R>,
-    productionDataOnly: &Option<Option<String>>,
+    productionDataOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -523,7 +525,7 @@ pub fn civicinfo_elections_election_query_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CivicinfoElectionsElectionQueryArgs {
     /// Query parameter: productionDataOnly
-    pub productionDataOnly: Option<Option<String>>,
+    pub productionDataOnly: Option<String>,
 }
 
 /// GET civicinfo/v2/elections
@@ -560,11 +562,11 @@ pub fn civicinfo_elections_election_query(
 
 pub fn civicinfo_elections_voter_info_query_builder<R>(
     client: &SimpleHttpClient<R>,
-    address: &Option<Option<String>>,
-    electionId: &Option<Option<String>>,
-    officialOnly: &Option<Option<String>>,
-    productionDataOnly: &Option<Option<String>>,
-    returnAllAvailableData: &Option<Option<String>>,
+    address: &Option<String>,
+    electionId: &Option<String>,
+    officialOnly: &Option<String>,
+    productionDataOnly: &Option<String>,
+    returnAllAvailableData: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -715,15 +717,15 @@ pub fn civicinfo_elections_voter_info_query_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CivicinfoElectionsVoterInfoQueryArgs {
     /// Query parameter: address
-    pub address: Option<Option<String>>,
+    pub address: Option<String>,
     /// Query parameter: electionId
-    pub electionId: Option<Option<String>>,
+    pub electionId: Option<String>,
     /// Query parameter: officialOnly
-    pub officialOnly: Option<Option<String>>,
+    pub officialOnly: Option<String>,
     /// Query parameter: productionDataOnly
-    pub productionDataOnly: Option<Option<String>>,
+    pub productionDataOnly: Option<String>,
     /// Query parameter: returnAllAvailableData
-    pub returnAllAvailableData: Option<Option<String>>,
+    pub returnAllAvailableData: Option<String>,
 }
 
 /// GET civicinfo/v2/voterinfo

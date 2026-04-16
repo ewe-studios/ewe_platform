@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -662,9 +664,9 @@ pub fn accesscontextmanager_access_policies_get_iam_policy(
 
 pub fn accesscontextmanager_access_policies_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    parent: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    parent: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -809,11 +811,11 @@ pub fn accesscontextmanager_access_policies_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccesscontextmanagerAccessPoliciesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: parent
-    pub parent: Option<Option<String>>,
+    pub parent: Option<String>,
 }
 
 /// GET v1/accessPolicies
@@ -856,7 +858,7 @@ pub fn accesscontextmanager_access_policies_list(
 pub fn accesscontextmanager_access_policies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -996,7 +998,7 @@ pub struct AccesscontextmanagerAccessPoliciesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/accessPolicies/{accessPoliciesId}
@@ -1683,7 +1685,7 @@ pub fn accesscontextmanager_access_policies_access_levels_delete(
 pub fn accesscontextmanager_access_policies_access_levels_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    accessLevelFormat: &Option<Option<String>>,
+    accessLevelFormat: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1823,7 +1825,7 @@ pub struct AccesscontextmanagerAccessPoliciesAccessLevelsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: accessLevelFormat
-    pub accessLevelFormat: Option<Option<String>>,
+    pub accessLevelFormat: Option<String>,
 }
 
 /// GET v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
@@ -1861,9 +1863,9 @@ pub fn accesscontextmanager_access_policies_access_levels_get(
 pub fn accesscontextmanager_access_policies_access_levels_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    accessLevelFormat: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    accessLevelFormat: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2011,11 +2013,11 @@ pub struct AccesscontextmanagerAccessPoliciesAccessLevelsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: accessLevelFormat
-    pub accessLevelFormat: Option<Option<String>>,
+    pub accessLevelFormat: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accessPolicies/{accessPoliciesId}/accessLevels
@@ -2057,7 +2059,7 @@ pub fn accesscontextmanager_access_policies_access_levels_list(
 pub fn accesscontextmanager_access_policies_access_levels_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2197,7 +2199,7 @@ pub struct AccesscontextmanagerAccessPoliciesAccessLevelsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
@@ -3060,8 +3062,8 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_get(
 pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3208,9 +3210,9 @@ pub struct AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
@@ -3253,7 +3255,7 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list(
 pub fn accesscontextmanager_access_policies_authorized_orgs_descs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3393,7 +3395,7 @@ pub struct AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
@@ -4083,8 +4085,8 @@ pub fn accesscontextmanager_access_policies_service_perimeters_get(
 pub fn accesscontextmanager_access_policies_service_perimeters_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4231,9 +4233,9 @@ pub struct AccesscontextmanagerAccessPoliciesServicePerimetersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters
@@ -4276,7 +4278,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_list(
 pub fn accesscontextmanager_access_policies_service_perimeters_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4416,7 +4418,7 @@ pub struct AccesscontextmanagerAccessPoliciesServicePerimetersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
@@ -5269,10 +5271,10 @@ pub fn accesscontextmanager_operations_get(
 
 pub fn accesscontextmanager_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5418,13 +5420,13 @@ pub fn accesscontextmanager_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccesscontextmanagerOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/operations
@@ -5957,8 +5959,8 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_get(
 pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6105,9 +6107,9 @@ pub struct AccesscontextmanagerOrganizationsGcpUserAccessBindingsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/gcpUserAccessBindings
@@ -6150,8 +6152,8 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list(
 pub fn accesscontextmanager_organizations_gcp_user_access_bindings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    append: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    append: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6294,9 +6296,9 @@ pub struct AccesscontextmanagerOrganizationsGcpUserAccessBindingsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: append
-    pub append: Option<Option<String>>,
+    pub append: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
@@ -6334,8 +6336,8 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_patch(
 
 pub fn accesscontextmanager_permissions_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6477,9 +6479,9 @@ pub fn accesscontextmanager_permissions_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccesscontextmanagerPermissionsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/permissions
@@ -6681,8 +6683,8 @@ pub fn accesscontextmanager_services_get(
 
 pub fn accesscontextmanager_services_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6824,9 +6826,9 @@ pub fn accesscontextmanager_services_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccesscontextmanagerServicesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/services
@@ -6854,29 +6856,6 @@ pub fn accesscontextmanager_services_list(
     let builder =
         accesscontextmanager_services_list_builder(client, &args.pageSize, &args.pageToken)?;
     accesscontextmanager_services_list_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesCreateArgs> for Operation {
-    fn generate_resource_id(&self, input: &AccesscontextmanagerAccessPoliciesCreateArgs) -> String {
-        "gcp::accesscontextmanager::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::accesscontextmanager::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================

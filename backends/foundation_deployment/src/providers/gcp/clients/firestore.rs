@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -366,7 +368,7 @@ pub fn firestore_projects_databases_clone(
 pub fn firestore_projects_databases_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    databaseId: &Option<Option<String>>,
+    databaseId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -510,7 +512,7 @@ pub struct FirestoreProjectsDatabasesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: databaseId
-    pub databaseId: Option<Option<String>>,
+    pub databaseId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/databases
@@ -549,7 +551,7 @@ pub fn firestore_projects_databases_create(
 pub fn firestore_projects_databases_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -693,7 +695,7 @@ pub struct FirestoreProjectsDatabasesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/databases/{databasesId}
@@ -1235,7 +1237,7 @@ pub fn firestore_projects_databases_import_documents(
 pub fn firestore_projects_databases_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    showDeleted: &Option<Option<String>>,
+    showDeleted: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1380,7 +1382,7 @@ pub struct FirestoreProjectsDatabasesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<Option<String>>,
+    pub showDeleted: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/databases
@@ -1419,7 +1421,7 @@ pub fn firestore_projects_databases_list(
 pub fn firestore_projects_databases_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1563,7 +1565,7 @@ pub struct FirestoreProjectsDatabasesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/databases/{databasesId}
@@ -2438,7 +2440,7 @@ pub fn firestore_projects_databases_backup_schedules_list(
 pub fn firestore_projects_databases_backup_schedules_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2582,7 +2584,7 @@ pub struct FirestoreProjectsDatabasesBackupSchedulesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
@@ -2793,9 +2795,9 @@ pub fn firestore_projects_databases_collection_groups_fields_get(
 pub fn firestore_projects_databases_collection_groups_fields_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2945,11 +2947,11 @@ pub struct FirestoreProjectsDatabasesCollectionGroupsFieldsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/fields
@@ -2993,7 +2995,7 @@ pub fn firestore_projects_databases_collection_groups_fields_list(
 pub fn firestore_projects_databases_collection_groups_fields_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3137,7 +3139,7 @@ pub struct FirestoreProjectsDatabasesCollectionGroupsFieldsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/fields/{fieldsId}
@@ -3680,9 +3682,9 @@ pub fn firestore_projects_databases_collection_groups_indexes_get(
 pub fn firestore_projects_databases_collection_groups_indexes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3832,11 +3834,11 @@ pub struct FirestoreProjectsDatabasesCollectionGroupsIndexesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/indexes
@@ -4539,8 +4541,8 @@ pub fn firestore_projects_databases_documents_create_document_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
     collectionId: &String,
-    documentId: &Option<Option<String>>,
-    mask_fieldPaths: &Option<Option<String>>,
+    documentId: &Option<String>,
+    mask_fieldPaths: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4686,9 +4688,9 @@ pub struct FirestoreProjectsDatabasesDocumentsCreateDocumentArgs {
     /// Path parameter: collectionId
     pub collectionId: String,
     /// Query parameter: documentId
-    pub documentId: Option<Option<String>>,
+    pub documentId: Option<String>,
     /// Query parameter: mask_fieldPaths
-    pub mask_fieldPaths: Option<Option<String>>,
+    pub mask_fieldPaths: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{collectionId}
@@ -4728,8 +4730,8 @@ pub fn firestore_projects_databases_documents_create_document(
 pub fn firestore_projects_databases_documents_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    currentDocument_exists: &Option<Option<String>>,
-    currentDocument_updateTime: &Option<Option<String>>,
+    currentDocument_exists: &Option<String>,
+    currentDocument_updateTime: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4872,9 +4874,9 @@ pub struct FirestoreProjectsDatabasesDocumentsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: currentDocument_exists
-    pub currentDocument_exists: Option<Option<String>>,
+    pub currentDocument_exists: Option<String>,
     /// Query parameter: currentDocument_updateTime
-    pub currentDocument_updateTime: Option<Option<String>>,
+    pub currentDocument_updateTime: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{documentsId1}
@@ -5078,9 +5080,9 @@ pub fn firestore_projects_databases_documents_execute_pipeline(
 pub fn firestore_projects_databases_documents_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    mask_fieldPaths: &Option<Option<String>>,
-    readTime: &Option<Option<String>>,
-    transaction: &Option<Option<String>>,
+    mask_fieldPaths: &Option<String>,
+    readTime: &Option<String>,
+    transaction: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5226,11 +5228,11 @@ pub struct FirestoreProjectsDatabasesDocumentsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: mask_fieldPaths
-    pub mask_fieldPaths: Option<Option<String>>,
+    pub mask_fieldPaths: Option<String>,
     /// Query parameter: readTime
-    pub readTime: Option<Option<String>>,
+    pub readTime: Option<String>,
     /// Query parameter: transaction
-    pub transaction: Option<Option<String>>,
+    pub transaction: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{documentsId1}
@@ -5271,13 +5273,13 @@ pub fn firestore_projects_databases_documents_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
     collectionId: &String,
-    mask_fieldPaths: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readTime: &Option<Option<String>>,
-    showMissing: &Option<Option<String>>,
-    transaction: &Option<Option<String>>,
+    mask_fieldPaths: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readTime: &Option<String>,
+    showMissing: &Option<String>,
+    transaction: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5440,19 +5442,19 @@ pub struct FirestoreProjectsDatabasesDocumentsListArgs {
     /// Path parameter: collectionId
     pub collectionId: String,
     /// Query parameter: mask_fieldPaths
-    pub mask_fieldPaths: Option<Option<String>>,
+    pub mask_fieldPaths: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readTime
-    pub readTime: Option<Option<String>>,
+    pub readTime: Option<String>,
     /// Query parameter: showMissing
-    pub showMissing: Option<Option<String>>,
+    pub showMissing: Option<String>,
     /// Query parameter: transaction
-    pub transaction: Option<Option<String>>,
+    pub transaction: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{documentsId1}/{collectionId}
@@ -5665,13 +5667,13 @@ pub fn firestore_projects_databases_documents_list_documents_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
     collectionId: &String,
-    mask_fieldPaths: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readTime: &Option<Option<String>>,
-    showMissing: &Option<Option<String>>,
-    transaction: &Option<Option<String>>,
+    mask_fieldPaths: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readTime: &Option<String>,
+    showMissing: &Option<String>,
+    transaction: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5833,19 +5835,19 @@ pub struct FirestoreProjectsDatabasesDocumentsListDocumentsArgs {
     /// Path parameter: collectionId
     pub collectionId: String,
     /// Query parameter: mask_fieldPaths
-    pub mask_fieldPaths: Option<Option<String>>,
+    pub mask_fieldPaths: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readTime
-    pub readTime: Option<Option<String>>,
+    pub readTime: Option<String>,
     /// Query parameter: showMissing
-    pub showMissing: Option<Option<String>>,
+    pub showMissing: Option<String>,
     /// Query parameter: transaction
-    pub transaction: Option<Option<String>>,
+    pub transaction: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents/{collectionId}
@@ -6221,10 +6223,10 @@ pub fn firestore_projects_databases_documents_partition_query(
 pub fn firestore_projects_databases_documents_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    currentDocument_exists: &Option<Option<String>>,
-    currentDocument_updateTime: &Option<Option<String>>,
-    mask_fieldPaths: &Option<Option<String>>,
-    updateMask_fieldPaths: &Option<Option<String>>,
+    currentDocument_exists: &Option<String>,
+    currentDocument_updateTime: &Option<String>,
+    mask_fieldPaths: &Option<String>,
+    updateMask_fieldPaths: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6373,13 +6375,13 @@ pub struct FirestoreProjectsDatabasesDocumentsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: currentDocument_exists
-    pub currentDocument_exists: Option<Option<String>>,
+    pub currentDocument_exists: Option<String>,
     /// Query parameter: currentDocument_updateTime
-    pub currentDocument_updateTime: Option<Option<String>>,
+    pub currentDocument_updateTime: Option<String>,
     /// Query parameter: mask_fieldPaths
-    pub mask_fieldPaths: Option<Option<String>>,
+    pub mask_fieldPaths: Option<String>,
     /// Query parameter: updateMask_fieldPaths
-    pub updateMask_fieldPaths: Option<Option<String>>,
+    pub updateMask_fieldPaths: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{documentsId1}
@@ -7565,10 +7567,10 @@ pub fn firestore_projects_databases_operations_get(
 pub fn firestore_projects_databases_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7722,13 +7724,13 @@ pub struct FirestoreProjectsDatabasesOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/databases/{databasesId}/operations
@@ -7773,7 +7775,7 @@ pub fn firestore_projects_databases_operations_list(
 pub fn firestore_projects_databases_user_creds_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    userCredsId: &Option<Option<String>>,
+    userCredsId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7917,7 +7919,7 @@ pub struct FirestoreProjectsDatabasesUserCredsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: userCredsId
-    pub userCredsId: Option<Option<String>>,
+    pub userCredsId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/databases/{databasesId}/userCreds
@@ -9121,10 +9123,10 @@ pub fn firestore_projects_locations_get(
 pub fn firestore_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9275,13 +9277,13 @@ pub struct FirestoreProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -9652,7 +9654,7 @@ pub fn firestore_projects_locations_backups_get(
 pub fn firestore_projects_locations_backups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9796,7 +9798,7 @@ pub struct FirestoreProjectsLocationsBackupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups

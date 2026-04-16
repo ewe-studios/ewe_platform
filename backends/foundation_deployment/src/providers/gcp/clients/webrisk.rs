@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,8 +31,8 @@ use serde::Serialize;
 
 pub fn webrisk_hashes_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    hashPrefix: &Option<Option<String>>,
-    threatTypes: &Option<Option<String>>,
+    hashPrefix: &Option<String>,
+    threatTypes: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -172,9 +174,9 @@ pub fn webrisk_hashes_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebriskHashesSearchArgs {
     /// Query parameter: hashPrefix
-    pub hashPrefix: Option<Option<String>>,
+    pub hashPrefix: Option<String>,
     /// Query parameter: threatTypes
-    pub threatTypes: Option<Option<String>>,
+    pub threatTypes: Option<String>,
 }
 
 /// GET v1/hashes:search
@@ -708,10 +710,10 @@ pub fn webrisk_projects_operations_get(
 pub fn webrisk_projects_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -865,13 +867,13 @@ pub struct WebriskProjectsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/operations
@@ -1083,11 +1085,11 @@ pub fn webrisk_projects_submissions_create(
 
 pub fn webrisk_threat_lists_compute_diff_builder<R>(
     client: &SimpleHttpClient<R>,
-    constraints_maxDatabaseEntries: &Option<Option<String>>,
-    constraints_maxDiffEntries: &Option<Option<String>>,
-    constraints_supportedCompressions: &Option<Option<String>>,
-    threatType: &Option<Option<String>>,
-    versionToken: &Option<Option<String>>,
+    constraints_maxDatabaseEntries: &Option<String>,
+    constraints_maxDiffEntries: &Option<String>,
+    constraints_supportedCompressions: &Option<String>,
+    threatType: &Option<String>,
+    versionToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1242,15 +1244,15 @@ pub fn webrisk_threat_lists_compute_diff_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebriskThreatListsComputeDiffArgs {
     /// Query parameter: constraints_maxDatabaseEntries
-    pub constraints_maxDatabaseEntries: Option<Option<String>>,
+    pub constraints_maxDatabaseEntries: Option<String>,
     /// Query parameter: constraints_maxDiffEntries
-    pub constraints_maxDiffEntries: Option<Option<String>>,
+    pub constraints_maxDiffEntries: Option<String>,
     /// Query parameter: constraints_supportedCompressions
-    pub constraints_supportedCompressions: Option<Option<String>>,
+    pub constraints_supportedCompressions: Option<String>,
     /// Query parameter: threatType
-    pub threatType: Option<Option<String>>,
+    pub threatType: Option<String>,
     /// Query parameter: versionToken
-    pub versionToken: Option<Option<String>>,
+    pub versionToken: Option<String>,
 }
 
 /// GET v1/threatLists:computeDiff
@@ -1294,8 +1296,8 @@ pub fn webrisk_threat_lists_compute_diff(
 
 pub fn webrisk_uris_search_builder<R>(
     client: &SimpleHttpClient<R>,
-    threatTypes: &Option<Option<String>>,
-    uri: &Option<Option<String>>,
+    threatTypes: &Option<String>,
+    uri: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1437,9 +1439,9 @@ pub fn webrisk_uris_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebriskUrisSearchArgs {
     /// Query parameter: threatTypes
-    pub threatTypes: Option<Option<String>>,
+    pub threatTypes: Option<String>,
     /// Query parameter: uri
-    pub uri: Option<Option<String>>,
+    pub uri: Option<String>,
 }
 
 /// GET v1/uris:search

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -338,7 +340,7 @@ pub fn alertcenter_alerts_batch_undelete(
 pub fn alertcenter_alerts_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     alertId: &String,
-    customerId: &Option<Option<String>>,
+    customerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -478,7 +480,7 @@ pub struct AlertcenterAlertsDeleteArgs {
     /// Path parameter: alertId
     pub alertId: String,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
 }
 
 /// DELETE v1beta1/alerts/{alertId}
@@ -512,7 +514,7 @@ pub fn alertcenter_alerts_delete(
 pub fn alertcenter_alerts_get_builder<R>(
     client: &SimpleHttpClient<R>,
     alertId: &String,
-    customerId: &Option<Option<String>>,
+    customerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -652,7 +654,7 @@ pub struct AlertcenterAlertsGetArgs {
     /// Path parameter: alertId
     pub alertId: String,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
 }
 
 /// GET v1beta1/alerts/{alertId}
@@ -686,7 +688,7 @@ pub fn alertcenter_alerts_get(
 pub fn alertcenter_alerts_get_metadata_builder<R>(
     client: &SimpleHttpClient<R>,
     alertId: &String,
-    customerId: &Option<Option<String>>,
+    customerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -828,7 +830,7 @@ pub struct AlertcenterAlertsGetMetadataArgs {
     /// Path parameter: alertId
     pub alertId: String,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
 }
 
 /// GET v1beta1/alerts/{alertId}/metadata
@@ -863,11 +865,11 @@ pub fn alertcenter_alerts_get_metadata(
 
 pub fn alertcenter_alerts_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    customerId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    customerId: &Option<String>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1016,15 +1018,15 @@ pub fn alertcenter_alerts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AlertcenterAlertsListArgs {
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1beta1/alerts
@@ -1227,7 +1229,7 @@ pub fn alertcenter_alerts_undelete(
 pub fn alertcenter_alerts_feedback_create_builder<R>(
     client: &SimpleHttpClient<R>,
     alertId: &String,
-    customerId: &Option<Option<String>>,
+    customerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1369,7 +1371,7 @@ pub struct AlertcenterAlertsFeedbackCreateArgs {
     /// Path parameter: alertId
     pub alertId: String,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
 }
 
 /// POST v1beta1/alerts/{alertId}/feedback
@@ -1406,8 +1408,8 @@ pub fn alertcenter_alerts_feedback_create(
 pub fn alertcenter_alerts_feedback_list_builder<R>(
     client: &SimpleHttpClient<R>,
     alertId: &String,
-    customerId: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
+    customerId: &Option<String>,
+    filter: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1552,9 +1554,9 @@ pub struct AlertcenterAlertsFeedbackListArgs {
     /// Path parameter: alertId
     pub alertId: String,
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
 }
 
 /// GET v1beta1/alerts/{alertId}/feedback
@@ -1594,7 +1596,7 @@ pub fn alertcenter_alerts_feedback_list(
 
 pub fn alertcenter_get_settings_builder<R>(
     client: &SimpleHttpClient<R>,
-    customerId: &Option<Option<String>>,
+    customerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1729,7 +1731,7 @@ pub fn alertcenter_get_settings_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AlertcenterGetSettingsArgs {
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
 }
 
 /// GET v1beta1/settings
@@ -1762,7 +1764,7 @@ pub fn alertcenter_get_settings(
 
 pub fn alertcenter_update_settings_builder<R>(
     client: &SimpleHttpClient<R>,
-    customerId: &Option<Option<String>>,
+    customerId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1897,7 +1899,7 @@ pub fn alertcenter_update_settings_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AlertcenterUpdateSettingsArgs {
     /// Query parameter: customerId
-    pub customerId: Option<Option<String>>,
+    pub customerId: Option<String>,
 }
 
 /// PATCH v1beta1/settings
@@ -1920,52 +1922,6 @@ pub fn alertcenter_update_settings(
 > {
     let builder = alertcenter_update_settings_builder(client, &args.customerId)?;
     alertcenter_update_settings_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BatchDeleteAlertsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for BatchDeleteAlertsResponse with AlertcenterAlertsBatchDeleteArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AlertcenterAlertsBatchDeleteArgs> for BatchDeleteAlertsResponse {
-    fn generate_resource_id(&self, input: &AlertcenterAlertsBatchDeleteArgs) -> String {
-        "gcp::alertcenter::BatchDeleteAlertsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::alertcenter::BatchDeleteAlertsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for BatchUndeleteAlertsResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for BatchUndeleteAlertsResponse with AlertcenterAlertsBatchUndeleteArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<AlertcenterAlertsBatchUndeleteArgs> for BatchUndeleteAlertsResponse {
-    fn generate_resource_id(&self, input: &AlertcenterAlertsBatchUndeleteArgs) -> String {
-        "gcp::alertcenter::BatchUndeleteAlertsResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::alertcenter::BatchUndeleteAlertsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }
 
 // =============================================================================

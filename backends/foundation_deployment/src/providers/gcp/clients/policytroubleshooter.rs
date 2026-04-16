@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -185,29 +187,4 @@ pub fn policytroubleshooter_iam_troubleshoot(
 > {
     let builder = policytroubleshooter_iam_troubleshoot_builder(client)?;
     policytroubleshooter_iam_troubleshoot_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse with PolicytroubleshooterIamTroubleshootArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<PolicytroubleshooterIamTroubleshootArgs>
-    for GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse
-{
-    fn generate_resource_id(&self, input: &PolicytroubleshooterIamTroubleshootArgs) -> String {
-        "gcp::policytroubleshooter::GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::policytroubleshooter::GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }

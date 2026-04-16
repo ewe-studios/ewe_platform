@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -198,7 +200,7 @@ pub fn androidpublisher_applications_data_safety(
 pub fn androidpublisher_applications_device_tier_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    allowUnknownDevices: &Option<Option<String>>,
+    allowUnknownDevices: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -340,7 +342,7 @@ pub struct AndroidpublisherApplicationsDeviceTierConfigsCreateArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: allowUnknownDevices
-    pub allowUnknownDevices: Option<Option<String>>,
+    pub allowUnknownDevices: Option<String>,
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/deviceTierConfigs
@@ -552,8 +554,8 @@ pub fn androidpublisher_applications_device_tier_configs_get(
 pub fn androidpublisher_applications_device_tier_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -700,9 +702,9 @@ pub struct AndroidpublisherApplicationsDeviceTierConfigsListArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
@@ -1593,7 +1595,7 @@ pub fn androidpublisher_apprecovery_deploy(
 pub fn androidpublisher_apprecovery_list_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    versionCode: &Option<Option<String>>,
+    versionCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1735,7 +1737,7 @@ pub struct AndroidpublisherApprecoveryListArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: versionCode
-    pub versionCode: Option<Option<String>>,
+    pub versionCode: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/appRecoveries
@@ -1773,8 +1775,8 @@ pub fn androidpublisher_edits_commit_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-    changesInReviewBehavior: &Option<Option<String>>,
-    changesNotSentForReview: &Option<Option<String>>,
+    changesInReviewBehavior: &Option<String>,
+    changesNotSentForReview: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1920,9 +1922,9 @@ pub struct AndroidpublisherEditsCommitArgs {
     /// Path parameter: editId
     pub editId: String,
     /// Query parameter: changesInReviewBehavior
-    pub changesInReviewBehavior: Option<Option<String>>,
+    pub changesInReviewBehavior: Option<String>,
     /// Query parameter: changesNotSentForReview
-    pub changesNotSentForReview: Option<Option<String>>,
+    pub changesNotSentForReview: Option<String>,
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/edits/{editId}:commit
@@ -3287,8 +3289,8 @@ pub fn androidpublisher_edits_bundles_upload_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
     editId: &String,
-    ackBundleInstallationWarning: &Option<Option<String>>,
-    deviceTierConfigId: &Option<Option<String>>,
+    ackBundleInstallationWarning: &Option<String>,
+    deviceTierConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3434,9 +3436,9 @@ pub struct AndroidpublisherEditsBundlesUploadArgs {
     /// Path parameter: editId
     pub editId: String,
     /// Query parameter: ackBundleInstallationWarning
-    pub ackBundleInstallationWarning: Option<Option<String>>,
+    pub ackBundleInstallationWarning: Option<String>,
     /// Query parameter: deviceTierConfigId
-    pub deviceTierConfigId: Option<Option<String>>,
+    pub deviceTierConfigId: Option<String>,
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/edits/{editId}/bundles
@@ -8184,7 +8186,7 @@ pub fn androidpublisher_edits_tracks_update(
 pub fn androidpublisher_externaltransactions_createexternaltransaction_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    externalTransactionId: &Option<Option<String>>,
+    externalTransactionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8326,7 +8328,7 @@ pub struct AndroidpublisherExternaltransactionsCreateexternaltransactionArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: externalTransactionId
-    pub externalTransactionId: Option<Option<String>>,
+    pub externalTransactionId: Option<String>,
 }
 
 /// POST androidpublisher/v3/applications/{applicationsId}/externalTransactions
@@ -9353,7 +9355,7 @@ pub fn androidpublisher_grants_delete(
 pub fn androidpublisher_grants_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9493,7 +9495,7 @@ pub struct AndroidpublisherGrantsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
@@ -9684,7 +9686,7 @@ pub fn androidpublisher_inappproducts_batch_delete(
 pub fn androidpublisher_inappproducts_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    sku: &Option<Option<String>>,
+    sku: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9828,7 +9830,7 @@ pub struct AndroidpublisherInappproductsBatchGetArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: sku
-    pub sku: Option<Option<String>>,
+    pub sku: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchGet
@@ -10036,7 +10038,7 @@ pub fn androidpublisher_inappproducts_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
     sku: &String,
-    latencyTolerance: &Option<Option<String>>,
+    latencyTolerance: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10176,7 +10178,7 @@ pub struct AndroidpublisherInappproductsDeleteArgs {
     /// Path parameter: sku
     pub sku: String,
     /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<Option<String>>,
+    pub latencyTolerance: Option<String>,
 }
 
 /// DELETE androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
@@ -10383,7 +10385,7 @@ pub fn androidpublisher_inappproducts_get(
 pub fn androidpublisher_inappproducts_insert_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    autoConvertMissingPrices: &Option<Option<String>>,
+    autoConvertMissingPrices: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10525,7 +10527,7 @@ pub struct AndroidpublisherInappproductsInsertArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: autoConvertMissingPrices
-    pub autoConvertMissingPrices: Option<Option<String>>,
+    pub autoConvertMissingPrices: Option<String>,
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/inappproducts
@@ -10565,9 +10567,9 @@ pub fn androidpublisher_inappproducts_insert(
 pub fn androidpublisher_inappproducts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    maxResults: &Option<Option<String>>,
-    startIndex: &Option<Option<String>>,
-    token: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    startIndex: &Option<String>,
+    token: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10715,11 +10717,11 @@ pub struct AndroidpublisherInappproductsListArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: startIndex
-    pub startIndex: Option<Option<String>>,
+    pub startIndex: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts
@@ -10762,8 +10764,8 @@ pub fn androidpublisher_inappproducts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
     sku: &String,
-    autoConvertMissingPrices: &Option<Option<String>>,
-    latencyTolerance: &Option<Option<String>>,
+    autoConvertMissingPrices: &Option<String>,
+    latencyTolerance: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10911,9 +10913,9 @@ pub struct AndroidpublisherInappproductsPatchArgs {
     /// Path parameter: sku
     pub sku: String,
     /// Query parameter: autoConvertMissingPrices
-    pub autoConvertMissingPrices: Option<Option<String>>,
+    pub autoConvertMissingPrices: Option<String>,
     /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<Option<String>>,
+    pub latencyTolerance: Option<String>,
 }
 
 /// PATCH androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
@@ -10956,9 +10958,9 @@ pub fn androidpublisher_inappproducts_update_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
     sku: &String,
-    allowMissing: &Option<Option<String>>,
-    autoConvertMissingPrices: &Option<Option<String>>,
-    latencyTolerance: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    autoConvertMissingPrices: &Option<String>,
+    latencyTolerance: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11109,11 +11111,11 @@ pub struct AndroidpublisherInappproductsUpdateArgs {
     /// Path parameter: sku
     pub sku: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: autoConvertMissingPrices
-    pub autoConvertMissingPrices: Option<Option<String>>,
+    pub autoConvertMissingPrices: Option<String>,
     /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<Option<String>>,
+    pub latencyTolerance: Option<String>,
 }
 
 /// PUT androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
@@ -11825,7 +11827,7 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete(
 pub fn androidpublisher_monetization_onetimeproducts_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    productIds: &Option<Option<String>>,
+    productIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11969,7 +11971,7 @@ pub struct AndroidpublisherMonetizationOnetimeproductsBatchGetArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: productIds
-    pub productIds: Option<Option<String>>,
+    pub productIds: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts:batchGet
@@ -12183,7 +12185,7 @@ pub fn androidpublisher_monetization_onetimeproducts_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
-    latencyTolerance: &Option<Option<String>>,
+    latencyTolerance: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12323,7 +12325,7 @@ pub struct AndroidpublisherMonetizationOnetimeproductsDeleteArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<Option<String>>,
+    pub latencyTolerance: Option<String>,
 }
 
 /// DELETE androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
@@ -12534,8 +12536,8 @@ pub fn androidpublisher_monetization_onetimeproducts_get(
 pub fn androidpublisher_monetization_onetimeproducts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12682,9 +12684,9 @@ pub struct AndroidpublisherMonetizationOnetimeproductsListArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts
@@ -12728,10 +12730,10 @@ pub fn androidpublisher_monetization_onetimeproducts_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
-    allowMissing: &Option<Option<String>>,
-    latencyTolerance: &Option<Option<String>>,
-    regionsVersion_version: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    latencyTolerance: &Option<String>,
+    regionsVersion_version: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12885,13 +12887,13 @@ pub struct AndroidpublisherMonetizationOnetimeproductsPatchArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<Option<String>>,
+    pub latencyTolerance: Option<String>,
     /// Query parameter: regionsVersion_version
-    pub regionsVersion_version: Option<Option<String>>,
+    pub regionsVersion_version: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH androidpublisher/v3/applications/{packageName}/onetimeproducts/{productId}
@@ -14578,8 +14580,8 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_lis
     packageName: &String,
     productId: &String,
     purchaseOptionId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14733,9 +14735,9 @@ pub struct AndroidpublisherMonetizationOnetimeproductsPurchaseOptionsOffersListA
     /// Path parameter: purchaseOptionId
     pub purchaseOptionId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}/purchaseOptions/{purchaseOptionId}/offers
@@ -14953,7 +14955,7 @@ pub fn androidpublisher_monetization_subscriptions_archive(
 pub fn androidpublisher_monetization_subscriptions_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    productIds: &Option<Option<String>>,
+    productIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15097,7 +15099,7 @@ pub struct AndroidpublisherMonetizationSubscriptionsBatchGetArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: productIds
-    pub productIds: Option<Option<String>>,
+    pub productIds: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions:batchGet
@@ -15310,8 +15312,8 @@ pub fn androidpublisher_monetization_subscriptions_batch_update(
 pub fn androidpublisher_monetization_subscriptions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    productId: &Option<Option<String>>,
-    regionsVersion_version: &Option<Option<String>>,
+    productId: &Option<String>,
+    regionsVersion_version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15456,9 +15458,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsCreateArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: productId
-    pub productId: Option<Option<String>>,
+    pub productId: Option<String>,
     /// Query parameter: regionsVersion_version
-    pub regionsVersion_version: Option<Option<String>>,
+    pub regionsVersion_version: Option<String>,
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/subscriptions
@@ -15836,9 +15838,9 @@ pub fn androidpublisher_monetization_subscriptions_get(
 pub fn androidpublisher_monetization_subscriptions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showArchived: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showArchived: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15986,11 +15988,11 @@ pub struct AndroidpublisherMonetizationSubscriptionsListArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showArchived
-    pub showArchived: Option<Option<String>>,
+    pub showArchived: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions
@@ -16033,10 +16035,10 @@ pub fn androidpublisher_monetization_subscriptions_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
     productId: &String,
-    allowMissing: &Option<Option<String>>,
-    latencyTolerance: &Option<Option<String>>,
-    regionsVersion_version: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    latencyTolerance: &Option<String>,
+    regionsVersion_version: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16190,13 +16192,13 @@ pub struct AndroidpublisherMonetizationSubscriptionsPatchArgs {
     /// Path parameter: productId
     pub productId: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<Option<String>>,
+    pub latencyTolerance: Option<String>,
     /// Query parameter: regionsVersion_version
-    pub regionsVersion_version: Option<Option<String>>,
+    pub regionsVersion_version: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
@@ -18041,8 +18043,8 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create_buil
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-    offerId: &Option<Option<String>>,
-    regionsVersion_version: &Option<Option<String>>,
+    offerId: &Option<String>,
+    regionsVersion_version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18193,9 +18195,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersCreateArgs {
     /// Path parameter: basePlanId
     pub basePlanId: String,
     /// Query parameter: offerId
-    pub offerId: Option<Option<String>>,
+    pub offerId: Option<String>,
     /// Query parameter: regionsVersion_version
-    pub regionsVersion_version: Option<Option<String>>,
+    pub regionsVersion_version: Option<String>,
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
@@ -18780,8 +18782,8 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list_builde
     packageName: &String,
     productId: &String,
     basePlanId: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18934,9 +18936,9 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersListArgs {
     /// Path parameter: basePlanId
     pub basePlanId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
@@ -18984,10 +18986,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch_build
     productId: &String,
     basePlanId: &String,
     offerId: &String,
-    allowMissing: &Option<Option<String>>,
-    latencyTolerance: &Option<Option<String>>,
-    regionsVersion_version: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    latencyTolerance: &Option<String>,
+    regionsVersion_version: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19147,13 +19149,13 @@ pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersPatchArgs {
     /// Path parameter: offerId
     pub offerId: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<Option<String>>,
+    pub latencyTolerance: Option<String>,
     /// Query parameter: regionsVersion_version
-    pub regionsVersion_version: Option<Option<String>>,
+    pub regionsVersion_version: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
@@ -19199,7 +19201,7 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch(
 pub fn androidpublisher_orders_batchget_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    orderIds: &Option<Option<String>>,
+    orderIds: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19341,7 +19343,7 @@ pub struct AndroidpublisherOrdersBatchgetArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: orderIds
-    pub orderIds: Option<Option<String>>,
+    pub orderIds: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/orders:batchGet
@@ -19542,7 +19544,7 @@ pub fn androidpublisher_orders_refund_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
     orderId: &String,
-    revoke: &Option<Option<String>>,
+    revoke: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19682,7 +19684,7 @@ pub struct AndroidpublisherOrdersRefundArgs {
     /// Path parameter: orderId
     pub orderId: String,
     /// Query parameter: revoke
-    pub revoke: Option<Option<String>>,
+    pub revoke: Option<String>,
 }
 
 /// POST androidpublisher/v3/applications/{packageName}/orders/{orderId}:refund
@@ -22148,13 +22150,13 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke(
 pub fn androidpublisher_purchases_voidedpurchases_list_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    endTime: &Option<Option<String>>,
-    includeQuantityBasedPartialRefund: &Option<Option<String>>,
-    maxResults: &Option<Option<String>>,
-    startIndex: &Option<Option<String>>,
-    startTime: &Option<Option<String>>,
-    token: &Option<Option<String>>,
-    type_rs: &Option<Option<String>>,
+    endTime: &Option<String>,
+    includeQuantityBasedPartialRefund: &Option<String>,
+    maxResults: &Option<String>,
+    startIndex: &Option<String>,
+    startTime: &Option<String>,
+    token: &Option<String>,
+    type_rs: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22316,19 +22318,19 @@ pub struct AndroidpublisherPurchasesVoidedpurchasesListArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: endTime
-    pub endTime: Option<Option<String>>,
+    pub endTime: Option<String>,
     /// Query parameter: includeQuantityBasedPartialRefund
-    pub includeQuantityBasedPartialRefund: Option<Option<String>>,
+    pub includeQuantityBasedPartialRefund: Option<String>,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: startIndex
-    pub startIndex: Option<Option<String>>,
+    pub startIndex: Option<String>,
     /// Query parameter: startTime
-    pub startTime: Option<Option<String>>,
+    pub startTime: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
     /// Query parameter: type
-    pub type_rs: Option<Option<String>>,
+    pub type_rs: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/purchases/voidedpurchases
@@ -22377,7 +22379,7 @@ pub fn androidpublisher_reviews_get_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
     reviewId: &String,
-    translationLanguage: &Option<Option<String>>,
+    translationLanguage: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22519,7 +22521,7 @@ pub struct AndroidpublisherReviewsGetArgs {
     /// Path parameter: reviewId
     pub reviewId: String,
     /// Query parameter: translationLanguage
-    pub translationLanguage: Option<Option<String>>,
+    pub translationLanguage: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/reviews/{reviewId}
@@ -22558,10 +22560,10 @@ pub fn androidpublisher_reviews_get(
 pub fn androidpublisher_reviews_list_builder<R>(
     client: &SimpleHttpClient<R>,
     packageName: &String,
-    maxResults: &Option<Option<String>>,
-    startIndex: &Option<Option<String>>,
-    token: &Option<Option<String>>,
-    translationLanguage: &Option<Option<String>>,
+    maxResults: &Option<String>,
+    startIndex: &Option<String>,
+    token: &Option<String>,
+    translationLanguage: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22712,13 +22714,13 @@ pub struct AndroidpublisherReviewsListArgs {
     /// Path parameter: packageName
     pub packageName: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<Option<String>>,
+    pub maxResults: Option<String>,
     /// Query parameter: startIndex
-    pub startIndex: Option<Option<String>>,
+    pub startIndex: Option<String>,
     /// Query parameter: token
-    pub token: Option<Option<String>>,
+    pub token: Option<String>,
     /// Query parameter: translationLanguage
-    pub translationLanguage: Option<Option<String>>,
+    pub translationLanguage: Option<String>,
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/reviews
@@ -23930,8 +23932,8 @@ pub fn androidpublisher_users_delete(
 pub fn androidpublisher_users_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24076,9 +24078,9 @@ pub struct AndroidpublisherUsersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET androidpublisher/v3/developers/{developersId}/users
@@ -24115,7 +24117,7 @@ pub fn androidpublisher_users_list(
 pub fn androidpublisher_users_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24255,7 +24257,7 @@ pub struct AndroidpublisherUsersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH androidpublisher/v3/developers/{developersId}/users/{usersId}

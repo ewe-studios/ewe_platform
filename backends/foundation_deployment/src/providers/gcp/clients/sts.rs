@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -175,27 +177,4 @@ pub fn sts_token(
 > {
     let builder = sts_token_builder(client)?;
     sts_token_execute(builder)
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for GoogleIdentityStsV1ExchangeTokenResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for GoogleIdentityStsV1ExchangeTokenResponse with StsTokenArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<StsTokenArgs> for GoogleIdentityStsV1ExchangeTokenResponse {
-    fn generate_resource_id(&self, input: &StsTokenArgs) -> String {
-        "gcp::sts::GoogleIdentityStsV1ExchangeTokenResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::sts::GoogleIdentityStsV1ExchangeTokenResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
 }

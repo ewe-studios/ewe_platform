@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,12 +32,12 @@ use serde::Serialize;
 pub fn cloudasset_assets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    assetTypes: &Option<Option<String>>,
-    contentType: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    readTime: &Option<Option<String>>,
-    relationshipTypes: &Option<Option<String>>,
+    assetTypes: &Option<String>,
+    contentType: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    readTime: &Option<String>,
+    relationshipTypes: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -192,17 +194,17 @@ pub struct CloudassetAssetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: assetTypes
-    pub assetTypes: Option<Option<String>>,
+    pub assetTypes: Option<String>,
     /// Query parameter: contentType
-    pub contentType: Option<Option<String>>,
+    pub contentType: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: readTime
-    pub readTime: Option<Option<String>>,
+    pub readTime: Option<String>,
     /// Query parameter: relationshipTypes
-    pub relationshipTypes: Option<Option<String>>,
+    pub relationshipTypes: Option<String>,
 }
 
 /// GET v1/{v1Id}/{v1Id1}/assets
@@ -247,7 +249,7 @@ pub fn cloudasset_assets_list(
 pub fn cloudasset_effective_iam_policies_batch_get_builder<R>(
     client: &SimpleHttpClient<R>,
     scope: &String,
-    names: &Option<Option<String>>,
+    names: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -391,7 +393,7 @@ pub struct CloudassetEffectiveIamPoliciesBatchGetArgs {
     /// Path parameter: scope
     pub scope: String,
     /// Query parameter: names
-    pub names: Option<Option<String>>,
+    pub names: Option<String>,
 }
 
 /// GET v1/{v1Id}/{v1Id1}/effectiveIamPolicies:batchGet
@@ -1394,7 +1396,7 @@ pub fn cloudasset_operations_get(
 pub fn cloudasset_saved_queries_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    savedQueryId: &Option<Option<String>>,
+    savedQueryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1534,7 +1536,7 @@ pub struct CloudassetSavedQueriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: savedQueryId
-    pub savedQueryId: Option<Option<String>>,
+    pub savedQueryId: Option<String>,
 }
 
 /// POST v1/{v1Id}/{v1Id1}/savedQueries
@@ -1889,9 +1891,9 @@ pub fn cloudasset_saved_queries_get(
 pub fn cloudasset_saved_queries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2039,11 +2041,11 @@ pub struct CloudassetSavedQueriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/{v1Id}/{v1Id1}/savedQueries
@@ -2085,7 +2087,7 @@ pub fn cloudasset_saved_queries_list(
 pub fn cloudasset_saved_queries_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2225,7 +2227,7 @@ pub struct CloudassetSavedQueriesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/{v1Id}/{v1Id1}/savedQueries/{savedQueriesId}
@@ -2259,19 +2261,19 @@ pub fn cloudasset_saved_queries_patch(
 pub fn cloudasset_analyze_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     scope: &String,
-    analysisQuery_accessSelector_permissions: &Option<Option<String>>,
-    analysisQuery_accessSelector_roles: &Option<Option<String>>,
-    analysisQuery_conditionContext_accessTime: &Option<Option<String>>,
-    analysisQuery_identitySelector_identity: &Option<Option<String>>,
-    analysisQuery_options_analyzeServiceAccountImpersonation: &Option<Option<String>>,
-    analysisQuery_options_expandGroups: &Option<Option<String>>,
-    analysisQuery_options_expandResources: &Option<Option<String>>,
-    analysisQuery_options_expandRoles: &Option<Option<String>>,
-    analysisQuery_options_outputGroupEdges: &Option<Option<String>>,
-    analysisQuery_options_outputResourceEdges: &Option<Option<String>>,
-    analysisQuery_resourceSelector_fullResourceName: &Option<Option<String>>,
-    executionTimeout: &Option<Option<String>>,
-    savedAnalysisQuery: &Option<Option<String>>,
+    analysisQuery_accessSelector_permissions: &Option<String>,
+    analysisQuery_accessSelector_roles: &Option<String>,
+    analysisQuery_conditionContext_accessTime: &Option<String>,
+    analysisQuery_identitySelector_identity: &Option<String>,
+    analysisQuery_options_analyzeServiceAccountImpersonation: &Option<String>,
+    analysisQuery_options_expandGroups: &Option<String>,
+    analysisQuery_options_expandResources: &Option<String>,
+    analysisQuery_options_expandRoles: &Option<String>,
+    analysisQuery_options_outputGroupEdges: &Option<String>,
+    analysisQuery_options_outputResourceEdges: &Option<String>,
+    analysisQuery_resourceSelector_fullResourceName: &Option<String>,
+    executionTimeout: &Option<String>,
+    savedAnalysisQuery: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2455,31 +2457,31 @@ pub struct CloudassetAnalyzeIamPolicyArgs {
     /// Path parameter: scope
     pub scope: String,
     /// Query parameter: analysisQuery_accessSelector_permissions
-    pub analysisQuery_accessSelector_permissions: Option<Option<String>>,
+    pub analysisQuery_accessSelector_permissions: Option<String>,
     /// Query parameter: analysisQuery_accessSelector_roles
-    pub analysisQuery_accessSelector_roles: Option<Option<String>>,
+    pub analysisQuery_accessSelector_roles: Option<String>,
     /// Query parameter: analysisQuery_conditionContext_accessTime
-    pub analysisQuery_conditionContext_accessTime: Option<Option<String>>,
+    pub analysisQuery_conditionContext_accessTime: Option<String>,
     /// Query parameter: analysisQuery_identitySelector_identity
-    pub analysisQuery_identitySelector_identity: Option<Option<String>>,
+    pub analysisQuery_identitySelector_identity: Option<String>,
     /// Query parameter: analysisQuery_options_analyzeServiceAccountImpersonation
-    pub analysisQuery_options_analyzeServiceAccountImpersonation: Option<Option<String>>,
+    pub analysisQuery_options_analyzeServiceAccountImpersonation: Option<String>,
     /// Query parameter: analysisQuery_options_expandGroups
-    pub analysisQuery_options_expandGroups: Option<Option<String>>,
+    pub analysisQuery_options_expandGroups: Option<String>,
     /// Query parameter: analysisQuery_options_expandResources
-    pub analysisQuery_options_expandResources: Option<Option<String>>,
+    pub analysisQuery_options_expandResources: Option<String>,
     /// Query parameter: analysisQuery_options_expandRoles
-    pub analysisQuery_options_expandRoles: Option<Option<String>>,
+    pub analysisQuery_options_expandRoles: Option<String>,
     /// Query parameter: analysisQuery_options_outputGroupEdges
-    pub analysisQuery_options_outputGroupEdges: Option<Option<String>>,
+    pub analysisQuery_options_outputGroupEdges: Option<String>,
     /// Query parameter: analysisQuery_options_outputResourceEdges
-    pub analysisQuery_options_outputResourceEdges: Option<Option<String>>,
+    pub analysisQuery_options_outputResourceEdges: Option<String>,
     /// Query parameter: analysisQuery_resourceSelector_fullResourceName
-    pub analysisQuery_resourceSelector_fullResourceName: Option<Option<String>>,
+    pub analysisQuery_resourceSelector_fullResourceName: Option<String>,
     /// Query parameter: executionTimeout
-    pub executionTimeout: Option<Option<String>>,
+    pub executionTimeout: Option<String>,
     /// Query parameter: savedAnalysisQuery
-    pub savedAnalysisQuery: Option<Option<String>>,
+    pub savedAnalysisQuery: Option<String>,
 }
 
 /// GET v1/{v1Id}/{v1Id1}:analyzeIamPolicy
@@ -2691,8 +2693,8 @@ pub fn cloudasset_analyze_iam_policy_longrunning(
 pub fn cloudasset_analyze_move_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    destinationParent: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    destinationParent: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2837,9 +2839,9 @@ pub struct CloudassetAnalyzeMoveArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: destinationParent
-    pub destinationParent: Option<Option<String>>,
+    pub destinationParent: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/{v1Id}/{v1Id1}:analyzeMove
@@ -2880,10 +2882,10 @@ pub fn cloudasset_analyze_move(
 pub fn cloudasset_analyze_org_policies_builder<R>(
     client: &SimpleHttpClient<R>,
     scope: &String,
-    constraint: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    constraint: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3036,13 +3038,13 @@ pub struct CloudassetAnalyzeOrgPoliciesArgs {
     /// Path parameter: scope
     pub scope: String,
     /// Query parameter: constraint
-    pub constraint: Option<Option<String>>,
+    pub constraint: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/{v1Id}/{v1Id1}:analyzeOrgPolicies
@@ -3087,10 +3089,10 @@ pub fn cloudasset_analyze_org_policies(
 pub fn cloudasset_analyze_org_policy_governed_assets_builder<R>(
     client: &SimpleHttpClient<R>,
     scope: &String,
-    constraint: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    constraint: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3243,13 +3245,13 @@ pub struct CloudassetAnalyzeOrgPolicyGovernedAssetsArgs {
     /// Path parameter: scope
     pub scope: String,
     /// Query parameter: constraint
-    pub constraint: Option<Option<String>>,
+    pub constraint: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/{v1Id}/{v1Id1}:analyzeOrgPolicyGovernedAssets
@@ -3294,10 +3296,10 @@ pub fn cloudasset_analyze_org_policy_governed_assets(
 pub fn cloudasset_analyze_org_policy_governed_containers_builder<R>(
     client: &SimpleHttpClient<R>,
     scope: &String,
-    constraint: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    constraint: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3451,13 +3453,13 @@ pub struct CloudassetAnalyzeOrgPolicyGovernedContainersArgs {
     /// Path parameter: scope
     pub scope: String,
     /// Query parameter: constraint
-    pub constraint: Option<Option<String>>,
+    pub constraint: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/{v1Id}/{v1Id1}:analyzeOrgPolicyGovernedContainers
@@ -3502,11 +3504,11 @@ pub fn cloudasset_analyze_org_policy_governed_containers(
 pub fn cloudasset_batch_get_assets_history_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    assetNames: &Option<Option<String>>,
-    contentType: &Option<Option<String>>,
-    readTimeWindow_endTime: &Option<Option<String>>,
-    readTimeWindow_startTime: &Option<Option<String>>,
-    relationshipTypes: &Option<Option<String>>,
+    assetNames: &Option<String>,
+    contentType: &Option<String>,
+    readTimeWindow_endTime: &Option<String>,
+    readTimeWindow_startTime: &Option<String>,
+    relationshipTypes: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3662,15 +3664,15 @@ pub struct CloudassetBatchGetAssetsHistoryArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: assetNames
-    pub assetNames: Option<Option<String>>,
+    pub assetNames: Option<String>,
     /// Query parameter: contentType
-    pub contentType: Option<Option<String>>,
+    pub contentType: Option<String>,
     /// Query parameter: readTimeWindow_endTime
-    pub readTimeWindow_endTime: Option<Option<String>>,
+    pub readTimeWindow_endTime: Option<String>,
     /// Query parameter: readTimeWindow_startTime
-    pub readTimeWindow_startTime: Option<Option<String>>,
+    pub readTimeWindow_startTime: Option<String>,
     /// Query parameter: relationshipTypes
-    pub relationshipTypes: Option<Option<String>>,
+    pub relationshipTypes: Option<String>,
 }
 
 /// GET v1/{v1Id}/{v1Id1}:batchGetAssetsHistory
@@ -4040,11 +4042,11 @@ pub fn cloudasset_query_assets(
 pub fn cloudasset_search_all_iam_policies_builder<R>(
     client: &SimpleHttpClient<R>,
     scope: &String,
-    assetTypes: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
+    assetTypes: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4200,15 +4202,15 @@ pub struct CloudassetSearchAllIamPoliciesArgs {
     /// Path parameter: scope
     pub scope: String,
     /// Query parameter: assetTypes
-    pub assetTypes: Option<Option<String>>,
+    pub assetTypes: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
 }
 
 /// GET v1/{v1Id}/{v1Id1}:searchAllIamPolicies
@@ -4254,12 +4256,12 @@ pub fn cloudasset_search_all_iam_policies(
 pub fn cloudasset_search_all_resources_builder<R>(
     client: &SimpleHttpClient<R>,
     scope: &String,
-    assetTypes: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    readMask: &Option<Option<String>>,
+    assetTypes: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    readMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4418,17 +4420,17 @@ pub struct CloudassetSearchAllResourcesArgs {
     /// Path parameter: scope
     pub scope: String,
     /// Query parameter: assetTypes
-    pub assetTypes: Option<Option<String>>,
+    pub assetTypes: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: readMask
-    pub readMask: Option<Option<String>>,
+    pub readMask: Option<String>,
 }
 
 /// GET v1/{v1Id}/{v1Id1}:searchAllResources

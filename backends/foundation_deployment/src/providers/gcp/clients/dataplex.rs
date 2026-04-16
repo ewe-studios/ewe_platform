@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,7 +32,7 @@ use serde::Serialize;
 pub fn dataplex_organizations_locations_encryption_configs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    encryptionConfigId: &Option<Option<String>>,
+    encryptionConfigId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -174,7 +176,7 @@ pub struct DataplexOrganizationsLocationsEncryptionConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: encryptionConfigId
-    pub encryptionConfigId: Option<Option<String>>,
+    pub encryptionConfigId: Option<String>,
 }
 
 /// POST v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs
@@ -216,7 +218,7 @@ pub fn dataplex_organizations_locations_encryption_configs_create(
 pub fn dataplex_organizations_locations_encryption_configs_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -360,7 +362,7 @@ pub struct DataplexOrganizationsLocationsEncryptionConfigsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}
@@ -569,7 +571,7 @@ pub fn dataplex_organizations_locations_encryption_configs_get(
 pub fn dataplex_organizations_locations_encryption_configs_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -711,7 +713,7 @@ pub struct DataplexOrganizationsLocationsEncryptionConfigsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}:getIamPolicy
@@ -751,10 +753,10 @@ pub fn dataplex_organizations_locations_encryption_configs_get_iam_policy(
 pub fn dataplex_organizations_locations_encryption_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -911,13 +913,13 @@ pub struct DataplexOrganizationsLocationsEncryptionConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs
@@ -962,7 +964,7 @@ pub fn dataplex_organizations_locations_encryption_configs_list(
 pub fn dataplex_organizations_locations_encryption_configs_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1106,7 +1108,7 @@ pub struct DataplexOrganizationsLocationsEncryptionConfigsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/organizations/{organizationsId}/locations/{locationsId}/encryptionConfigs/{encryptionConfigsId}
@@ -1975,10 +1977,10 @@ pub fn dataplex_organizations_locations_operations_get(
 pub fn dataplex_organizations_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2132,13 +2134,13 @@ pub struct DataplexOrganizationsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
@@ -2351,10 +2353,10 @@ pub fn dataplex_projects_locations_get(
 pub fn dataplex_projects_locations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    extraLocationTypes: &Option<Option<String>>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    extraLocationTypes: &Option<String>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2507,13 +2509,13 @@ pub struct DataplexProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<Option<String>>,
+    pub extraLocationTypes: Option<String>,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -2727,10 +2729,10 @@ pub fn dataplex_projects_locations_lookup_context(
 pub fn dataplex_projects_locations_lookup_entry_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    aspectTypes: &Option<Option<String>>,
-    entry: &Option<Option<String>>,
-    paths: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    aspectTypes: &Option<String>,
+    entry: &Option<String>,
+    paths: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2883,13 +2885,13 @@ pub struct DataplexProjectsLocationsLookupEntryArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: aspectTypes
-    pub aspectTypes: Option<Option<String>>,
+    pub aspectTypes: Option<String>,
     /// Query parameter: entry
-    pub entry: Option<Option<String>>,
+    pub entry: Option<String>,
     /// Query parameter: paths
-    pub paths: Option<Option<String>>,
+    pub paths: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:lookupEntry
@@ -2934,11 +2936,11 @@ pub fn dataplex_projects_locations_lookup_entry(
 pub fn dataplex_projects_locations_lookup_entry_links_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    entry: &Option<Option<String>>,
-    entryLinkTypes: &Option<Option<String>>,
-    entryMode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    entry: &Option<String>,
+    entryLinkTypes: &Option<String>,
+    entryMode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3095,15 +3097,15 @@ pub struct DataplexProjectsLocationsLookupEntryLinksArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: entry
-    pub entry: Option<Option<String>>,
+    pub entry: Option<String>,
     /// Query parameter: entryLinkTypes
-    pub entryLinkTypes: Option<Option<String>>,
+    pub entryLinkTypes: Option<String>,
     /// Query parameter: entryMode
-    pub entryMode: Option<Option<String>>,
+    pub entryMode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:lookupEntryLinks
@@ -3317,12 +3319,12 @@ pub fn dataplex_projects_locations_modify_entry(
 pub fn dataplex_projects_locations_search_entries_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    query: &Option<Option<String>>,
-    scope: &Option<Option<String>>,
-    semanticSearch: &Option<Option<String>>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    query: &Option<String>,
+    scope: &Option<String>,
+    semanticSearch: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3482,17 +3484,17 @@ pub struct DataplexProjectsLocationsSearchEntriesArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: query
-    pub query: Option<Option<String>>,
+    pub query: Option<String>,
     /// Query parameter: scope
-    pub scope: Option<Option<String>>,
+    pub scope: Option<String>,
     /// Query parameter: semanticSearch
-    pub semanticSearch: Option<Option<String>>,
+    pub semanticSearch: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}:searchEntries
@@ -3539,8 +3541,8 @@ pub fn dataplex_projects_locations_search_entries(
 pub fn dataplex_projects_locations_aspect_types_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    aspectTypeId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    aspectTypeId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3687,9 +3689,9 @@ pub struct DataplexProjectsLocationsAspectTypesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: aspectTypeId
-    pub aspectTypeId: Option<Option<String>>,
+    pub aspectTypeId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/aspectTypes
@@ -3732,7 +3734,7 @@ pub fn dataplex_projects_locations_aspect_types_create(
 pub fn dataplex_projects_locations_aspect_types_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3876,7 +3878,7 @@ pub struct DataplexProjectsLocationsAspectTypesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/aspectTypes/{aspectTypesId}
@@ -4083,7 +4085,7 @@ pub fn dataplex_projects_locations_aspect_types_get(
 pub fn dataplex_projects_locations_aspect_types_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4225,7 +4227,7 @@ pub struct DataplexProjectsLocationsAspectTypesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aspectTypes/{aspectTypesId}:getIamPolicy
@@ -4265,10 +4267,10 @@ pub fn dataplex_projects_locations_aspect_types_get_iam_policy(
 pub fn dataplex_projects_locations_aspect_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4422,13 +4424,13 @@ pub struct DataplexProjectsLocationsAspectTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aspectTypes
@@ -4473,8 +4475,8 @@ pub fn dataplex_projects_locations_aspect_types_list(
 pub fn dataplex_projects_locations_aspect_types_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4621,9 +4623,9 @@ pub struct DataplexProjectsLocationsAspectTypesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/aspectTypes/{aspectTypesId}
@@ -5002,7 +5004,7 @@ pub fn dataplex_projects_locations_aspect_types_test_iam_permissions(
 pub fn dataplex_projects_locations_change_requests_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5144,7 +5146,7 @@ pub struct DataplexProjectsLocationsChangeRequestsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/changeRequests/{changeRequestsId}:getIamPolicy
@@ -5520,8 +5522,8 @@ pub fn dataplex_projects_locations_change_requests_test_iam_permissions(
 pub fn dataplex_projects_locations_data_attribute_bindings_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataAttributeBindingId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    dataAttributeBindingId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5668,9 +5670,9 @@ pub struct DataplexProjectsLocationsDataAttributeBindingsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataAttributeBindingId
-    pub dataAttributeBindingId: Option<Option<String>>,
+    pub dataAttributeBindingId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataAttributeBindings
@@ -5713,7 +5715,7 @@ pub fn dataplex_projects_locations_data_attribute_bindings_create(
 pub fn dataplex_projects_locations_data_attribute_bindings_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5857,7 +5859,7 @@ pub struct DataplexProjectsLocationsDataAttributeBindingsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}
@@ -6066,7 +6068,7 @@ pub fn dataplex_projects_locations_data_attribute_bindings_get(
 pub fn dataplex_projects_locations_data_attribute_bindings_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6208,7 +6210,7 @@ pub struct DataplexProjectsLocationsDataAttributeBindingsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}:getIamPolicy
@@ -6248,10 +6250,10 @@ pub fn dataplex_projects_locations_data_attribute_bindings_get_iam_policy(
 pub fn dataplex_projects_locations_data_attribute_bindings_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6411,13 +6413,13 @@ pub struct DataplexProjectsLocationsDataAttributeBindingsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataAttributeBindings
@@ -6465,8 +6467,8 @@ pub fn dataplex_projects_locations_data_attribute_bindings_list(
 pub fn dataplex_projects_locations_data_attribute_bindings_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6613,9 +6615,9 @@ pub struct DataplexProjectsLocationsDataAttributeBindingsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataAttributeBindings/{dataAttributeBindingsId}
@@ -6997,7 +6999,7 @@ pub fn dataplex_projects_locations_data_attribute_bindings_test_iam_permissions(
 pub fn dataplex_projects_locations_data_domains_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7139,7 +7141,7 @@ pub struct DataplexProjectsLocationsDataDomainsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataDomains/{dataDomainsId}:getIamPolicy
@@ -7515,8 +7517,8 @@ pub fn dataplex_projects_locations_data_domains_test_iam_permissions(
 pub fn dataplex_projects_locations_data_products_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataProductId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    dataProductId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7663,9 +7665,9 @@ pub struct DataplexProjectsLocationsDataProductsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataProductId
-    pub dataProductId: Option<Option<String>>,
+    pub dataProductId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataProducts
@@ -7708,8 +7710,8 @@ pub fn dataplex_projects_locations_data_products_create(
 pub fn dataplex_projects_locations_data_products_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7856,9 +7858,9 @@ pub struct DataplexProjectsLocationsDataProductsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}
@@ -8069,7 +8071,7 @@ pub fn dataplex_projects_locations_data_products_get(
 pub fn dataplex_projects_locations_data_products_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8211,7 +8213,7 @@ pub struct DataplexProjectsLocationsDataProductsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}:getIamPolicy
@@ -8251,10 +8253,10 @@ pub fn dataplex_projects_locations_data_products_get_iam_policy(
 pub fn dataplex_projects_locations_data_products_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8408,13 +8410,13 @@ pub struct DataplexProjectsLocationsDataProductsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts
@@ -8459,8 +8461,8 @@ pub fn dataplex_projects_locations_data_products_list(
 pub fn dataplex_projects_locations_data_products_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8607,9 +8609,9 @@ pub struct DataplexProjectsLocationsDataProductsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}
@@ -8988,8 +8990,8 @@ pub fn dataplex_projects_locations_data_products_test_iam_permissions(
 pub fn dataplex_projects_locations_data_products_data_assets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataAssetId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    dataAssetId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9136,9 +9138,9 @@ pub struct DataplexProjectsLocationsDataProductsDataAssetsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataAssetId
-    pub dataAssetId: Option<Option<String>>,
+    pub dataAssetId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets
@@ -9181,8 +9183,8 @@ pub fn dataplex_projects_locations_data_products_data_assets_create(
 pub fn dataplex_projects_locations_data_products_data_assets_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    etag: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9329,9 +9331,9 @@ pub struct DataplexProjectsLocationsDataProductsDataAssetsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets/{dataAssetsId}
@@ -9543,10 +9545,10 @@ pub fn dataplex_projects_locations_data_products_data_assets_get(
 pub fn dataplex_projects_locations_data_products_data_assets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9700,13 +9702,13 @@ pub struct DataplexProjectsLocationsDataProductsDataAssetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets
@@ -9751,8 +9753,8 @@ pub fn dataplex_projects_locations_data_products_data_assets_list(
 pub fn dataplex_projects_locations_data_products_data_assets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9899,9 +9901,9 @@ pub struct DataplexProjectsLocationsDataProductsDataAssetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataProducts/{dataProductsId}/dataAssets/{dataAssetsId}
@@ -9944,8 +9946,8 @@ pub fn dataplex_projects_locations_data_products_data_assets_patch(
 pub fn dataplex_projects_locations_data_scans_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataScanId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    dataScanId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10092,9 +10094,9 @@ pub struct DataplexProjectsLocationsDataScansCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataScanId
-    pub dataScanId: Option<Option<String>>,
+    pub dataScanId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataScans
@@ -10137,7 +10139,7 @@ pub fn dataplex_projects_locations_data_scans_create(
 pub fn dataplex_projects_locations_data_scans_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    force: &Option<Option<String>>,
+    force: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10281,7 +10283,7 @@ pub struct DataplexProjectsLocationsDataScansDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: force
-    pub force: Option<Option<String>>,
+    pub force: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}
@@ -10500,7 +10502,7 @@ pub fn dataplex_projects_locations_data_scans_generate_data_quality_rules(
 pub fn dataplex_projects_locations_data_scans_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10644,7 +10646,7 @@ pub struct DataplexProjectsLocationsDataScansGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}
@@ -10683,7 +10685,7 @@ pub fn dataplex_projects_locations_data_scans_get(
 pub fn dataplex_projects_locations_data_scans_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10825,7 +10827,7 @@ pub struct DataplexProjectsLocationsDataScansGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}:getIamPolicy
@@ -10865,10 +10867,10 @@ pub fn dataplex_projects_locations_data_scans_get_iam_policy(
 pub fn dataplex_projects_locations_data_scans_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11022,13 +11024,13 @@ pub struct DataplexProjectsLocationsDataScansListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans
@@ -11073,8 +11075,8 @@ pub fn dataplex_projects_locations_data_scans_list(
 pub fn dataplex_projects_locations_data_scans_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11221,9 +11223,9 @@ pub struct DataplexProjectsLocationsDataScansPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}
@@ -11951,7 +11953,7 @@ pub fn dataplex_projects_locations_data_scans_jobs_generate_data_quality_rules(
 pub fn dataplex_projects_locations_data_scans_jobs_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12095,7 +12097,7 @@ pub struct DataplexProjectsLocationsDataScansJobsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}/jobs/{jobsId}
@@ -12134,9 +12136,9 @@ pub fn dataplex_projects_locations_data_scans_jobs_get(
 pub fn dataplex_projects_locations_data_scans_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12287,11 +12289,11 @@ pub struct DataplexProjectsLocationsDataScansJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataScans/{dataScansId}/jobs
@@ -12335,8 +12337,8 @@ pub fn dataplex_projects_locations_data_scans_jobs_list(
 pub fn dataplex_projects_locations_data_taxonomies_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataTaxonomyId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    dataTaxonomyId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12483,9 +12485,9 @@ pub struct DataplexProjectsLocationsDataTaxonomiesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataTaxonomyId
-    pub dataTaxonomyId: Option<Option<String>>,
+    pub dataTaxonomyId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies
@@ -12528,7 +12530,7 @@ pub fn dataplex_projects_locations_data_taxonomies_create(
 pub fn dataplex_projects_locations_data_taxonomies_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -12672,7 +12674,7 @@ pub struct DataplexProjectsLocationsDataTaxonomiesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}
@@ -12879,7 +12881,7 @@ pub fn dataplex_projects_locations_data_taxonomies_get(
 pub fn dataplex_projects_locations_data_taxonomies_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13021,7 +13023,7 @@ pub struct DataplexProjectsLocationsDataTaxonomiesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}:getIamPolicy
@@ -13061,10 +13063,10 @@ pub fn dataplex_projects_locations_data_taxonomies_get_iam_policy(
 pub fn dataplex_projects_locations_data_taxonomies_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13218,13 +13220,13 @@ pub struct DataplexProjectsLocationsDataTaxonomiesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies
@@ -13269,8 +13271,8 @@ pub fn dataplex_projects_locations_data_taxonomies_list(
 pub fn dataplex_projects_locations_data_taxonomies_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13417,9 +13419,9 @@ pub struct DataplexProjectsLocationsDataTaxonomiesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}
@@ -13798,8 +13800,8 @@ pub fn dataplex_projects_locations_data_taxonomies_test_iam_permissions(
 pub fn dataplex_projects_locations_data_taxonomies_attributes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    dataAttributeId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    dataAttributeId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -13946,9 +13948,9 @@ pub struct DataplexProjectsLocationsDataTaxonomiesAttributesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: dataAttributeId
-    pub dataAttributeId: Option<Option<String>>,
+    pub dataAttributeId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes
@@ -13991,7 +13993,7 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_create(
 pub fn dataplex_projects_locations_data_taxonomies_attributes_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14135,7 +14137,7 @@ pub struct DataplexProjectsLocationsDataTaxonomiesAttributesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}
@@ -14344,7 +14346,7 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_get(
 pub fn dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14486,7 +14488,7 @@ pub struct DataplexProjectsLocationsDataTaxonomiesAttributesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}:getIamPolicy
@@ -14526,10 +14528,10 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_get_iam_policy(
 pub fn dataplex_projects_locations_data_taxonomies_attributes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14683,13 +14685,13 @@ pub struct DataplexProjectsLocationsDataTaxonomiesAttributesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes
@@ -14734,8 +14736,8 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_list(
 pub fn dataplex_projects_locations_data_taxonomies_attributes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -14882,9 +14884,9 @@ pub struct DataplexProjectsLocationsDataTaxonomiesAttributesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/dataTaxonomies/{dataTaxonomiesId}/attributes/{attributesId}
@@ -15267,8 +15269,8 @@ pub fn dataplex_projects_locations_data_taxonomies_attributes_test_iam_permissio
 pub fn dataplex_projects_locations_entry_groups_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    entryGroupId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    entryGroupId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15415,9 +15417,9 @@ pub struct DataplexProjectsLocationsEntryGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: entryGroupId
-    pub entryGroupId: Option<Option<String>>,
+    pub entryGroupId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups
@@ -15460,7 +15462,7 @@ pub fn dataplex_projects_locations_entry_groups_create(
 pub fn dataplex_projects_locations_entry_groups_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15604,7 +15606,7 @@ pub struct DataplexProjectsLocationsEntryGroupsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
@@ -15811,7 +15813,7 @@ pub fn dataplex_projects_locations_entry_groups_get(
 pub fn dataplex_projects_locations_entry_groups_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -15953,7 +15955,7 @@ pub struct DataplexProjectsLocationsEntryGroupsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy
@@ -15993,10 +15995,10 @@ pub fn dataplex_projects_locations_entry_groups_get_iam_policy(
 pub fn dataplex_projects_locations_entry_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16150,13 +16152,13 @@ pub struct DataplexProjectsLocationsEntryGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups
@@ -16201,8 +16203,8 @@ pub fn dataplex_projects_locations_entry_groups_list(
 pub fn dataplex_projects_locations_entry_groups_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16349,9 +16351,9 @@ pub struct DataplexProjectsLocationsEntryGroupsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
@@ -16730,7 +16732,7 @@ pub fn dataplex_projects_locations_entry_groups_test_iam_permissions(
 pub fn dataplex_projects_locations_entry_groups_entries_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    entryId: &Option<Option<String>>,
+    entryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -16874,7 +16876,7 @@ pub struct DataplexProjectsLocationsEntryGroupsEntriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: entryId
-    pub entryId: Option<Option<String>>,
+    pub entryId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
@@ -17085,9 +17087,9 @@ pub fn dataplex_projects_locations_entry_groups_entries_delete(
 pub fn dataplex_projects_locations_entry_groups_entries_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    aspectTypes: &Option<Option<String>>,
-    paths: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    aspectTypes: &Option<String>,
+    paths: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17237,11 +17239,11 @@ pub struct DataplexProjectsLocationsEntryGroupsEntriesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: aspectTypes
-    pub aspectTypes: Option<Option<String>>,
+    pub aspectTypes: Option<String>,
     /// Query parameter: paths
-    pub paths: Option<Option<String>>,
+    pub paths: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
@@ -17285,9 +17287,9 @@ pub fn dataplex_projects_locations_entry_groups_entries_get(
 pub fn dataplex_projects_locations_entry_groups_entries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17437,11 +17439,11 @@ pub struct DataplexProjectsLocationsEntryGroupsEntriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
@@ -17485,10 +17487,10 @@ pub fn dataplex_projects_locations_entry_groups_entries_list(
 pub fn dataplex_projects_locations_entry_groups_entries_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    aspectKeys: &Option<Option<String>>,
-    deleteMissingAspects: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    aspectKeys: &Option<String>,
+    deleteMissingAspects: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17641,13 +17643,13 @@ pub struct DataplexProjectsLocationsEntryGroupsEntriesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: aspectKeys
-    pub aspectKeys: Option<Option<String>>,
+    pub aspectKeys: Option<String>,
     /// Query parameter: deleteMissingAspects
-    pub deleteMissingAspects: Option<Option<String>>,
+    pub deleteMissingAspects: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
@@ -17692,7 +17694,7 @@ pub fn dataplex_projects_locations_entry_groups_entries_patch(
 pub fn dataplex_projects_locations_entry_groups_entry_links_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    entryLinkId: &Option<Option<String>>,
+    entryLinkId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -17836,7 +17838,7 @@ pub struct DataplexProjectsLocationsEntryGroupsEntryLinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: entryLinkId
-    pub entryLinkId: Option<Option<String>>,
+    pub entryLinkId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entryLinks
@@ -18216,8 +18218,8 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_get(
 pub fn dataplex_projects_locations_entry_groups_entry_links_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    allowMissing: &Option<Option<String>>,
-    aspectKeys: &Option<Option<String>>,
+    allowMissing: &Option<String>,
+    aspectKeys: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18364,9 +18366,9 @@ pub struct DataplexProjectsLocationsEntryGroupsEntryLinksPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<Option<String>>,
+    pub allowMissing: Option<String>,
     /// Query parameter: aspectKeys
-    pub aspectKeys: Option<Option<String>>,
+    pub aspectKeys: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entryLinks/{entryLinksId}
@@ -18409,7 +18411,7 @@ pub fn dataplex_projects_locations_entry_groups_entry_links_patch(
 pub fn dataplex_projects_locations_entry_link_types_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -18551,7 +18553,7 @@ pub struct DataplexProjectsLocationsEntryLinkTypesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryLinkTypes/{entryLinkTypesId}:getIamPolicy
@@ -18929,8 +18931,8 @@ pub fn dataplex_projects_locations_entry_link_types_test_iam_permissions(
 pub fn dataplex_projects_locations_entry_types_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    entryTypeId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    entryTypeId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19077,9 +19079,9 @@ pub struct DataplexProjectsLocationsEntryTypesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: entryTypeId
-    pub entryTypeId: Option<Option<String>>,
+    pub entryTypeId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/entryTypes
@@ -19122,7 +19124,7 @@ pub fn dataplex_projects_locations_entry_types_create(
 pub fn dataplex_projects_locations_entry_types_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19266,7 +19268,7 @@ pub struct DataplexProjectsLocationsEntryTypesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryTypes/{entryTypesId}
@@ -19473,7 +19475,7 @@ pub fn dataplex_projects_locations_entry_types_get(
 pub fn dataplex_projects_locations_entry_types_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19615,7 +19617,7 @@ pub struct DataplexProjectsLocationsEntryTypesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryTypes/{entryTypesId}:getIamPolicy
@@ -19655,10 +19657,10 @@ pub fn dataplex_projects_locations_entry_types_get_iam_policy(
 pub fn dataplex_projects_locations_entry_types_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -19812,13 +19814,13 @@ pub struct DataplexProjectsLocationsEntryTypesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entryTypes
@@ -19863,8 +19865,8 @@ pub fn dataplex_projects_locations_entry_types_list(
 pub fn dataplex_projects_locations_entry_types_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20011,9 +20013,9 @@ pub struct DataplexProjectsLocationsEntryTypesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryTypes/{entryTypesId}
@@ -20392,8 +20394,8 @@ pub fn dataplex_projects_locations_entry_types_test_iam_permissions(
 pub fn dataplex_projects_locations_glossaries_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    glossaryId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    glossaryId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20540,9 +20542,9 @@ pub struct DataplexProjectsLocationsGlossariesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: glossaryId
-    pub glossaryId: Option<Option<String>>,
+    pub glossaryId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/glossaries
@@ -20585,7 +20587,7 @@ pub fn dataplex_projects_locations_glossaries_create(
 pub fn dataplex_projects_locations_glossaries_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -20729,7 +20731,7 @@ pub struct DataplexProjectsLocationsGlossariesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
@@ -20936,7 +20938,7 @@ pub fn dataplex_projects_locations_glossaries_get(
 pub fn dataplex_projects_locations_glossaries_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21078,7 +21080,7 @@ pub struct DataplexProjectsLocationsGlossariesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}:getIamPolicy
@@ -21118,10 +21120,10 @@ pub fn dataplex_projects_locations_glossaries_get_iam_policy(
 pub fn dataplex_projects_locations_glossaries_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21275,13 +21277,13 @@ pub struct DataplexProjectsLocationsGlossariesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries
@@ -21326,8 +21328,8 @@ pub fn dataplex_projects_locations_glossaries_list(
 pub fn dataplex_projects_locations_glossaries_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21474,9 +21476,9 @@ pub struct DataplexProjectsLocationsGlossariesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}
@@ -21855,7 +21857,7 @@ pub fn dataplex_projects_locations_glossaries_test_iam_permissions(
 pub fn dataplex_projects_locations_glossaries_categories_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    categoryId: &Option<Option<String>>,
+    categoryId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -21999,7 +22001,7 @@ pub struct DataplexProjectsLocationsGlossariesCategoriesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: categoryId
-    pub categoryId: Option<Option<String>>,
+    pub categoryId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/categories
@@ -22371,7 +22373,7 @@ pub fn dataplex_projects_locations_glossaries_categories_get(
 pub fn dataplex_projects_locations_glossaries_categories_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22513,7 +22515,7 @@ pub struct DataplexProjectsLocationsGlossariesCategoriesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}:getIamPolicy
@@ -22553,10 +22555,10 @@ pub fn dataplex_projects_locations_glossaries_categories_get_iam_policy(
 pub fn dataplex_projects_locations_glossaries_categories_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22713,13 +22715,13 @@ pub struct DataplexProjectsLocationsGlossariesCategoriesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/categories
@@ -22764,7 +22766,7 @@ pub fn dataplex_projects_locations_glossaries_categories_list(
 pub fn dataplex_projects_locations_glossaries_categories_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -22908,7 +22910,7 @@ pub struct DataplexProjectsLocationsGlossariesCategoriesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/categories/{categoriesId}
@@ -23289,7 +23291,7 @@ pub fn dataplex_projects_locations_glossaries_categories_test_iam_permissions(
 pub fn dataplex_projects_locations_glossaries_terms_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    termId: &Option<Option<String>>,
+    termId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23433,7 +23435,7 @@ pub struct DataplexProjectsLocationsGlossariesTermsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: termId
-    pub termId: Option<Option<String>>,
+    pub termId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/terms
@@ -23803,7 +23805,7 @@ pub fn dataplex_projects_locations_glossaries_terms_get(
 pub fn dataplex_projects_locations_glossaries_terms_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -23945,7 +23947,7 @@ pub struct DataplexProjectsLocationsGlossariesTermsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}:getIamPolicy
@@ -23985,10 +23987,10 @@ pub fn dataplex_projects_locations_glossaries_terms_get_iam_policy(
 pub fn dataplex_projects_locations_glossaries_terms_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24142,13 +24144,13 @@ pub struct DataplexProjectsLocationsGlossariesTermsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/terms
@@ -24193,7 +24195,7 @@ pub fn dataplex_projects_locations_glossaries_terms_list(
 pub fn dataplex_projects_locations_glossaries_terms_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24337,7 +24339,7 @@ pub struct DataplexProjectsLocationsGlossariesTermsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/glossaries/{glossariesId}/terms/{termsId}
@@ -24717,7 +24719,7 @@ pub fn dataplex_projects_locations_glossaries_terms_test_iam_permissions(
 pub fn dataplex_projects_locations_governance_rules_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -24859,7 +24861,7 @@ pub struct DataplexProjectsLocationsGovernanceRulesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/governanceRules/{governanceRulesId}:getIamPolicy
@@ -25237,8 +25239,8 @@ pub fn dataplex_projects_locations_governance_rules_test_iam_permissions(
 pub fn dataplex_projects_locations_lakes_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    lakeId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    lakeId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25385,9 +25387,9 @@ pub struct DataplexProjectsLocationsLakesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: lakeId
-    pub lakeId: Option<Option<String>>,
+    pub lakeId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/lakes
@@ -25762,7 +25764,7 @@ pub fn dataplex_projects_locations_lakes_get(
 pub fn dataplex_projects_locations_lakes_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -25904,7 +25906,7 @@ pub struct DataplexProjectsLocationsLakesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}:getIamPolicy
@@ -25944,10 +25946,10 @@ pub fn dataplex_projects_locations_lakes_get_iam_policy(
 pub fn dataplex_projects_locations_lakes_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26100,13 +26102,13 @@ pub struct DataplexProjectsLocationsLakesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes
@@ -26151,8 +26153,8 @@ pub fn dataplex_projects_locations_lakes_list(
 pub fn dataplex_projects_locations_lakes_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26299,9 +26301,9 @@ pub struct DataplexProjectsLocationsLakesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}
@@ -26677,8 +26679,8 @@ pub fn dataplex_projects_locations_lakes_test_iam_permissions(
 pub fn dataplex_projects_locations_lakes_actions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -26825,9 +26827,9 @@ pub struct DataplexProjectsLocationsLakesActionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/actions
@@ -26870,8 +26872,8 @@ pub fn dataplex_projects_locations_lakes_actions_list(
 pub fn dataplex_projects_locations_lakes_tasks_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    taskId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    taskId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27018,9 +27020,9 @@ pub struct DataplexProjectsLocationsLakesTasksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: taskId
-    pub taskId: Option<Option<String>>,
+    pub taskId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks
@@ -27395,7 +27397,7 @@ pub fn dataplex_projects_locations_lakes_tasks_get(
 pub fn dataplex_projects_locations_lakes_tasks_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27537,7 +27539,7 @@ pub struct DataplexProjectsLocationsLakesTasksGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}:getIamPolicy
@@ -27577,10 +27579,10 @@ pub fn dataplex_projects_locations_lakes_tasks_get_iam_policy(
 pub fn dataplex_projects_locations_lakes_tasks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27733,13 +27735,13 @@ pub struct DataplexProjectsLocationsLakesTasksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks
@@ -27784,8 +27786,8 @@ pub fn dataplex_projects_locations_lakes_tasks_list(
 pub fn dataplex_projects_locations_lakes_tasks_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -27932,9 +27934,9 @@ pub struct DataplexProjectsLocationsLakesTasksPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}
@@ -28805,8 +28807,8 @@ pub fn dataplex_projects_locations_lakes_tasks_jobs_get(
 pub fn dataplex_projects_locations_lakes_tasks_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -28953,9 +28955,9 @@ pub struct DataplexProjectsLocationsLakesTasksJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/tasks/{tasksId}/jobs
@@ -28998,8 +29000,8 @@ pub fn dataplex_projects_locations_lakes_tasks_jobs_list(
 pub fn dataplex_projects_locations_lakes_zones_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    validateOnly: &Option<Option<String>>,
-    zoneId: &Option<Option<String>>,
+    validateOnly: &Option<String>,
+    zoneId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29146,9 +29148,9 @@ pub struct DataplexProjectsLocationsLakesZonesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
     /// Query parameter: zoneId
-    pub zoneId: Option<Option<String>>,
+    pub zoneId: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones
@@ -29523,7 +29525,7 @@ pub fn dataplex_projects_locations_lakes_zones_get(
 pub fn dataplex_projects_locations_lakes_zones_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29665,7 +29667,7 @@ pub struct DataplexProjectsLocationsLakesZonesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}:getIamPolicy
@@ -29705,10 +29707,10 @@ pub fn dataplex_projects_locations_lakes_zones_get_iam_policy(
 pub fn dataplex_projects_locations_lakes_zones_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -29861,13 +29863,13 @@ pub struct DataplexProjectsLocationsLakesZonesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones
@@ -29912,8 +29914,8 @@ pub fn dataplex_projects_locations_lakes_zones_list(
 pub fn dataplex_projects_locations_lakes_zones_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30060,9 +30062,9 @@ pub struct DataplexProjectsLocationsLakesZonesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}
@@ -30441,8 +30443,8 @@ pub fn dataplex_projects_locations_lakes_zones_test_iam_permissions(
 pub fn dataplex_projects_locations_lakes_zones_actions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30589,9 +30591,9 @@ pub struct DataplexProjectsLocationsLakesZonesActionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/actions
@@ -30634,8 +30636,8 @@ pub fn dataplex_projects_locations_lakes_zones_actions_list(
 pub fn dataplex_projects_locations_lakes_zones_assets_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    assetId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    assetId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -30782,9 +30784,9 @@ pub struct DataplexProjectsLocationsLakesZonesAssetsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: assetId
-    pub assetId: Option<Option<String>>,
+    pub assetId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets
@@ -31164,7 +31166,7 @@ pub fn dataplex_projects_locations_lakes_zones_assets_get(
 pub fn dataplex_projects_locations_lakes_zones_assets_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31306,7 +31308,7 @@ pub struct DataplexProjectsLocationsLakesZonesAssetsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}:getIamPolicy
@@ -31346,10 +31348,10 @@ pub fn dataplex_projects_locations_lakes_zones_assets_get_iam_policy(
 pub fn dataplex_projects_locations_lakes_zones_assets_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31503,13 +31505,13 @@ pub struct DataplexProjectsLocationsLakesZonesAssetsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets
@@ -31554,8 +31556,8 @@ pub fn dataplex_projects_locations_lakes_zones_assets_list(
 pub fn dataplex_projects_locations_lakes_zones_assets_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -31702,9 +31704,9 @@ pub struct DataplexProjectsLocationsLakesZonesAssetsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}
@@ -32085,8 +32087,8 @@ pub fn dataplex_projects_locations_lakes_zones_assets_test_iam_permissions(
 pub fn dataplex_projects_locations_lakes_zones_assets_actions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32233,9 +32235,9 @@ pub struct DataplexProjectsLocationsLakesZonesAssetsActionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/assets/{assetsId}/actions
@@ -32278,7 +32280,7 @@ pub fn dataplex_projects_locations_lakes_zones_assets_actions_list(
 pub fn dataplex_projects_locations_lakes_zones_entities_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32422,7 +32424,7 @@ pub struct DataplexProjectsLocationsLakesZonesEntitiesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities
@@ -32464,7 +32466,7 @@ pub fn dataplex_projects_locations_lakes_zones_entities_create(
 pub fn dataplex_projects_locations_lakes_zones_entities_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32604,7 +32606,7 @@ pub struct DataplexProjectsLocationsLakesZonesEntitiesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}
@@ -32640,7 +32642,7 @@ pub fn dataplex_projects_locations_lakes_zones_entities_delete(
 pub fn dataplex_projects_locations_lakes_zones_entities_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32784,7 +32786,7 @@ pub struct DataplexProjectsLocationsLakesZonesEntitiesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}
@@ -32824,10 +32826,10 @@ pub fn dataplex_projects_locations_lakes_zones_entities_get(
 pub fn dataplex_projects_locations_lakes_zones_entities_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -32980,13 +32982,13 @@ pub struct DataplexProjectsLocationsLakesZonesEntitiesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities
@@ -33031,7 +33033,7 @@ pub fn dataplex_projects_locations_lakes_zones_entities_list(
 pub fn dataplex_projects_locations_lakes_zones_entities_update_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33175,7 +33177,7 @@ pub struct DataplexProjectsLocationsLakesZonesEntitiesUpdateArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PUT v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}
@@ -33217,7 +33219,7 @@ pub fn dataplex_projects_locations_lakes_zones_entities_update(
 pub fn dataplex_projects_locations_lakes_zones_entities_partitions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    validateOnly: &Option<Option<String>>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33361,7 +33363,7 @@ pub struct DataplexProjectsLocationsLakesZonesEntitiesPartitionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}/partitions
@@ -33403,7 +33405,7 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_create(
 pub fn dataplex_projects_locations_lakes_zones_entities_partitions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    etag: &Option<Option<String>>,
+    etag: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33543,7 +33545,7 @@ pub struct DataplexProjectsLocationsLakesZonesEntitiesPartitionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<Option<String>>,
+    pub etag: Option<String>,
 }
 
 /// DELETE v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}/partitions/{partitionsId}
@@ -33749,9 +33751,9 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_get(
 pub fn dataplex_projects_locations_lakes_zones_entities_partitions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -33902,11 +33904,11 @@ pub struct DataplexProjectsLocationsLakesZonesEntitiesPartitionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/lakes/{lakesId}/zones/{zonesId}/entities/{entitiesId}/partitions
@@ -33950,8 +33952,8 @@ pub fn dataplex_projects_locations_lakes_zones_entities_partitions_list(
 pub fn dataplex_projects_locations_metadata_feeds_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    metadataFeedId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    metadataFeedId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34098,9 +34100,9 @@ pub struct DataplexProjectsLocationsMetadataFeedsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: metadataFeedId
-    pub metadataFeedId: Option<Option<String>>,
+    pub metadataFeedId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/metadataFeeds
@@ -34479,10 +34481,10 @@ pub fn dataplex_projects_locations_metadata_feeds_get(
 pub fn dataplex_projects_locations_metadata_feeds_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34636,13 +34638,13 @@ pub struct DataplexProjectsLocationsMetadataFeedsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataFeeds
@@ -34687,8 +34689,8 @@ pub fn dataplex_projects_locations_metadata_feeds_list(
 pub fn dataplex_projects_locations_metadata_feeds_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    updateMask: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -34835,9 +34837,9 @@ pub struct DataplexProjectsLocationsMetadataFeedsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// PATCH v1/projects/{projectsId}/locations/{locationsId}/metadataFeeds/{metadataFeedsId}
@@ -35040,8 +35042,8 @@ pub fn dataplex_projects_locations_metadata_jobs_cancel(
 pub fn dataplex_projects_locations_metadata_jobs_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    metadataJobId: &Option<Option<String>>,
-    validateOnly: &Option<Option<String>>,
+    metadataJobId: &Option<String>,
+    validateOnly: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35188,9 +35190,9 @@ pub struct DataplexProjectsLocationsMetadataJobsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: metadataJobId
-    pub metadataJobId: Option<Option<String>>,
+    pub metadataJobId: Option<String>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<Option<String>>,
+    pub validateOnly: Option<String>,
 }
 
 /// POST v1/projects/{projectsId}/locations/{locationsId}/metadataJobs
@@ -35401,10 +35403,10 @@ pub fn dataplex_projects_locations_metadata_jobs_get(
 pub fn dataplex_projects_locations_metadata_jobs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    orderBy: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    orderBy: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -35558,13 +35560,13 @@ pub struct DataplexProjectsLocationsMetadataJobsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: orderBy
-    pub orderBy: Option<Option<String>>,
+    pub orderBy: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/metadataJobs
@@ -36097,10 +36099,10 @@ pub fn dataplex_projects_locations_operations_get(
 pub fn dataplex_projects_locations_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36254,13 +36256,13 @@ pub struct DataplexProjectsLocationsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
@@ -36305,7 +36307,7 @@ pub fn dataplex_projects_locations_operations_list(
 pub fn dataplex_projects_locations_policy_intents_get_iam_policy_builder<R>(
     client: &SimpleHttpClient<R>,
     resource: &String,
-    options_requestedPolicyVersion: &Option<Option<String>>,
+    options_requestedPolicyVersion: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -36447,7 +36449,7 @@ pub struct DataplexProjectsLocationsPolicyIntentsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: options_requestedPolicyVersion
-    pub options_requestedPolicyVersion: Option<Option<String>>,
+    pub options_requestedPolicyVersion: Option<String>,
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/policyIntents/{policyIntentsId}:getIamPolicy

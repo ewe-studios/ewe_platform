@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -30,7 +32,7 @@ use serde::Serialize;
 pub fn cloudsearch_debug_datasources_items_check_access_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    debugOptions_enableDebugging: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -172,7 +174,7 @@ pub struct CloudsearchDebugDatasourcesItemsCheckAccessArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
 }
 
 /// POST v1/debug/datasources/{datasourcesId}/items/{itemsId}:checkAccess
@@ -381,9 +383,9 @@ pub fn cloudsearch_debug_datasources_items_search_by_view_url(
 pub fn cloudsearch_debug_datasources_items_unmappedids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    debugOptions_enableDebugging: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -533,11 +535,11 @@ pub struct CloudsearchDebugDatasourcesItemsUnmappedidsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/debug/datasources/{datasourcesId}/items/{itemsId}/unmappedids
@@ -581,11 +583,11 @@ pub fn cloudsearch_debug_datasources_items_unmappedids_list(
 pub fn cloudsearch_debug_identitysources_items_list_forunmappedidentity_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    debugOptions_enableDebugging: &Option<Option<String>>,
-    groupResourceName: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    userResourceName: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<String>,
+    groupResourceName: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    userResourceName: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -741,15 +743,15 @@ pub struct CloudsearchDebugIdentitysourcesItemsListForunmappedidentityArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
     /// Query parameter: groupResourceName
-    pub groupResourceName: Option<Option<String>>,
+    pub groupResourceName: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: userResourceName
-    pub userResourceName: Option<Option<String>>,
+    pub userResourceName: Option<String>,
 }
 
 /// GET v1/debug/identitysources/{identitysourcesId}/items:forunmappedidentity
@@ -795,10 +797,10 @@ pub fn cloudsearch_debug_identitysources_items_list_forunmappedidentity(
 pub fn cloudsearch_debug_identitysources_unmappedids_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    debugOptions_enableDebugging: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    resolutionStatusCode: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    resolutionStatusCode: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -951,13 +953,13 @@ pub struct CloudsearchDebugIdentitysourcesUnmappedidsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: resolutionStatusCode
-    pub resolutionStatusCode: Option<Option<String>>,
+    pub resolutionStatusCode: Option<String>,
 }
 
 /// GET v1/debug/identitysources/{identitysourcesId}/unmappedids
@@ -1002,7 +1004,7 @@ pub fn cloudsearch_debug_identitysources_unmappedids_list(
 pub fn cloudsearch_indexing_datasources_delete_schema_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    debugOptions_enableDebugging: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1142,7 +1144,7 @@ pub struct CloudsearchIndexingDatasourcesDeleteSchemaArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
 }
 
 /// DELETE v1/indexing/datasources/{datasourcesId}/schema
@@ -1180,7 +1182,7 @@ pub fn cloudsearch_indexing_datasources_delete_schema(
 pub fn cloudsearch_indexing_datasources_get_schema_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    debugOptions_enableDebugging: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1320,7 +1322,7 @@ pub struct CloudsearchIndexingDatasourcesGetSchemaArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
 }
 
 /// GET v1/indexing/datasources/{datasourcesId}/schema
@@ -1518,10 +1520,10 @@ pub fn cloudsearch_indexing_datasources_update_schema(
 pub fn cloudsearch_indexing_datasources_items_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    connectorName: &Option<Option<String>>,
-    debugOptions_enableDebugging: &Option<Option<String>>,
-    mode: &Option<Option<String>>,
-    version: &Option<Option<String>>,
+    connectorName: &Option<String>,
+    debugOptions_enableDebugging: &Option<String>,
+    mode: &Option<String>,
+    version: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1670,13 +1672,13 @@ pub struct CloudsearchIndexingDatasourcesItemsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: connectorName
-    pub connectorName: Option<Option<String>>,
+    pub connectorName: Option<String>,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
     /// Query parameter: mode
-    pub mode: Option<Option<String>>,
+    pub mode: Option<String>,
     /// Query parameter: version
-    pub version: Option<Option<String>>,
+    pub version: Option<String>,
 }
 
 /// DELETE v1/indexing/datasources/{datasourcesId}/items/{itemsId}
@@ -1878,8 +1880,8 @@ pub fn cloudsearch_indexing_datasources_items_delete_queue_items(
 pub fn cloudsearch_indexing_datasources_items_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    connectorName: &Option<Option<String>>,
-    debugOptions_enableDebugging: &Option<Option<String>>,
+    connectorName: &Option<String>,
+    debugOptions_enableDebugging: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2022,9 +2024,9 @@ pub struct CloudsearchIndexingDatasourcesItemsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: connectorName
-    pub connectorName: Option<Option<String>>,
+    pub connectorName: Option<String>,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
 }
 
 /// GET v1/indexing/datasources/{datasourcesId}/items/{itemsId}
@@ -2223,11 +2225,11 @@ pub fn cloudsearch_indexing_datasources_items_index(
 pub fn cloudsearch_indexing_datasources_items_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    brief: &Option<Option<String>>,
-    connectorName: &Option<Option<String>>,
-    debugOptions_enableDebugging: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    brief: &Option<String>,
+    connectorName: &Option<String>,
+    debugOptions_enableDebugging: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2381,15 +2383,15 @@ pub struct CloudsearchIndexingDatasourcesItemsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: brief
-    pub brief: Option<Option<String>>,
+    pub brief: Option<String>,
     /// Query parameter: connectorName
-    pub connectorName: Option<Option<String>>,
+    pub connectorName: Option<String>,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/indexing/datasources/{datasourcesId}/items
@@ -3398,10 +3400,10 @@ pub fn cloudsearch_operations_get(
 pub fn cloudsearch_operations_lro_list_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3552,13 +3554,13 @@ pub struct CloudsearchOperationsLroListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/operations/{operationsId}/lro
@@ -4056,11 +4058,11 @@ pub fn cloudsearch_query_suggest(
 
 pub fn cloudsearch_query_sources_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    pageToken: &Option<Option<String>>,
-    requestOptions_debugOptions_enableDebugging: &Option<Option<String>>,
-    requestOptions_languageCode: &Option<Option<String>>,
-    requestOptions_searchApplicationId: &Option<Option<String>>,
-    requestOptions_timeZone: &Option<Option<String>>,
+    pageToken: &Option<String>,
+    requestOptions_debugOptions_enableDebugging: &Option<String>,
+    requestOptions_languageCode: &Option<String>,
+    requestOptions_searchApplicationId: &Option<String>,
+    requestOptions_timeZone: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4212,15 +4214,15 @@ pub fn cloudsearch_query_sources_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchQuerySourcesListArgs {
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: requestOptions_debugOptions_enableDebugging
-    pub requestOptions_debugOptions_enableDebugging: Option<Option<String>>,
+    pub requestOptions_debugOptions_enableDebugging: Option<String>,
     /// Query parameter: requestOptions_languageCode
-    pub requestOptions_languageCode: Option<Option<String>>,
+    pub requestOptions_languageCode: Option<String>,
     /// Query parameter: requestOptions_searchApplicationId
-    pub requestOptions_searchApplicationId: Option<Option<String>>,
+    pub requestOptions_searchApplicationId: Option<String>,
     /// Query parameter: requestOptions_timeZone
-    pub requestOptions_timeZone: Option<Option<String>>,
+    pub requestOptions_timeZone: Option<String>,
 }
 
 /// GET v1/query/sources
@@ -4414,7 +4416,7 @@ pub fn cloudsearch_settings_get_customer(
 
 pub fn cloudsearch_settings_update_customer_builder<R>(
     client: &SimpleHttpClient<R>,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4549,7 +4551,7 @@ pub fn cloudsearch_settings_update_customer_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchSettingsUpdateCustomerArgs {
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/settings/customer
@@ -4731,7 +4733,7 @@ pub fn cloudsearch_settings_datasources_create(
 pub fn cloudsearch_settings_datasources_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    debugOptions_enableDebugging: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4871,7 +4873,7 @@ pub struct CloudsearchSettingsDatasourcesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
 }
 
 /// DELETE v1/settings/datasources/{datasourcesId}
@@ -4909,7 +4911,7 @@ pub fn cloudsearch_settings_datasources_delete(
 pub fn cloudsearch_settings_datasources_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    debugOptions_enableDebugging: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5049,7 +5051,7 @@ pub struct CloudsearchSettingsDatasourcesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
 }
 
 /// GET v1/settings/datasources/{datasourcesId}
@@ -5086,9 +5088,9 @@ pub fn cloudsearch_settings_datasources_get(
 
 pub fn cloudsearch_settings_datasources_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    debugOptions_enableDebugging: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5231,11 +5233,11 @@ pub fn cloudsearch_settings_datasources_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchSettingsDatasourcesListArgs {
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/settings/datasources
@@ -5276,8 +5278,8 @@ pub fn cloudsearch_settings_datasources_list(
 pub fn cloudsearch_settings_datasources_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    debugOptions_enableDebugging: &Option<Option<String>>,
-    updateMask: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<String>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5420,9 +5422,9 @@ pub struct CloudsearchSettingsDatasourcesPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/settings/datasources/{datasourcesId}
@@ -5770,7 +5772,7 @@ pub fn cloudsearch_settings_searchapplications_create(
 pub fn cloudsearch_settings_searchapplications_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    debugOptions_enableDebugging: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5910,7 +5912,7 @@ pub struct CloudsearchSettingsSearchapplicationsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
 }
 
 /// DELETE v1/settings/searchapplications/{searchapplicationsId}
@@ -5948,7 +5950,7 @@ pub fn cloudsearch_settings_searchapplications_delete(
 pub fn cloudsearch_settings_searchapplications_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    debugOptions_enableDebugging: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6090,7 +6092,7 @@ pub struct CloudsearchSettingsSearchapplicationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
 }
 
 /// GET v1/settings/searchapplications/{searchapplicationsId}
@@ -6129,9 +6131,9 @@ pub fn cloudsearch_settings_searchapplications_get(
 
 pub fn cloudsearch_settings_searchapplications_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    debugOptions_enableDebugging: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    debugOptions_enableDebugging: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6277,11 +6279,11 @@ pub fn cloudsearch_settings_searchapplications_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchSettingsSearchapplicationsListArgs {
     /// Query parameter: debugOptions_enableDebugging
-    pub debugOptions_enableDebugging: Option<Option<String>>,
+    pub debugOptions_enableDebugging: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/settings/searchapplications
@@ -6324,7 +6326,7 @@ pub fn cloudsearch_settings_searchapplications_list(
 pub fn cloudsearch_settings_searchapplications_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6464,7 +6466,7 @@ pub struct CloudsearchSettingsSearchapplicationsPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/settings/searchapplications/{searchapplicationsId}
@@ -6662,7 +6664,7 @@ pub fn cloudsearch_settings_searchapplications_reset(
 pub fn cloudsearch_settings_searchapplications_update_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6802,7 +6804,7 @@ pub struct CloudsearchSettingsSearchapplicationsUpdateArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PUT v1/settings/searchapplications/{searchapplicationsId}
@@ -6839,12 +6841,12 @@ pub fn cloudsearch_settings_searchapplications_update(
 
 pub fn cloudsearch_stats_get_index_builder<R>(
     client: &SimpleHttpClient<R>,
-    fromDate_day: &Option<Option<String>>,
-    fromDate_month: &Option<Option<String>>,
-    fromDate_year: &Option<Option<String>>,
-    toDate_day: &Option<Option<String>>,
-    toDate_month: &Option<Option<String>>,
-    toDate_year: &Option<Option<String>>,
+    fromDate_day: &Option<String>,
+    fromDate_month: &Option<String>,
+    fromDate_year: &Option<String>,
+    toDate_day: &Option<String>,
+    toDate_month: &Option<String>,
+    toDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6998,17 +7000,17 @@ pub fn cloudsearch_stats_get_index_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchStatsGetIndexArgs {
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<Option<String>>,
+    pub fromDate_day: Option<String>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<Option<String>>,
+    pub fromDate_month: Option<String>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<Option<String>>,
+    pub fromDate_year: Option<String>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<Option<String>>,
+    pub toDate_day: Option<String>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<Option<String>>,
+    pub toDate_month: Option<String>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<Option<String>>,
+    pub toDate_year: Option<String>,
 }
 
 /// GET v1/stats/index
@@ -7053,12 +7055,12 @@ pub fn cloudsearch_stats_get_index(
 
 pub fn cloudsearch_stats_get_query_builder<R>(
     client: &SimpleHttpClient<R>,
-    fromDate_day: &Option<Option<String>>,
-    fromDate_month: &Option<Option<String>>,
-    fromDate_year: &Option<Option<String>>,
-    toDate_day: &Option<Option<String>>,
-    toDate_month: &Option<Option<String>>,
-    toDate_year: &Option<Option<String>>,
+    fromDate_day: &Option<String>,
+    fromDate_month: &Option<String>,
+    fromDate_year: &Option<String>,
+    toDate_day: &Option<String>,
+    toDate_month: &Option<String>,
+    toDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7212,17 +7214,17 @@ pub fn cloudsearch_stats_get_query_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchStatsGetQueryArgs {
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<Option<String>>,
+    pub fromDate_day: Option<String>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<Option<String>>,
+    pub fromDate_month: Option<String>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<Option<String>>,
+    pub fromDate_year: Option<String>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<Option<String>>,
+    pub toDate_day: Option<String>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<Option<String>>,
+    pub toDate_month: Option<String>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<Option<String>>,
+    pub toDate_year: Option<String>,
 }
 
 /// GET v1/stats/query
@@ -7267,12 +7269,12 @@ pub fn cloudsearch_stats_get_query(
 
 pub fn cloudsearch_stats_get_searchapplication_builder<R>(
     client: &SimpleHttpClient<R>,
-    endDate_day: &Option<Option<String>>,
-    endDate_month: &Option<Option<String>>,
-    endDate_year: &Option<Option<String>>,
-    startDate_day: &Option<Option<String>>,
-    startDate_month: &Option<Option<String>>,
-    startDate_year: &Option<Option<String>>,
+    endDate_day: &Option<String>,
+    endDate_month: &Option<String>,
+    endDate_year: &Option<String>,
+    startDate_day: &Option<String>,
+    startDate_month: &Option<String>,
+    startDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7426,17 +7428,17 @@ pub fn cloudsearch_stats_get_searchapplication_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchStatsGetSearchapplicationArgs {
     /// Query parameter: endDate_day
-    pub endDate_day: Option<Option<String>>,
+    pub endDate_day: Option<String>,
     /// Query parameter: endDate_month
-    pub endDate_month: Option<Option<String>>,
+    pub endDate_month: Option<String>,
     /// Query parameter: endDate_year
-    pub endDate_year: Option<Option<String>>,
+    pub endDate_year: Option<String>,
     /// Query parameter: startDate_day
-    pub startDate_day: Option<Option<String>>,
+    pub startDate_day: Option<String>,
     /// Query parameter: startDate_month
-    pub startDate_month: Option<Option<String>>,
+    pub startDate_month: Option<String>,
     /// Query parameter: startDate_year
-    pub startDate_year: Option<Option<String>>,
+    pub startDate_year: Option<String>,
 }
 
 /// GET v1/stats/searchapplication
@@ -7481,12 +7483,12 @@ pub fn cloudsearch_stats_get_searchapplication(
 
 pub fn cloudsearch_stats_get_session_builder<R>(
     client: &SimpleHttpClient<R>,
-    fromDate_day: &Option<Option<String>>,
-    fromDate_month: &Option<Option<String>>,
-    fromDate_year: &Option<Option<String>>,
-    toDate_day: &Option<Option<String>>,
-    toDate_month: &Option<Option<String>>,
-    toDate_year: &Option<Option<String>>,
+    fromDate_day: &Option<String>,
+    fromDate_month: &Option<String>,
+    fromDate_year: &Option<String>,
+    toDate_day: &Option<String>,
+    toDate_month: &Option<String>,
+    toDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7640,17 +7642,17 @@ pub fn cloudsearch_stats_get_session_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchStatsGetSessionArgs {
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<Option<String>>,
+    pub fromDate_day: Option<String>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<Option<String>>,
+    pub fromDate_month: Option<String>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<Option<String>>,
+    pub fromDate_year: Option<String>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<Option<String>>,
+    pub toDate_day: Option<String>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<Option<String>>,
+    pub toDate_month: Option<String>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<Option<String>>,
+    pub toDate_year: Option<String>,
 }
 
 /// GET v1/stats/session
@@ -7695,12 +7697,12 @@ pub fn cloudsearch_stats_get_session(
 
 pub fn cloudsearch_stats_get_user_builder<R>(
     client: &SimpleHttpClient<R>,
-    fromDate_day: &Option<Option<String>>,
-    fromDate_month: &Option<Option<String>>,
-    fromDate_year: &Option<Option<String>>,
-    toDate_day: &Option<Option<String>>,
-    toDate_month: &Option<Option<String>>,
-    toDate_year: &Option<Option<String>>,
+    fromDate_day: &Option<String>,
+    fromDate_month: &Option<String>,
+    fromDate_year: &Option<String>,
+    toDate_day: &Option<String>,
+    toDate_month: &Option<String>,
+    toDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -7854,17 +7856,17 @@ pub fn cloudsearch_stats_get_user_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudsearchStatsGetUserArgs {
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<Option<String>>,
+    pub fromDate_day: Option<String>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<Option<String>>,
+    pub fromDate_month: Option<String>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<Option<String>>,
+    pub fromDate_year: Option<String>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<Option<String>>,
+    pub toDate_day: Option<String>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<Option<String>>,
+    pub toDate_month: Option<String>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<Option<String>>,
+    pub toDate_year: Option<String>,
 }
 
 /// GET v1/stats/user
@@ -7910,12 +7912,12 @@ pub fn cloudsearch_stats_get_user(
 pub fn cloudsearch_stats_index_datasources_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    fromDate_day: &Option<Option<String>>,
-    fromDate_month: &Option<Option<String>>,
-    fromDate_year: &Option<Option<String>>,
-    toDate_day: &Option<Option<String>>,
-    toDate_month: &Option<Option<String>>,
-    toDate_year: &Option<Option<String>>,
+    fromDate_day: &Option<String>,
+    fromDate_month: &Option<String>,
+    fromDate_year: &Option<String>,
+    toDate_day: &Option<String>,
+    toDate_month: &Option<String>,
+    toDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8074,17 +8076,17 @@ pub struct CloudsearchStatsIndexDatasourcesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<Option<String>>,
+    pub fromDate_day: Option<String>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<Option<String>>,
+    pub fromDate_month: Option<String>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<Option<String>>,
+    pub fromDate_year: Option<String>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<Option<String>>,
+    pub toDate_day: Option<String>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<Option<String>>,
+    pub toDate_month: Option<String>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<Option<String>>,
+    pub toDate_year: Option<String>,
 }
 
 /// GET v1/stats/index/datasources/{datasourcesId}
@@ -8131,12 +8133,12 @@ pub fn cloudsearch_stats_index_datasources_get(
 pub fn cloudsearch_stats_query_searchapplications_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    fromDate_day: &Option<Option<String>>,
-    fromDate_month: &Option<Option<String>>,
-    fromDate_year: &Option<Option<String>>,
-    toDate_day: &Option<Option<String>>,
-    toDate_month: &Option<Option<String>>,
-    toDate_year: &Option<Option<String>>,
+    fromDate_day: &Option<String>,
+    fromDate_month: &Option<String>,
+    fromDate_year: &Option<String>,
+    toDate_day: &Option<String>,
+    toDate_month: &Option<String>,
+    toDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8295,17 +8297,17 @@ pub struct CloudsearchStatsQuerySearchapplicationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<Option<String>>,
+    pub fromDate_day: Option<String>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<Option<String>>,
+    pub fromDate_month: Option<String>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<Option<String>>,
+    pub fromDate_year: Option<String>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<Option<String>>,
+    pub toDate_day: Option<String>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<Option<String>>,
+    pub toDate_month: Option<String>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<Option<String>>,
+    pub toDate_year: Option<String>,
 }
 
 /// GET v1/stats/query/searchapplications/{searchapplicationsId}
@@ -8352,12 +8354,12 @@ pub fn cloudsearch_stats_query_searchapplications_get(
 pub fn cloudsearch_stats_session_searchapplications_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    fromDate_day: &Option<Option<String>>,
-    fromDate_month: &Option<Option<String>>,
-    fromDate_year: &Option<Option<String>>,
-    toDate_day: &Option<Option<String>>,
-    toDate_month: &Option<Option<String>>,
-    toDate_year: &Option<Option<String>>,
+    fromDate_day: &Option<String>,
+    fromDate_month: &Option<String>,
+    fromDate_year: &Option<String>,
+    toDate_day: &Option<String>,
+    toDate_month: &Option<String>,
+    toDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8516,17 +8518,17 @@ pub struct CloudsearchStatsSessionSearchapplicationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<Option<String>>,
+    pub fromDate_day: Option<String>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<Option<String>>,
+    pub fromDate_month: Option<String>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<Option<String>>,
+    pub fromDate_year: Option<String>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<Option<String>>,
+    pub toDate_day: Option<String>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<Option<String>>,
+    pub toDate_month: Option<String>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<Option<String>>,
+    pub toDate_year: Option<String>,
 }
 
 /// GET v1/stats/session/searchapplications/{searchapplicationsId}
@@ -8573,12 +8575,12 @@ pub fn cloudsearch_stats_session_searchapplications_get(
 pub fn cloudsearch_stats_user_searchapplications_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    fromDate_day: &Option<Option<String>>,
-    fromDate_month: &Option<Option<String>>,
-    fromDate_year: &Option<Option<String>>,
-    toDate_day: &Option<Option<String>>,
-    toDate_month: &Option<Option<String>>,
-    toDate_year: &Option<Option<String>>,
+    fromDate_day: &Option<String>,
+    fromDate_month: &Option<String>,
+    fromDate_year: &Option<String>,
+    toDate_day: &Option<String>,
+    toDate_month: &Option<String>,
+    toDate_year: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8737,17 +8739,17 @@ pub struct CloudsearchStatsUserSearchapplicationsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: fromDate_day
-    pub fromDate_day: Option<Option<String>>,
+    pub fromDate_day: Option<String>,
     /// Query parameter: fromDate_month
-    pub fromDate_month: Option<Option<String>>,
+    pub fromDate_month: Option<String>,
     /// Query parameter: fromDate_year
-    pub fromDate_year: Option<Option<String>>,
+    pub fromDate_year: Option<String>,
     /// Query parameter: toDate_day
-    pub toDate_day: Option<Option<String>>,
+    pub toDate_day: Option<String>,
     /// Query parameter: toDate_month
-    pub toDate_month: Option<Option<String>>,
+    pub toDate_month: Option<String>,
     /// Query parameter: toDate_year
-    pub toDate_year: Option<Option<String>>,
+    pub toDate_year: Option<String>,
 }
 
 /// GET v1/stats/user/searchapplications/{searchapplicationsId}
@@ -9447,75 +9449,6 @@ impl ResourceIdentifier<CloudsearchOperationsLroListArgs> for ListOperationsResp
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for RemoveActivityResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for RemoveActivityResponse with CloudsearchQueryRemoveActivityArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CloudsearchQueryRemoveActivityArgs> for RemoveActivityResponse {
-    fn generate_resource_id(&self, input: &CloudsearchQueryRemoveActivityArgs) -> String {
-        "gcp::cloudsearch::RemoveActivityResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::cloudsearch::RemoveActivityResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SearchResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SearchResponse with CloudsearchQuerySearchArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CloudsearchQuerySearchArgs> for SearchResponse {
-    fn generate_resource_id(&self, input: &CloudsearchQuerySearchArgs) -> String {
-        "gcp::cloudsearch::SearchResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::cloudsearch::SearchResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for SuggestResponse
-// =============================================================================
-
-/// ResourceIdentifier implementation for SuggestResponse with CloudsearchQuerySuggestArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CloudsearchQuerySuggestArgs> for SuggestResponse {
-    fn generate_resource_id(&self, input: &CloudsearchQuerySuggestArgs) -> String {
-        "gcp::cloudsearch::SuggestResponse".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::cloudsearch::SuggestResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for ListQuerySourcesResponse
 // =============================================================================
 
@@ -9539,29 +9472,6 @@ impl ResourceIdentifier<CloudsearchQuerySourcesListArgs> for ListQuerySourcesRes
 }
 
 // =============================================================================
-// ResourceIdentifier implementation for CustomerSettings
-// =============================================================================
-
-/// ResourceIdentifier implementation for CustomerSettings with CloudsearchSettingsGetCustomerArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CloudsearchSettingsGetCustomerArgs> for CustomerSettings {
-    fn generate_resource_id(&self, input: &CloudsearchSettingsGetCustomerArgs) -> String {
-        "gcp::cloudsearch::CustomerSettings".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::cloudsearch::CustomerSettings"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
 // ResourceIdentifier implementation for Operation
 // =============================================================================
 
@@ -9572,29 +9482,6 @@ impl ResourceIdentifier<CloudsearchSettingsGetCustomerArgs> for CustomerSettings
 /// HOW: Computes resource ID from input path parameters.
 impl ResourceIdentifier<CloudsearchSettingsUpdateCustomerArgs> for Operation {
     fn generate_resource_id(&self, input: &CloudsearchSettingsUpdateCustomerArgs) -> String {
-        "gcp::cloudsearch::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::cloudsearch::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Operation with CloudsearchSettingsDatasourcesCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CloudsearchSettingsDatasourcesCreateArgs> for Operation {
-    fn generate_resource_id(&self, input: &CloudsearchSettingsDatasourcesCreateArgs) -> String {
         "gcp::cloudsearch::Operation".to_string()
     }
 
@@ -9711,32 +9598,6 @@ impl ResourceIdentifier<CloudsearchSettingsDatasourcesPatchArgs> for Operation {
 impl ResourceIdentifier<CloudsearchSettingsDatasourcesUpdateArgs> for Operation {
     fn generate_resource_id(&self, input: &CloudsearchSettingsDatasourcesUpdateArgs) -> String {
         format!("gcp::cloudsearch::Operation/{}", input.name)
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::cloudsearch::Operation"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Operation with CloudsearchSettingsSearchapplicationsCreateArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CloudsearchSettingsSearchapplicationsCreateArgs> for Operation {
-    fn generate_resource_id(
-        &self,
-        input: &CloudsearchSettingsSearchapplicationsCreateArgs,
-    ) -> String {
-        "gcp::cloudsearch::Operation".to_string()
     }
 
     fn resource_kind(&self) -> &'static str {
@@ -10134,29 +9995,6 @@ impl ResourceIdentifier<CloudsearchStatsUserSearchapplicationsGetArgs>
 
     fn resource_kind(&self) -> &'static str {
         "gcp::cloudsearch::GetSearchApplicationUserStatsResponse"
-    }
-
-    fn provider(&self) -> &'static str {
-        "gcp"
-    }
-}
-
-// =============================================================================
-// ResourceIdentifier implementation for Operation
-// =============================================================================
-
-/// ResourceIdentifier implementation for Operation with CloudsearchInitializeCustomerArgs input.
-///
-/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
-///
-/// HOW: Computes resource ID from input path parameters.
-impl ResourceIdentifier<CloudsearchInitializeCustomerArgs> for Operation {
-    fn generate_resource_id(&self, input: &CloudsearchInitializeCustomerArgs) -> String {
-        "gcp::cloudsearch::Operation".to_string()
-    }
-
-    fn resource_kind(&self) -> &'static str {
-        "gcp::cloudsearch::Operation"
     }
 
     fn provider(&self) -> &'static str {

@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -209,9 +211,9 @@ pub fn cloudchannel_accounts_check_cloud_identity_accounts_exist(
 pub fn cloudchannel_accounts_list_subscribers_builder<R>(
     client: &SimpleHttpClient<R>,
     account: &String,
-    integrator: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    integrator: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -362,11 +364,11 @@ pub struct CloudchannelAccountsListSubscribersArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: integrator
-    pub integrator: Option<Option<String>>,
+    pub integrator: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}:listSubscribers
@@ -1257,7 +1259,7 @@ pub fn cloudchannel_accounts_channel_partner_links_create(
 pub fn cloudchannel_accounts_channel_partner_links_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    view: &Option<Option<String>>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1401,7 +1403,7 @@ pub struct CloudchannelAccountsChannelPartnerLinksGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}
@@ -1440,9 +1442,9 @@ pub fn cloudchannel_accounts_channel_partner_links_get(
 pub fn cloudchannel_accounts_channel_partner_links_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1596,11 +1598,11 @@ pub struct CloudchannelAccountsChannelPartnerLinksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/channelPartnerLinks
@@ -2346,9 +2348,9 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
 >(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2508,11 +2510,11 @@ pub struct CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigs
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/channelPartnerRepricingConfigs
@@ -3413,9 +3415,9 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_import(
 pub fn cloudchannel_accounts_channel_partner_links_customers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3565,11 +3567,11 @@ pub struct CloudchannelAccountsChannelPartnerLinksCustomersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/customers
@@ -3613,7 +3615,7 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_list(
 pub fn cloudchannel_accounts_channel_partner_links_customers_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3757,7 +3759,7 @@ pub struct CloudchannelAccountsChannelPartnerLinksCustomersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/customers/{customersId}
@@ -4467,9 +4469,9 @@ pub fn cloudchannel_accounts_customers_import(
 pub fn cloudchannel_accounts_customers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4619,11 +4621,11 @@ pub struct CloudchannelAccountsCustomersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/customers
@@ -4667,14 +4669,14 @@ pub fn cloudchannel_accounts_customers_list(
 pub fn cloudchannel_accounts_customers_list_purchasable_offers_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    changeOfferPurchase_billingAccount: &Option<Option<String>>,
-    changeOfferPurchase_entitlement: &Option<Option<String>>,
-    changeOfferPurchase_newSku: &Option<Option<String>>,
-    createEntitlementPurchase_billingAccount: &Option<Option<String>>,
-    createEntitlementPurchase_sku: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    changeOfferPurchase_billingAccount: &Option<String>,
+    changeOfferPurchase_entitlement: &Option<String>,
+    changeOfferPurchase_newSku: &Option<String>,
+    createEntitlementPurchase_billingAccount: &Option<String>,
+    createEntitlementPurchase_sku: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4843,21 +4845,21 @@ pub struct CloudchannelAccountsCustomersListPurchasableOffersArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: changeOfferPurchase_billingAccount
-    pub changeOfferPurchase_billingAccount: Option<Option<String>>,
+    pub changeOfferPurchase_billingAccount: Option<String>,
     /// Query parameter: changeOfferPurchase_entitlement
-    pub changeOfferPurchase_entitlement: Option<Option<String>>,
+    pub changeOfferPurchase_entitlement: Option<String>,
     /// Query parameter: changeOfferPurchase_newSku
-    pub changeOfferPurchase_newSku: Option<Option<String>>,
+    pub changeOfferPurchase_newSku: Option<String>,
     /// Query parameter: createEntitlementPurchase_billingAccount
-    pub createEntitlementPurchase_billingAccount: Option<Option<String>>,
+    pub createEntitlementPurchase_billingAccount: Option<String>,
     /// Query parameter: createEntitlementPurchase_sku
-    pub createEntitlementPurchase_sku: Option<Option<String>>,
+    pub createEntitlementPurchase_sku: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/customers/{customersId}:listPurchasableOffers
@@ -4906,12 +4908,12 @@ pub fn cloudchannel_accounts_customers_list_purchasable_offers(
 pub fn cloudchannel_accounts_customers_list_purchasable_skus_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    changeOfferPurchase_changeType: &Option<Option<String>>,
-    changeOfferPurchase_entitlement: &Option<Option<String>>,
-    createEntitlementPurchase_product: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    changeOfferPurchase_changeType: &Option<String>,
+    changeOfferPurchase_entitlement: &Option<String>,
+    createEntitlementPurchase_product: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5071,17 +5073,17 @@ pub struct CloudchannelAccountsCustomersListPurchasableSkusArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: changeOfferPurchase_changeType
-    pub changeOfferPurchase_changeType: Option<Option<String>>,
+    pub changeOfferPurchase_changeType: Option<String>,
     /// Query parameter: changeOfferPurchase_entitlement
-    pub changeOfferPurchase_entitlement: Option<Option<String>>,
+    pub changeOfferPurchase_entitlement: Option<String>,
     /// Query parameter: createEntitlementPurchase_product
-    pub createEntitlementPurchase_product: Option<Option<String>>,
+    pub createEntitlementPurchase_product: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/customers/{customersId}:listPurchasableSkus
@@ -5128,7 +5130,7 @@ pub fn cloudchannel_accounts_customers_list_purchasable_skus(
 pub fn cloudchannel_accounts_customers_patch_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    updateMask: &Option<Option<String>>,
+    updateMask: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5272,7 +5274,7 @@ pub struct CloudchannelAccountsCustomersPatchArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<Option<String>>,
+    pub updateMask: Option<String>,
 }
 
 /// PATCH v1/accounts/{accountsId}/customers/{customersId}
@@ -5480,7 +5482,7 @@ pub fn cloudchannel_accounts_customers_provision_cloud_identity(
 pub fn cloudchannel_accounts_customers_query_eligible_billing_accounts_builder<R>(
     client: &SimpleHttpClient<R>,
     customer: &String,
-    skus: &Option<Option<String>>,
+    skus: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -5631,7 +5633,7 @@ pub struct CloudchannelAccountsCustomersQueryEligibleBillingAccountsArgs {
     /// Path parameter: customer
     pub customer: String,
     /// Query parameter: skus
-    pub skus: Option<Option<String>>,
+    pub skus: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/customers/{customersId}:queryEligibleBillingAccounts
@@ -6524,9 +6526,9 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_get(
 pub fn cloudchannel_accounts_customers_customer_repricing_configs_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -6683,11 +6685,11 @@ pub struct CloudchannelAccountsCustomersCustomerRepricingConfigsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/customers/{customersId}/customerRepricingConfigs
@@ -8087,8 +8089,8 @@ pub fn cloudchannel_accounts_customers_entitlements_get(
 pub fn cloudchannel_accounts_customers_entitlements_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8236,9 +8238,9 @@ pub struct CloudchannelAccountsCustomersEntitlementsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements
@@ -8281,9 +8283,9 @@ pub fn cloudchannel_accounts_customers_entitlements_list(
 pub fn cloudchannel_accounts_customers_entitlements_list_entitlement_changes_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -8437,11 +8439,11 @@ pub struct CloudchannelAccountsCustomersEntitlementsListEntitlementChangesArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements/{entitlementsId}:listEntitlementChanges
@@ -8990,11 +8992,11 @@ pub fn cloudchannel_accounts_customers_entitlements_suspend(
 pub fn cloudchannel_accounts_offers_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    filter: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    showFutureOffers: &Option<Option<String>>,
+    filter: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    showFutureOffers: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9150,15 +9152,15 @@ pub struct CloudchannelAccountsOffersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: showFutureOffers
-    pub showFutureOffers: Option<Option<String>>,
+    pub showFutureOffers: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/offers
@@ -9374,9 +9376,9 @@ pub fn cloudchannel_accounts_report_jobs_fetch_report_results(
 pub fn cloudchannel_accounts_reports_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9527,11 +9529,11 @@ pub struct CloudchannelAccountsReportsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/reports
@@ -9743,8 +9745,8 @@ pub fn cloudchannel_accounts_reports_run(
 pub fn cloudchannel_accounts_sku_groups_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -9891,9 +9893,9 @@ pub struct CloudchannelAccountsSkuGroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/skuGroups
@@ -9936,8 +9938,8 @@ pub fn cloudchannel_accounts_sku_groups_list(
 pub fn cloudchannel_accounts_sku_groups_billable_skus_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10088,9 +10090,9 @@ pub struct CloudchannelAccountsSkuGroupsBillableSkusListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/accounts/{accountsId}/skuGroups/{skuGroupsId}/billableSkus
@@ -10133,9 +10135,9 @@ pub fn cloudchannel_accounts_sku_groups_billable_skus_list(
 pub fn cloudchannel_integrators_list_subscribers_builder<R>(
     client: &SimpleHttpClient<R>,
     integrator: &String,
-    account: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    account: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -10286,11 +10288,11 @@ pub struct CloudchannelIntegratorsListSubscribersArgs {
     /// Path parameter: integrator
     pub integrator: String,
     /// Query parameter: account
-    pub account: Option<Option<String>>,
+    pub account: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/integrators/{integratorsId}:listSubscribers
@@ -11161,10 +11163,10 @@ pub fn cloudchannel_operations_get(
 
 pub fn cloudchannel_operations_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    filter: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    returnPartialSuccess: &Option<Option<String>>,
+    filter: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    returnPartialSuccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11313,13 +11315,13 @@ pub fn cloudchannel_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudchannelOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<Option<String>>,
+    pub filter: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<Option<String>>,
+    pub returnPartialSuccess: Option<String>,
 }
 
 /// GET v1/operations
@@ -11362,10 +11364,10 @@ pub fn cloudchannel_operations_list(
 
 pub fn cloudchannel_products_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    account: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    account: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11513,13 +11515,13 @@ pub fn cloudchannel_products_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudchannelProductsListArgs {
     /// Query parameter: account
-    pub account: Option<Option<String>>,
+    pub account: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/products
@@ -11563,10 +11565,10 @@ pub fn cloudchannel_products_list(
 pub fn cloudchannel_products_skus_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    account: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    account: &Option<String>,
+    languageCode: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -11719,13 +11721,13 @@ pub struct CloudchannelProductsSkusListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: account
-    pub account: Option<Option<String>>,
+    pub account: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/products/{productsId}/skus

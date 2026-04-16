@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -514,8 +516,8 @@ pub fn adsenseplatform_platforms_accounts_get(
 pub fn adsenseplatform_platforms_accounts_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -660,9 +662,9 @@ pub struct AdsenseplatformPlatformsAccountsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/platforms/{platformsId}/accounts
@@ -703,7 +705,7 @@ pub fn adsenseplatform_platforms_accounts_list(
 pub fn adsenseplatform_platforms_accounts_lookup_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    creationRequestId: &Option<Option<String>>,
+    creationRequestId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -845,7 +847,7 @@ pub struct AdsenseplatformPlatformsAccountsLookupArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: creationRequestId
-    pub creationRequestId: Option<Option<String>>,
+    pub creationRequestId: Option<String>,
 }
 
 /// GET v1/platforms/{platformsId}/accounts:lookup
@@ -1525,8 +1527,8 @@ pub fn adsenseplatform_platforms_accounts_sites_get(
 pub fn adsenseplatform_platforms_accounts_sites_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1671,9 +1673,9 @@ pub struct AdsenseplatformPlatformsAccountsSitesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v1/platforms/{platformsId}/accounts/{accountsId}/sites

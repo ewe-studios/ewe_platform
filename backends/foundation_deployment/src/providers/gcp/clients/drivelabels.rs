@@ -7,6 +7,8 @@
 
 #![cfg(feature = "gcp")]
 
+pub mod types;
+
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -29,8 +31,8 @@ use serde::Serialize;
 
 pub fn drivelabels_labels_create_builder<R>(
     client: &SimpleHttpClient<R>,
-    languageCode: &Option<Option<String>>,
-    useAdminAccess: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -172,9 +174,9 @@ pub fn drivelabels_labels_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DrivelabelsLabelsCreateArgs {
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// POST v2/labels
@@ -213,8 +215,8 @@ pub fn drivelabels_labels_create(
 pub fn drivelabels_labels_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    useAdminAccess: &Option<Option<String>>,
-    writeControl_requiredRevisionId: &Option<Option<String>>,
+    useAdminAccess: &Option<String>,
+    writeControl_requiredRevisionId: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -356,9 +358,9 @@ pub struct DrivelabelsLabelsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
     /// Query parameter: writeControl_requiredRevisionId
-    pub writeControl_requiredRevisionId: Option<Option<String>>,
+    pub writeControl_requiredRevisionId: Option<String>,
 }
 
 /// DELETE v2/labels/{labelsId}
@@ -904,9 +906,9 @@ pub fn drivelabels_labels_enable(
 pub fn drivelabels_labels_get_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    languageCode: &Option<Option<String>>,
-    useAdminAccess: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    languageCode: &Option<String>,
+    useAdminAccess: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1053,11 +1055,11 @@ pub struct DrivelabelsLabelsGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v2/labels/{labelsId}
@@ -1100,14 +1102,14 @@ pub fn drivelabels_labels_get(
 
 pub fn drivelabels_labels_list_builder<R>(
     client: &SimpleHttpClient<R>,
-    customer: &Option<Option<String>>,
-    languageCode: &Option<Option<String>>,
-    minimumRole: &Option<Option<String>>,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    publishedOnly: &Option<Option<String>>,
-    useAdminAccess: &Option<Option<String>>,
-    view: &Option<Option<String>>,
+    customer: &Option<String>,
+    languageCode: &Option<String>,
+    minimumRole: &Option<String>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    publishedOnly: &Option<String>,
+    useAdminAccess: &Option<String>,
+    view: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1267,21 +1269,21 @@ pub fn drivelabels_labels_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DrivelabelsLabelsListArgs {
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
     /// Query parameter: languageCode
-    pub languageCode: Option<Option<String>>,
+    pub languageCode: Option<String>,
     /// Query parameter: minimumRole
-    pub minimumRole: Option<Option<String>>,
+    pub minimumRole: Option<String>,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: publishedOnly
-    pub publishedOnly: Option<Option<String>>,
+    pub publishedOnly: Option<String>,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
     /// Query parameter: view
-    pub view: Option<Option<String>>,
+    pub view: Option<String>,
 }
 
 /// GET v2/labels
@@ -1833,7 +1835,7 @@ pub fn drivelabels_labels_update_label_enabled_app_settings(
 pub fn drivelabels_labels_update_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    useAdminAccess: &Option<Option<String>>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -1977,7 +1979,7 @@ pub struct DrivelabelsLabelsUpdatePermissionsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// PATCH v2/labels/{labelsId}/permissions
@@ -2016,8 +2018,8 @@ pub fn drivelabels_labels_update_permissions(
 pub fn drivelabels_labels_locks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2165,9 +2167,9 @@ pub struct DrivelabelsLabelsLocksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/labels/{labelsId}/locks
@@ -2552,7 +2554,7 @@ pub fn drivelabels_labels_permissions_batch_update(
 pub fn drivelabels_labels_permissions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    useAdminAccess: &Option<Option<String>>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2696,7 +2698,7 @@ pub struct DrivelabelsLabelsPermissionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// POST v2/labels/{labelsId}/permissions
@@ -2735,7 +2737,7 @@ pub fn drivelabels_labels_permissions_create(
 pub fn drivelabels_labels_permissions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    useAdminAccess: &Option<Option<String>>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -2877,7 +2879,7 @@ pub struct DrivelabelsLabelsPermissionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// DELETE v2/labels/{labelsId}/permissions/{permissionsId}
@@ -2914,9 +2916,9 @@ pub fn drivelabels_labels_permissions_delete(
 pub fn drivelabels_labels_permissions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    useAdminAccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3070,11 +3072,11 @@ pub struct DrivelabelsLabelsPermissionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// GET v2/labels/{labelsId}/permissions
@@ -3118,7 +3120,7 @@ pub fn drivelabels_labels_permissions_list(
 pub fn drivelabels_labels_revisions_update_permissions_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    useAdminAccess: &Option<Option<String>>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3262,7 +3264,7 @@ pub struct DrivelabelsLabelsRevisionsUpdatePermissionsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// PATCH v2/labels/{labelsId}/revisions/{revisionsId}/permissions
@@ -3304,8 +3306,8 @@ pub fn drivelabels_labels_revisions_update_permissions(
 pub fn drivelabels_labels_revisions_locks_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3453,9 +3455,9 @@ pub struct DrivelabelsLabelsRevisionsLocksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
 }
 
 /// GET v2/labels/{labelsId}/revisions/{revisionsId}/locks
@@ -3842,7 +3844,7 @@ pub fn drivelabels_labels_revisions_permissions_batch_update(
 pub fn drivelabels_labels_revisions_permissions_create_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    useAdminAccess: &Option<Option<String>>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -3986,7 +3988,7 @@ pub struct DrivelabelsLabelsRevisionsPermissionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// POST v2/labels/{labelsId}/revisions/{revisionsId}/permissions
@@ -4028,7 +4030,7 @@ pub fn drivelabels_labels_revisions_permissions_create(
 pub fn drivelabels_labels_revisions_permissions_delete_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    useAdminAccess: &Option<Option<String>>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4170,7 +4172,7 @@ pub struct DrivelabelsLabelsRevisionsPermissionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// DELETE v2/labels/{labelsId}/revisions/{revisionsId}/permissions/{permissionsId}
@@ -4210,9 +4212,9 @@ pub fn drivelabels_labels_revisions_permissions_delete(
 pub fn drivelabels_labels_revisions_permissions_list_builder<R>(
     client: &SimpleHttpClient<R>,
     parent: &String,
-    pageSize: &Option<Option<String>>,
-    pageToken: &Option<Option<String>>,
-    useAdminAccess: &Option<Option<String>>,
+    pageSize: &Option<String>,
+    pageToken: &Option<String>,
+    useAdminAccess: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4366,11 +4368,11 @@ pub struct DrivelabelsLabelsRevisionsPermissionsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<Option<String>>,
+    pub pageSize: Option<String>,
     /// Query parameter: pageToken
-    pub pageToken: Option<Option<String>>,
+    pub pageToken: Option<String>,
     /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<Option<String>>,
+    pub useAdminAccess: Option<String>,
 }
 
 /// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
@@ -4413,7 +4415,7 @@ pub fn drivelabels_labels_revisions_permissions_list(
 
 pub fn drivelabels_limits_get_label_builder<R>(
     client: &SimpleHttpClient<R>,
-    name: &Option<Option<String>>,
+    name: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4552,7 +4554,7 @@ pub fn drivelabels_limits_get_label_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DrivelabelsLimitsGetLabelArgs {
     /// Query parameter: name
-    pub name: Option<Option<String>>,
+    pub name: Option<String>,
 }
 
 /// GET v2/limits/label
@@ -4590,7 +4592,7 @@ pub fn drivelabels_limits_get_label(
 pub fn drivelabels_users_get_capabilities_builder<R>(
     client: &SimpleHttpClient<R>,
     name: &String,
-    customer: &Option<Option<String>>,
+    customer: &Option<String>,
 ) -> Result<ClientRequestBuilder<R>, ApiError>
 where
     R: DnsResolver + Clone,
@@ -4735,7 +4737,7 @@ pub struct DrivelabelsUsersGetCapabilitiesArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: customer
-    pub customer: Option<Option<String>>,
+    pub customer: Option<String>,
 }
 
 /// GET v2/users/{usersId}/capabilities
