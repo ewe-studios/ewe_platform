@@ -7,10 +7,12 @@
 
 #![cfg(feature = "cloudflare_resources")]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
+use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use serde::{Deserialize, Serialize};
+
+use super::shared::{ApiError, ApiPending, ApiResponse};
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -60,104 +62,176 @@ pub struct GetCategoryByIdArgs {
 // GET /accounts/{accountId}/resource-library/categories
 // -----------------------------------------------------------------------------
 
-/// GET /accounts/{accountId}/resource-library/categories - builder function.
+/// GET /accounts/{accountId}/resource-library/categories.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = get_categories_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn get_categories_builder<R>(client: &SimpleHttpClient<R>, args: &GetCategoriesArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn get_categories_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &GetCategoriesArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AlexandriaGetCategoriesResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/resource-library/categories",
         args.accountId,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /accounts/{accountId}/resource-library/categories - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn get_categories_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<AlexandriaGetCategoriesResponse>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: AlexandriaGetCategoriesResponse = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: AlexandriaGetCategoriesResponse = serde_json::from_str(&body)
+                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // GET /accounts/{accountId}/resource-library/categories/{id}
 // -----------------------------------------------------------------------------
 
-/// GET /accounts/{accountId}/resource-library/categories/{id} - builder function.
+/// GET /accounts/{accountId}/resource-library/categories/{id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = get_category_by_id_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn get_category_by_id_builder<R>(client: &SimpleHttpClient<R>, args: &GetCategoryByIdArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn get_category_by_id_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &GetCategoryByIdArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AlexandriaGetCategoryResponse>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/resource-library/categories/{}",
-        args.accountId,
-        args.id,
+        args.accountId, args.id,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /accounts/{accountId}/resource-library/categories/{id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn get_category_by_id_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<AlexandriaGetCategoryResponse>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: AlexandriaGetCategoryResponse = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: AlexandriaGetCategoryResponse = serde_json::from_str(&body)
+                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
-

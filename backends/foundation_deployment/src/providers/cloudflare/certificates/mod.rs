@@ -7,10 +7,12 @@
 
 #![cfg(feature = "cloudflare_certificates")]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
+use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use serde::{Deserialize, Serialize};
+
+use super::shared::{ApiError, ApiPending, ApiResponse};
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -154,34 +156,48 @@ pub struct OriginCaRevokeCertificateArgs {
 // GET /accounts/{account_id}/mtls_certificates
 // -----------------------------------------------------------------------------
 
-/// GET /accounts/{account_id}/mtls_certificates - builder function.
+/// GET /accounts/{account_id}/mtls_certificates.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = m_tls_certificate_management_list_m_tls_certificates_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn m_tls_certificate_management_list_m_tls_certificates_builder<R>(client: &SimpleHttpClient<R>, args: &MTlsCertificateManagementListMTlsCertificatesArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn m_tls_certificate_management_list_m_tls_certificates_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &MTlsCertificateManagementListMTlsCertificatesArgs,
+    builder_mod: Option<F>,
+) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/mtls_certificates",
         args.account_id,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /accounts/{account_id}/mtls_certificates - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn m_tls_certificate_management_list_m_tls_certificates_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
     Ok(
         builder
             .build_send_request()
@@ -192,7 +208,7 @@ where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'stat
                     if status < 200 || status >= 300 {
                         return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                     let parsed: TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -206,87 +222,141 @@ where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'stat
 // POST /accounts/{account_id}/mtls_certificates
 // -----------------------------------------------------------------------------
 
-/// POST /accounts/{account_id}/mtls_certificates - builder function.
+/// POST /accounts/{account_id}/mtls_certificates.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = m_tls_certificate_management_upload_m_tls_certificate_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn m_tls_certificate_management_upload_m_tls_certificate_builder<R>(client: &SimpleHttpClient<R>, args: &MTlsCertificateManagementUploadMTlsCertificateArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn m_tls_certificate_management_upload_m_tls_certificate_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &MTlsCertificateManagementUploadMTlsCertificateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<TlsCertificatesAndHostnamesCertificateResponseSinglePost>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/mtls_certificates",
         args.account_id,
     );
 
-    let builder = client.post(&endpoint_url)
+    let mut builder = client
+        .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// POST /accounts/{account_id}/mtls_certificates - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn m_tls_certificate_management_upload_m_tls_certificate_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesCertificateResponseSinglePost>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: TlsCertificatesAndHostnamesCertificateResponseSinglePost = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: TlsCertificatesAndHostnamesCertificateResponseSinglePost =
+                    serde_json::from_str(&body)
+                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // GET /accounts/{account_id}/mtls_certificates/{mtls_certificate_id}
 // -----------------------------------------------------------------------------
 
-/// GET /accounts/{account_id}/mtls_certificates/{mtls_certificate_id} - builder function.
+/// GET /accounts/{account_id}/mtls_certificates/{mtls_certificate_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = m_tls_certificate_management_get_m_tls_certificate_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn m_tls_certificate_management_get_m_tls_certificate_builder<R>(client: &SimpleHttpClient<R>, args: &MTlsCertificateManagementGetMTlsCertificateArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn m_tls_certificate_management_get_m_tls_certificate_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &MTlsCertificateManagementGetMTlsCertificateArgs,
+    builder_mod: Option<F>,
+) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/mtls_certificates/{}",
-        args.mtls_certificate_id,
-        args.account_id,
+        args.account_id, args.mtls_certificate_id,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /accounts/{account_id}/mtls_certificates/{mtls_certificate_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn m_tls_certificate_management_get_m_tls_certificate_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
     Ok(
         builder
             .build_send_request()
@@ -297,7 +367,7 @@ where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'stat
                     if status < 200 || status >= 300 {
                         return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                     let parsed: TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -311,35 +381,48 @@ where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'stat
 // DELETE /accounts/{account_id}/mtls_certificates/{mtls_certificate_id}
 // -----------------------------------------------------------------------------
 
-/// DELETE /accounts/{account_id}/mtls_certificates/{mtls_certificate_id} - builder function.
+/// DELETE /accounts/{account_id}/mtls_certificates/{mtls_certificate_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = m_tls_certificate_management_delete_m_tls_certificate_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn m_tls_certificate_management_delete_m_tls_certificate_builder<R>(client: &SimpleHttpClient<R>, args: &MTlsCertificateManagementDeleteMTlsCertificateArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn m_tls_certificate_management_delete_m_tls_certificate_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &MTlsCertificateManagementDeleteMTlsCertificateArgs,
+    builder_mod: Option<F>,
+) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/mtls_certificates/{}",
-        args.mtls_certificate_id,
-        args.account_id,
+        args.account_id, args.mtls_certificate_id,
     );
 
-    let builder = client.delete(&endpoint_url)
+    let mut builder = client
+        .delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// DELETE /accounts/{account_id}/mtls_certificates/{mtls_certificate_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn m_tls_certificate_management_delete_m_tls_certificate_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
     Ok(
         builder
             .build_send_request()
@@ -350,7 +433,7 @@ where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'stat
                     if status < 200 || status >= 300 {
                         return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
                     }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
+                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                     let parsed: TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
                     Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
                 }
@@ -364,258 +447,455 @@ where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'stat
 // GET /accounts/{account_id}/mtls_certificates/{mtls_certificate_id}/associations
 // -----------------------------------------------------------------------------
 
-/// GET /accounts/{account_id}/mtls_certificates/{mtls_certificate_id}/associations - builder function.
+/// GET /accounts/{account_id}/mtls_certificates/{mtls_certificate_id}/associations.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = m_tls_certificate_management_list_m_tls_certificate_associations_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn m_tls_certificate_management_list_m_tls_certificate_associations_builder<R>(client: &SimpleHttpClient<R>, args: &MTlsCertificateManagementListMTlsCertificateAssociationsArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn m_tls_certificate_management_list_m_tls_certificate_associations_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &MTlsCertificateManagementListMTlsCertificateAssociationsArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<TlsCertificatesAndHostnamesAssociationResponseCollection>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/mtls_certificates/{}/associations",
-        args.mtls_certificate_id,
-        args.account_id,
+        args.account_id, args.mtls_certificate_id,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /accounts/{account_id}/mtls_certificates/{mtls_certificate_id}/associations - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn m_tls_certificate_management_list_m_tls_certificate_associations_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesAssociationResponseCollection>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: TlsCertificatesAndHostnamesAssociationResponseCollection = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: TlsCertificatesAndHostnamesAssociationResponseCollection =
+                    serde_json::from_str(&body)
+                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // GET /certificates
 // -----------------------------------------------------------------------------
 
-/// GET /certificates - builder function.
+/// GET /certificates.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = origin_ca_list_certificates_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn origin_ca_list_certificates_builder<R>(client: &SimpleHttpClient<R>, args: &OriginCaListCertificatesArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn origin_ca_list_certificates_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &OriginCaListCertificatesArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<TlsCertificatesAndHostnamesSchemasCertificateResponseCollection>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/certificates",
-    );
+    let endpoint_url = format!("https://api.cloudflare.com/client/v4/certificates",);
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /certificates - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn origin_ca_list_certificates_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesSchemasCertificateResponseCollection>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: TlsCertificatesAndHostnamesSchemasCertificateResponseCollection = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: TlsCertificatesAndHostnamesSchemasCertificateResponseCollection =
+                    serde_json::from_str(&body)
+                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // POST /certificates
 // -----------------------------------------------------------------------------
 
-/// POST /certificates - builder function.
+/// POST /certificates.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = origin_ca_create_certificate_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn origin_ca_create_certificate_builder<R>(client: &SimpleHttpClient<R>) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn origin_ca_create_certificate_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<TlsCertificatesAndHostnamesSchemasCertificateResponseSingle>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/certificates",
-    );
+    let endpoint_url = format!("https://api.cloudflare.com/client/v4/certificates",);
 
-    let builder = client.post(&endpoint_url)
+    let mut builder = client
+        .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// POST /certificates - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn origin_ca_create_certificate_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesSchemasCertificateResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: TlsCertificatesAndHostnamesSchemasCertificateResponseSingle = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: TlsCertificatesAndHostnamesSchemasCertificateResponseSingle =
+                    serde_json::from_str(&body)
+                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // GET /certificates/{certificate_id}
 // -----------------------------------------------------------------------------
 
-/// GET /certificates/{certificate_id} - builder function.
+/// GET /certificates/{certificate_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = origin_ca_get_certificate_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn origin_ca_get_certificate_builder<R>(client: &SimpleHttpClient<R>, args: &OriginCaGetCertificateArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn origin_ca_get_certificate_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &OriginCaGetCertificateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<TlsCertificatesAndHostnamesSchemasCertificateResponseSingle>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/certificates/{}",
         args.certificate_id,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /certificates/{certificate_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn origin_ca_get_certificate_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesSchemasCertificateResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: TlsCertificatesAndHostnamesSchemasCertificateResponseSingle = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: TlsCertificatesAndHostnamesSchemasCertificateResponseSingle =
+                    serde_json::from_str(&body)
+                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // DELETE /certificates/{certificate_id}
 // -----------------------------------------------------------------------------
 
-/// DELETE /certificates/{certificate_id} - builder function.
+/// DELETE /certificates/{certificate_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = origin_ca_revoke_certificate_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn origin_ca_revoke_certificate_builder<R>(client: &SimpleHttpClient<R>, args: &OriginCaRevokeCertificateArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn origin_ca_revoke_certificate_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &OriginCaRevokeCertificateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<TlsCertificatesAndHostnamesCertificateRevokeResponse>,
+                super::shared::ApiError,
+            >,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/certificates/{}",
         args.certificate_id,
     );
 
-    let builder = client.delete(&endpoint_url)
+    let mut builder = client
+        .delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// DELETE /certificates/{certificate_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn origin_ca_revoke_certificate_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<TlsCertificatesAndHostnamesCertificateRevokeResponse>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: TlsCertificatesAndHostnamesCertificateRevokeResponse = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: TlsCertificatesAndHostnamesCertificateRevokeResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
-

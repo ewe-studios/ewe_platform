@@ -7,10 +7,12 @@
 
 #![cfg(feature = "cloudflare_tasks")]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
+use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use serde::{Deserialize, Serialize};
+
+use super::shared::{ApiError, ApiPending, ApiResponse};
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -99,354 +101,597 @@ pub struct SlurperResumeJobArgs {
 // GET /accounts/{account_id}/slurper/jobs
 // -----------------------------------------------------------------------------
 
-/// GET /accounts/{account_id}/slurper/jobs - builder function.
+/// GET /accounts/{account_id}/slurper/jobs.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = slurper_list_jobs_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn slurper_list_jobs_builder<R>(client: &SimpleHttpClient<R>, args: &SlurperListJobsArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn slurper_list_jobs_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SlurperListJobsArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs",
         args.account_id,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /accounts/{account_id}/slurper/jobs - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn slurper_list_jobs_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // POST /accounts/{account_id}/slurper/jobs
 // -----------------------------------------------------------------------------
 
-/// POST /accounts/{account_id}/slurper/jobs - builder function.
+/// POST /accounts/{account_id}/slurper/jobs.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = slurper_create_job_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn slurper_create_job_builder<R>(client: &SimpleHttpClient<R>, args: &SlurperCreateJobArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn slurper_create_job_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SlurperCreateJobArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs",
         args.account_id,
     );
 
-    let builder = client.post(&endpoint_url)
+    let mut builder = client
+        .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))
-}
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-/// POST /accounts/{account_id}/slurper/jobs - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-#[inline]
-pub fn slurper_create_job_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // PUT /accounts/{account_id}/slurper/jobs/abortAll
 // -----------------------------------------------------------------------------
 
-/// PUT /accounts/{account_id}/slurper/jobs/abortAll - builder function.
+/// PUT /accounts/{account_id}/slurper/jobs/abortAll.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = slurper_abort_all_jobs_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn slurper_abort_all_jobs_builder<R>(client: &SimpleHttpClient<R>, args: &SlurperAbortAllJobsArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn slurper_abort_all_jobs_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SlurperAbortAllJobsArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs/abortAll",
         args.account_id,
     );
 
-    let builder = client.put(&endpoint_url)
+    let mut builder = client
+        .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// PUT /accounts/{account_id}/slurper/jobs/abortAll - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn slurper_abort_all_jobs_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // GET /accounts/{account_id}/slurper/jobs/{job_id}
 // -----------------------------------------------------------------------------
 
-/// GET /accounts/{account_id}/slurper/jobs/{job_id} - builder function.
+/// GET /accounts/{account_id}/slurper/jobs/{job_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = slurper_get_job_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn slurper_get_job_builder<R>(client: &SimpleHttpClient<R>, args: &SlurperGetJobArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn slurper_get_job_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SlurperGetJobArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs/{}",
-        args.account_id,
-        args.job_id,
+        args.account_id, args.job_id,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /accounts/{account_id}/slurper/jobs/{job_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn slurper_get_job_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // PUT /accounts/{account_id}/slurper/jobs/{job_id}/abort
 // -----------------------------------------------------------------------------
 
-/// PUT /accounts/{account_id}/slurper/jobs/{job_id}/abort - builder function.
+/// PUT /accounts/{account_id}/slurper/jobs/{job_id}/abort.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = slurper_abort_job_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn slurper_abort_job_builder<R>(client: &SimpleHttpClient<R>, args: &SlurperAbortJobArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn slurper_abort_job_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SlurperAbortJobArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs/{}/abort",
-        args.account_id,
-        args.job_id,
+        args.account_id, args.job_id,
     );
 
-    let builder = client.put(&endpoint_url)
+    let mut builder = client
+        .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// PUT /accounts/{account_id}/slurper/jobs/{job_id}/abort - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn slurper_abort_job_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // PUT /accounts/{account_id}/slurper/jobs/{job_id}/pause
 // -----------------------------------------------------------------------------
 
-/// PUT /accounts/{account_id}/slurper/jobs/{job_id}/pause - builder function.
+/// PUT /accounts/{account_id}/slurper/jobs/{job_id}/pause.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = slurper_pause_job_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn slurper_pause_job_builder<R>(client: &SimpleHttpClient<R>, args: &SlurperPauseJobArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn slurper_pause_job_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SlurperPauseJobArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs/{}/pause",
-        args.account_id,
-        args.job_id,
+        args.account_id, args.job_id,
     );
 
-    let builder = client.put(&endpoint_url)
+    let mut builder = client
+        .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// PUT /accounts/{account_id}/slurper/jobs/{job_id}/pause - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn slurper_pause_job_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // PUT /accounts/{account_id}/slurper/jobs/{job_id}/resume
 // -----------------------------------------------------------------------------
 
-/// PUT /accounts/{account_id}/slurper/jobs/{job_id}/resume - builder function.
+/// PUT /accounts/{account_id}/slurper/jobs/{job_id}/resume.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = slurper_resume_job_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn slurper_resume_job_builder<R>(client: &SimpleHttpClient<R>, args: &SlurperResumeJobArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn slurper_resume_job_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &SlurperResumeJobArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/slurper/jobs/{}/resume",
-        args.account_id,
-        args.job_id,
+        args.account_id, args.job_id,
     );
 
-    let builder = client.put(&endpoint_url)
+    let mut builder = client
+        .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// PUT /accounts/{account_id}/slurper/jobs/{job_id}/resume - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn slurper_resume_job_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
-

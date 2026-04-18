@@ -7,10 +7,12 @@
 
 #![cfg(feature = "cloudflare_targets")]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
+use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use serde::{Deserialize, Serialize};
+
+use super::shared::{ApiError, ApiPending, ApiResponse};
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -132,403 +134,682 @@ pub struct InfraTargetsDeleteArgs {
 // GET /accounts/{account_id}/infrastructure/targets
 // -----------------------------------------------------------------------------
 
-/// GET /accounts/{account_id}/infrastructure/targets - builder function.
+/// GET /accounts/{account_id}/infrastructure/targets.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = infra_targets_list_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn infra_targets_list_builder<R>(client: &SimpleHttpClient<R>, args: &InfraTargetsListArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn infra_targets_list_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &InfraTargetsListArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/infrastructure/targets",
         args.account_id,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /accounts/{account_id}/infrastructure/targets - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn infra_targets_list_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // POST /accounts/{account_id}/infrastructure/targets
 // -----------------------------------------------------------------------------
 
-/// POST /accounts/{account_id}/infrastructure/targets - builder function.
+/// POST /accounts/{account_id}/infrastructure/targets.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = infra_targets_post_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn infra_targets_post_builder<R>(client: &SimpleHttpClient<R>, args: &InfraTargetsPostArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn infra_targets_post_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &InfraTargetsPostArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/infrastructure/targets",
         args.account_id,
     );
 
-    let builder = client.post(&endpoint_url)
+    let mut builder = client
+        .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// POST /accounts/{account_id}/infrastructure/targets - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn infra_targets_post_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // PUT /accounts/{account_id}/infrastructure/targets/batch
 // -----------------------------------------------------------------------------
 
-/// PUT /accounts/{account_id}/infrastructure/targets/batch - builder function.
+/// PUT /accounts/{account_id}/infrastructure/targets/batch.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = infra_targets_put_batch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn infra_targets_put_batch_builder<R>(client: &SimpleHttpClient<R>, args: &InfraTargetsPutBatchArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn infra_targets_put_batch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &InfraTargetsPutBatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/infrastructure/targets/batch",
         args.account_id,
     );
 
-    let builder = client.put(&endpoint_url)
+    let mut builder = client
+        .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))
-}
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-/// PUT /accounts/{account_id}/infrastructure/targets/batch - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-#[inline]
-pub fn infra_targets_put_batch_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // DELETE /accounts/{account_id}/infrastructure/targets/batch
 // -----------------------------------------------------------------------------
 
-/// DELETE /accounts/{account_id}/infrastructure/targets/batch - builder function.
+/// DELETE /accounts/{account_id}/infrastructure/targets/batch.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = infra_targets_delete_batch_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn infra_targets_delete_batch_builder<R>(client: &SimpleHttpClient<R>, args: &InfraTargetsDeleteBatchArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn infra_targets_delete_batch_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &InfraTargetsDeleteBatchArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/infrastructure/targets/batch",
         args.account_id,
     );
 
-    let builder = client.delete(&endpoint_url)
+    let mut builder = client
+        .delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// DELETE /accounts/{account_id}/infrastructure/targets/batch - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn infra_targets_delete_batch_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // POST /accounts/{account_id}/infrastructure/targets/batch_delete
 // -----------------------------------------------------------------------------
 
-/// POST /accounts/{account_id}/infrastructure/targets/batch_delete - builder function.
+/// POST /accounts/{account_id}/infrastructure/targets/batch_delete.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = infra_targets_delete_batch_post_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn infra_targets_delete_batch_post_builder<R>(client: &SimpleHttpClient<R>, args: &InfraTargetsDeleteBatchPostArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn infra_targets_delete_batch_post_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &InfraTargetsDeleteBatchPostArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/infrastructure/targets/batch_delete",
         args.account_id,
     );
 
-    let builder = client.post(&endpoint_url)
+    let mut builder = client
+        .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// POST /accounts/{account_id}/infrastructure/targets/batch_delete - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn infra_targets_delete_batch_post_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // GET /accounts/{account_id}/infrastructure/targets/{target_id}
 // -----------------------------------------------------------------------------
 
-/// GET /accounts/{account_id}/infrastructure/targets/{target_id} - builder function.
+/// GET /accounts/{account_id}/infrastructure/targets/{target_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = infra_targets_get_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn infra_targets_get_builder<R>(client: &SimpleHttpClient<R>, args: &InfraTargetsGetArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn infra_targets_get_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &InfraTargetsGetArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/infrastructure/targets/{}",
-        args.account_id,
-        args.target_id,
+        args.account_id, args.target_id,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /accounts/{account_id}/infrastructure/targets/{target_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn infra_targets_get_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // PUT /accounts/{account_id}/infrastructure/targets/{target_id}
 // -----------------------------------------------------------------------------
 
-/// PUT /accounts/{account_id}/infrastructure/targets/{target_id} - builder function.
+/// PUT /accounts/{account_id}/infrastructure/targets/{target_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = infra_targets_put_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn infra_targets_put_builder<R>(client: &SimpleHttpClient<R>, args: &InfraTargetsPutArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn infra_targets_put_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &InfraTargetsPutArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/infrastructure/targets/{}",
-        args.account_id,
-        args.target_id,
+        args.account_id, args.target_id,
     );
 
-    let builder = client.put(&endpoint_url)
+    let mut builder = client
+        .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// PUT /accounts/{account_id}/infrastructure/targets/{target_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn infra_targets_put_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // DELETE /accounts/{account_id}/infrastructure/targets/{target_id}
 // -----------------------------------------------------------------------------
 
-/// DELETE /accounts/{account_id}/infrastructure/targets/{target_id} - builder function.
+/// DELETE /accounts/{account_id}/infrastructure/targets/{target_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = infra_targets_delete_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn infra_targets_delete_builder<R>(client: &SimpleHttpClient<R>, args: &InfraTargetsDeleteArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn infra_targets_delete_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &InfraTargetsDeleteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/infrastructure/targets/{}",
-        args.account_id,
-        args.target_id,
+        args.account_id, args.target_id,
     );
 
-    let builder = client.delete(&endpoint_url)
+    let mut builder = client
+        .delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// DELETE /accounts/{account_id}/infrastructure/targets/{target_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn infra_targets_delete_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<()>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: () })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
-

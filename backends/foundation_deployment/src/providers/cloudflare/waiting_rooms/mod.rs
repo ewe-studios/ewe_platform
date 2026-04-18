@@ -7,22 +7,19 @@
 
 #![cfg(feature = "cloudflare_waiting_rooms")]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
+use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use serde::{Deserialize, Serialize};
+
+// Import shared types used by this module
+use super::shared::WaitingroomResponseCollection;
+
+use super::shared::{ApiError, ApiPending, ApiResponse};
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// WaitingroomResponseCollection response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WaitingroomResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
 
 // =============================================================================
 // ARGS TYPES (per-endpoint)
@@ -43,51 +40,87 @@ pub struct WaitingRoomListWaitingRoomsAccountArgs {
 // GET /accounts/{account_id}/waiting_rooms
 // -----------------------------------------------------------------------------
 
-/// GET /accounts/{account_id}/waiting_rooms - builder function.
+/// GET /accounts/{account_id}/waiting_rooms.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = waiting_room_list_waiting_rooms_account_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn waiting_room_list_waiting_rooms_account_builder<R>(client: &SimpleHttpClient<R>, args: &WaitingRoomListWaitingRoomsAccountArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn waiting_room_list_waiting_rooms_account_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WaitingRoomListWaitingRoomsAccountArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WaitingroomResponseCollection>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/waiting_rooms",
         args.account_id,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /accounts/{account_id}/waiting_rooms - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn waiting_room_list_waiting_rooms_account_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<WaitingroomResponseCollection>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: WaitingroomResponseCollection = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: WaitingroomResponseCollection = serde_json::from_str(&body)
+                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
-

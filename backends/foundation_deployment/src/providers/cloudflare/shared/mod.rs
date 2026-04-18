@@ -4,10 +4,12 @@
 //! DO NOT EDIT MANUALLY.
 
 use foundation_core::wire::simple_http::SimpleHeaders;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Re-export types from foundation_core for convenience
-pub use foundation_core::valtron::{BoxedSendExecutionAction, RequestIntro};
+pub use foundation_core::valtron::BoxedSendExecutionAction;
+pub use foundation_core::wire::simple_http::client::RequestIntro;
 
 // =============================================================================
 // ERROR TYPES

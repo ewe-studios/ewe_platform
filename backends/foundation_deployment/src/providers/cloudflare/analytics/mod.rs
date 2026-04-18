@@ -7,10 +7,12 @@
 
 #![cfg(feature = "cloudflare_analytics")]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
+use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
-use serde::{Deserialize, Serialize};
 use foundation_macros::JsonHash;
+use serde::{Deserialize, Serialize};
+
+use super::shared::{ApiError, ApiPending, ApiResponse};
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -214,534 +216,908 @@ pub struct WebAnalyticsModifyRulesArgs {
 // POST /accounts/{account_id}/rum/site_info
 // -----------------------------------------------------------------------------
 
-/// POST /accounts/{account_id}/rum/site_info - builder function.
+/// POST /accounts/{account_id}/rum/site_info.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = web_analytics_create_site_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn web_analytics_create_site_builder<R>(client: &SimpleHttpClient<R>, args: &WebAnalyticsCreateSiteArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn web_analytics_create_site_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WebAnalyticsCreateSiteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RumSiteResponseSingle>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/rum/site_info",
         args.account_id,
     );
 
-    let builder = client.post(&endpoint_url)
+    let mut builder = client
+        .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))
-}
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-/// POST /accounts/{account_id}/rum/site_info - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-#[inline]
-pub fn web_analytics_create_site_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<RumSiteResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: RumSiteResponseSingle = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: RumSiteResponseSingle = serde_json::from_str(&body)
+                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // GET /accounts/{account_id}/rum/site_info/list
 // -----------------------------------------------------------------------------
 
-/// GET /accounts/{account_id}/rum/site_info/list - builder function.
+/// GET /accounts/{account_id}/rum/site_info/list.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = web_analytics_list_sites_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn web_analytics_list_sites_builder<R>(client: &SimpleHttpClient<R>, args: &WebAnalyticsListSitesArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn web_analytics_list_sites_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WebAnalyticsListSitesArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RumSitesResponseCollection>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/rum/site_info/list",
         args.account_id,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /accounts/{account_id}/rum/site_info/list - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn web_analytics_list_sites_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<RumSitesResponseCollection>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: RumSitesResponseCollection = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: RumSitesResponseCollection = serde_json::from_str(&body)
+                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // GET /accounts/{account_id}/rum/site_info/{site_id}
 // -----------------------------------------------------------------------------
 
-/// GET /accounts/{account_id}/rum/site_info/{site_id} - builder function.
+/// GET /accounts/{account_id}/rum/site_info/{site_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = web_analytics_get_site_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn web_analytics_get_site_builder<R>(client: &SimpleHttpClient<R>, args: &WebAnalyticsGetSiteArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn web_analytics_get_site_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WebAnalyticsGetSiteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RumSiteResponseSingle>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/rum/site_info/{}",
-        args.account_id,
-        args.site_id,
+        args.account_id, args.site_id,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /accounts/{account_id}/rum/site_info/{site_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn web_analytics_get_site_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<RumSiteResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: RumSiteResponseSingle = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: RumSiteResponseSingle = serde_json::from_str(&body)
+                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // PUT /accounts/{account_id}/rum/site_info/{site_id}
 // -----------------------------------------------------------------------------
 
-/// PUT /accounts/{account_id}/rum/site_info/{site_id} - builder function.
+/// PUT /accounts/{account_id}/rum/site_info/{site_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = web_analytics_update_site_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn web_analytics_update_site_builder<R>(client: &SimpleHttpClient<R>, args: &WebAnalyticsUpdateSiteArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn web_analytics_update_site_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WebAnalyticsUpdateSiteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RumSiteResponseSingle>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/rum/site_info/{}",
-        args.account_id,
-        args.site_id,
+        args.account_id, args.site_id,
     );
 
-    let builder = client.put(&endpoint_url)
+    let mut builder = client
+        .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))
-}
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-/// PUT /accounts/{account_id}/rum/site_info/{site_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-#[inline]
-pub fn web_analytics_update_site_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<RumSiteResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: RumSiteResponseSingle = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: RumSiteResponseSingle = serde_json::from_str(&body)
+                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // DELETE /accounts/{account_id}/rum/site_info/{site_id}
 // -----------------------------------------------------------------------------
 
-/// DELETE /accounts/{account_id}/rum/site_info/{site_id} - builder function.
+/// DELETE /accounts/{account_id}/rum/site_info/{site_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = web_analytics_delete_site_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn web_analytics_delete_site_builder<R>(client: &SimpleHttpClient<R>, args: &WebAnalyticsDeleteSiteArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn web_analytics_delete_site_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WebAnalyticsDeleteSiteArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RumSiteTagResponseSingle>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/rum/site_info/{}",
-        args.account_id,
-        args.site_id,
+        args.account_id, args.site_id,
     );
 
-    let builder = client.delete(&endpoint_url)
+    let mut builder = client
+        .delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// DELETE /accounts/{account_id}/rum/site_info/{site_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn web_analytics_delete_site_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<RumSiteTagResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: RumSiteTagResponseSingle = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: RumSiteTagResponseSingle = serde_json::from_str(&body)
+                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // POST /accounts/{account_id}/rum/v2/{ruleset_id}/rule
 // -----------------------------------------------------------------------------
 
-/// POST /accounts/{account_id}/rum/v2/{ruleset_id}/rule - builder function.
+/// POST /accounts/{account_id}/rum/v2/{ruleset_id}/rule.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = web_analytics_create_rule_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn web_analytics_create_rule_builder<R>(client: &SimpleHttpClient<R>, args: &WebAnalyticsCreateRuleArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn web_analytics_create_rule_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WebAnalyticsCreateRuleArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RumRuleResponseSingle>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/rum/v2/{}/rule",
-        args.account_id,
-        args.ruleset_id,
+        args.account_id, args.ruleset_id,
     );
 
-    let builder = client.post(&endpoint_url)
+    let mut builder = client
+        .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))
-}
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-/// POST /accounts/{account_id}/rum/v2/{ruleset_id}/rule - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-#[inline]
-pub fn web_analytics_create_rule_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<RumRuleResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: RumRuleResponseSingle = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: RumRuleResponseSingle = serde_json::from_str(&body)
+                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // PUT /accounts/{account_id}/rum/v2/{ruleset_id}/rule/{rule_id}
 // -----------------------------------------------------------------------------
 
-/// PUT /accounts/{account_id}/rum/v2/{ruleset_id}/rule/{rule_id} - builder function.
+/// PUT /accounts/{account_id}/rum/v2/{ruleset_id}/rule/{rule_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = web_analytics_update_rule_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn web_analytics_update_rule_builder<R>(client: &SimpleHttpClient<R>, args: &WebAnalyticsUpdateRuleArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn web_analytics_update_rule_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WebAnalyticsUpdateRuleArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RumRuleResponseSingle>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/rum/v2/{}/rule/{}",
-        args.account_id,
-        args.ruleset_id,
-        args.rule_id,
+        args.account_id, args.ruleset_id, args.rule_id,
     );
 
-    let builder = client.put(&endpoint_url)
+    let mut builder = client
+        .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))
-}
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-/// PUT /accounts/{account_id}/rum/v2/{ruleset_id}/rule/{rule_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-#[inline]
-pub fn web_analytics_update_rule_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<RumRuleResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: RumRuleResponseSingle = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: RumRuleResponseSingle = serde_json::from_str(&body)
+                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // DELETE /accounts/{account_id}/rum/v2/{ruleset_id}/rule/{rule_id}
 // -----------------------------------------------------------------------------
 
-/// DELETE /accounts/{account_id}/rum/v2/{ruleset_id}/rule/{rule_id} - builder function.
+/// DELETE /accounts/{account_id}/rum/v2/{ruleset_id}/rule/{rule_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = web_analytics_delete_rule_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn web_analytics_delete_rule_builder<R>(client: &SimpleHttpClient<R>, args: &WebAnalyticsDeleteRuleArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn web_analytics_delete_rule_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WebAnalyticsDeleteRuleArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RumRuleIdResponseSingle>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/rum/v2/{}/rule/{}",
-        args.account_id,
-        args.ruleset_id,
-        args.rule_id,
+        args.account_id, args.ruleset_id, args.rule_id,
     );
 
-    let builder = client.delete(&endpoint_url)
+    let mut builder = client
+        .delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// DELETE /accounts/{account_id}/rum/v2/{ruleset_id}/rule/{rule_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn web_analytics_delete_rule_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<RumRuleIdResponseSingle>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: RumRuleIdResponseSingle = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: RumRuleIdResponseSingle = serde_json::from_str(&body)
+                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // GET /accounts/{account_id}/rum/v2/{ruleset_id}/rules
 // -----------------------------------------------------------------------------
 
-/// GET /accounts/{account_id}/rum/v2/{ruleset_id}/rules - builder function.
+/// GET /accounts/{account_id}/rum/v2/{ruleset_id}/rules.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = web_analytics_list_rules_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn web_analytics_list_rules_builder<R>(client: &SimpleHttpClient<R>, args: &WebAnalyticsListRulesArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn web_analytics_list_rules_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WebAnalyticsListRulesArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RumRulesResponseCollection>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/rum/v2/{}/rules",
-        args.account_id,
-        args.ruleset_id,
+        args.account_id, args.ruleset_id,
     );
 
-    let builder = client.get(&endpoint_url)
+    let mut builder = client
+        .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /accounts/{account_id}/rum/v2/{ruleset_id}/rules - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-#[inline]
-pub fn web_analytics_list_rules_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<RumRulesResponseCollection>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: RumRulesResponseCollection = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: RumRulesResponseCollection = serde_json::from_str(&body)
+                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // POST /accounts/{account_id}/rum/v2/{ruleset_id}/rules
 // -----------------------------------------------------------------------------
 
-/// POST /accounts/{account_id}/rum/v2/{ruleset_id}/rules - builder function.
+/// POST /accounts/{account_id}/rum/v2/{ruleset_id}/rules.
 ///
-/// Returns `ClientRequestBuilder` for customization.
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = web_analytics_modify_rules_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
 
 #[inline]
-pub fn web_analytics_modify_rules_builder<R>(client: &SimpleHttpClient<R>, args: &WebAnalyticsModifyRulesArgs) -> Result<ClientRequestBuilder<R>, super::shared::ApiError>
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+pub fn web_analytics_modify_rules_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &WebAnalyticsModifyRulesArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RumRulesResponseCollection>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/rum/v2/{}/rules",
-        args.account_id,
-        args.ruleset_id,
+        args.account_id, args.ruleset_id,
     );
 
-    let builder = client.post(&endpoint_url)
+    let mut builder = client
+        .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder.body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))
-}
+    builder = builder
+        .body_json(&args.body)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-/// POST /accounts/{account_id}/rum/v2/{ruleset_id}/rules - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-#[inline]
-pub fn web_analytics_modify_rules_task<R>(
-    builder: ClientRequestBuilder<R>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<RumRulesResponseCollection>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {
-where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-    Ok(
-        builder
-            .build_send_request()
-            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-            .map_ready(|intro| match intro {
-                super::shared::RequestIntro::Success { stream, intro, headers, .. } => {
-                    let status: usize = intro.0.into();
-                    if status < 200 || status >= 300 {
-                        return Err(super::shared::ApiError::HttpStatus { code: status as u16, headers: headers.clone(), body: None });
-                    }
-                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                    let parsed: RumRulesResponseCollection = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                    Ok(ApiResponse { status: status as u16, headers: headers.clone(), body: parsed })
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
                 }
-                super::shared::RequestIntro::Failed(e) => Err(super::shared::ApiError::RequestSendFailed(e.to_string())),
-            })
-            .map_pending(|_| super::shared::ApiPending::Sending)
-    )
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: RumRulesResponseCollection = serde_json::from_str(&body)
+                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
-
