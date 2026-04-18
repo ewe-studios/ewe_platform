@@ -10,22 +10,18 @@ use foundation_core::valtron::{
     BoxedSendExecutionAction, StreamIterator, TaskIterator, TaskIteratorExt,
 };
 use foundation_core::valtron::{execute, ThreadedValue};
-use foundation_core::wire::simple_http::client::{DnsResolver, SystemDnsResolver};
-use foundation_db::state::traits::StateStore;
+use foundation_core::wire::simple_http::client::SystemDnsResolver;
 use foundation_db::state::FileStateStore;
-use foundation_deployment::provider_client::ProviderClient;
-use foundation_deployment::providers::cloudflare::api::cloudflare::CloudflareProvider;
+use foundation_deployment::provider_client::{ProviderClient, StoreStateIdentifierTask};
 use foundation_deployment::providers::cloudflare::clients::cloudflare::{
-    WorkerScriptDeleteWorkerArgs,
-    WorkerScriptUploadWorkerModuleArgs,
-    worker_script_delete_worker,
-    worker_script_upload_worker_module,
+    WorkerScriptDeleteWorkerArgs, WorkerScriptUploadWorkerModuleArgs,
+    worker_script_delete_worker_builder, worker_script_delete_worker_task,
+    worker_script_upload_worker_module_builder, worker_script_upload_worker_module_task,
 };
 use foundation_deployment::traits::{Deployable, Deploying};
 use foundation_deployment::types::WorkerDeployment;
-use serde::{Deserialize, Serialize};
 
-use std::fmt::Debug;
+use crate::common::task_either::{OneShotTask, TaskEither};
 
 /// Cloudflare Worker deployable - deploys a worker script to Cloudflare Workers.
 ///
@@ -57,6 +53,7 @@ impl CloudflareWorker {
     /// # Example
     ///
     /// ```rust
+    /// use ewe_deployables::cloudflare::CloudflareWorker;
     /// let worker = CloudflareWorker::new("my-worker", "./worker.js", "account-id");
     /// ```
     pub fn new(
@@ -97,7 +94,8 @@ pub enum CloudflareWorkerError {
 }
 
 impl Deployable for CloudflareWorker {
-    type Output = WorkerDeployment;
+    type DeployOutput = WorkerDeployment;
+    type DestroyOutput = ();
     type Error = CloudflareWorkerError;
     type Store = FileStateStore;
     type Resolver = SystemDnsResolver;
@@ -109,9 +107,8 @@ impl Deployable for CloudflareWorker {
         impl StreamIterator<D = Result<Self::Output, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     > {
-        self.deploy_task(client)
-            .and_then(|task| execute(task, None))
-            .map_err(|e| CloudflareWorkerError::ExecutorFailed(e.to_string()))
+        let task = self.deploy_task(client)?;
+        execute(task, None).map_err(|e| CloudflareWorkerError::ExecutorFailed(e.to_string()))
     }
 
     fn deploy_task(
@@ -127,48 +124,71 @@ impl Deployable for CloudflareWorker {
         Self::Error,
     > {
         // Read script content from disk
-        let script = std::fs::read_to_string(&self.script_path).map_err(|e| {
+        let _script = std::fs::read_to_string(&self.script_path).map_err(|e| {
             CloudflareWorkerError::IoFailed(format!(
                 "Failed to read script from {}: {}",
                 self.script_path, e
             ))
         })?;
 
-        // Create CloudflareProvider from client
-        let cloudflare = CloudflareProvider::from_provider_client(client);
-
-        // Use generated Cloudflare client
-        let result = cloudflare
-            .worker_script_upload_worker_module(&WorkerScriptUploadWorkerModuleArgs {
-                account_id: self.account_id.clone(),
-                script_name: self.name.clone(),
-                bindings_inherit: Some(true),
-                body: serde_json::json!({
-                    "main": script,
-                }),
-            })
-            .map_err(|e| CloudflareWorkerError::ApiFailed(e.to_string()))?;
-
-        // Transform API response into deployment output
-        Ok(result.map(|response| WorkerDeployment {
+        let args = WorkerScriptUploadWorkerModuleArgs {
             account_id: self.account_id.clone(),
             script_name: self.name.clone(),
-            deployment_id: response.result.id.clone(),
-            url: format!("https://{}.workers.dev", self.name),
-            deployed_at: chrono::Utc::now(),
-        }))
+            bindings_inherit: Some("true".to_string()),
+        };
+
+        let builder = worker_script_upload_worker_module_builder(
+            client.http_client(),
+            &args.account_id,
+            &args.script_name,
+            &args.bindings_inherit,
+        )
+        .map_err(|e| CloudflareWorkerError::ApiFailed(e.to_string()))?;
+
+        let task = worker_script_upload_worker_module_task(builder)
+            .map_err(|e| CloudflareWorkerError::ApiFailed(e.to_string()))?;
+
+        let store_task = StoreStateIdentifierTask::new(
+            task,
+            client.state_store.clone(),
+            args,
+            Some(client.stage.clone()),
+        );
+
+        let name = self.name.clone();
+        let account_id = self.account_id.clone();
+
+        Ok(store_task
+            .map_ready(move |api_result| {
+                api_result
+                    .map(|response| {
+                        let deployment_id = response
+                            .as_object()
+                            .and_then(|o| o.get("id"))
+                            .and_then(serde_json::Value::as_str)
+                            .unwrap_or("unknown")
+                            .to_string();
+                        WorkerDeployment::new(
+                            account_id.clone(),
+                            name.clone(),
+                            deployment_id,
+                            format!("https://{}.workers.dev", name),
+                        )
+                    })
+                    .map_err(|e| CloudflareWorkerError::ApiFailed(e.to_string()))
+            })
+            .map_pending(|_| Deploying::Processing))
     }
 
     fn destroy(
         &self,
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
-        impl StreamIterator<D = Result<(), Self::Error>, P = Deploying> + Send + 'static,
+        impl StreamIterator<D = Result<Self::DestroyOutput, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     > {
-        self.destroy_task(client)
-            .and_then(|task| execute(task, None))
-            .map_err(|e| CloudflareWorkerError::ExecutorFailed(e.to_string()))
+        let task = self.destroy_task(client)?;
+        execute(task, None).map_err(|e| CloudflareWorkerError::ExecutorFailed(e.to_string()))
     }
 
     fn destroy_task(
@@ -176,7 +196,7 @@ impl Deployable for CloudflareWorker {
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
         impl TaskIterator<
-                Ready = Result<(), Self::Error>,
+                Ready = Result<Self::DestroyOutput, Self::Error>,
                 Pending = Deploying,
                 Spawner = BoxedSendExecutionAction,
             > + Send
@@ -186,13 +206,11 @@ impl Deployable for CloudflareWorker {
         let state_store = client.state_store();
         let resource_id = format!("cloudflare:worker:{}:{}", client.project(), self.name);
 
-        // Read state from store
         let existing_state = state_store
             .get(&resource_id)
             .map_err(|e| {
                 CloudflareWorkerError::StateFailed(format!(
-                    "Failed to get state for {}: {}",
-                    resource_id, e
+                    "Failed to get state for {resource_id}: {e}",
                 ))
             })?
             .find_map(|v| match v {
@@ -211,36 +229,57 @@ impl Deployable for CloudflareWorker {
 
         match existing_state {
             Some(state) => {
-                // Deserialize stored state into typed output
                 let output: WorkerDeployment = serde_json::from_value(state.output.clone())
                     .map_err(|e| {
                         CloudflareWorkerError::DeserializeFailed(format!(
-                            "Failed to deserialize state: {}",
-                            e
+                            "Failed to deserialize state: {e}",
                         ))
                     })?;
 
-                // Create CloudflareProvider from client
-                let cloudflare = CloudflareProvider::from_provider_client(client);
+                let args = WorkerScriptDeleteWorkerArgs {
+                    account_id: output.account_id,
+                    script_name: output.script_name,
+                    force: None,
+                };
 
-                // Delete worker
-                let result = cloudflare
-                    .worker_script_delete_worker(&WorkerScriptDeleteWorkerArgs {
-                        account_id: output.account_id,
-                        script_name: output.script_name,
-                        force: None,
-                    })
+                let builder = worker_script_delete_worker_builder(
+                    client.http_client(),
+                    &args.account_id,
+                    &args.script_name,
+                    &args.force,
+                )
+                .map_err(|e| CloudflareWorkerError::ApiFailed(e.to_string()))?;
+
+                let task = worker_script_delete_worker_task(builder)
                     .map_err(|e| CloudflareWorkerError::ApiFailed(e.to_string()))?;
 
-                Ok(result.map(|_| ()))
+                let store_task = StoreStateIdentifierTask::new(
+                    task,
+                    client.state_store.clone(),
+                    args,
+                    Some(client.stage.clone()),
+                );
+
+                Ok(TaskEither::Left(
+                    store_task
+                        .map_ready(|api_result| {
+                            api_result
+                                .map(|_| ())
+                                .map_err(|e| CloudflareWorkerError::ApiFailed(e.to_string()))
+                        })
+                        .map_pending(|_| Deploying::Processing),
+                ))
             }
             None => {
-                // No state found - idempotent success
                 tracing::warn!(
                     "No state found for worker '{}' - skipping destroy (idempotent)",
                     self.name
                 );
-                Ok(Box::new(std::iter::once(StreamIterator::Next(Ok(())))))
+                Ok(TaskEither::Right(
+                    OneShotTask::new(Ok(()))
+                        .map_ready(|v| v)
+                        .map_pending(|_| Deploying::Processing),
+                ))
             }
         }
     }

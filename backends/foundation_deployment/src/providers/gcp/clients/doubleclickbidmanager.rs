@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-pub mod types;
 
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;

@@ -43,15 +43,17 @@ pub enum Deploying {
 /// WHY: Users define infrastructure as Rust types implementing this trait.
 ///      No YAML, TOML, or custom configuration formats needed.
 ///
-/// WHAT: Trait with associated types for output, error, state store, and DNS resolver.
-///       Provides `deploy()`/`deploy_task()` and `destroy()`/`destroy_task()` methods.
+/// WHAT: Trait with associated types for deploy output, destroy output, error,
+///       state store, and DNS resolver. Provides `deploy()`/`deploy_task()` and
+///       `destroy()`/`destroy_task()` methods.
 ///
 /// HOW: Implement on user structs. Methods receive `ProviderClient<Store, Resolver>`
 ///      providing state persistence and HTTP client access.
 ///
 /// # Associated Types
 ///
-/// * `Output` - Deployment output type containing URLs, IDs, and artifacts
+/// * `DeployOutput` - Deployment output type containing URLs, IDs, and artifacts
+/// * `DestroyOutput` - Destruction output type (often `()` but can contain metadata)
 /// * `Error` - Error type implementing `std::error::Error + Send + Sync + Debug`
 /// * `Store` - State store implementation for persistence
 /// * `Resolver` - DNS resolver for HTTP calls (e.g., `SystemDnsResolver` or `StaticSocketAddr`)
@@ -70,7 +72,8 @@ pub enum Deploying {
 /// }
 ///
 /// impl Deployable for MyWorker {
-///     type Output = WorkerDeployment;
+///     type DeployOutput = WorkerDeployment;
+///     type DestroyOutput = ();
 ///     type Error = DeploymentError;
 ///     type Store = FileStateStore;
 ///     type Resolver = SystemDnsResolver;
@@ -79,7 +82,7 @@ pub enum Deploying {
 ///         &self,
 ///         client: ProviderClient<Self::Store, Self::Resolver>,
 ///     ) -> Result<
-///         impl StreamIterator<D = Result<Self::Output, Self::Error>, P = Deploying> + Send + 'static,
+///         impl StreamIterator<D = Result<Self::DeployOutput, Self::Error>, P = Deploying> + Send + 'static,
 ///         Self::Error,
 ///     > {
 ///         self.deploy_task(client)
@@ -91,7 +94,7 @@ pub enum Deploying {
 ///         &self,
 ///         client: ProviderClient<Self::Store, Self::Resolver>,
 ///     ) -> Result<
-///         impl TaskIterator<Ready = Result<Self::Output, Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
+///         impl TaskIterator<Ready = Result<Self::DeployOutput, Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
 ///         Self::Error,
 ///     > {
 ///         // Implementation here
@@ -102,7 +105,7 @@ pub enum Deploying {
 ///         &self,
 ///         client: ProviderClient<Self::Store, Self::Resolver>,
 ///     ) -> Result<
-///         impl StreamIterator<D = Result<(), Self::Error>, P = Deploying> + Send + 'static,
+///         impl StreamIterator<D = Result<Self::DestroyOutput, Self::Error>, P = Deploying> + Send + 'static,
 ///         Self::Error,
 ///     > {
 ///         self.destroy_task(client)
@@ -114,7 +117,7 @@ pub enum Deploying {
 ///         &self,
 ///         client: ProviderClient<Self::Store, Self::Resolver>,
 ///     ) -> Result<
-///         impl TaskIterator<Ready = Result<(), Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
+///         impl TaskIterator<Ready = Result<Self::DestroyOutput, Self::Error>, Pending = Deploying, Spawner = BoxedSendExecutionAction> + Send + 'static,
 ///         Self::Error,
 ///     > {
 ///         // Implementation here
@@ -124,7 +127,10 @@ pub enum Deploying {
 /// ```
 pub trait Deployable {
     /// Deployment output type — contains URLs, IDs, and other artifacts.
-    type Output: Send + Sync;
+    type DeployOutput: Send + Sync;
+
+    /// Destroy output type — contains metadata about the destruction (often `()`).
+    type DestroyOutput: Send + Sync;
 
     /// Error type for this deployment.
     type Error: std::error::Error + Send + Sync + std::fmt::Debug;
@@ -149,12 +155,12 @@ pub trait Deployable {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(StreamIterator)` which yields `Result<Output, Error>` when iterated.
+    /// Returns `Ok(StreamIterator)` which yields `Result<DeployOutput, Error>` when iterated.
     fn deploy(
         &self,
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
-        impl StreamIterator<D = Result<Self::Output, Self::Error>, P = Deploying> + Send + 'static,
+        impl StreamIterator<D = Result<Self::DeployOutput, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     >;
 
@@ -178,7 +184,7 @@ pub trait Deployable {
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
         impl TaskIterator<
-                Ready = Result<Self::Output, Self::Error>,
+                Ready = Result<Self::DeployOutput, Self::Error>,
                 Pending = Deploying,
                 Spawner = BoxedSendExecutionAction,
             > + Send
@@ -200,12 +206,12 @@ pub trait Deployable {
     ///
     /// # Returns
     ///
-    /// Returns `Ok(StreamIterator)` which yields `Result<(), Error>` when iterated.
+    /// Returns `Ok(StreamIterator)` which yields `Result<DestroyOutput, Error>` when iterated.
     fn destroy(
         &self,
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
-        impl StreamIterator<D = Result<(), Self::Error>, P = Deploying> + Send + 'static,
+        impl StreamIterator<D = Result<Self::DestroyOutput, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     >;
 
@@ -230,7 +236,7 @@ pub trait Deployable {
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
         impl TaskIterator<
-                Ready = Result<(), Self::Error>,
+                Ready = Result<Self::DestroyOutput, Self::Error>,
                 Pending = Deploying,
                 Spawner = BoxedSendExecutionAction,
             > + Send

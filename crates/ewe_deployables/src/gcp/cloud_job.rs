@@ -6,26 +6,20 @@
 //!
 //! HOW: Implements `Deployable` trait with `ProviderClient` for state and HTTP access.
 
-use foundation_core::valtron::{
-    BoxedSendExecutionAction, StreamIterator, TaskIterator, TaskIteratorExt,
-};
 use foundation_core::valtron::{execute, ThreadedValue};
-use foundation_core::wire::simple_http::client::{DnsResolver, SystemDnsResolver};
-use foundation_db::state::traits::StateStore;
+use foundation_core::valtron::{
+    BoxedSendExecutionAction, Stream, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
+};
+use foundation_core::wire::simple_http::client::SystemDnsResolver;
 use foundation_db::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
 use foundation_deployment::providers::gcp::api::run::RunProvider;
 use foundation_deployment::providers::gcp::clients::run::{
-    RunProjectsLocationsJobsCreateArgs,
-    RunProjectsLocationsJobsDeleteArgs,
-    run_projects_locations_jobs_create,
-    run_projects_locations_jobs_delete,
+    RunProjectsLocationsJobsCreateArgs, RunProjectsLocationsJobsDeleteArgs,
 };
 use foundation_deployment::traits::{Deployable, Deploying};
 use foundation_deployment::types::CloudRunJobDeployment;
-use serde::{Deserialize, Serialize};
-
-use std::fmt::Debug;
 
 /// GCP Cloud Run Job deployable - creates/schedules a Cloud Run Job.
 ///
@@ -63,6 +57,7 @@ impl CloudRunJob {
     /// # Example
     ///
     /// ```rust
+    /// use ewe_deployables::gcp::CloudRunJob;
     /// let job = CloudRunJob::new("my-job", "gcr.io/project/image:latest", "us-central1", "project-id");
     /// ```
     pub fn new(
@@ -125,7 +120,8 @@ pub enum CloudRunJobError {
 }
 
 impl Deployable for CloudRunJob {
-    type Output = CloudRunJobDeployment;
+    type DeployOutput = CloudRunJobDeployment;
+    type DestroyOutput = ();
     type Error = CloudRunJobError;
     type Store = FileStateStore;
     type Resolver = SystemDnsResolver;
@@ -134,12 +130,11 @@ impl Deployable for CloudRunJob {
         &self,
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
-        impl StreamIterator<D = Result<Self::Output, Self::Error>, P = Deploying> + Send + 'static,
+        impl StreamIterator<D = Result<Self::DeployOutput, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     > {
-        self.deploy_task(client)
-            .and_then(|task| execute(task, None))
-            .map_err(|e| CloudRunJobError::ExecutorFailed(e.to_string()))
+        let task = self.deploy_task(client)?;
+        execute(task, None).map_err(|e| CloudRunJobError::ExecutorFailed(e.to_string()))
     }
 
     fn deploy_task(
@@ -147,7 +142,7 @@ impl Deployable for CloudRunJob {
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
         impl TaskIterator<
-                Ready = Result<Self::Output, Self::Error>,
+                Ready = Result<Self::DeployOutput, Self::Error>,
                 Pending = Deploying,
                 Spawner = BoxedSendExecutionAction,
             > + Send
@@ -157,46 +152,33 @@ impl Deployable for CloudRunJob {
         let run = RunProvider::from_provider_client(client);
         let parent = format!("projects/{}/locations/{}", self.project_id, self.region);
 
-        // Build job spec
-        let mut job_spec = serde_json::json!({
-            "template": {
-                "spec": {
-                    "containers": [{
-                        "image": self.image,
-                    }]
-                }
-            }
-        });
-
-        // Add optional command
-        if let Some(ref cmd) = self.command {
-            job_spec["template"]["spec"]["containers"][0]["command"] = serde_json::json!(cmd);
-        }
-
-        // Add optional schedule
-        if let Some(ref schedule) = self.schedule {
-            job_spec["schedule"] = serde_json::json!({ "cron": schedule });
-        }
+        let job_name = self.name.clone();
+        let region = self.region.clone();
+        let project_id = self.project_id.clone();
 
         // Use generated GCP Cloud Run client
         let result = run
             .run_projects_locations_jobs_create(&RunProjectsLocationsJobsCreateArgs {
                 parent,
-                job_id: self.name.clone(),
-                body: job_spec,
-                validate_only: None,
+                jobId: Some(self.name.clone()),
+                validateOnly: None,
             })
             .map_err(|e| CloudRunJobError::ApiFailed(e.to_string()))?;
 
-        Ok(result.map(|_| CloudRunJobDeployment {
-            resource_name: format!(
-                "projects/{}/locations/{}/jobs/{}",
-                self.project_id, self.region, self.name
-            ),
-            job_name: self.name.clone(),
-            region: self.region.clone(),
-            project_id: self.project_id.clone(),
-            deployed_at: chrono::Utc::now(),
+        Ok(result.map_next(move |api_result| {
+            api_result
+                .map(|_| {
+                    CloudRunJobDeployment::new(
+                        format!(
+                            "projects/{}/locations/{}/jobs/{}",
+                            project_id, region, job_name
+                        ),
+                        job_name.clone(),
+                        region.clone(),
+                        project_id.clone(),
+                    )
+                })
+                .map_err(|e| CloudRunJobError::ApiFailed(e.to_string()))
         }))
     }
 
@@ -204,12 +186,13 @@ impl Deployable for CloudRunJob {
         &self,
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
-        impl StreamIterator<D = Result<(), Self::Error>, P = Deploying> + Send + 'static,
+        impl StreamIterator<D = Result<Self::DestroyOutput, Self::Error>, P = Deploying>
+            + Send
+            + 'static,
         Self::Error,
     > {
-        self.destroy_task(client)
-            .and_then(|task| execute(task, None))
-            .map_err(|e| CloudRunJobError::ExecutorFailed(e.to_string()))
+        let task = self.destroy_task(client)?;
+        execute(task, None).map_err(|e| CloudRunJobError::ExecutorFailed(e.to_string()))
     }
 
     fn destroy_task(
@@ -217,7 +200,7 @@ impl Deployable for CloudRunJob {
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
         impl TaskIterator<
-                Ready = Result<(), Self::Error>,
+                Ready = Result<Self::DestroyOutput, Self::Error>,
                 Pending = Deploying,
                 Spawner = BoxedSendExecutionAction,
             > + Send
@@ -237,10 +220,9 @@ impl Deployable for CloudRunJob {
         let existing_state = state_store
             .get(&resource_id)
             .map_err(|e| {
-                CloudRunJobError::StateFailed(format!(
-                    "Failed to get state for {}: {}",
-                    resource_id, e
-                ))
+                CloudRunJobError::StateFailed(
+                    format!("Failed to get state for {resource_id}: {e}",),
+                )
             })?
             .find_map(|v| match v {
                 ThreadedValue::Value(Ok(state)) => Some(state),
@@ -262,8 +244,7 @@ impl Deployable for CloudRunJob {
                 let output: CloudRunJobDeployment = serde_json::from_value(state.output.clone())
                     .map_err(|e| {
                         CloudRunJobError::DeserializeFailed(format!(
-                            "Failed to deserialize state: {}",
-                            e
+                            "Failed to deserialize state: {e}",
                         ))
                     })?;
 
@@ -275,11 +256,15 @@ impl Deployable for CloudRunJob {
                     .run_projects_locations_jobs_delete(&RunProjectsLocationsJobsDeleteArgs {
                         name: output.resource_name,
                         etag: None,
-                        validate_only: None,
+                        validateOnly: None,
                     })
                     .map_err(|e| CloudRunJobError::ApiFailed(e.to_string()))?;
 
-                Ok(result.map(|_| ()))
+                Ok(result.map_next(|api_result| {
+                    api_result
+                        .map(|_| ())
+                        .map_err(|e| CloudRunJobError::ApiFailed(e.to_string()))
+                }))
             }
             None => {
                 // No state found - idempotent success
@@ -287,7 +272,7 @@ impl Deployable for CloudRunJob {
                     "No state found for Cloud Run Job '{}' - skipping destroy (idempotent)",
                     self.name
                 );
-                Ok(Box::new(std::iter::once(StreamIterator::Next(Ok(())))))
+                Ok(vec![TaskStatus::Ready(Ok(()))].into_iter())
             }
         }
     }

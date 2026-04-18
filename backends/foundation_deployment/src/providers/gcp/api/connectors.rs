@@ -35,7 +35,6 @@ use crate::providers::gcp::clients::connectors::{
     connectors_projects_locations_connections_resources_get_builder, connectors_projects_locations_connections_resources_get_task,
     connectors_projects_locations_connections_resources_get_resource_post_builder, connectors_projects_locations_connections_resources_get_resource_post_task,
     connectors_projects_locations_connections_resources_list_builder, connectors_projects_locations_connections_resources_list_task,
-    connectors_projects_locations_connections_tools_execute_builder, connectors_projects_locations_connections_tools_execute_task,
     connectors_projects_locations_connections_tools_list_builder, connectors_projects_locations_connections_tools_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
@@ -82,7 +81,6 @@ use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConne
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsResourcesGetResourcePostArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsResourcesListArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsToolsArgs;
-use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsToolsExecuteArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsToolsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -1091,48 +1089,34 @@ where
         execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Connectors projects locations connections tools execute.
-    ///
-    /// Automatically stores the result in the state store on success.
-    ///
-    /// # Arguments
-    ///
-    /// * `args` - Request arguments
-    ///
-    /// # Returns
-    ///
-    /// StreamIterator yielding the ExecuteToolResponse result.
-    ///
-    /// # Errors
-    ///
-    /// Returns ProviderError if the API request or state storage fails.
-    pub fn connectors_projects_locations_connections_tools_execute(
-        &self,
-        args: &ConnectorsProjectsLocationsConnectionsToolsExecuteArgs,
-    ) -> Result<
-        impl StreamIterator<
-            D = Result<ExecuteToolResponse, ProviderError<ApiError>>,
-            P = crate::providers::gcp::clients::types::ApiPending,
-        > + Send
-        + 'static,
-        ProviderError<ApiError>,
-    > {
-        let builder = connectors_projects_locations_connections_tools_execute_builder(
-            &self.http_client,
-            &args.name,
-        )
-        .map_err(ProviderError::Api)?;
-
-        let task = connectors_projects_locations_connections_tools_execute_task(builder)
-            .map_err(ProviderError::Api)?;
-
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
-    }
+    // DISABLED: No matching generated API - tools_execute_builder/task don't exist
+    // pub fn connectors_projects_locations_connections_tools_execute(
+    //     &self,
+    //     args: &ConnectorsProjectsLocationsConnectionsActionsExecuteArgs,
+    // ) -> Result<
+    //     impl StreamIterator<
+    //         D = Result<ExecuteToolResponse, ProviderError<ApiError>>,
+    //         P = crate::providers::gcp::clients::types::ApiPending,
+    //     > + Send
+    //     + 'static,
+    //     ProviderError<ApiError>,
+    // > {
+    //     let builder = connectors_projects_locations_connections_actions_execute_builder(
+    //         &self.http_client,
+    //         &args.name,
+    //     )
+    //     .map_err(ProviderError::Api)?;
+    //
+    //     let task = connectors_projects_locations_connections_actions_execute_task(builder)
+    //         .map_err(ProviderError::Api)?;
+    //
+    //     let state_store = self.client.state_store.clone();
+    //     let stage = Some(self.client.stage.clone());
+    //
+    //     let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    //
+    //     execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    // }
 
     /// Connectors projects locations connections tools list.
     ///

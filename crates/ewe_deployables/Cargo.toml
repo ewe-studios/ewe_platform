@@ -12,7 +12,7 @@ keywords.workspace = true
 [dependencies]
 # Foundation crates
 foundation_core = { workspace = true }
-foundation_deployment = { workspace = true, features = ["cloudflare", "gcp", "gcp_run"] }
+foundation_deployment = { workspace = true, features = ["cloudflare", "gcp"] }
 foundation_db = { workspace = true }
 
 # Serde for serialization

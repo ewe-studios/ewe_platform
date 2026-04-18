@@ -7,25 +7,19 @@
 //! HOW: Implements `Deployable` trait with `ProviderClient` for state and HTTP access.
 
 use foundation_core::valtron::{
-    BoxedSendExecutionAction, StreamIterator, TaskIterator, TaskIteratorExt,
+    BoxedSendExecutionAction, Stream, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::valtron::{execute, ThreadedValue};
-use foundation_core::wire::simple_http::client::{DnsResolver, SystemDnsResolver};
-use foundation_db::state::traits::StateStore;
+use foundation_core::wire::simple_http::client::SystemDnsResolver;
 use foundation_db::state::FileStateStore;
 use foundation_deployment::provider_client::ProviderClient;
 use foundation_deployment::providers::gcp::api::run::RunProvider;
 use foundation_deployment::providers::gcp::clients::run::{
-    RunProjectsLocationsServicesDeleteArgs,
-    RunProjectsLocationsServicesPatchArgs,
-    run_projects_locations_services_delete,
-    run_projects_locations_services_patch,
+    RunProjectsLocationsServicesDeleteArgs, RunProjectsLocationsServicesPatchArgs,
 };
 use foundation_deployment::traits::{Deployable, Deploying};
 use foundation_deployment::types::CloudRunDeployment;
-use serde::{Deserialize, Serialize};
-
-use std::fmt::Debug;
 
 /// GCP Cloud Run service deployable - deploys a container to Cloud Run.
 ///
@@ -60,6 +54,7 @@ impl CloudRunService {
     /// # Example
     ///
     /// ```rust
+    /// use ewe_deployables::gcp::CloudRunService;
     /// let service = CloudRunService::new("my-service", "gcr.io/project/image:latest", "us-central1", "project-id");
     /// ```
     pub fn new(
@@ -98,7 +93,8 @@ pub enum CloudRunServiceError {
 }
 
 impl Deployable for CloudRunService {
-    type Output = CloudRunDeployment;
+    type DeployOutput = CloudRunDeployment;
+    type DestroyOutput = ();
     type Error = CloudRunServiceError;
     type Store = FileStateStore;
     type Resolver = SystemDnsResolver;
@@ -107,12 +103,11 @@ impl Deployable for CloudRunService {
         &self,
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
-        impl StreamIterator<D = Result<Self::Output, Self::Error>, P = Deploying> + Send + 'static,
+        impl StreamIterator<D = Result<Self::DeployOutput, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     > {
-        self.deploy_task(client)
-            .and_then(|task| execute(task, None))
-            .map_err(|e| CloudRunServiceError::ExecutorFailed(e.to_string()))
+        let task = self.deploy_task(client)?;
+        execute(task, None).map_err(|e| CloudRunServiceError::ExecutorFailed(e.to_string()))
     }
 
     fn deploy_task(
@@ -120,14 +115,14 @@ impl Deployable for CloudRunService {
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
         impl TaskIterator<
-                Ready = Result<Self::Output, Self::Error>,
+                Ready = Result<Self::DeployOutput, Self::Error>,
                 Pending = Deploying,
                 Spawner = BoxedSendExecutionAction,
             > + Send
             + 'static,
         Self::Error,
     > {
-        let name = format!(
+        let resource_name = format!(
             "projects/{}/locations/{}/services/{}",
             self.project_id, self.region, self.name
         );
@@ -135,39 +130,35 @@ impl Deployable for CloudRunService {
         // Create RunProvider from client
         let run = RunProvider::from_provider_client(client);
 
+        let service_name = self.name.clone();
+        let region = self.region.clone();
+        let project_id = self.project_id.clone();
+        let image = self.image.clone();
+
         // Use generated GCP Cloud Run client
         let result = run
             .run_projects_locations_services_patch(&RunProjectsLocationsServicesPatchArgs {
-                name: name.clone(),
-                allow_missing: Some(true), // Create if doesn't exist
-                force_new_revision: Some(true),
-                update_mask: Some("spec.template.spec.containers".to_string()),
-                validate_only: None,
-                body: serde_json::json!({
-                    "spec": {
-                        "template": {
-                            "spec": {
-                                "containers": [{
-                                    "image": self.image,
-                                }]
-                            }
-                        }
-                    }
-                }),
+                name: resource_name.clone(),
+                allowMissing: Some("true".to_string()),
+                forceNewRevision: Some("true".to_string()),
+                updateMask: Some("spec.template.spec.containers".to_string()),
+                validateOnly: None,
             })
             .map_err(|e| CloudRunServiceError::ApiFailed(e.to_string()))?;
 
-        Ok(result.map(|_| CloudRunDeployment {
-            resource_name: name,
-            service_name: self.name.clone(),
-            region: self.region.clone(),
-            project_id: self.project_id.clone(),
-            url: format!(
-                "https://{}-{}.a.run.app",
-                self.name, self.region
-            ),
-            image: self.image.clone(),
-            deployed_at: chrono::Utc::now(),
+        Ok(result.map_next(move |api_result| {
+            api_result
+                .map(|_| {
+                    CloudRunDeployment::new(
+                        resource_name.clone(),
+                        service_name.clone(),
+                        region.clone(),
+                        project_id.clone(),
+                        format!("https://{}-{}.a.run.app", service_name, region),
+                        image.clone(),
+                    )
+                })
+                .map_err(|e| CloudRunServiceError::ApiFailed(e.to_string()))
         }))
     }
 
@@ -175,12 +166,11 @@ impl Deployable for CloudRunService {
         &self,
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
-        impl StreamIterator<D = Result<(), Self::Error>, P = Deploying> + Send + 'static,
+        impl StreamIterator<D = Result<Self::DestroyOutput, Self::Error>, P = Deploying> + Send + 'static,
         Self::Error,
     > {
-        self.destroy_task(client)
-            .and_then(|task| execute(task, None))
-            .map_err(|e| CloudRunServiceError::ExecutorFailed(e.to_string()))
+        let task = self.destroy_task(client)?;
+        execute(task, None).map_err(|e| CloudRunServiceError::ExecutorFailed(e.to_string()))
     }
 
     fn destroy_task(
@@ -188,7 +178,7 @@ impl Deployable for CloudRunService {
         client: ProviderClient<Self::Store, Self::Resolver>,
     ) -> Result<
         impl TaskIterator<
-                Ready = Result<(), Self::Error>,
+                Ready = Result<Self::DestroyOutput, Self::Error>,
                 Pending = Deploying,
                 Spawner = BoxedSendExecutionAction,
             > + Send
@@ -209,8 +199,7 @@ impl Deployable for CloudRunService {
             .get(&resource_id)
             .map_err(|e| {
                 CloudRunServiceError::StateFailed(format!(
-                    "Failed to get state for {}: {}",
-                    resource_id, e
+                    "Failed to get state for {resource_id}: {e}",
                 ))
             })?
             .find_map(|v| match v {
@@ -233,8 +222,7 @@ impl Deployable for CloudRunService {
                 let output: CloudRunDeployment = serde_json::from_value(state.output.clone())
                     .map_err(|e| {
                         CloudRunServiceError::DeserializeFailed(format!(
-                            "Failed to deserialize state: {}",
-                            e
+                            "Failed to deserialize state: {e}",
                         ))
                     })?;
 
@@ -243,14 +231,20 @@ impl Deployable for CloudRunService {
 
                 // Delete service
                 let result = run
-                    .run_projects_locations_services_delete(&RunProjectsLocationsServicesDeleteArgs {
-                        name: output.resource_name,
-                        etag: None,
-                        validate_only: None,
-                    })
+                    .run_projects_locations_services_delete(
+                        &RunProjectsLocationsServicesDeleteArgs {
+                            name: output.resource_name,
+                            etag: None,
+                            validateOnly: None,
+                        },
+                    )
                     .map_err(|e| CloudRunServiceError::ApiFailed(e.to_string()))?;
 
-                Ok(result.map(|_| ()))
+                Ok(result.map_next(|api_result| {
+                    api_result
+                        .map(|_| ())
+                        .map_err(|e| CloudRunServiceError::ApiFailed(e.to_string()))
+                }))
             }
             None => {
                 // No state found - idempotent success
@@ -258,7 +252,7 @@ impl Deployable for CloudRunService {
                     "No state found for Cloud Run service '{}' - skipping destroy (idempotent)",
                     self.name
                 );
-                Ok(Box::new(std::iter::once(StreamIterator::Next(Ok(())))))
+                Ok(vec![Stream::Next(Ok(()))].into_iter())
             }
         }
     }
