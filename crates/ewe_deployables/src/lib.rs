@@ -34,9 +34,9 @@
 //! - `gcp` - GCP Cloud Run and Cloud Run Jobs deployables
 //! - `common` - Common types re-exported from `foundation_deployment`
 
-pub mod cloudflare;
+// pub mod cloudflare;
 pub mod common;
-pub mod gcp;
+// pub mod gcp;
 
 // Re-export common types
 pub use common::types::*;

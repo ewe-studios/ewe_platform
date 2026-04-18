@@ -34,6 +34,7 @@ pub mod extractor;
 pub mod normalizer;
 pub mod api_catalog;
 pub mod classifier;
+pub mod unified;
 
 // Re-exports for convenient access
 pub use endpoint::{EndpointInfo, ResponseType, OperationType, OperationEffect};
@@ -53,3 +54,9 @@ pub use api_catalog::{
     sanitize_field_name, to_pascal_case_from_any, sanitize_doc_comment,
 };
 pub use classifier::OperationTypeClassifier;
+
+// Re-exports for unified code generation
+pub use unified::{
+    UnifiedGenerator, GenError,
+    analyze_spec as analyze_unified, AnalysisOptions, AnalysisResult, ApiGroup,
+};

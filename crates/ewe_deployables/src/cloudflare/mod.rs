@@ -2,4 +2,4 @@
 
 pub mod worker;
 
-pub use worker::CloudflareWorker;
+pub use worker::*;

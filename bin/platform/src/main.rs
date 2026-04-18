@@ -18,7 +18,7 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::unnecessary_wraps)]
 
-mod gen_resources;
+mod gen_api;
 mod generate;
 mod local;
 mod sandbox;
@@ -32,7 +32,7 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 #[tokio::main]
 async fn main() -> std::result::Result<(), BoxedError> {
     let commander = wasm_bins::register(
-        gen_resources::register(
+        gen_api::register(
             sandbox::register(
                 sandbox_app::register(
                     watchful::register(
@@ -58,7 +58,7 @@ async fn main() -> std::result::Result<(), BoxedError> {
         Some(("sandbox", arguments)) => sandbox::run(arguments).await?,
         Some(("sandbox_app", arguments)) => sandbox_app::run(arguments).await?,
         Some(("generate", arguments)) => generate::run(arguments)?,
-        Some(("gen_resources", arguments)) => gen_resources::run(arguments)?,
+        Some(("gen_api", arguments)) => gen_api::run(arguments)?,
         Some(("wasm_bins", arguments)) => wasm_bins::run(arguments)?,
         Some(("watch", arguments)) => watchful::run(arguments)?,
         Some(("tcp_capture", arguments)) => tcp_capture::run(arguments)?,

@@ -2139,6 +2139,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
+ "toml 0.9.8",
  "tracing",
 ]
 
