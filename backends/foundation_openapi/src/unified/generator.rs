@@ -37,11 +37,56 @@ fn escape_rust_keyword(ident: &str) -> String {
     }
 }
 
+/// Rename a type that conflicts with Rust std types by adding a suffix.
+fn rename_std_type_conflict(type_name: &str) -> String {
+    // Types that conflict with std or common types
+    let std_types = ["String", "Vec", "Option", "Result", "Box", "Rc", "Arc", "Cow", "HashMap", "BTreeMap"];
+    if std_types.contains(&type_name) {
+        format!("{}Type", type_name)
+    } else {
+        type_name.to_string()
+    }
+}
+
+/// Extract inner type names from a type string (handles Vec<T>, Option<T>, etc.).
+/// Adds extracted types to the all_types map.
+fn extract_type_from_generic<'a>(type_str: &str, ep: &'a EndpointInfo, all_types: &mut BTreeMap<String, &'a EndpointInfo>) {
+    // Skip invalid types
+    if type_str == "()" || type_str == "serde_json::Value" {
+        return;
+    }
+    // Skip if it's just a generic wrapper without a real type
+    if ["Vec", "Option", "HashMap", "BTreeMap", "Box", "Rc", "Arc", "Cow"].contains(&type_str) {
+        return;
+    }
+    // If it's a generic type like Vec<T>, extract T
+    if type_str.contains('<') && type_str.contains('>') {
+        // Extract content between < and >
+        if let Some(start) = type_str.find('<') {
+            if let Some(end) = type_str.rfind('>') {
+                let inner = type_str[start + 1..end].trim();
+                // Recursively extract (handles nested generics like Vec<Option<T>>)
+                extract_type_from_generic(inner, ep, all_types);
+            }
+        }
+        return;
+    }
+    // Skip types with :: (path types)
+    if type_str.contains("::") {
+        return;
+    }
+    // Rename std type conflicts and add the type
+    let safe_name = rename_std_type_conflict(type_str);
+    all_types.entry(safe_name).or_insert(ep);
+}
+
 /// Transform an OpenAPI path into a Rust format! string.
 /// Converts `{param}` placeholders to `{}` only for params in path_params.
 /// Other braces are escaped as literal braces.
-fn escape_url_for_format(path: &str, path_params: &[String]) -> String {
+/// Returns the escaped path and the list of param names in URL order.
+fn escape_url_for_format(path: &str, path_params: &[String]) -> (String, Vec<String>) {
     let mut result = String::new();
+    let mut params_in_url_order = Vec::new();
     let mut chars = path.chars().peekable();
 
     while let Some(c) = chars.next() {
@@ -53,12 +98,13 @@ fn escape_url_for_format(path: &str, path_params: &[String]) -> String {
                     if next_c == '}' {
                         chars.next(); // consume the closing brace
                         // Check if this param is in our path_params list
-                        if path_params.iter().any(|p| {
+                        if let Some(matching_param) = path_params.iter().find(|p| {
                             let sanitized = sanitize_identifier(p);
-                            sanitized == param_content || p == &param_content
+                            sanitized == param_content || **p == param_content
                         }) {
                             // This is a known path parameter - replace with {}
                             result.push_str("{}");
+                            params_in_url_order.push(sanitize_identifier(matching_param));
                         } else {
                             // Unknown param - escape as literal braces
                             result.push_str(&format!("{{{{{}}}}}", param_content));
@@ -77,7 +123,7 @@ fn escape_url_for_format(path: &str, path_params: &[String]) -> String {
         }
     }
 
-    result
+    (result, params_in_url_order)
 }
 
 /// Sanitize a group name for use as a directory/file name and Rust identifier.
@@ -289,7 +335,7 @@ impl UnifiedGenerator {
 
         // Generate one module per group
         for group in &analysis.groups {
-            self.generate_group_module(provider, group, &provider_output_dir)?;
+            self.generate_group_module(provider, group, &analysis.shared_resources, &provider_output_dir)?;
         }
 
         // Generate provider mod.rs with feature guards
@@ -323,6 +369,7 @@ impl UnifiedGenerator {
         &self,
         provider: &str,
         group: &ApiGroup,
+        shared_resources: &[String],
         output_dir: &Path,
     ) -> Result<(), GenError> {
         // Sanitize group name for use as directory/file name
@@ -344,11 +391,54 @@ impl UnifiedGenerator {
         writeln!(out)?;
 
         // Common imports
-        writeln!(out, "use foundation_core::valtron::{{execute, StreamIterator, TaskIterator}};")?;
+        writeln!(out, "use foundation_core::valtron::{{execute, StreamIterator, TaskIterator, TaskIteratorExt}};")?;
         writeln!(out, "use foundation_core::wire::simple_http::client::{{ClientRequestBuilder, SimpleHttpClient}};")?;
         writeln!(out, "use serde::{{Deserialize, Serialize}};")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
         writeln!(out)?;
+
+        // Collect shared types actually used by this group's endpoints
+        let mut used_shared_types: Vec<(String, String)> = Vec::new(); // (original_name, renamed_name)
+        for type_name in shared_resources {
+            // Skip generic types and paths
+            if type_name.contains('<') || type_name.contains('>') || type_name.contains("::") {
+                continue;
+            }
+            if !type_name.chars().next().map(|c| c.is_alphabetic() || c == '_').unwrap_or(false) {
+                continue;
+            }
+            if ["Vec", "Option", "HashMap", "BTreeMap", "Box", "Rc", "Arc", "Cow"].contains(&type_name.as_str()) {
+                continue;
+            }
+            // Check if any endpoint in this group uses this type
+            let is_used = group.endpoints.iter().any(|ep| {
+                ep.response_type.as_ref().map(|rt| rt.as_rust_type() == type_name).unwrap_or(false)
+                    || ep.request_type.as_ref().map(|rt| rt == type_name).unwrap_or(false)
+            });
+            if is_used {
+                let renamed = rename_std_type_conflict(type_name);
+                used_shared_types.push((type_name.clone(), renamed));
+            }
+        }
+
+        // Import only the shared types that are actually used
+        if !used_shared_types.is_empty() {
+            writeln!(out, "// Import shared types used by this module")?;
+            for (original, renamed) in &used_shared_types {
+                if original == renamed {
+                    writeln!(out, "use super::shared::{};", renamed)?;
+                } else {
+                    writeln!(out, "use super::shared::{} as {};", original, renamed)?;
+                }
+            }
+            writeln!(out)?;
+        }
+
+        // Always import core error/response types if there are endpoints
+        if !group.endpoints.is_empty() {
+            writeln!(out, "use super::shared::{{ApiResponse, ApiError, ApiPending}};")?;
+            writeln!(out)?;
+        }
 
         // Track types we've already generated (for shared types)
         let mut generated_types: HashSet<String> = HashSet::new();
@@ -359,28 +449,14 @@ impl UnifiedGenerator {
 
         // First pass: collect all unique types
         let mut all_types: BTreeMap<String, &EndpointInfo> = BTreeMap::new();
+
         for ep in &group.endpoints {
             if let Some(rt) = &ep.response_type {
-                let type_name = rt.as_rust_type().to_string();
-                // Skip invalid types
-                if type_name == "()" || type_name == "serde_json::Value" {
-                    continue;
-                }
-                // Skip generic types like Vec<...>, Option<...>, etc.
-                if type_name.contains('<') || type_name.contains('>') || type_name.contains("::") {
-                    continue;
-                }
-                // Skip primitive collection types
-                if ["Vec", "Option", "HashMap", "BTreeMap", "Box", "Rc", "Arc", "Cow"].contains(&type_name.as_str()) {
-                    continue;
-                }
-                all_types.entry(type_name).or_insert(ep);
+                let type_name = rt.as_rust_type();
+                extract_type_from_generic(type_name, ep, &mut all_types);
             }
             if let Some(rt) = &ep.request_type {
-                // Skip generic types for request types too
-                if !rt.contains('<') && !rt.contains('>') && !rt.contains("::") {
-                    all_types.entry(rt.clone()).or_insert(ep);
-                }
+                extract_type_from_generic(rt, ep, &mut all_types);
             }
         }
 
@@ -391,23 +467,30 @@ impl UnifiedGenerator {
         writeln!(out, "// =============================================================================")?;
         writeln!(out)?;
 
-        // Generate types - simplified for now (full types would come from schema analysis)
+        // Generate types - skip types that are already in shared_resources
         for (type_name, _ep) in &all_types {
             if generated_types.contains(type_name) {
                 continue;
             }
+            // Skip types that are defined in shared module
+            if shared_resources.contains(type_name) {
+                continue;
+            }
+
+            // Rename types that conflict with std types
+            let safe_type_name = rename_std_type_conflict(type_name);
 
             // Generate a placeholder struct - in full impl, this would come from schema
-            writeln!(out, "/// {} response type.", type_name)?;
+            writeln!(out, "/// {} response type.", safe_type_name)?;
             writeln!(out, "#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]")?;
-            writeln!(out, "pub struct {} {{", type_name)?;
+            writeln!(out, "pub struct {} {{", safe_type_name)?;
             writeln!(out, "    /// Raw JSON value - full schema generated from OpenAPI")?;
             writeln!(out, "    #[serde(flatten)]")?;
             writeln!(out, "    pub data: std::collections::HashMap<String, serde_json::Value>,")?;
             writeln!(out, "}}")?;
             writeln!(out)?;
 
-            generated_types.insert(type_name.clone());
+            generated_types.insert(safe_type_name.clone());
         }
 
         // Generate Args types per endpoint
@@ -458,16 +541,6 @@ impl UnifiedGenerator {
         for ep in &group.endpoints {
             self.generate_endpoint_client_functions(&mut out, ep, group)?;
         }
-
-        // DISABLED: ProviderClient impl wrapper methods - causing more complexity than value
-        // These wrapper methods were generating state-aware API calls but added significant
-        // complexity. Users can use the builder functions directly instead.
-        //
-        // writeln!(out, "// =============================================================================")?;
-        // writeln!(out, "// PROVIDERCLIENT IMPL (wrapper methods)")?;
-        // writeln!(out, "// =============================================================================")?;
-        // writeln!(out)?;
-        // self.generate_provider_client_impl(&mut out, provider, group)?;
 
         // Write output
         let output_path = group_dir.join("mod.rs");
@@ -533,23 +606,22 @@ impl UnifiedGenerator {
             writeln!(out, "    args: &{},", args_name)?;
         }
         writeln!(out, "    builder_mod: Option<F>,")?;
-        writeln!(out, ") -> Result<impl TaskIterator<Ready = Result<ApiResponse<{}>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError> {{", return_type)?;
+        writeln!(out, ") -> Result<impl TaskIterator<Ready = Result<ApiResponse<{}>, super::shared::ApiError>, Pending = super::shared::ApiPending, Spawner = super::shared::BoxedSendExecutionAction> + Send + 'static, super::shared::ApiError>", return_type)?;
         writeln!(out, "where")?;
-        writeln!(out, "    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,")?;
+        writeln!(out, "    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,")?;
         writeln!(out, "    F: FnOnce(&mut ClientRequestBuilder<R>),")?;
         writeln!(out, "{{")?;
 
         // Build URL
-        let escaped_path = escape_url_for_format(&ep.path, &ep.path_params);
-        let escaped_base = escape_url_for_format(ep.base_url.as_deref().unwrap_or("https://api.example.com"), &[]);
+        let (escaped_path, params_in_url_order) = escape_url_for_format(&ep.path, &ep.path_params);
+        let (escaped_base, _) = escape_url_for_format(ep.base_url.as_deref().unwrap_or("https://api.example.com"), &[]);
         writeln!(out, "    let endpoint_url = format!(")?;
         writeln!(out, "        \"{}{}\",", escaped_base, escaped_path)?;
-        for param in &ep.path_params {
-            let param_name = sanitize_identifier(param);
+        for param_name in &params_in_url_order {
             if has_params {
                 writeln!(out, "        args.{},", param_name)?;
             } else {
-                writeln!(out, "        /* {} */ \"placeholder\",", param)?;
+                writeln!(out, "        /* {} */ \"placeholder\",", param_name)?;
             }
         }
         writeln!(out, "    );")?;
@@ -588,7 +660,7 @@ impl UnifiedGenerator {
         if return_type == "()" {
             writeln!(out, "                    Ok(ApiResponse {{ status: status as u16, headers: headers.clone(), body: () }})")?;
         } else {
-            writeln!(out, "                    let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);")?;
+            writeln!(out, "                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);")?;
             writeln!(out, "                    let parsed: {} = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;", return_type)?;
             writeln!(out, "                    Ok(ApiResponse {{ status: status as u16, headers: headers.clone(), body: parsed }})")?;
         }
@@ -600,98 +672,8 @@ impl UnifiedGenerator {
         writeln!(out, "}}")?;
         writeln!(out)?;
 
-        // DISABLED: Execute function - users can call execute() directly on the task
-        // writeln!(out, "/// {} {} - execute function.", ep.method, ep.path)?;
-        // writeln!(out, "///")?;
-        // writeln!(out, "/// Takes a `ClientRequestBuilder` and executes it.")?;
-        // writeln!(out)?;
-        // writeln!(out, "#[inline]")?;
-        // writeln!(out, "pub fn {}_execute<R>(", fn_prefix)?;
-        // writeln!(out, "    builder: ClientRequestBuilder<R>,")?;
-        // writeln!(out, ") -> Result<impl StreamIterator<D = Result<ApiResponse<{}>, super::shared::ApiError>, P = super::shared::ApiPending> + Send + 'static, super::shared::ApiError> {{", return_type)?;
-        // writeln!(out, "where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,")?;
-        // writeln!(out, "    let task = {}_task(builder)?;", fn_prefix)?;
-        // writeln!(out, "    execute(task, None).map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))")?;
-        // writeln!(out, "}}")?;
-        // writeln!(out)?;
-
-
-        // DISABLED: Convenience function - users can use builder + task directly
-        // if has_params {
-        //     writeln!(out, "/// {} {} - convenience function.", ep.method, ep.path)?;
-        //     writeln!(out, "///")?;
-        //     writeln!(out, "/// Combines builder and execute in one call.")?;
-        //     writeln!(out)?;
-        //     writeln!(out, "#[inline]")?;
-        //     writeln!(out, "pub fn {}<R>(", fn_prefix)?;
-        //     writeln!(out, "    client: &SimpleHttpClient<R>,")?;
-        //     writeln!(out, "    args: &{},", args_name)?;
-        //     writeln!(out, ") -> Result<impl StreamIterator<D = Result<ApiResponse<{}>, super::shared::ApiError>, P = super::shared::ApiPending> + Send + 'static, super::shared::ApiError> {{", return_type)?;
-        //     writeln!(out, "where R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,")?;
-        //     writeln!(out, "    let builder = {}_builder(client, args)?;", fn_prefix)?;
-        //     writeln!(out, "    {}_execute(builder)", fn_prefix)?;
-        //     writeln!(out, "}}")?;
-        //     writeln!(out)?;
-        // }
-
         Ok(())
     }
-
-    // DISABLED: ProviderClient impl wrapper generation - no longer used
-    // /// Generate ProviderClient impl block with wrapper methods.
-    // fn generate_provider_client_impl(
-    //     &self,
-    //     out: &mut String,
-    //     provider: &str,
-    //     group: &ApiGroup,
-    // ) -> Result<(), GenError> {
-    //     writeln!(out, "/// ProviderClient extension methods for {} {}.", provider, group.name)?;
-    //     writeln!(out, "///")?;
-    //     writeln!(out, "/// These wrapper methods provide state-aware API access.")?;
-    //     writeln!(out)?;
-    //     writeln!(out, "impl<S, R> crate::ProviderClient<S, R>")?;
-    //     writeln!(out, "where")?;
-    //     writeln!(out, "    S: foundation_db::state::traits::StateStore + Send + Sync + 'static,")?;
-    //     writeln!(out, "    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,")?;
-    //     writeln!(out, "{{")?;
-    //
-    //     for ep in &group.endpoints {
-    //         let fn_prefix = to_snake_case(&sanitize_identifier(&ep.operation_id));
-    //         let wrapper_fn = format!("{}_{}_{}", provider.replace('-', "_"), group.name, fn_prefix);
-    //         let return_type = ep.response_type
-    //             .as_ref()
-    //             .map(|rt| rt.as_rust_type().to_string())
-    //             .unwrap_or_else(|| "()".to_string());
-    //
-    //         let has_params = !ep.path_params.is_empty()
-    //             || !ep.query_params.is_empty()
-    //             || ep.request_type.is_some();
-    //
-    //         let args_name = format!("{}Args", to_pascal_case(&sanitize_identifier(&ep.operation_id)));
-    //
-    //         writeln!(out, "    /// {} {}.", ep.method, ep.path)?;
-    //         writeln!(out, "    ///")?;
-    //         writeln!(out, "    /// Wrapper method with automatic state tracking.")?;
-    //         writeln!(out, "    pub fn {}(&self, ", wrapper_fn)?;
-    //         if has_params {
-    //             writeln!(out, "        args: &{},", args_name)?;
-    //         }
-    //         writeln!(out, "    ) -> Result<impl StreamIterator<D = Result<ApiResponse<{}>, super::shared::ApiError>, P = super::shared::ApiPending> + Send + 'static, super::shared::ApiError> {{", return_type)?;
-    //         writeln!(out, "        let builder = {}_builder(&self.http_client", fn_prefix)?;
-    //         if has_params {
-    //             writeln!(out, "            , args")?;
-    //         }
-    //         writeln!(out, "        )?;")?;
-    //         writeln!(out, "        {}_execute(builder)", fn_prefix)?;
-    //         writeln!(out, "    }}")?;
-    //         writeln!(out)?;
-    //     }
-    //
-    //     writeln!(out, "}}")?;
-    //     writeln!(out)?;
-    //
-    //     Ok(())
-    // }
 
     /// Generate shared module for cross-group types.
     fn generate_shared_module(
@@ -711,12 +693,14 @@ impl UnifiedGenerator {
 
         // Imports
         writeln!(out, "use foundation_core::wire::simple_http::SimpleHeaders;")?;
+        writeln!(out, "use foundation_macros::JsonHash;")?;
         writeln!(out, "use serde::{{Deserialize, Serialize}};")?;
         writeln!(out)?;
 
         // Re-export types from foundation_core for convenience
         writeln!(out, "// Re-export types from foundation_core for convenience")?;
-        writeln!(out, "pub use foundation_core::valtron::{{BoxedSendExecutionAction, RequestIntro}};")?;
+        writeln!(out, "pub use foundation_core::valtron::BoxedSendExecutionAction;")?;
+        writeln!(out, "pub use foundation_core::wire::simple_http::client::RequestIntro;")?;
         writeln!(out)?;
 
         // Error types
@@ -797,9 +781,12 @@ impl UnifiedGenerator {
                 continue;
             }
 
-            writeln!(out, "/// Shared type: {}.", type_name)?;
+            // Rename types that conflict with std types
+            let safe_name = rename_std_type_conflict(type_name);
+
+            writeln!(out, "/// Shared type: {}.", safe_name)?;
             writeln!(out, "#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]")?;
-            writeln!(out, "pub struct {} {{", type_name)?;
+            writeln!(out, "pub struct {} {{", safe_name)?;
             writeln!(out, "    #[serde(flatten)]")?;
             writeln!(out, "    pub data: std::collections::HashMap<String, serde_json::Value>,")?;
             writeln!(out, "}}")?;
