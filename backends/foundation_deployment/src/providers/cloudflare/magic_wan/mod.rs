@@ -6,8 +6,14 @@
 //! Feature flag: `cloudflare_magic_wan `
 
 #![cfg(feature = "cloudflare_magic_wan")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -16,792 +22,792 @@ use serde::{Deserialize, Serialize};
 use super::shared::AddressingApiResponseCollection;
 use super::shared::DosApiResponseCommon;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// AddressingApiResponseSingle response type.
+/// `AddressingApiResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingApiResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AddressingComponentsSchemasResponseCollection response type.
+/// `AddressingComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AddressingComponentsSchemasSingleResponse response type.
+/// `AddressingComponentsSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingComponentsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AddressingFullResponse response type.
+/// `AddressingFullResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingFullResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AddressingIdResponse response type.
+/// `AddressingIdResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingIdResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AddressingLeasesComponentsSchemasResponseCollection response type.
+/// `AddressingLeasesComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingLeasesComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AddressingLoaUploadResponse response type.
+/// `AddressingLoaUploadResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingLoaUploadResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AddressingResponseCollection response type.
+/// `AddressingResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AddressingSchemasResponseCollection response type.
+/// `AddressingSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AddressingSchemasSingleResponse response type.
+/// `AddressingSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AddressingSingleResponse response type.
+/// `AddressingSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosInfraPrefixListResponse response type.
+/// `DosInfraPrefixListResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosInfraPrefixListResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosInfraPrefixResponse response type.
+/// `DosInfraPrefixResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosInfraPrefixResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosInfraPrefixUpdate response type.
+/// `DosInfraPrefixUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosInfraPrefixUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosNewInfraPrefix response type.
+/// `DosNewInfraPrefix` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosNewInfraPrefix {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosNewPrefix response type.
+/// `DosNewPrefix` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosNewPrefix {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosPrefixListResponse response type.
+/// `DosPrefixListResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosPrefixListResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosPrefixResponse response type.
+/// `DosPrefixResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosPrefixResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosPrefixUpdate response type.
+/// `DosPrefixUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosPrefixUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosProtectionStatusResponse response type.
+/// `DosProtectionStatusResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosProtectionStatusResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosUpdateProtectionStatus response type.
+/// `DosUpdateProtectionStatus` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosUpdateProtectionStatus {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAclDeletedResponse response type.
+/// `MagicAclDeletedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAclDeletedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAclModifiedResponse response type.
+/// `MagicAclModifiedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAclModifiedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAclSingleResponse response type.
+/// `MagicAclSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAclSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAclUpdateRequest response type.
+/// `MagicAclUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAclUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAclsAddSingleRequest response type.
+/// `MagicAclsAddSingleRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAclsAddSingleRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAclsCollectionResponse response type.
+/// `MagicAclsCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAclsCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAppAddSingleRequest response type.
+/// `MagicAppAddSingleRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAppAddSingleRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAppConfigAddSingleRequest response type.
+/// `MagicAppConfigAddSingleRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAppConfigAddSingleRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAppConfigSingleResponse response type.
+/// `MagicAppConfigSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAppConfigSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAppConfigUpdateRequest response type.
+/// `MagicAppConfigUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAppConfigUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAppConfigsCollectionResponse response type.
+/// `MagicAppConfigsCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAppConfigsCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAppSingleResponse response type.
+/// `MagicAppSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAppSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAppUpdateRequest response type.
+/// `MagicAppUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAppUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicAppsCollectionResponse response type.
+/// `MagicAppsCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicAppsCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicCreateRouteRequest response type.
+/// `MagicCreateRouteRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicCreateRouteRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicCreateRouteResponse response type.
+/// `MagicCreateRouteResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicCreateRouteResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicLanDeletedResponse response type.
+/// `MagicLanDeletedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicLanDeletedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicLanModifiedResponse response type.
+/// `MagicLanModifiedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicLanModifiedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicLanSingleResponse response type.
+/// `MagicLanSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicLanSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicLanUpdateRequest response type.
+/// `MagicLanUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicLanUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicLansAddSingleRequest response type.
+/// `MagicLansAddSingleRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicLansAddSingleRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicLansCollectionResponse response type.
+/// `MagicLansCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicLansCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicMultipleRouteDeleteResponse response type.
+/// `MagicMultipleRouteDeleteResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicMultipleRouteDeleteResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicMultipleRouteModifiedResponse response type.
+/// `MagicMultipleRouteModifiedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicMultipleRouteModifiedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicNetflowConfigRequest response type.
+/// `MagicNetflowConfigRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicNetflowConfigRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicNetflowConfigSingleResponse response type.
+/// `MagicNetflowConfigSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicNetflowConfigSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicRouteDeleteManyRequest response type.
+/// `MagicRouteDeleteManyRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicRouteDeleteManyRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicRouteDeletedResponse response type.
+/// `MagicRouteDeletedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicRouteDeletedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicRouteModifiedResponse response type.
+/// `MagicRouteModifiedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicRouteModifiedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicRouteSingleResponse response type.
+/// `MagicRouteSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicRouteSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicRouteUpdateManyRequest response type.
+/// `MagicRouteUpdateManyRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicRouteUpdateManyRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicRouteUpdateRequest response type.
+/// `MagicRouteUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicRouteUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicRoutesCollectionResponse response type.
+/// `MagicRoutesCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicRoutesCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicSiteDeletedResponse response type.
+/// `MagicSiteDeletedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicSiteDeletedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicSiteModifiedResponse response type.
+/// `MagicSiteModifiedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicSiteModifiedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicSiteSingleResponse response type.
+/// `MagicSiteSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicSiteSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicSiteUpdateRequest response type.
+/// `MagicSiteUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicSiteUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicSitesAddSingleRequest response type.
+/// `MagicSitesAddSingleRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicSitesAddSingleRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicSitesCollectionResponse response type.
+/// `MagicSitesCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicSitesCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicWanDeletedResponse response type.
+/// `MagicWanDeletedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicWanDeletedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicWanModifiedResponse response type.
+/// `MagicWanModifiedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicWanModifiedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicWanSingleResponse response type.
+/// `MagicWanSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicWanSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicWanUpdateRequest response type.
+/// `MagicWanUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicWanUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicWansAddSingleRequest response type.
+/// `MagicWansAddSingleRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicWansAddSingleRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicWansCollectionResponse response type.
+/// `MagicWansCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicWansCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnCreateOnrampRequest response type.
+/// `McnCreateOnrampRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnCreateOnrampRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnCreateOnrampResponse response type.
+/// `McnCreateOnrampResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnCreateOnrampResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnCreateProviderRequest response type.
+/// `McnCreateProviderRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnCreateProviderRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnCreateProviderResponse response type.
+/// `McnCreateProviderResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnCreateProviderResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnDeleteOnrampResponse response type.
+/// `McnDeleteOnrampResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnDeleteOnrampResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnDeleteProviderResponse response type.
+/// `McnDeleteProviderResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnDeleteProviderResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnGetMagicWanAddressSpaceResponse response type.
+/// `McnGetMagicWanAddressSpaceResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnGetMagicWanAddressSpaceResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnGetOnrampResponse response type.
+/// `McnGetOnrampResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnGetOnrampResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnGoodResponse response type.
+/// `McnGoodResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnGoodResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnListOnrampsResponse response type.
+/// `McnListOnrampsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnListOnrampsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnProviderInitialSetupResponse response type.
+/// `McnProviderInitialSetupResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnProviderInitialSetupResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnReadAccountProviderResponse response type.
+/// `McnReadAccountProviderResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnReadAccountProviderResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnReadAccountProvidersResponse response type.
+/// `McnReadAccountProvidersResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnReadAccountProvidersResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnUpdateMagicWanAddressSpaceRequest response type.
+/// `McnUpdateMagicWanAddressSpaceRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnUpdateMagicWanAddressSpaceRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnUpdateMagicWanAddressSpaceResponse response type.
+/// `McnUpdateMagicWanAddressSpaceResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnUpdateMagicWanAddressSpaceResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnUpdateOnrampRequest response type.
+/// `McnUpdateOnrampRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnUpdateOnrampRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnUpdateOnrampResponse response type.
+/// `McnUpdateOnrampResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnUpdateOnrampResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnUpdateProviderRequest response type.
+/// `McnUpdateProviderRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnUpdateProviderRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// McnUpdateProviderResponse response type.
+/// `McnUpdateProviderResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McnUpdateProviderResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MconnCustomerConnectorCreateRequest response type.
+/// `MconnCustomerConnectorCreateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnCustomerConnectorCreateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MconnCustomerConnectorCreateResponse response type.
+/// `MconnCustomerConnectorCreateResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnCustomerConnectorCreateResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MconnCustomerConnectorDeleteResponse response type.
+/// `MconnCustomerConnectorDeleteResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnCustomerConnectorDeleteResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MconnCustomerConnectorFetchResponse response type.
+/// `MconnCustomerConnectorFetchResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnCustomerConnectorFetchResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MconnCustomerConnectorListResponse response type.
+/// `MconnCustomerConnectorListResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnCustomerConnectorListResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MconnCustomerConnectorUpdateRequest response type.
+/// `MconnCustomerConnectorUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnCustomerConnectorUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MconnCustomerConnectorUpdateResponse response type.
+/// `MconnCustomerConnectorUpdateResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnCustomerConnectorUpdateResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MconnCustomerEventGetSuccess response type.
+/// `MconnCustomerEventGetSuccess` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnCustomerEventGetSuccess {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MconnCustomerEventsGetLatestSuccess response type.
+/// `MconnCustomerEventsGetLatestSuccess` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnCustomerEventsGetLatestSuccess {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MconnCustomerEventsGetSuccess response type.
+/// `MconnCustomerEventsGetSuccess` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnCustomerEventsGetSuccess {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MconnCustomerSnapshotGetSuccess response type.
+/// `MconnCustomerSnapshotGetSuccess` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnCustomerSnapshotGetSuccess {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MconnCustomerSnapshotsGetLatestSuccess response type.
+/// `MconnCustomerSnapshotsGetLatestSuccess` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnCustomerSnapshotsGetLatestSuccess {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MconnCustomerSnapshotsGetSuccess response type.
+/// `MconnCustomerSnapshotsGetSuccess` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MconnCustomerSnapshotsGetSuccess {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -813,187 +819,187 @@ pub struct MconnCustomerSnapshotsGetSuccess {
 /// Arguments for [`ip-address-management-address-maps-list-address-maps_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementAddressMapsListAddressMapsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-address-maps-create-address-map_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementAddressMapsCreateAddressMapArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-address-maps-address-map-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementAddressMapsAddressMapDetailsArgs {
-    /// Path parameter: address_map_id
+    /// Path parameter: `address_map_id`.
     pub address_map_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-address-maps-update-address-map_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementAddressMapsUpdateAddressMapArgs {
-    /// Path parameter: address_map_id
+    /// Path parameter: `address_map_id`.
     pub address_map_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-address-maps-delete-address-map_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementAddressMapsDeleteAddressMapArgs {
-    /// Path parameter: address_map_id
+    /// Path parameter: `address_map_id`.
     pub address_map_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-address-maps-add-an-ip-to-an-address-map_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementAddressMapsAddAnIpToAnAddressMapArgs {
-    /// Path parameter: ip_address
+    /// Path parameter: `ip_address`.
     pub ip_address: String,
-    /// Path parameter: address_map_id
+    /// Path parameter: `address_map_id`.
     pub address_map_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-address-maps-remove-an-ip-from-an-address-map_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementAddressMapsRemoveAnIpFromAnAddressMapArgs {
-    /// Path parameter: ip_address
+    /// Path parameter: `ip_address`.
     pub ip_address: String,
-    /// Path parameter: address_map_id
+    /// Path parameter: `address_map_id`.
     pub address_map_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-list-leases_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementListLeasesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-prefixes-upload-loa-document_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixesUploadLoaDocumentArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-prefixes-download-loa-document_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixesDownloadLoaDocumentArgs {
-    /// Path parameter: loa_document_id
+    /// Path parameter: `loa_document_id`.
     pub loa_document_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-prefixes-list-prefixes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixesListPrefixesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-prefixes-add-prefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixesAddPrefixArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-prefixes-prefix-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixesPrefixDetailsArgs {
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-prefixes-update-prefix-description_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixesUpdatePrefixDescriptionArgs {
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-prefixes-delete-prefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixesDeletePrefixArgs {
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-prefix-delegation-list-prefix-delegations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixDelegationListPrefixDelegationsArgs {
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-prefix-delegation-create-prefix-delegation_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixDelegationCreatePrefixDelegationArgs {
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-prefix-delegation-delete-prefix-delegation_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixDelegationDeletePrefixDelegationArgs {
-    /// Path parameter: delegation_id
+    /// Path parameter: `delegation_id`.
     pub delegation_id: String,
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-prefixes-validate-prefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixesValidatePrefixArgs {
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`listAllowlistPrefixesForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListAllowlistPrefixesForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`createAllowlistedPrefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateAllowlistedPrefixArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DosNewInfraPrefix,
@@ -1002,25 +1008,25 @@ pub struct CreateAllowlistedPrefixArgs {
 /// Arguments for [`deleteAllowlistPrefixesForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteAllowlistPrefixesForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`getAllowlistPrefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAllowlistPrefixArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
 }
 
 /// Arguments for [`updateAllowlistPrefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateAllowlistPrefixArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
     /// Request body.
     pub body: DosInfraPrefixUpdate,
@@ -1029,31 +1035,31 @@ pub struct UpdateAllowlistPrefixArgs {
 /// Arguments for [`deleteAllowlistPrefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteAllowlistPrefixArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
 }
 
 /// Arguments for [`listPrefixesForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListPrefixesForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`createPrefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreatePrefixArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DosNewPrefix,
@@ -1062,14 +1068,14 @@ pub struct CreatePrefixArgs {
 /// Arguments for [`deletePrefixesForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeletePrefixesForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`bulkCreatePrefixes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BulkCreatePrefixesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<DosNewPrefix>,
@@ -1078,18 +1084,18 @@ pub struct BulkCreatePrefixesArgs {
 /// Arguments for [`getPrefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPrefixArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
 }
 
 /// Arguments for [`updatePrefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdatePrefixArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
     /// Request body.
     pub body: DosPrefixUpdate,
@@ -1098,23 +1104,23 @@ pub struct UpdatePrefixArgs {
 /// Arguments for [`deletePrefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeletePrefixArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
 }
 
 /// Arguments for [`getProtectionStatus_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetProtectionStatusArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`updateProtectionStatus_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateProtectionStatusArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DosUpdateProtectionStatus,
@@ -1123,14 +1129,14 @@ pub struct UpdateProtectionStatusArgs {
 /// Arguments for [`magic-account-apps-list-apps_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicAccountAppsListAppsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-account-apps-add-app_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicAccountAppsAddAppArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicAppAddSingleRequest,
@@ -1139,9 +1145,9 @@ pub struct MagicAccountAppsAddAppArgs {
 /// Arguments for [`magic-account-apps-update-app_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicAccountAppsUpdateAppArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: account_app_id
+    /// Path parameter: `account_app_id`.
     pub account_app_id: String,
     /// Request body.
     pub body: MagicAppUpdateRequest,
@@ -1150,9 +1156,9 @@ pub struct MagicAccountAppsUpdateAppArgs {
 /// Arguments for [`magic-account-apps-patch-app_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicAccountAppsPatchAppArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: account_app_id
+    /// Path parameter: `account_app_id`.
     pub account_app_id: String,
     /// Request body.
     pub body: MagicAppUpdateRequest,
@@ -1161,31 +1167,31 @@ pub struct MagicAccountAppsPatchAppArgs {
 /// Arguments for [`magic-account-apps-delete-app_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicAccountAppsDeleteAppArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: account_app_id
+    /// Path parameter: `account_app_id`.
     pub account_app_id: String,
 }
 
 /// Arguments for [`onramps-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OnrampsListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: order_by
+    /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: desc
+    /// Query parameter: `desc`.
     pub desc: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: vpcs
+    /// Query parameter: `vpcs`.
     pub vpcs: Option<String>,
 }
 
 /// Arguments for [`onramps-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OnrampsCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: McnCreateOnrampRequest,
@@ -1194,14 +1200,14 @@ pub struct OnrampsCreateArgs {
 /// Arguments for [`onramps-mwan-addr-space-read_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OnrampsMwanAddrSpaceReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`onramps-mwan-addr-space-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OnrampsMwanAddrSpaceUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: McnUpdateMagicWanAddressSpaceRequest,
@@ -1210,7 +1216,7 @@ pub struct OnrampsMwanAddrSpaceUpdateArgs {
 /// Arguments for [`onramps-mwan-addr-space-patch_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OnrampsMwanAddrSpacePatchArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: McnUpdateMagicWanAddressSpaceRequest,
@@ -1219,26 +1225,26 @@ pub struct OnrampsMwanAddrSpacePatchArgs {
 /// Arguments for [`onramps-read_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OnrampsReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: onramp_id
+    /// Path parameter: `onramp_id`.
     pub onramp_id: String,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: vpcs
+    /// Query parameter: `vpcs`.
     pub vpcs: Option<String>,
-    /// Query parameter: post_apply_resources
+    /// Query parameter: `post_apply_resources`.
     pub post_apply_resources: Option<String>,
-    /// Query parameter: planned_resources
+    /// Query parameter: `planned_resources`.
     pub planned_resources: Option<String>,
 }
 
 /// Arguments for [`onramps-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OnrampsUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: onramp_id
+    /// Path parameter: `onramp_id`.
     pub onramp_id: String,
     /// Request body.
     pub body: McnUpdateOnrampRequest,
@@ -1247,9 +1253,9 @@ pub struct OnrampsUpdateArgs {
 /// Arguments for [`onramps-patch_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OnrampsPatchArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: onramp_id
+    /// Path parameter: `onramp_id`.
     pub onramp_id: String,
     /// Request body.
     pub body: McnUpdateOnrampRequest,
@@ -1258,62 +1264,62 @@ pub struct OnrampsPatchArgs {
 /// Arguments for [`onramps-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OnrampsDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: onramp_id
+    /// Path parameter: `onramp_id`.
     pub onramp_id: String,
-    /// Query parameter: destroy
+    /// Query parameter: `destroy`.
     pub destroy: Option<String>,
-    /// Query parameter: force
+    /// Query parameter: `force`.
     pub force: Option<String>,
 }
 
 /// Arguments for [`onramps-apply_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OnrampsApplyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: onramp_id
+    /// Path parameter: `onramp_id`.
     pub onramp_id: String,
 }
 
 /// Arguments for [`onramps-export_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OnrampsExportArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: onramp_id
+    /// Path parameter: `onramp_id`.
     pub onramp_id: String,
 }
 
 /// Arguments for [`onramps-plan_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OnrampsPlanArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: onramp_id
+    /// Path parameter: `onramp_id`.
     pub onramp_id: String,
 }
 
 /// Arguments for [`providers-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ProvidersListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: order_by
+    /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: desc
+    /// Query parameter: `desc`.
     pub desc: Option<String>,
-    /// Query parameter: cloudflare
+    /// Query parameter: `cloudflare`.
     pub cloudflare: Option<String>,
 }
 
 /// Arguments for [`providers-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ProvidersCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: McnCreateProviderRequest,
@@ -1322,27 +1328,27 @@ pub struct ProvidersCreateArgs {
 /// Arguments for [`providers-discover-all_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ProvidersDiscoverAllArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`providers-read_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ProvidersReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: provider_id
+    /// Path parameter: `provider_id`.
     pub provider_id: String,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
 }
 
 /// Arguments for [`providers-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ProvidersUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: provider_id
+    /// Path parameter: `provider_id`.
     pub provider_id: String,
     /// Request body.
     pub body: McnUpdateProviderRequest,
@@ -1351,9 +1357,9 @@ pub struct ProvidersUpdateArgs {
 /// Arguments for [`providers-patch_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ProvidersPatchArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: provider_id
+    /// Path parameter: `provider_id`.
     pub provider_id: String,
     /// Request body.
     pub body: McnUpdateProviderRequest,
@@ -1362,43 +1368,43 @@ pub struct ProvidersPatchArgs {
 /// Arguments for [`providers-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ProvidersDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: provider_id
+    /// Path parameter: `provider_id`.
     pub provider_id: String,
 }
 
 /// Arguments for [`providers-discover_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ProvidersDiscoverArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: provider_id
+    /// Path parameter: `provider_id`.
     pub provider_id: String,
-    /// Query parameter: v2
+    /// Query parameter: `v2`.
     pub v2: Option<String>,
 }
 
 /// Arguments for [`providers-initial-setup_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ProvidersInitialSetupArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: provider_id
+    /// Path parameter: `provider_id`.
     pub provider_id: String,
 }
 
 /// Arguments for [`mconn-connector-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MconnConnectorListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`mconn-connector-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MconnConnectorCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MconnCustomerConnectorCreateRequest,
@@ -1407,18 +1413,18 @@ pub struct MconnConnectorCreateArgs {
 /// Arguments for [`mconn-connector-fetch_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MconnConnectorFetchArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: connector_id
+    /// Path parameter: `connector_id`.
     pub connector_id: String,
 }
 
 /// Arguments for [`mconn-connector-replace_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MconnConnectorReplaceArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: connector_id
+    /// Path parameter: `connector_id`.
     pub connector_id: String,
     /// Request body.
     pub body: MconnCustomerConnectorUpdateRequest,
@@ -1427,9 +1433,9 @@ pub struct MconnConnectorReplaceArgs {
 /// Arguments for [`mconn-connector-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MconnConnectorUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: connector_id
+    /// Path parameter: `connector_id`.
     pub connector_id: String,
     /// Request body.
     pub body: MconnCustomerConnectorUpdateRequest,
@@ -1438,101 +1444,101 @@ pub struct MconnConnectorUpdateArgs {
 /// Arguments for [`mconn-connector-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MconnConnectorDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: connector_id
+    /// Path parameter: `connector_id`.
     pub connector_id: String,
 }
 
 /// Arguments for [`mconn-connector-telemetry-events-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MconnConnectorTelemetryEventsListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: connector_id
+    /// Path parameter: `connector_id`.
     pub connector_id: String,
-    /// Query parameter: from
+    /// Query parameter: `from`.
     pub from: Option<String>,
-    /// Query parameter: to
+    /// Query parameter: `to`.
     pub to: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
-    /// Query parameter: k
+    /// Query parameter: `k`.
     pub k: Option<String>,
 }
 
 /// Arguments for [`mconn-connector-telemetry-events-listLatest_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MconnConnectorTelemetryEventsListLatestArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: connector_id
+    /// Path parameter: `connector_id`.
     pub connector_id: String,
 }
 
 /// Arguments for [`mconn-connector-telemetry-events-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MconnConnectorTelemetryEventsGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: connector_id
+    /// Path parameter: `connector_id`.
     pub connector_id: String,
-    /// Path parameter: event_t
+    /// Path parameter: `event_t`.
     pub event_t: String,
-    /// Path parameter: event_n
+    /// Path parameter: `event_n`.
     pub event_n: String,
 }
 
 /// Arguments for [`mconn-connector-telemetry-snapshots-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MconnConnectorTelemetrySnapshotsListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: connector_id
+    /// Path parameter: `connector_id`.
     pub connector_id: String,
-    /// Query parameter: from
+    /// Query parameter: `from`.
     pub from: Option<String>,
-    /// Query parameter: to
+    /// Query parameter: `to`.
     pub to: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
 }
 
 /// Arguments for [`mconn-connector-telemetry-snapshots-listLatest_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MconnConnectorTelemetrySnapshotsListLatestArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: connector_id
+    /// Path parameter: `connector_id`.
     pub connector_id: String,
 }
 
 /// Arguments for [`mconn-connector-telemetry-snapshots-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MconnConnectorTelemetrySnapshotsGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: connector_id
+    /// Path parameter: `connector_id`.
     pub connector_id: String,
-    /// Path parameter: snapshot_t
+    /// Path parameter: `snapshot_t`.
     pub snapshot_t: String,
 }
 
 /// Arguments for [`magic-static-routes-list-routes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicStaticRoutesListRoutesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-static-routes-create-routes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicStaticRoutesCreateRoutesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicCreateRouteRequest,
@@ -1541,7 +1547,7 @@ pub struct MagicStaticRoutesCreateRoutesArgs {
 /// Arguments for [`magic-static-routes-update-many-routes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicStaticRoutesUpdateManyRoutesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicRouteUpdateManyRequest,
@@ -1550,7 +1556,7 @@ pub struct MagicStaticRoutesUpdateManyRoutesArgs {
 /// Arguments for [`magic-static-routes-delete-many-routes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicStaticRoutesDeleteManyRoutesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicRouteDeleteManyRequest,
@@ -1559,18 +1565,18 @@ pub struct MagicStaticRoutesDeleteManyRoutesArgs {
 /// Arguments for [`magic-static-routes-route-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicStaticRoutesRouteDetailsArgs {
-    /// Path parameter: route_id
+    /// Path parameter: `route_id`.
     pub route_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-static-routes-update-route_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicStaticRoutesUpdateRouteArgs {
-    /// Path parameter: route_id
+    /// Path parameter: `route_id`.
     pub route_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicRouteUpdateRequest,
@@ -1579,25 +1585,25 @@ pub struct MagicStaticRoutesUpdateRouteArgs {
 /// Arguments for [`magic-static-routes-delete-route_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicStaticRoutesDeleteRouteArgs {
-    /// Path parameter: route_id
+    /// Path parameter: `route_id`.
     pub route_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-sites-list-sites_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSitesListSitesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: connectorid
+    /// Query parameter: `connectorid`.
     pub connectorid: Option<String>,
 }
 
 /// Arguments for [`magic-sites-create-site_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSitesCreateSiteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicSitesAddSingleRequest,
@@ -1606,18 +1612,18 @@ pub struct MagicSitesCreateSiteArgs {
 /// Arguments for [`magic-sites-site-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSitesSiteDetailsArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-sites-update-site_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSitesUpdateSiteArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicSiteUpdateRequest,
@@ -1626,9 +1632,9 @@ pub struct MagicSitesUpdateSiteArgs {
 /// Arguments for [`magic-sites-patch-site_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSitesPatchSiteArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicSiteUpdateRequest,
@@ -1637,27 +1643,27 @@ pub struct MagicSitesPatchSiteArgs {
 /// Arguments for [`magic-sites-delete-site_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSitesDeleteSiteArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-site-acls-list-acls_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteAclsListAclsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
 }
 
 /// Arguments for [`magic-site-acls-create-acl_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteAclsCreateAclArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
     /// Request body.
     pub body: MagicAclsAddSingleRequest,
@@ -1666,22 +1672,22 @@ pub struct MagicSiteAclsCreateAclArgs {
 /// Arguments for [`magic-site-acls-acl-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteAclsAclDetailsArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: acl_id
+    /// Path parameter: `acl_id`.
     pub acl_id: String,
 }
 
 /// Arguments for [`magic-site-acls-update-acl_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteAclsUpdateAclArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: acl_id
+    /// Path parameter: `acl_id`.
     pub acl_id: String,
     /// Request body.
     pub body: MagicAclUpdateRequest,
@@ -1690,11 +1696,11 @@ pub struct MagicSiteAclsUpdateAclArgs {
 /// Arguments for [`magic-site-acls-patch-acl_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteAclsPatchAclArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: acl_id
+    /// Path parameter: `acl_id`.
     pub acl_id: String,
     /// Request body.
     pub body: MagicAclUpdateRequest,
@@ -1703,29 +1709,29 @@ pub struct MagicSiteAclsPatchAclArgs {
 /// Arguments for [`magic-site-acls-delete-acl_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteAclsDeleteAclArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: acl_id
+    /// Path parameter: `acl_id`.
     pub acl_id: String,
 }
 
 /// Arguments for [`magic-site-app-configs-list-app-configs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteAppConfigsListAppConfigsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
 }
 
 /// Arguments for [`magic-site-app-configs-add-app-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteAppConfigsAddAppConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
     /// Request body.
     pub body: MagicAppConfigAddSingleRequest,
@@ -1734,11 +1740,11 @@ pub struct MagicSiteAppConfigsAddAppConfigArgs {
 /// Arguments for [`magic-site-app-configs-update-app-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteAppConfigsUpdateAppConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: app_config_id
+    /// Path parameter: `app_config_id`.
     pub app_config_id: String,
     /// Request body.
     pub body: MagicAppConfigUpdateRequest,
@@ -1747,11 +1753,11 @@ pub struct MagicSiteAppConfigsUpdateAppConfigArgs {
 /// Arguments for [`magic-site-app-configs-patch-app-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteAppConfigsPatchAppConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: app_config_id
+    /// Path parameter: `app_config_id`.
     pub app_config_id: String,
     /// Request body.
     pub body: MagicAppConfigUpdateRequest,
@@ -1760,29 +1766,29 @@ pub struct MagicSiteAppConfigsPatchAppConfigArgs {
 /// Arguments for [`magic-site-app-configs-delete-app-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteAppConfigsDeleteAppConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: app_config_id
+    /// Path parameter: `app_config_id`.
     pub app_config_id: String,
 }
 
 /// Arguments for [`magic-site-lans-list-lans_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteLansListLansArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
 }
 
 /// Arguments for [`magic-site-lans-create-lan_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteLansCreateLanArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
     /// Request body.
     pub body: MagicLansAddSingleRequest,
@@ -1791,22 +1797,22 @@ pub struct MagicSiteLansCreateLanArgs {
 /// Arguments for [`magic-site-lans-lan-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteLansLanDetailsArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: lan_id
+    /// Path parameter: `lan_id`.
     pub lan_id: String,
 }
 
 /// Arguments for [`magic-site-lans-update-lan_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteLansUpdateLanArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: lan_id
+    /// Path parameter: `lan_id`.
     pub lan_id: String,
     /// Request body.
     pub body: MagicLanUpdateRequest,
@@ -1815,11 +1821,11 @@ pub struct MagicSiteLansUpdateLanArgs {
 /// Arguments for [`magic-site-lans-patch-lan_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteLansPatchLanArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: lan_id
+    /// Path parameter: `lan_id`.
     pub lan_id: String,
     /// Request body.
     pub body: MagicLanUpdateRequest,
@@ -1828,29 +1834,29 @@ pub struct MagicSiteLansPatchLanArgs {
 /// Arguments for [`magic-site-lans-delete-lan_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteLansDeleteLanArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: lan_id
+    /// Path parameter: `lan_id`.
     pub lan_id: String,
 }
 
 /// Arguments for [`magic-site-netflow-config-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteNetflowConfigDetailsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
 }
 
 /// Arguments for [`magic-site-netflow-config-create-netflow-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteNetflowConfigCreateNetflowConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
     /// Request body.
     pub body: MagicNetflowConfigRequest,
@@ -1859,9 +1865,9 @@ pub struct MagicSiteNetflowConfigCreateNetflowConfigArgs {
 /// Arguments for [`magic-site-netflow-config-update-netflow-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteNetflowConfigUpdateNetflowConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
     /// Request body.
     pub body: MagicNetflowConfigRequest,
@@ -1870,9 +1876,9 @@ pub struct MagicSiteNetflowConfigUpdateNetflowConfigArgs {
 /// Arguments for [`magic-site-netflow-config-patch-netflow-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteNetflowConfigPatchNetflowConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
     /// Request body.
     pub body: MagicNetflowConfigRequest,
@@ -1881,27 +1887,27 @@ pub struct MagicSiteNetflowConfigPatchNetflowConfigArgs {
 /// Arguments for [`magic-site-netflow-config-delete-netflow-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteNetflowConfigDeleteNetflowConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
 }
 
 /// Arguments for [`magic-site-wans-list-wans_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteWansListWansArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
 }
 
 /// Arguments for [`magic-site-wans-create-wan_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteWansCreateWanArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
     /// Request body.
     pub body: MagicWansAddSingleRequest,
@@ -1910,22 +1916,22 @@ pub struct MagicSiteWansCreateWanArgs {
 /// Arguments for [`magic-site-wans-wan-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteWansWanDetailsArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: wan_id
+    /// Path parameter: `wan_id`.
     pub wan_id: String,
 }
 
 /// Arguments for [`magic-site-wans-update-wan_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteWansUpdateWanArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: wan_id
+    /// Path parameter: `wan_id`.
     pub wan_id: String,
     /// Request body.
     pub body: MagicWanUpdateRequest,
@@ -1934,11 +1940,11 @@ pub struct MagicSiteWansUpdateWanArgs {
 /// Arguments for [`magic-site-wans-patch-wan_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteWansPatchWanArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: wan_id
+    /// Path parameter: `wan_id`.
     pub wan_id: String,
     /// Request body.
     pub body: MagicWanUpdateRequest,
@@ -1947,11 +1953,11 @@ pub struct MagicSiteWansPatchWanArgs {
 /// Arguments for [`magic-site-wans-delete-wan_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicSiteWansDeleteWanArgs {
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: wan_id
+    /// Path parameter: `wan_id`.
     pub wan_id: String,
 }
 
@@ -1981,7 +1987,6 @@ pub struct MagicSiteWansDeleteWanArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_address_maps_list_address_maps_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2074,7 +2079,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_address_maps_create_address_map_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2163,7 +2167,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_address_maps_address_map_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2252,7 +2255,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_address_maps_update_address_map_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2344,7 +2346,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_address_maps_delete_address_map_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2433,7 +2434,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_address_maps_add_an_ip_to_an_address_map_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2522,7 +2522,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_address_maps_remove_an_ip_from_an_address_map_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2611,7 +2610,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_list_leases_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2704,7 +2702,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefixes_upload_loa_document_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2793,7 +2790,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefixes_download_loa_document_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2830,7 +2826,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2878,7 +2874,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefixes_list_prefixes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2967,7 +2962,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefixes_add_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3056,7 +3050,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefixes_prefix_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3145,7 +3138,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefixes_update_prefix_description_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3234,7 +3226,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefixes_delete_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3323,7 +3314,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefix_delegation_list_prefix_delegations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3415,7 +3405,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefix_delegation_create_prefix_delegation_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3504,7 +3493,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefix_delegation_delete_prefix_delegation_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3593,7 +3581,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefixes_validate_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3682,7 +3669,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_allowlist_prefixes_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3771,7 +3757,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_allowlisted_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3864,7 +3849,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_allowlist_prefixes_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3953,7 +3937,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_allowlist_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4043,7 +4026,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_allowlist_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4137,7 +4119,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_allowlist_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4227,7 +4208,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_prefixes_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4316,7 +4296,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4409,7 +4388,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_prefixes_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4498,7 +4476,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn bulk_create_prefixes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4591,7 +4568,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4681,7 +4657,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4775,7 +4750,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4865,7 +4839,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_protection_status_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4954,7 +4927,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_protection_status_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5047,7 +5019,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_account_apps_list_apps_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5136,7 +5107,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_account_apps_add_app_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5229,7 +5199,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_account_apps_update_app_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5322,7 +5291,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_account_apps_patch_app_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5415,7 +5383,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_account_apps_delete_app_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5504,7 +5471,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn onramps_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5593,7 +5559,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn onramps_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5686,7 +5651,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn onramps_mwan_addr_space_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5778,7 +5742,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn onramps_mwan_addr_space_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5874,7 +5837,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn onramps_mwan_addr_space_patch_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5970,7 +5932,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn onramps_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6059,7 +6020,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn onramps_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6152,7 +6112,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn onramps_patch_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6245,7 +6204,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn onramps_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6334,7 +6292,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn onramps_apply_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6423,7 +6380,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn onramps_export_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6460,7 +6416,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6508,7 +6464,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn onramps_plan_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6597,7 +6552,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn providers_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6686,7 +6640,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn providers_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6779,7 +6732,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn providers_discover_all_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6868,7 +6820,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn providers_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6957,7 +6908,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn providers_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7050,7 +7000,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn providers_patch_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7143,7 +7092,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn providers_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7232,7 +7180,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn providers_discover_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7321,7 +7268,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn providers_initial_setup_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7410,7 +7356,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mconn_connector_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7502,7 +7447,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mconn_connector_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7598,7 +7542,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mconn_connector_fetch_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7690,7 +7633,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mconn_connector_replace_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7786,7 +7728,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mconn_connector_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7882,7 +7823,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mconn_connector_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7974,7 +7914,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mconn_connector_telemetry_events_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8063,7 +8002,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mconn_connector_telemetry_events_list_latest_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8156,7 +8094,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mconn_connector_telemetry_events_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8248,7 +8185,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mconn_connector_telemetry_snapshots_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8337,7 +8273,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mconn_connector_telemetry_snapshots_list_latest_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8430,7 +8365,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mconn_connector_telemetry_snapshots_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8521,7 +8455,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_static_routes_list_routes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8610,7 +8543,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_static_routes_create_routes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8703,7 +8635,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_static_routes_update_many_routes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8799,7 +8730,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_static_routes_delete_many_routes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8892,7 +8822,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_static_routes_route_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8981,7 +8910,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_static_routes_update_route_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9074,7 +9002,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_static_routes_delete_route_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9163,7 +9090,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_sites_list_sites_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9252,7 +9178,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_sites_create_site_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9345,7 +9270,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_sites_site_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9434,7 +9358,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_sites_update_site_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9527,7 +9450,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_sites_patch_site_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9620,7 +9542,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_sites_delete_site_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9709,7 +9630,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_acls_list_acls_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9798,7 +9718,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_acls_create_acl_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9891,7 +9810,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_acls_acl_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9980,7 +9898,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_acls_update_acl_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10073,7 +9990,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_acls_patch_acl_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10166,7 +10082,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_acls_delete_acl_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10255,7 +10170,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_app_configs_list_app_configs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10344,7 +10258,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_app_configs_add_app_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10437,7 +10350,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_app_configs_update_app_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10530,7 +10442,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_app_configs_patch_app_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10623,7 +10534,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_app_configs_delete_app_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10712,7 +10622,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_lans_list_lans_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10801,7 +10710,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_lans_create_lan_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10894,7 +10802,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_lans_lan_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10983,7 +10890,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_lans_update_lan_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11076,7 +10982,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_lans_patch_lan_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11169,7 +11074,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_lans_delete_lan_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11258,7 +11162,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_netflow_config_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11347,7 +11250,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_netflow_config_create_netflow_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11440,7 +11342,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_netflow_config_update_netflow_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11533,7 +11434,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_netflow_config_patch_netflow_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11626,7 +11526,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_netflow_config_delete_netflow_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11715,7 +11614,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_wans_list_wans_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11804,7 +11702,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_wans_create_wan_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11897,7 +11794,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_wans_wan_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11986,7 +11882,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_wans_update_wan_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12079,7 +11974,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_wans_patch_wan_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12172,7 +12066,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_site_wans_delete_wan_request<R, F>(
     client: &SimpleHttpClient<R>,

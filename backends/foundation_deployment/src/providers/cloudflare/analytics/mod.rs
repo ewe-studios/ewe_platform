@@ -6,94 +6,100 @@
 //! Feature flag: `cloudflare_analytics `
 
 #![cfg(feature = "cloudflare_analytics")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// RumCreateRuleRequest response type.
+/// `RumCreateRuleRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumCreateRuleRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RumCreateSiteRequest response type.
+/// `RumCreateSiteRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumCreateSiteRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RumModifyRulesRequest response type.
+/// `RumModifyRulesRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumModifyRulesRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RumRuleIdResponseSingle response type.
+/// `RumRuleIdResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumRuleIdResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RumRuleResponseSingle response type.
+/// `RumRuleResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumRuleResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RumRulesResponseCollection response type.
+/// `RumRulesResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumRulesResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RumSiteResponseSingle response type.
+/// `RumSiteResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumSiteResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RumSiteTagResponseSingle response type.
+/// `RumSiteTagResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumSiteTagResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RumSitesResponseCollection response type.
+/// `RumSitesResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumSitesResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RumUpdateSiteRequest response type.
+/// `RumUpdateSiteRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumUpdateSiteRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -105,7 +111,7 @@ pub struct RumUpdateSiteRequest {
 /// Arguments for [`web-analytics-create-site_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebAnalyticsCreateSiteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: RumCreateSiteRequest,
@@ -114,31 +120,31 @@ pub struct WebAnalyticsCreateSiteArgs {
 /// Arguments for [`web-analytics-list-sites_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebAnalyticsListSitesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: order_by
+    /// Query parameter: `order_by`.
     pub order_by: Option<String>,
 }
 
 /// Arguments for [`web-analytics-get-site_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebAnalyticsGetSiteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
 }
 
 /// Arguments for [`web-analytics-update-site_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebAnalyticsUpdateSiteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
     /// Request body.
     pub body: RumUpdateSiteRequest,
@@ -147,18 +153,18 @@ pub struct WebAnalyticsUpdateSiteArgs {
 /// Arguments for [`web-analytics-delete-site_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebAnalyticsDeleteSiteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: site_id
+    /// Path parameter: `site_id`.
     pub site_id: String,
 }
 
 /// Arguments for [`web-analytics-create-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebAnalyticsCreateRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
     /// Request body.
     pub body: RumCreateRuleRequest,
@@ -167,11 +173,11 @@ pub struct WebAnalyticsCreateRuleArgs {
 /// Arguments for [`web-analytics-update-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebAnalyticsUpdateRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
     /// Request body.
     pub body: RumCreateRuleRequest,
@@ -180,29 +186,29 @@ pub struct WebAnalyticsUpdateRuleArgs {
 /// Arguments for [`web-analytics-delete-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebAnalyticsDeleteRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`web-analytics-list-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebAnalyticsListRulesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
 }
 
 /// Arguments for [`web-analytics-modify-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebAnalyticsModifyRulesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
     /// Request body.
     pub body: RumModifyRulesRequest,
@@ -234,7 +240,6 @@ pub struct WebAnalyticsModifyRulesArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web_analytics_create_site_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -327,7 +332,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web_analytics_list_sites_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -416,7 +420,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web_analytics_get_site_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -505,7 +508,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web_analytics_update_site_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -598,7 +600,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web_analytics_delete_site_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -687,7 +688,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web_analytics_create_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -780,7 +780,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web_analytics_update_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -873,7 +872,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web_analytics_delete_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -962,7 +960,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web_analytics_list_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1051,7 +1048,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web_analytics_modify_rules_request<R, F>(
     client: &SimpleHttpClient<R>,

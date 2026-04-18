@@ -6,30 +6,36 @@
 //! Feature flag: `cloudflare_resources `
 
 #![cfg(feature = "cloudflare_resources")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// AlexandriaGetCategoriesResponse response type.
+/// `AlexandriaGetCategoriesResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlexandriaGetCategoriesResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AlexandriaGetCategoryResponse response type.
+/// `AlexandriaGetCategoryResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlexandriaGetCategoryResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -41,16 +47,16 @@ pub struct AlexandriaGetCategoryResponse {
 /// Arguments for [`getCategories_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCategoriesArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
+    /// Path parameter: `accountId`.
+    pub account_id: String,
 }
 
 /// Arguments for [`getCategoryById_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCategoryByIdArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: id
+    /// Path parameter: `accountId`.
+    pub account_id: String,
+    /// Path parameter: `id`.
     pub id: String,
 }
 
@@ -80,7 +86,6 @@ pub struct GetCategoryByIdArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_categories_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -101,7 +106,7 @@ where
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/resource-library/categories",
-        args.accountId,
+        args.account_id,
     );
 
     let mut builder = client
@@ -169,7 +174,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_category_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -190,7 +194,7 @@ where
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/resource-library/categories/{}",
-        args.accountId, args.id,
+        args.account_id, args.id,
     );
 
     let mut builder = client

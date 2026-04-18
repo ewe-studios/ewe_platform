@@ -6,222 +6,220 @@
 //! Feature flag: `cloudflare_media `
 
 #![cfg(feature = "cloudflare_media")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// CallsAppEditableFields response type.
+/// `CallsAppEditableFields` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CallsAppEditableFields {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CallsAppResponseCollection response type.
+/// `CallsAppResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CallsAppResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CallsAppResponseSingle response type.
+/// `CallsAppResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CallsAppResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CallsAppResponseSingleWithSecret response type.
+/// `CallsAppResponseSingleWithSecret` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CallsAppResponseSingleWithSecret {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CallsTurnKeyCollection response type.
+/// `CallsTurnKeyCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CallsTurnKeyCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CallsTurnKeyEditableFields response type.
+/// `CallsTurnKeyEditableFields` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CallsTurnKeyEditableFields {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CallsTurnKeyResponseSingle response type.
+/// `CallsTurnKeyResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CallsTurnKeyResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CallsTurnKeySingleWithSecret response type.
+/// `CallsTurnKeySingleWithSecret` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CallsTurnKeySingleWithSecret {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ImagesDeletedResponse response type.
+/// `ImagesDeletedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesDeletedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ImagesImageDirectUploadResponseV2 response type.
+/// `ImagesImageDirectUploadResponseV2` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageDirectUploadResponseV2 {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ImagesImageKeyResponseCollection response type.
+/// `ImagesImageKeyResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageKeyResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ImagesImagePatchRequest response type.
+/// `ImagesImagePatchRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImagePatchRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ImagesImageResponseSingle response type.
+/// `ImagesImageResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ImagesImageVariantDefinition response type.
+/// `ImagesImageVariantDefinition` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageVariantDefinition {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ImagesImageVariantFlatResponse response type.
+/// `ImagesImageVariantFlatResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageVariantFlatResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ImagesImageVariantListResponse response type.
+/// `ImagesImageVariantListResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageVariantListResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ImagesImageVariantPatchRequest response type.
+/// `ImagesImageVariantPatchRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageVariantPatchRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ImagesImageVariantSimpleResponse response type.
+/// `ImagesImageVariantSimpleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImageVariantSimpleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ImagesImagesListResponse response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImagesImagesListResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// ImagesImagesListResponseV2 response type.
+/// `ImagesImagesListResponseV2` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImagesListResponseV2 {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ImagesImagesStatsResponse response type.
+/// `ImagesImagesStatsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesImagesStatsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RealtimekitPatchWebhookRequest response type.
+/// `RealtimekitPatchWebhookRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitPatchWebhookRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RealtimekitWebhookRequest response type.
+/// `RealtimekitWebhookRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitWebhookRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RealtimekitWebhookSuccessResponse response type.
+/// `RealtimekitWebhookSuccessResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitWebhookSuccessResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RealtimekitWebhooksListSuccessResponse response type.
+/// `RealtimekitWebhooksListSuccessResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RealtimekitWebhooksListSuccessResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamVideoResponseCollection response type.
+/// `StreamVideoResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamVideoResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -233,121 +231,121 @@ pub struct StreamVideoResponseCollection {
 /// Arguments for [`brapi-post_Content_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BrapiPostContentArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: cacheTTL
-    pub cacheTTL: Option<String>,
+    /// Query parameter: `cacheTTL`.
+    pub cache_ttl: Option<String>,
 }
 
 /// Arguments for [`brapi-post_Crawl_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BrapiPostCrawlArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: cacheTTL
-    pub cacheTTL: Option<String>,
+    /// Query parameter: `cacheTTL`.
+    pub cache_ttl: Option<String>,
 }
 
 /// Arguments for [`brapi-get_CrawlResult_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BrapiGetCrawlResultArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
-    /// Query parameter: cacheTTL
-    pub cacheTTL: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `cacheTTL`.
+    pub cache_ttl: Option<String>,
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
 }
 
 /// Arguments for [`brapi-delete_CancelCrawl_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BrapiDeleteCancelCrawlArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
 }
 
 /// Arguments for [`brapi-post_Json_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BrapiPostJsonArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: cacheTTL
-    pub cacheTTL: Option<String>,
+    /// Query parameter: `cacheTTL`.
+    pub cache_ttl: Option<String>,
 }
 
 /// Arguments for [`brapi-post_Links_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BrapiPostLinksArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: cacheTTL
-    pub cacheTTL: Option<String>,
+    /// Query parameter: `cacheTTL`.
+    pub cache_ttl: Option<String>,
 }
 
 /// Arguments for [`brapi-post_Markdown_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BrapiPostMarkdownArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: cacheTTL
-    pub cacheTTL: Option<String>,
+    /// Query parameter: `cacheTTL`.
+    pub cache_ttl: Option<String>,
 }
 
 /// Arguments for [`brapi-post_Pdf_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BrapiPostPdfArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: cacheTTL
-    pub cacheTTL: Option<String>,
+    /// Query parameter: `cacheTTL`.
+    pub cache_ttl: Option<String>,
 }
 
 /// Arguments for [`brapi-post_Scrape_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BrapiPostScrapeArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: cacheTTL
-    pub cacheTTL: Option<String>,
+    /// Query parameter: `cacheTTL`.
+    pub cache_ttl: Option<String>,
 }
 
 /// Arguments for [`brapi-post_Screenshot_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BrapiPostScreenshotArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: cacheTTL
-    pub cacheTTL: Option<String>,
+    /// Query parameter: `cacheTTL`.
+    pub cache_ttl: Option<String>,
 }
 
 /// Arguments for [`brapi-post_Snapshot_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BrapiPostSnapshotArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: cacheTTL
-    pub cacheTTL: Option<String>,
+    /// Query parameter: `cacheTTL`.
+    pub cache_ttl: Option<String>,
 }
 
 /// Arguments for [`calls-apps-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CallsAppsListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`calls-apps-create-a-new-app_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CallsAppsCreateANewAppArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: CallsAppEditableFields,
@@ -356,18 +354,18 @@ pub struct CallsAppsCreateANewAppArgs {
 /// Arguments for [`calls-apps-retrieve-app-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CallsAppsRetrieveAppDetailsArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`calls-apps-update-app-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CallsAppsUpdateAppDetailsArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: CallsAppEditableFields,
@@ -376,23 +374,23 @@ pub struct CallsAppsUpdateAppDetailsArgs {
 /// Arguments for [`calls-apps-delete-app_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CallsAppsDeleteAppArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`calls-turn-key-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CallsTurnKeyListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`calls-turn-key-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CallsTurnKeyCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: CallsTurnKeyEditableFields,
@@ -401,18 +399,18 @@ pub struct CallsTurnKeyCreateArgs {
 /// Arguments for [`calls-retrieve-turn-key-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CallsRetrieveTurnKeyDetailsArgs {
-    /// Path parameter: key_id
+    /// Path parameter: `key_id`.
     pub key_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`calls-update-turn-key_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CallsUpdateTurnKeyArgs {
-    /// Path parameter: key_id
+    /// Path parameter: `key_id`.
     pub key_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: CallsTurnKeyEditableFields,
@@ -421,75 +419,62 @@ pub struct CallsUpdateTurnKeyArgs {
 /// Arguments for [`calls-delete-turn-key_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CallsDeleteTurnKeyArgs {
-    /// Path parameter: key_id
+    /// Path parameter: `key_id`.
     pub key_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-}
-
-/// Arguments for [`cloudflare-images-list-images_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudflareImagesListImagesArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Query parameter: page
-    pub page: Option<String>,
-    /// Query parameter: per_page
-    pub per_page: Option<String>,
-    /// Query parameter: creator
-    pub creator: Option<String>,
 }
 
 /// Arguments for [`cloudflare-images-upload-an-image-via-url_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesUploadAnImageViaUrlArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-images-keys-list-signing-keys_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesKeysListSigningKeysArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-images-keys-add-signing-key_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesKeysAddSigningKeyArgs {
-    /// Path parameter: signing_key_name
+    /// Path parameter: `signing_key_name`.
     pub signing_key_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-images-keys-delete-signing-key_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesKeysDeleteSigningKeyArgs {
-    /// Path parameter: signing_key_name
+    /// Path parameter: `signing_key_name`.
     pub signing_key_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-images-images-usage-statistics_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesImagesUsageStatisticsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-images-variants-list-variants_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesVariantsListVariantsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-images-variants-create-a-variant_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesVariantsCreateAVariantArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: ImagesImageVariantDefinition,
@@ -498,18 +483,18 @@ pub struct CloudflareImagesVariantsCreateAVariantArgs {
 /// Arguments for [`cloudflare-images-variants-variant-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesVariantsVariantDetailsArgs {
-    /// Path parameter: variant_id
+    /// Path parameter: `variant_id`.
     pub variant_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-images-variants-update-a-variant_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesVariantsUpdateAVariantArgs {
-    /// Path parameter: variant_id
+    /// Path parameter: `variant_id`.
     pub variant_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: ImagesImageVariantPatchRequest,
@@ -518,36 +503,36 @@ pub struct CloudflareImagesVariantsUpdateAVariantArgs {
 /// Arguments for [`cloudflare-images-variants-delete-a-variant_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesVariantsDeleteAVariantArgs {
-    /// Path parameter: variant_id
+    /// Path parameter: `variant_id`.
     pub variant_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-images-variants-variant-details-flat_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesVariantsVariantDetailsFlatArgs {
-    /// Path parameter: variant_id
+    /// Path parameter: `variant_id`.
     pub variant_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-images-image-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesImageDetailsArgs {
-    /// Path parameter: image_id
+    /// Path parameter: `image_id`.
     pub image_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-images-update-image_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesUpdateImageArgs {
-    /// Path parameter: image_id
+    /// Path parameter: `image_id`.
     pub image_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: ImagesImagePatchRequest,
@@ -556,581 +541,581 @@ pub struct CloudflareImagesUpdateImageArgs {
 /// Arguments for [`cloudflare-images-delete-image_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesDeleteImageArgs {
-    /// Path parameter: image_id
+    /// Path parameter: `image_id`.
     pub image_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-images-base-image_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesBaseImageArgs {
-    /// Path parameter: image_id
+    /// Path parameter: `image_id`.
     pub image_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-images-list-images-v2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesListImagesV2Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: continuation_token
+    /// Query parameter: `continuation_token`.
     pub continuation_token: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: sort_order
+    /// Query parameter: `sort_order`.
     pub sort_order: Option<String>,
-    /// Query parameter: creator
+    /// Query parameter: `creator`.
     pub creator: Option<String>,
-    /// Query parameter: meta.<field>[<operator>]
-    pub meta__field___operator__: Option<String>,
+    /// Query parameter: `meta.<field>[<operator>]`.
+    pub meta_field_operator: Option<String>,
 }
 
 /// Arguments for [`cloudflare-images-create-authenticated-direct-upload-url-v-2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareImagesCreateAuthenticatedDirectUploadUrlV2Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_apps_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAppsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`create_app_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateAppArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get-org-analytics_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetOrgAnalyticsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
 }
 
 /// Arguments for [`get-livestream-analytics-complete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetLivestreamAnalyticsCompleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Query parameter: start_time
+    /// Query parameter: `start_time`.
     pub start_time: Option<String>,
-    /// Query parameter: end_time
+    /// Query parameter: `end_time`.
     pub end_time: Option<String>,
 }
 
 /// Arguments for [`fetch_all_livestreams_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FetchAllLivestreamsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Query parameter: exclude_meetings
+    /// Query parameter: `exclude_meetings`.
     pub exclude_meetings: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: page_no
+    /// Query parameter: `page_no`.
     pub page_no: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: start_time
+    /// Query parameter: `start_time`.
     pub start_time: Option<String>,
-    /// Query parameter: end_time
+    /// Query parameter: `end_time`.
     pub end_time: Option<String>,
-    /// Query parameter: sort_order
+    /// Query parameter: `sort_order`.
     pub sort_order: Option<String>,
 }
 
 /// Arguments for [`get-v2-livestreams-livestream-session-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV2LivestreamsLivestreamSessionIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: livestream-session-id
+    /// Path parameter: `livestream-session-id`.
     pub livestream_session_id: String,
 }
 
 /// Arguments for [`get-v2-livestream-session-livestream-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV2LivestreamSessionLivestreamIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: livestream_id
+    /// Path parameter: `livestream_id`.
     pub livestream_id: String,
-    /// Query parameter: page_no
+    /// Query parameter: `page_no`.
     pub page_no: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`get-v2-active-livestream-session-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV2ActiveLivestreamSessionDetailsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: livestream_id
+    /// Path parameter: `livestream_id`.
     pub livestream_id: String,
 }
 
 /// Arguments for [`get_all_meetings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAllMeetingsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
 }
 
 /// Arguments for [`create_meeting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateMeetingArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
 }
 
 /// Arguments for [`get_meeting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetMeetingArgs {
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
 }
 
 /// Arguments for [`replace_meeting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ReplaceMeetingArgs {
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
 }
 
 /// Arguments for [`update_meeting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateMeetingArgs {
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
 }
 
 /// Arguments for [`get-v2-meetings-meetingId-active-livestream_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV2MeetingsMeetingIdActiveLivestreamArgs {
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
 }
 
 /// Arguments for [`stop_livestreaming_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StopLivestreamingArgs {
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
 }
 
 /// Arguments for [`GetActiveSession_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetActiveSessionArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
 }
 
 /// Arguments for [`KickPartcipants_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct KickPartcipantsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
 }
 
 /// Arguments for [`KickAllParticipants_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct KickAllParticipantsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
 }
 
 /// Arguments for [`MuteParticipants_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MuteParticipantsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
 }
 
 /// Arguments for [`MuteAllParticipants_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MuteAllParticipantsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
 }
 
 /// Arguments for [`CreatePoll_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreatePollArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
 }
 
 /// Arguments for [`livestream-session-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct LivestreamSessionDetailsArgs {
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
-    /// Query parameter: page_no
+    /// Query parameter: `page_no`.
     pub page_no: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`start-livestreaming_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StartLivestreamingArgs {
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
 }
 
 /// Arguments for [`get_meeting_participants_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetMeetingParticipantsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
 }
 
 /// Arguments for [`add_participant_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AddParticipantArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
 }
 
 /// Arguments for [`get_meeting_participant_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetMeetingParticipantArgs {
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
-    /// Path parameter: participant_id
+    /// Path parameter: `participant_id`.
     pub participant_id: String,
 }
 
 /// Arguments for [`edit_participant_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EditParticipantArgs {
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
-    /// Path parameter: participant_id
+    /// Path parameter: `participant_id`.
     pub participant_id: String,
 }
 
 /// Arguments for [`delete_meeting_participant_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteMeetingParticipantArgs {
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
-    /// Path parameter: participant_id
+    /// Path parameter: `participant_id`.
     pub participant_id: String,
 }
 
 /// Arguments for [`regenerate_token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RegenerateTokenArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
-    /// Path parameter: participant_id
+    /// Path parameter: `participant_id`.
     pub participant_id: String,
 }
 
 /// Arguments for [`get-presets_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPresetsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
 }
 
 /// Arguments for [`post-presets_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostPresetsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
 }
 
 /// Arguments for [`get-presets-preset_id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPresetsPresetIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: preset_id
+    /// Path parameter: `preset_id`.
     pub preset_id: String,
 }
 
 /// Arguments for [`patch-presets-preset_id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PatchPresetsPresetIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: preset_id
+    /// Path parameter: `preset_id`.
     pub preset_id: String,
 }
 
 /// Arguments for [`delete-presets-preset_id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeletePresetsPresetIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: preset_id
+    /// Path parameter: `preset_id`.
     pub preset_id: String,
 }
 
 /// Arguments for [`get_all_recordings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAllRecordingsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Query parameter: meeting_id
+    /// Query parameter: `meeting_id`.
     pub meeting_id: Option<String>,
-    /// Query parameter: expired
+    /// Query parameter: `expired`.
     pub expired: Option<String>,
 }
 
 /// Arguments for [`start_recording_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StartRecordingArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
 }
 
 /// Arguments for [`get_active_recording_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetActiveRecordingArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: meeting_id
+    /// Path parameter: `meeting_id`.
     pub meeting_id: String,
 }
 
 /// Arguments for [`startTrackRecordingForAMeeting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StartTrackRecordingForAMeetingArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
 }
 
 /// Arguments for [`get_one_recording_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetOneRecordingArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: recording_id
+    /// Path parameter: `recording_id`.
     pub recording_id: String,
 }
 
 /// Arguments for [`pause_resume_stop_recording_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PauseResumeStopRecordingArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: recording_id
+    /// Path parameter: `recording_id`.
     pub recording_id: String,
 }
 
 /// Arguments for [`GetSessions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSessionsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: associated_id
+    /// Query parameter: `associated_id`.
     pub associated_id: Option<String>,
 }
 
 /// Arguments for [`GetParticipantDataFromPeerId_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetParticipantDataFromPeerIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: peer_id
+    /// Path parameter: `peer_id`.
     pub peer_id: String,
-    /// Query parameter: filters
+    /// Query parameter: `filters`.
     pub filters: Option<String>,
 }
 
 /// Arguments for [`GetSessionDetails_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSessionDetailsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: session_id
+    /// Path parameter: `session_id`.
     pub session_id: String,
-    /// Query parameter: include_breakout_rooms
+    /// Query parameter: `include_breakout_rooms`.
     pub include_breakout_rooms: Option<String>,
 }
 
 /// Arguments for [`get-v2-livestreamsession-session-meetingId-active-livestream_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetV2LivestreamsessionSessionMeetingIdActiveLivestreamArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: session_id
+    /// Path parameter: `session_id`.
     pub session_id: String,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: page_no
+    /// Query parameter: `page_no`.
     pub page_no: Option<String>,
 }
 
 /// Arguments for [`GetSessionParticipants_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSessionParticipantsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: session_id
+    /// Path parameter: `session_id`.
     pub session_id: String,
-    /// Query parameter: include_peer_events
+    /// Query parameter: `include_peer_events`.
     pub include_peer_events: Option<String>,
-    /// Query parameter: view
+    /// Query parameter: `view`.
     pub view: Option<String>,
 }
 
 /// Arguments for [`GetParticipantDetails_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetParticipantDetailsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: participant_id
+    /// Path parameter: `participant_id`.
     pub participant_id: String,
-    /// Path parameter: session_id
+    /// Path parameter: `session_id`.
     pub session_id: String,
-    /// Query parameter: filters
+    /// Query parameter: `filters`.
     pub filters: Option<String>,
-    /// Query parameter: include_peer_events
+    /// Query parameter: `include_peer_events`.
     pub include_peer_events: Option<String>,
 }
 
 /// Arguments for [`GetSessionSummary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSessionSummaryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: session_id
+    /// Path parameter: `session_id`.
     pub session_id: String,
 }
 
 /// Arguments for [`post-sessions-session_id-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostSessionsSessionIdSummaryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: session_id
+    /// Path parameter: `session_id`.
     pub session_id: String,
 }
 
 /// Arguments for [`GetSessionTranscript_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSessionTranscriptArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: session_id
+    /// Path parameter: `session_id`.
     pub session_id: String,
 }
 
 /// Arguments for [`getAllWebhooks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAllWebhooksArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
 }
 
 /// Arguments for [`addWebhook_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AddWebhookArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
     /// Request body.
     pub body: RealtimekitWebhookRequest,
@@ -1139,22 +1124,22 @@ pub struct AddWebhookArgs {
 /// Arguments for [`getWebhook_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetWebhookArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: webhook_id
+    /// Path parameter: `webhook_id`.
     pub webhook_id: String,
 }
 
 /// Arguments for [`replaceWebhook_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ReplaceWebhookArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: webhook_id
+    /// Path parameter: `webhook_id`.
     pub webhook_id: String,
     /// Request body.
     pub body: RealtimekitWebhookRequest,
@@ -1163,11 +1148,11 @@ pub struct ReplaceWebhookArgs {
 /// Arguments for [`editWebhook_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EditWebhookArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: webhook_id
+    /// Path parameter: `webhook_id`.
     pub webhook_id: String,
     /// Request body.
     pub body: RealtimekitPatchWebhookRequest,
@@ -1176,54 +1161,54 @@ pub struct EditWebhookArgs {
 /// Arguments for [`deleteWebhook_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteWebhookArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: webhook_id
+    /// Path parameter: `webhook_id`.
     pub webhook_id: String,
 }
 
 /// Arguments for [`stream-videos-list-videos_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamVideosListVideosArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: creator
+    /// Query parameter: `creator`.
     pub creator: Option<String>,
-    /// Query parameter: type
+    /// Query parameter: `type`.
     pub r#type: Option<String>,
-    /// Query parameter: asc
+    /// Query parameter: `asc`.
     pub asc: Option<String>,
-    /// Query parameter: video_name
+    /// Query parameter: `video_name`.
     pub video_name: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: start
+    /// Query parameter: `start`.
     pub start: Option<String>,
-    /// Query parameter: end
+    /// Query parameter: `end`.
     pub end: Option<String>,
-    /// Query parameter: include_counts
+    /// Query parameter: `include_counts`.
     pub include_counts: Option<String>,
 }
 
 /// Arguments for [`stream-videos-initiate-video-uploads-using-tus_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamVideosInitiateVideoUploadsUsingTusArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: direct_user
+    /// Query parameter: `direct_user`.
     pub direct_user: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-routes-realtime_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpRoutesRealtimeArgs {
-    /// Query parameter: prefix
+    /// Query parameter: `prefix`.
     pub prefix: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
@@ -1253,7 +1238,6 @@ pub struct RadarGetBgpRoutesRealtimeArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn brapi_post_content_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1290,7 +1274,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1338,7 +1322,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn brapi_post_crawl_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1375,7 +1358,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1423,7 +1406,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn brapi_get_crawl_result_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1460,7 +1442,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1508,7 +1490,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn brapi_delete_cancel_crawl_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1545,7 +1526,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1593,7 +1574,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn brapi_post_json_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1630,7 +1610,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1678,7 +1658,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn brapi_post_links_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1715,7 +1694,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1763,7 +1742,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn brapi_post_markdown_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1800,7 +1778,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1848,7 +1826,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn brapi_post_pdf_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1885,7 +1862,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1933,7 +1910,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn brapi_post_scrape_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1970,7 +1946,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2018,7 +1994,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn brapi_post_screenshot_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2055,7 +2030,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2103,7 +2078,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn brapi_post_snapshot_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2140,7 +2114,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2188,7 +2162,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn calls_apps_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2277,7 +2250,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn calls_apps_create_a_new_app_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2370,7 +2342,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn calls_apps_retrieve_app_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2459,7 +2430,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn calls_apps_update_app_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2552,7 +2522,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn calls_apps_delete_app_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2641,7 +2610,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn calls_turn_key_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2730,7 +2698,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn calls_turn_key_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2823,7 +2790,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn calls_retrieve_turn_key_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2912,7 +2878,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn calls_update_turn_key_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3005,7 +2970,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn calls_delete_turn_key_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3073,95 +3037,6 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/images/v1
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/images/v1.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = cloudflare_images_list_images_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn cloudflare_images_list_images_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &CloudflareImagesListImagesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<ImagesImagesListResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/images/v1",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ImagesImagesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
 // POST /accounts/{account_id}/images/v1
 // -----------------------------------------------------------------------------
 
@@ -3183,7 +3058,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_upload_an_image_via_url_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3272,7 +3146,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_keys_list_signing_keys_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3361,7 +3234,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_keys_add_signing_key_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3450,7 +3322,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_keys_delete_signing_key_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3539,7 +3410,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_images_usage_statistics_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3628,7 +3498,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_variants_list_variants_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3717,7 +3586,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_variants_create_a_variant_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3810,7 +3678,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_variants_variant_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3899,7 +3766,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_variants_update_a_variant_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3992,7 +3858,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_variants_delete_a_variant_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4081,7 +3946,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_variants_variant_details_flat_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4170,7 +4034,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_image_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4259,7 +4122,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_update_image_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4352,7 +4214,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_delete_image_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4441,7 +4302,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_base_image_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4478,7 +4338,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4526,7 +4386,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_list_images_v2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4615,7 +4474,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_images_create_authenticated_direct_upload_url_v_2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4704,7 +4562,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_apps_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4741,7 +4598,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4789,7 +4646,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_app_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4826,7 +4682,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4874,7 +4730,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_org_analytics_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4911,7 +4766,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4959,7 +4814,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_livestream_analytics_complete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4997,7 +4851,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5045,7 +4899,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn fetch_all_livestreams_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5082,7 +4935,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5130,7 +4983,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_v2_livestreams_livestream_session_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5167,7 +5019,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5215,7 +5067,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_v2_livestream_session_livestream_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5252,7 +5103,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5300,7 +5151,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_v2_active_livestream_session_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5339,7 +5189,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5387,7 +5237,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_all_meetings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5424,7 +5273,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5472,7 +5321,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_meeting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5509,7 +5357,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5557,7 +5405,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_meeting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5594,7 +5441,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5642,7 +5489,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn replace_meeting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5679,7 +5525,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5727,7 +5573,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_meeting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5764,7 +5609,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5812,7 +5657,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_v2_meetings_meeting_id_active_livestream_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5849,7 +5693,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5897,7 +5741,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stop_livestreaming_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5934,7 +5777,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5982,7 +5825,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_active_session_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6021,7 +5863,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6069,7 +5911,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn kick_partcipants_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6107,7 +5948,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6155,7 +5996,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn kick_all_participants_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6193,7 +6033,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6241,7 +6081,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mute_participants_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6279,7 +6118,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6327,7 +6166,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn mute_all_participants_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6365,7 +6203,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6413,7 +6251,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_poll_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6451,7 +6288,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6499,7 +6336,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn livestream_session_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6536,7 +6372,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6584,7 +6420,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn start_livestreaming_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6621,7 +6456,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6669,7 +6504,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_meeting_participants_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6706,7 +6540,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6754,7 +6588,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn add_participant_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6791,7 +6624,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6839,7 +6672,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_meeting_participant_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6877,7 +6709,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6925,7 +6757,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn edit_participant_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6963,7 +6794,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7011,7 +6842,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_meeting_participant_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7049,7 +6879,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7097,7 +6927,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn regenerate_token_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7137,7 +6966,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7185,7 +7014,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_presets_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7222,7 +7050,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7270,7 +7098,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_presets_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7307,7 +7134,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7355,7 +7182,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_presets_preset_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7392,7 +7218,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7440,7 +7266,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn patch_presets_preset_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7477,7 +7302,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7525,7 +7350,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_presets_preset_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7562,7 +7386,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7610,7 +7434,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_all_recordings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7647,7 +7470,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7695,7 +7518,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn start_recording_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7732,7 +7554,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7780,7 +7602,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_active_recording_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7819,7 +7640,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7867,7 +7688,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn start_track_recording_for_a_meeting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7904,7 +7724,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7952,7 +7772,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_one_recording_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7989,7 +7808,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8037,7 +7856,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn pause_resume_stop_recording_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8074,7 +7892,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8122,7 +7940,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_sessions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8159,7 +7976,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8207,7 +8024,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_participant_data_from_peer_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8244,7 +8060,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8292,7 +8108,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_session_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8329,7 +8144,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8377,7 +8192,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_v2_livestreamsession_session_meeting_id_active_livestream_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8416,7 +8230,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8464,7 +8278,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_session_participants_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8501,7 +8314,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8549,7 +8362,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_participant_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8589,7 +8401,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8637,7 +8449,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_session_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8674,7 +8485,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8722,7 +8533,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_sessions_session_id_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8759,7 +8569,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8807,7 +8617,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_session_transcript_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8844,7 +8653,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8892,7 +8701,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_all_webhooks_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8984,7 +8792,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn add_webhook_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9077,7 +8884,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_webhook_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9166,7 +8972,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn replace_webhook_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9259,7 +9064,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn edit_webhook_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9352,7 +9156,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_webhook_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9441,7 +9244,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_videos_list_videos_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9530,7 +9332,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_videos_initiate_video_uploads_using_tus_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9567,7 +9368,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9605,7 +9406,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -9615,11 +9415,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_routes_realtime_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpRoutesRealtimeArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -9649,7 +9447,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

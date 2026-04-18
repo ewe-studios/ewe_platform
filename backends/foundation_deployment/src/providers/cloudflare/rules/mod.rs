@@ -6,8 +6,14 @@
 //! Feature flag: `cloudflare_rules `
 
 #![cfg(feature = "cloudflare_rules")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -17,240 +23,240 @@ use super::shared::AaaIdResponse;
 use super::shared::DosApiResponseCommon;
 use super::shared::MagicVisibilityMnmMnmConfigSingleResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// AaaApiResponseCollection response type.
+/// `AaaApiResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaApiResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AaaPoliciesComponentsSchemasResponseCollection response type.
+/// `AaaPoliciesComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaPoliciesComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AaaSingleResponse response type.
+/// `AaaSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosDnsProtectionRuleListResponse response type.
+/// `DosDnsProtectionRuleListResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosDnsProtectionRuleListResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosDnsProtectionRuleResponse response type.
+/// `DosDnsProtectionRuleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosDnsProtectionRuleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosDnsProtectionRuleUpdate response type.
+/// `DosDnsProtectionRuleUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosDnsProtectionRuleUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosExpressionFilterListResponse response type.
+/// `DosExpressionFilterListResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosExpressionFilterListResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosExpressionFilterResponse response type.
+/// `DosExpressionFilterResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosExpressionFilterResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosExpressionFilterUpdate response type.
+/// `DosExpressionFilterUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosExpressionFilterUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosNewDnsProtectionRule response type.
+/// `DosNewDnsProtectionRule` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosNewDnsProtectionRule {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosNewExpressionFilter response type.
+/// `DosNewExpressionFilter` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosNewExpressionFilter {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosNewSynProtectionRule response type.
+/// `DosNewSynProtectionRule` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosNewSynProtectionRule {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosNewTcpFlowProtectionRule response type.
+/// `DosNewTcpFlowProtectionRule` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosNewTcpFlowProtectionRule {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosSynProtectionRuleListResponse response type.
+/// `DosSynProtectionRuleListResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosSynProtectionRuleListResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosSynProtectionRuleResponse response type.
+/// `DosSynProtectionRuleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosSynProtectionRuleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosSynProtectionRuleUpdate response type.
+/// `DosSynProtectionRuleUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosSynProtectionRuleUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosTcpFlowProtectionRuleListResponse response type.
+/// `DosTcpFlowProtectionRuleListResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosTcpFlowProtectionRuleListResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosTcpFlowProtectionRuleResponse response type.
+/// `DosTcpFlowProtectionRuleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosTcpFlowProtectionRuleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DosTcpFlowProtectionRuleUpdate response type.
+/// `DosTcpFlowProtectionRuleUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DosTcpFlowProtectionRuleUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ListsBulkOperationResponseSingle response type.
+/// `ListsBulkOperationResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListsBulkOperationResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ListsItemResponseSingle response type.
+/// `ListsItemResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListsItemResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ListsItemsListResponseCollection response type.
+/// `ListsItemsListResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListsItemsListResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ListsListDeleteResponseCollection response type.
+/// `ListsListDeleteResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListsListDeleteResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ListsListResponseCollection response type.
+/// `ListsListResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListsListResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ListsListsAsyncResponse response type.
+/// `ListsListsAsyncResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListsListsAsyncResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ListsListsResponseCollection response type.
+/// `ListsListsResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListsListsResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicVisibilityMnmMnmRuleAdvertisementSingleResponse response type.
+/// `MagicVisibilityMnmMnmRuleAdvertisementSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityMnmMnmRuleAdvertisementSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicVisibilityMnmMnmRulesCollectionResponse response type.
+/// `MagicVisibilityMnmMnmRulesCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityMnmMnmRulesCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicVisibilityMnmMnmRulesSingleResponse response type.
+/// `MagicVisibilityMnmMnmRulesSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityMnmMnmRulesSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -262,63 +268,63 @@ pub struct MagicVisibilityMnmMnmRulesSingleResponse {
 /// Arguments for [`notification-policies-list-notification-policies_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationPoliciesListNotificationPoliciesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-policies-create-a-notification-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationPoliciesCreateANotificationPolicyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-policies-get-a-notification-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationPoliciesGetANotificationPolicyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
 }
 
 /// Arguments for [`notification-policies-update-a-notification-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationPoliciesUpdateANotificationPolicyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
 }
 
 /// Arguments for [`notification-policies-delete-a-notification-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationPoliciesDeleteANotificationPolicyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
 }
 
 /// Arguments for [`listDnsProtectionRulesForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListDnsProtectionRulesForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`createDnsProtectionRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateDnsProtectionRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DosNewDnsProtectionRule,
@@ -327,25 +333,25 @@ pub struct CreateDnsProtectionRuleArgs {
 /// Arguments for [`deleteDnsProtectionRulesForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteDnsProtectionRulesForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`getDnsProtectionRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetDnsProtectionRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`updateDnsProtectionRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateDnsProtectionRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
     /// Request body.
     pub body: DosDnsProtectionRuleUpdate,
@@ -354,33 +360,33 @@ pub struct UpdateDnsProtectionRuleArgs {
 /// Arguments for [`deleteDnsProtectionRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteDnsProtectionRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`listSynProtectionFiltersForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListSynProtectionFiltersForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: mode
+    /// Query parameter: `mode`.
     pub mode: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`createSynProtectionFilter_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateSynProtectionFilterArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DosNewExpressionFilter,
@@ -389,25 +395,25 @@ pub struct CreateSynProtectionFilterArgs {
 /// Arguments for [`deleteSynProtectionFiltersForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteSynProtectionFiltersForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`getSynProtectionFilter_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSynProtectionFilterArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: filter_id
+    /// Path parameter: `filter_id`.
     pub filter_id: String,
 }
 
 /// Arguments for [`updateSynProtectionFilter_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateSynProtectionFilterArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: filter_id
+    /// Path parameter: `filter_id`.
     pub filter_id: String,
     /// Request body.
     pub body: DosExpressionFilterUpdate,
@@ -416,31 +422,31 @@ pub struct UpdateSynProtectionFilterArgs {
 /// Arguments for [`deleteSynProtectionFilter_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteSynProtectionFilterArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: filter_id
+    /// Path parameter: `filter_id`.
     pub filter_id: String,
 }
 
 /// Arguments for [`listSynProtectionRulesForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListSynProtectionRulesForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`createSynProtectionRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateSynProtectionRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DosNewSynProtectionRule,
@@ -449,25 +455,25 @@ pub struct CreateSynProtectionRuleArgs {
 /// Arguments for [`deleteSynProtectionRulesForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteSynProtectionRulesForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`getSynProtectionRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSynProtectionRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`updateSynProtectionRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateSynProtectionRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
     /// Request body.
     pub body: DosSynProtectionRuleUpdate,
@@ -476,33 +482,33 @@ pub struct UpdateSynProtectionRuleArgs {
 /// Arguments for [`deleteSynProtectionRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteSynProtectionRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`listTcpFlowProtectionFiltersForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListTcpFlowProtectionFiltersForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: mode
+    /// Query parameter: `mode`.
     pub mode: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`createTcpFlowProtectionFilter_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateTcpFlowProtectionFilterArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DosNewExpressionFilter,
@@ -511,25 +517,25 @@ pub struct CreateTcpFlowProtectionFilterArgs {
 /// Arguments for [`deleteTcpFlowProtectionFiltersForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteTcpFlowProtectionFiltersForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`getTcpFlowProtectionFilter_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTcpFlowProtectionFilterArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: filter_id
+    /// Path parameter: `filter_id`.
     pub filter_id: String,
 }
 
 /// Arguments for [`updateTcpFlowProtectionFilter_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateTcpFlowProtectionFilterArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: filter_id
+    /// Path parameter: `filter_id`.
     pub filter_id: String,
     /// Request body.
     pub body: DosExpressionFilterUpdate,
@@ -538,31 +544,31 @@ pub struct UpdateTcpFlowProtectionFilterArgs {
 /// Arguments for [`deleteTcpFlowProtectionFilter_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteTcpFlowProtectionFilterArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: filter_id
+    /// Path parameter: `filter_id`.
     pub filter_id: String,
 }
 
 /// Arguments for [`listTcpFlowProtectionRulesForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListTcpFlowProtectionRulesForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`createTcpFlowProtectionRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateTcpFlowProtectionRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DosNewTcpFlowProtectionRule,
@@ -571,25 +577,25 @@ pub struct CreateTcpFlowProtectionRuleArgs {
 /// Arguments for [`deleteTcpFlowProtectionRulesForAccount_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteTcpFlowProtectionRulesForAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`getTcpFlowProtectionRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTcpFlowProtectionRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`updateTcpFlowProtectionRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateTcpFlowProtectionRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
     /// Request body.
     pub body: DosTcpFlowProtectionRuleUpdate,
@@ -598,147 +604,147 @@ pub struct UpdateTcpFlowProtectionRuleArgs {
 /// Arguments for [`deleteTcpFlowProtectionRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteTcpFlowProtectionRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`magic-network-monitoring-configuration-list-rules-and-account-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringConfigurationListRulesAndAccountConfigurationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-network-monitoring-rules-list-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringRulesListRulesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-network-monitoring-rules-create-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringRulesCreateRulesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-network-monitoring-rules-update-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringRulesUpdateRulesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-network-monitoring-rules-get-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringRulesGetRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-network-monitoring-rules-update-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringRulesUpdateRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-network-monitoring-rules-delete-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringRulesDeleteRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-network-monitoring-rules-update-advertisement-for-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringRulesUpdateAdvertisementForRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`lists-get-lists_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListsGetListsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`lists-create-a-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListsCreateAListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`lists-get-bulk-operation-status_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListsGetBulkOperationStatusArgs {
-    /// Path parameter: operation_id
+    /// Path parameter: `operation_id`.
     pub operation_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`lists-get-a-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListsGetAListArgs {
-    /// Path parameter: list_id
+    /// Path parameter: `list_id`.
     pub list_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`lists-update-a-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListsUpdateAListArgs {
-    /// Path parameter: list_id
+    /// Path parameter: `list_id`.
     pub list_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`lists-delete-a-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListsDeleteAListArgs {
-    /// Path parameter: list_id
+    /// Path parameter: `list_id`.
     pub list_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`lists-get-list-items_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListsGetListItemsArgs {
-    /// Path parameter: list_id
+    /// Path parameter: `list_id`.
     pub list_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
 }
 
 /// Arguments for [`lists-create-list-items_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListsCreateListItemsArgs {
-    /// Path parameter: list_id
+    /// Path parameter: `list_id`.
     pub list_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<serde_json::Value>,
@@ -747,9 +753,9 @@ pub struct ListsCreateListItemsArgs {
 /// Arguments for [`lists-update-all-list-items_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListsUpdateAllListItemsArgs {
-    /// Path parameter: list_id
+    /// Path parameter: `list_id`.
     pub list_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<serde_json::Value>,
@@ -758,178 +764,178 @@ pub struct ListsUpdateAllListItemsArgs {
 /// Arguments for [`lists-delete-list-items_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListsDeleteListItemsArgs {
-    /// Path parameter: list_id
+    /// Path parameter: `list_id`.
     pub list_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`lists-get-a-list-item_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListsGetAListItemArgs {
-    /// Path parameter: item_id
+    /// Path parameter: `item_id`.
     pub item_id: String,
-    /// Path parameter: list_id
+    /// Path parameter: `list_id`.
     pub list_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`listAccountRulesets_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListAccountRulesetsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`createAccountRuleset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateAccountRulesetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`getAccountEntrypointRuleset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAccountEntrypointRulesetArgs {
-    /// Path parameter: ruleset_phase
+    /// Path parameter: `ruleset_phase`.
     pub ruleset_phase: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`updateAccountEntrypointRuleset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateAccountEntrypointRulesetArgs {
-    /// Path parameter: ruleset_phase
+    /// Path parameter: `ruleset_phase`.
     pub ruleset_phase: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`listAccountEntrypointRulesetVersions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListAccountEntrypointRulesetVersionsArgs {
-    /// Path parameter: ruleset_phase
+    /// Path parameter: `ruleset_phase`.
     pub ruleset_phase: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`getAccountEntrypointRulesetVersion_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAccountEntrypointRulesetVersionArgs {
-    /// Path parameter: ruleset_version
+    /// Path parameter: `ruleset_version`.
     pub ruleset_version: String,
-    /// Path parameter: ruleset_phase
+    /// Path parameter: `ruleset_phase`.
     pub ruleset_phase: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`getAccountRuleset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAccountRulesetArgs {
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`updateAccountRuleset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateAccountRulesetArgs {
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`deleteAccountRuleset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteAccountRulesetArgs {
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`createAccountRulesetRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateAccountRulesetRuleArgs {
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`updateAccountRulesetRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateAccountRulesetRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`deleteAccountRulesetRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteAccountRulesetRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`listAccountRulesetVersions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListAccountRulesetVersionsArgs {
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`getAccountRulesetVersion_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAccountRulesetVersionArgs {
-    /// Path parameter: ruleset_version
+    /// Path parameter: `ruleset_version`.
     pub ruleset_version: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`deleteAccountRulesetVersion_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteAccountRulesetVersionArgs {
-    /// Path parameter: ruleset_version
+    /// Path parameter: `ruleset_version`.
     pub ruleset_version: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`listAccountRulesetVersionRulesByTag_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListAccountRulesetVersionRulesByTagArgs {
-    /// Path parameter: rule_tag
+    /// Path parameter: `rule_tag`.
     pub rule_tag: String,
-    /// Path parameter: ruleset_version
+    /// Path parameter: `ruleset_version`.
     pub ruleset_version: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
@@ -959,7 +965,6 @@ pub struct ListAccountRulesetVersionRulesByTagArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_policies_list_notification_policies_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1052,7 +1057,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_policies_create_a_notification_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1141,7 +1145,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_policies_get_a_notification_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1230,7 +1233,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_policies_update_a_notification_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1319,7 +1321,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_policies_delete_a_notification_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1408,7 +1409,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_dns_protection_rules_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1497,7 +1497,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_dns_protection_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1590,7 +1589,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_dns_protection_rules_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1679,7 +1677,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_dns_protection_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1769,7 +1766,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_dns_protection_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1863,7 +1859,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_dns_protection_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1953,7 +1948,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_syn_protection_filters_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2042,7 +2036,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_syn_protection_filter_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2135,7 +2128,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_syn_protection_filters_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2224,7 +2216,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_syn_protection_filter_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2314,7 +2305,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_syn_protection_filter_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2408,7 +2398,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_syn_protection_filter_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2498,7 +2487,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_syn_protection_rules_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2587,7 +2575,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_syn_protection_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2680,7 +2667,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_syn_protection_rules_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2769,7 +2755,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_syn_protection_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2859,7 +2844,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_syn_protection_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2953,7 +2937,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_syn_protection_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3043,7 +3026,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_tcp_flow_protection_filters_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3132,7 +3114,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_tcp_flow_protection_filter_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3225,7 +3206,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_tcp_flow_protection_filters_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3314,7 +3294,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_tcp_flow_protection_filter_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3404,7 +3383,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_tcp_flow_protection_filter_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3498,7 +3476,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_tcp_flow_protection_filter_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3588,7 +3565,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_tcp_flow_protection_rules_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3680,7 +3656,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_tcp_flow_protection_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3773,7 +3748,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_tcp_flow_protection_rules_for_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3862,7 +3836,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_tcp_flow_protection_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3952,7 +3925,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_tcp_flow_protection_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4046,7 +4018,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_tcp_flow_protection_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4136,7 +4107,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_configuration_list_rules_and_account_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4228,7 +4198,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_rules_list_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4321,7 +4290,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_rules_create_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4413,7 +4381,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_rules_update_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4505,7 +4472,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_rules_get_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4597,7 +4563,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_rules_update_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4689,7 +4654,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_rules_delete_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4781,7 +4745,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_rules_update_advertisement_for_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4874,7 +4837,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn lists_get_lists_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4963,7 +4925,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn lists_create_a_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5052,7 +5013,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn lists_get_bulk_operation_status_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5141,7 +5101,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn lists_get_a_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5230,7 +5189,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn lists_update_a_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5319,7 +5277,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn lists_delete_a_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5408,7 +5365,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn lists_get_list_items_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5497,7 +5453,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn lists_create_list_items_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5590,7 +5545,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn lists_update_all_list_items_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5683,7 +5637,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn lists_delete_list_items_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5772,7 +5725,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn lists_get_a_list_item_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5861,7 +5813,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_account_rulesets_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5898,7 +5849,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5946,7 +5897,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_account_ruleset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5983,7 +5933,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6031,7 +5981,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_account_entrypoint_ruleset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6068,7 +6017,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6116,7 +6065,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_account_entrypoint_ruleset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6153,7 +6101,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6201,7 +6149,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_account_entrypoint_ruleset_versions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6238,7 +6185,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6286,7 +6233,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_account_entrypoint_ruleset_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6325,7 +6271,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6373,7 +6319,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_account_ruleset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6410,7 +6355,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6458,7 +6403,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_account_ruleset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6495,7 +6439,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6543,7 +6487,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_account_ruleset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6580,7 +6523,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6628,7 +6571,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_account_ruleset_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6665,7 +6607,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6713,7 +6655,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_account_ruleset_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6750,7 +6691,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6798,7 +6739,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_account_ruleset_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6835,7 +6775,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6883,7 +6823,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_account_ruleset_versions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6920,7 +6859,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6968,7 +6907,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_account_ruleset_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7005,7 +6943,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7053,7 +6991,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_account_ruleset_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7090,7 +7027,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7138,7 +7075,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_account_ruleset_version_rules_by_tag_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7175,7 +7111,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

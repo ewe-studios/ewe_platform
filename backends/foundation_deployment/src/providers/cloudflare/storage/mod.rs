@@ -6,102 +6,108 @@
 //! Feature flag: `cloudflare_storage `
 
 #![cfg(feature = "cloudflare_storage")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// MagicVisibilityPcapsPcapsOwnershipCollection response type.
+/// `MagicVisibilityPcapsPcapsOwnershipCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityPcapsPcapsOwnershipCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicVisibilityPcapsPcapsOwnershipRequest response type.
+/// `MagicVisibilityPcapsPcapsOwnershipRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityPcapsPcapsOwnershipRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicVisibilityPcapsPcapsOwnershipSingleResponse response type.
+/// `MagicVisibilityPcapsPcapsOwnershipSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityPcapsPcapsOwnershipSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicVisibilityPcapsPcapsOwnershipValidateRequest response type.
+/// `MagicVisibilityPcapsPcapsOwnershipValidateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityPcapsPcapsOwnershipValidateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// R2DataCatalogCatalogCredentialRequest response type.
+/// `R2DataCatalogCatalogCredentialRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2DataCatalogCatalogCredentialRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// R2DataCatalogCatalogMaintenanceUpdateRequest response type.
+/// `R2DataCatalogCatalogMaintenanceUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2DataCatalogCatalogMaintenanceUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// R2DataCatalogTableMaintenanceUpdateRequest response type.
+/// `R2DataCatalogTableMaintenanceUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2DataCatalogTableMaintenanceUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// R2TempAccessCredsRequest response type.
+/// `R2TempAccessCredsRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2TempAccessCredsRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// R2V4Response response type.
+/// `R2V4Response` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2V4Response {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WorkersKvApiResponseCommonNoResult response type.
+/// `WorkersKvApiResponseCommonNoResult` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkersKvApiResponseCommonNoResult {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WorkersKvCreateRenameNamespaceBody response type.
+/// `WorkersKvCreateRenameNamespaceBody` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkersKvCreateRenameNamespaceBody {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -113,56 +119,56 @@ pub struct WorkersKvCreateRenameNamespaceBody {
 /// Arguments for [`r2-get-event-notification-configs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2GetEventNotificationConfigsArgs {
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-get-event-notification-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2GetEventNotificationConfigArgs {
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-put-event-notification-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2PutEventNotificationConfigArgs {
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-event-notification-delete-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2EventNotificationDeleteConfigArgs {
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-pcap-collection-list-pca-ps-bucket-ownership_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicPcapCollectionListPcaPsBucketOwnershipArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-pcap-collection-add-buckets-for-full-packet-captures_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicPcapCollectionAddBucketsForFullPacketCapturesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicVisibilityPcapsPcapsOwnershipRequest,
@@ -171,7 +177,7 @@ pub struct MagicPcapCollectionAddBucketsForFullPacketCapturesArgs {
 /// Arguments for [`magic-pcap-collection-validate-buckets-for-full-packet-captures_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicPcapCollectionValidateBucketsForFullPacketCapturesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicVisibilityPcapsPcapsOwnershipValidateRequest,
@@ -180,34 +186,34 @@ pub struct MagicPcapCollectionValidateBucketsForFullPacketCapturesArgs {
 /// Arguments for [`magic-pcap-collection-delete-buckets-for-full-packet-captures_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicPcapCollectionDeleteBucketsForFullPacketCapturesArgs {
-    /// Path parameter: ownership_id
+    /// Path parameter: `ownership_id`.
     pub ownership_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`list-catalogs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListCatalogsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get-catalog-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCatalogDetailsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
 }
 
 /// Arguments for [`store-credentials_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StoreCredentialsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
     /// Request body.
     pub body: R2DataCatalogCatalogCredentialRequest,
@@ -216,36 +222,36 @@ pub struct StoreCredentialsArgs {
 /// Arguments for [`disable-catalog_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisableCatalogArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
 }
 
 /// Arguments for [`enable-catalog_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EnableCatalogArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
 }
 
 /// Arguments for [`get-maintenance-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetMaintenanceConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
 }
 
 /// Arguments for [`update-maintenance-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateMaintenanceConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
     /// Request body.
     pub body: R2DataCatalogCatalogMaintenanceUpdateRequest,
@@ -254,64 +260,64 @@ pub struct UpdateMaintenanceConfigArgs {
 /// Arguments for [`list-namespaces_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListNamespacesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Query parameter: page_token
+    /// Query parameter: `page_token`.
     pub page_token: Option<String>,
-    /// Query parameter: page_size
+    /// Query parameter: `page_size`.
     pub page_size: Option<String>,
-    /// Query parameter: parent
+    /// Query parameter: `parent`.
     pub parent: Option<String>,
-    /// Query parameter: return_uuids
+    /// Query parameter: `return_uuids`.
     pub return_uuids: Option<String>,
-    /// Query parameter: return_details
+    /// Query parameter: `return_details`.
     pub return_details: Option<String>,
 }
 
 /// Arguments for [`list-tables_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListTablesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: namespace
+    /// Path parameter: `namespace`.
     pub namespace: String,
-    /// Query parameter: page_token
+    /// Query parameter: `page_token`.
     pub page_token: Option<String>,
-    /// Query parameter: page_size
+    /// Query parameter: `page_size`.
     pub page_size: Option<String>,
-    /// Query parameter: return_uuids
+    /// Query parameter: `return_uuids`.
     pub return_uuids: Option<String>,
-    /// Query parameter: return_details
+    /// Query parameter: `return_details`.
     pub return_details: Option<String>,
 }
 
 /// Arguments for [`get-table-maintenance-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTableMaintenanceConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: namespace
+    /// Path parameter: `namespace`.
     pub namespace: String,
-    /// Path parameter: table_name
+    /// Path parameter: `table_name`.
     pub table_name: String,
 }
 
 /// Arguments for [`update-table-maintenance-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateTableMaintenanceConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: namespace
+    /// Path parameter: `namespace`.
     pub namespace: String,
-    /// Path parameter: table_name
+    /// Path parameter: `table_name`.
     pub table_name: String,
     /// Request body.
     pub body: R2DataCatalogTableMaintenanceUpdateRequest,
@@ -320,175 +326,175 @@ pub struct UpdateTableMaintenanceConfigArgs {
 /// Arguments for [`r2-list-buckets_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2ListBucketsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: name_contains
+    /// Query parameter: `name_contains`.
     pub name_contains: Option<String>,
-    /// Query parameter: start_after
+    /// Query parameter: `start_after`.
     pub start_after: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
 }
 
 /// Arguments for [`r2-create-bucket_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2CreateBucketArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-get-bucket_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2GetBucketArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
 }
 
 /// Arguments for [`r2-patch-bucket_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2PatchBucketArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
 }
 
 /// Arguments for [`r2-delete-bucket_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2DeleteBucketArgs {
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-get-bucket-cors-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2GetBucketCorsPolicyArgs {
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-put-bucket-cors-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2PutBucketCorsPolicyArgs {
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-delete-bucket-cors-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2DeleteBucketCorsPolicyArgs {
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-get-bucket-lifecycle-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2GetBucketLifecycleConfigurationArgs {
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-put-bucket-lifecycle-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2PutBucketLifecycleConfigurationArgs {
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-get-bucket-local-uploads-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2GetBucketLocalUploadsConfigurationArgs {
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-put-bucket-local-uploads-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2PutBucketLocalUploadsConfigurationArgs {
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-get-bucket-lock-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2GetBucketLockConfigurationArgs {
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-put-bucket-lock-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2PutBucketLockConfigurationArgs {
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-get-bucket-sippy-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2GetBucketSippyConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
 }
 
 /// Arguments for [`r2-put-bucket-sippy-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2PutBucketSippyConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
 }
 
 /// Arguments for [`r2-delete-bucket-sippy-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2DeleteBucketSippyConfigArgs {
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-get-account-level-metrics_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2GetAccountLevelMetricsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`r2-create-temp-access-credentials_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2CreateTempAccessCredentialsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: R2TempAccessCredsRequest,
@@ -497,22 +503,22 @@ pub struct R2CreateTempAccessCredentialsArgs {
 /// Arguments for [`workers-kv-namespace-list-namespaces_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersKvNamespaceListNamespacesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`workers-kv-namespace-create-a-namespace_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersKvNamespaceCreateANamespaceArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: WorkersKvCreateRenameNamespaceBody,
@@ -521,18 +527,18 @@ pub struct WorkersKvNamespaceCreateANamespaceArgs {
 /// Arguments for [`workers-kv-namespace-get-a-namespace_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersKvNamespaceGetANamespaceArgs {
-    /// Path parameter: namespace_id
+    /// Path parameter: `namespace_id`.
     pub namespace_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-kv-namespace-rename-a-namespace_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersKvNamespaceRenameANamespaceArgs {
-    /// Path parameter: namespace_id
+    /// Path parameter: `namespace_id`.
     pub namespace_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: WorkersKvCreateRenameNamespaceBody,
@@ -541,110 +547,101 @@ pub struct WorkersKvNamespaceRenameANamespaceArgs {
 /// Arguments for [`workers-kv-namespace-remove-a-namespace_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersKvNamespaceRemoveANamespaceArgs {
-    /// Path parameter: namespace_id
+    /// Path parameter: `namespace_id`.
     pub namespace_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-kv-namespace-write-multiple-key-value-pairs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersKvNamespaceWriteMultipleKeyValuePairsArgs {
-    /// Path parameter: namespace_id
+    /// Path parameter: `namespace_id`.
     pub namespace_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<serde_json::Value>,
 }
 
-/// Arguments for [`workers-kv-namespace-delete-multiple-key-value-pairs-deprecated_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WorkersKvNamespaceDeleteMultipleKeyValuePairsDeprecatedArgs {
-    /// Path parameter: namespace_id
-    pub namespace_id: String,
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
 /// Arguments for [`workers-kv-namespace-delete-multiple-key-value-pairs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersKvNamespaceDeleteMultipleKeyValuePairsArgs {
-    /// Path parameter: namespace_id
+    /// Path parameter: `namespace_id`.
     pub namespace_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-kv-namespace-get-multiple-key-value-pairs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersKvNamespaceGetMultipleKeyValuePairsArgs {
-    /// Path parameter: namespace_id
+    /// Path parameter: `namespace_id`.
     pub namespace_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-kv-namespace-list-a-namespace'-s-keys_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersKvNamespaceListANamespaceSKeysArgs {
-    /// Path parameter: namespace_id
+    /// Path parameter: `namespace_id`.
     pub namespace_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: prefix
+    /// Query parameter: `prefix`.
     pub prefix: Option<String>,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
 }
 
 /// Arguments for [`workers-kv-namespace-read-the-metadata-for-a-key_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersKvNamespaceReadTheMetadataForAKeyArgs {
-    /// Path parameter: key_name
+    /// Path parameter: `key_name`.
     pub key_name: String,
-    /// Path parameter: namespace_id
+    /// Path parameter: `namespace_id`.
     pub namespace_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-kv-namespace-read-key-value-pair_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersKvNamespaceReadKeyValuePairArgs {
-    /// Path parameter: key_name
+    /// Path parameter: `key_name`.
     pub key_name: String,
-    /// Path parameter: namespace_id
+    /// Path parameter: `namespace_id`.
     pub namespace_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-kv-namespace-write-key-value-pair-with-metadata_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersKvNamespaceWriteKeyValuePairWithMetadataArgs {
-    /// Path parameter: key_name
+    /// Path parameter: `key_name`.
     pub key_name: String,
-    /// Path parameter: namespace_id
+    /// Path parameter: `namespace_id`.
     pub namespace_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: expiration
+    /// Query parameter: `expiration`.
     pub expiration: Option<String>,
-    /// Query parameter: expiration_ttl
+    /// Query parameter: `expiration_ttl`.
     pub expiration_ttl: Option<String>,
 }
 
 /// Arguments for [`workers-kv-namespace-delete-key-value-pair_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersKvNamespaceDeleteKeyValuePairArgs {
-    /// Path parameter: key_name
+    /// Path parameter: `key_name`.
     pub key_name: String,
-    /// Path parameter: namespace_id
+    /// Path parameter: `namespace_id`.
     pub namespace_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
@@ -674,7 +671,6 @@ pub struct WorkersKvNamespaceDeleteKeyValuePairArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_get_event_notification_configs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -711,7 +707,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -759,7 +755,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_get_event_notification_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -798,7 +793,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -846,7 +841,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_put_event_notification_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -937,7 +931,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_event_notification_delete_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1028,7 +1021,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_pcap_collection_list_pca_ps_bucket_ownership_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1121,7 +1113,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_pcap_collection_add_buckets_for_full_packet_captures_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1218,7 +1209,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_pcap_collection_validate_buckets_for_full_packet_captures_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1315,7 +1305,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_pcap_collection_delete_buckets_for_full_packet_captures_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1352,7 +1341,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1400,7 +1389,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_catalogs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1437,7 +1425,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1485,7 +1473,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_catalog_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1522,7 +1509,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1570,7 +1557,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn store_credentials_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1611,7 +1597,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1659,7 +1645,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn disable_catalog_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1696,7 +1681,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1744,7 +1729,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn enable_catalog_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1781,7 +1765,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1829,7 +1813,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_maintenance_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1866,7 +1849,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1914,7 +1897,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_maintenance_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1955,7 +1937,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2003,7 +1985,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_namespaces_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2040,7 +2021,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2088,7 +2069,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_tables_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2125,7 +2105,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2173,7 +2153,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_table_maintenance_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2213,7 +2192,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2261,7 +2240,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_table_maintenance_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2305,7 +2283,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2353,7 +2331,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_list_buckets_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2390,7 +2367,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2438,7 +2415,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_create_bucket_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2475,7 +2451,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2523,7 +2499,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_get_bucket_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2560,7 +2535,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2608,7 +2583,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_patch_bucket_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2645,7 +2619,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2693,7 +2667,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_delete_bucket_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2782,7 +2755,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_get_bucket_cors_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2819,7 +2791,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2867,7 +2839,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_put_bucket_cors_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2956,7 +2927,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_delete_bucket_cors_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3045,7 +3015,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_get_bucket_lifecycle_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3082,7 +3051,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3130,7 +3099,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_put_bucket_lifecycle_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3219,7 +3187,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_get_bucket_local_uploads_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3256,7 +3223,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3304,7 +3271,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_put_bucket_local_uploads_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3393,7 +3359,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_get_bucket_lock_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3430,7 +3395,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3478,7 +3443,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_put_bucket_lock_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3567,7 +3531,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_get_bucket_sippy_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3604,7 +3567,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3652,7 +3615,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_put_bucket_sippy_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3689,7 +3651,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3737,7 +3699,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_delete_bucket_sippy_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3774,7 +3735,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3822,7 +3783,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_get_account_level_metrics_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3859,7 +3819,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3907,7 +3867,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_create_temp_access_credentials_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3948,7 +3907,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3996,7 +3955,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_kv_namespace_list_namespaces_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4033,7 +3991,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4081,7 +4039,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_kv_namespace_create_a_namespace_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4122,7 +4079,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4170,7 +4127,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_kv_namespace_get_a_namespace_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4207,7 +4163,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4255,7 +4211,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_kv_namespace_rename_a_namespace_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4296,7 +4251,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4344,7 +4299,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_kv_namespace_remove_a_namespace_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4436,7 +4390,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_kv_namespace_write_multiple_key_value_pairs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4477,92 +4430,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// DELETE /accounts/{account_id}/storage/kv/namespaces/{namespace_id}/bulk
-// -----------------------------------------------------------------------------
-
-/// DELETE /accounts/{account_id}/storage/kv/namespaces/{namespace_id}/bulk.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = workers_kv_namespace_delete_multiple_key_value_pairs_deprecated_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn workers_kv_namespace_delete_multiple_key_value_pairs_deprecated_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WorkersKvNamespaceDeleteMultipleKeyValuePairsDeprecatedArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/storage/kv/namespaces/{}/bulk",
-        args.account_id, args.namespace_id,
-    );
-
-    let mut builder = client
-        .delete(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4610,7 +4478,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_kv_namespace_delete_multiple_key_value_pairs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4647,7 +4514,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4695,7 +4562,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_kv_namespace_get_multiple_key_value_pairs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4732,7 +4598,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4780,7 +4646,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_kv_namespace_list_a_namespace_s_keys_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4817,7 +4682,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4865,7 +4730,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_kv_namespace_read_the_metadata_for_a_key_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4902,7 +4766,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4950,7 +4814,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_kv_namespace_read_key_value_pair_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4987,7 +4850,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5035,7 +4898,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_kv_namespace_write_key_value_pair_with_metadata_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5127,7 +4989,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_kv_namespace_delete_key_value_pair_request<R, F>(
     client: &SimpleHttpClient<R>,

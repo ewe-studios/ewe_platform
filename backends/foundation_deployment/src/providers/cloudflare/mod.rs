@@ -4,6 +4,8 @@
 //! DO NOT EDIT MANUALLY.
 
 #![cfg(feature = "cloudflare")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
 
 pub mod shared;
 

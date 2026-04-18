@@ -6,16 +6,22 @@
 //! Feature flag: `cloudflare_security_center `
 
 #![cfg(feature = "cloudflare_security_center")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 // Import shared types used by this module
 use super::shared::SecurityCenterValueCountsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -28,138 +34,138 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// Arguments for [`get-security-center-insights_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSecurityCenterInsightsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: dismissed
+    /// Query parameter: `dismissed`.
     pub dismissed: Option<String>,
-    /// Query parameter: issue_class
+    /// Query parameter: `issue_class`.
     pub issue_class: Option<String>,
-    /// Query parameter: issue_type
+    /// Query parameter: `issue_type`.
     pub issue_type: Option<String>,
-    /// Query parameter: product
+    /// Query parameter: `product`.
     pub product: Option<String>,
-    /// Query parameter: severity
+    /// Query parameter: `severity`.
     pub severity: Option<String>,
-    /// Query parameter: subject
+    /// Query parameter: `subject`.
     pub subject: Option<String>,
-    /// Query parameter: issue_class~neq
+    /// Query parameter: `issue_class~neq`.
     pub issue_class_neq: Option<String>,
-    /// Query parameter: issue_type~neq
+    /// Query parameter: `issue_type~neq`.
     pub issue_type_neq: Option<String>,
-    /// Query parameter: product~neq
+    /// Query parameter: `product~neq`.
     pub product_neq: Option<String>,
-    /// Query parameter: severity~neq
+    /// Query parameter: `severity~neq`.
     pub severity_neq: Option<String>,
-    /// Query parameter: subject~neq
+    /// Query parameter: `subject~neq`.
     pub subject_neq: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`get-security-center-insight-counts-by-class_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSecurityCenterInsightCountsByClassArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: dismissed
+    /// Query parameter: `dismissed`.
     pub dismissed: Option<String>,
-    /// Query parameter: issue_class
+    /// Query parameter: `issue_class`.
     pub issue_class: Option<String>,
-    /// Query parameter: issue_type
+    /// Query parameter: `issue_type`.
     pub issue_type: Option<String>,
-    /// Query parameter: product
+    /// Query parameter: `product`.
     pub product: Option<String>,
-    /// Query parameter: severity
+    /// Query parameter: `severity`.
     pub severity: Option<String>,
-    /// Query parameter: subject
+    /// Query parameter: `subject`.
     pub subject: Option<String>,
-    /// Query parameter: issue_class~neq
+    /// Query parameter: `issue_class~neq`.
     pub issue_class_neq: Option<String>,
-    /// Query parameter: issue_type~neq
+    /// Query parameter: `issue_type~neq`.
     pub issue_type_neq: Option<String>,
-    /// Query parameter: product~neq
+    /// Query parameter: `product~neq`.
     pub product_neq: Option<String>,
-    /// Query parameter: severity~neq
+    /// Query parameter: `severity~neq`.
     pub severity_neq: Option<String>,
-    /// Query parameter: subject~neq
+    /// Query parameter: `subject~neq`.
     pub subject_neq: Option<String>,
 }
 
 /// Arguments for [`get-security-center-insight-counts-by-severity_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSecurityCenterInsightCountsBySeverityArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: dismissed
+    /// Query parameter: `dismissed`.
     pub dismissed: Option<String>,
-    /// Query parameter: issue_class
+    /// Query parameter: `issue_class`.
     pub issue_class: Option<String>,
-    /// Query parameter: issue_type
+    /// Query parameter: `issue_type`.
     pub issue_type: Option<String>,
-    /// Query parameter: product
+    /// Query parameter: `product`.
     pub product: Option<String>,
-    /// Query parameter: severity
+    /// Query parameter: `severity`.
     pub severity: Option<String>,
-    /// Query parameter: subject
+    /// Query parameter: `subject`.
     pub subject: Option<String>,
-    /// Query parameter: issue_class~neq
+    /// Query parameter: `issue_class~neq`.
     pub issue_class_neq: Option<String>,
-    /// Query parameter: issue_type~neq
+    /// Query parameter: `issue_type~neq`.
     pub issue_type_neq: Option<String>,
-    /// Query parameter: product~neq
+    /// Query parameter: `product~neq`.
     pub product_neq: Option<String>,
-    /// Query parameter: severity~neq
+    /// Query parameter: `severity~neq`.
     pub severity_neq: Option<String>,
-    /// Query parameter: subject~neq
+    /// Query parameter: `subject~neq`.
     pub subject_neq: Option<String>,
 }
 
 /// Arguments for [`get-security-center-insight-counts-by-type_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSecurityCenterInsightCountsByTypeArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: dismissed
+    /// Query parameter: `dismissed`.
     pub dismissed: Option<String>,
-    /// Query parameter: issue_class
+    /// Query parameter: `issue_class`.
     pub issue_class: Option<String>,
-    /// Query parameter: issue_type
+    /// Query parameter: `issue_type`.
     pub issue_type: Option<String>,
-    /// Query parameter: product
+    /// Query parameter: `product`.
     pub product: Option<String>,
-    /// Query parameter: severity
+    /// Query parameter: `severity`.
     pub severity: Option<String>,
-    /// Query parameter: subject
+    /// Query parameter: `subject`.
     pub subject: Option<String>,
-    /// Query parameter: issue_class~neq
+    /// Query parameter: `issue_class~neq`.
     pub issue_class_neq: Option<String>,
-    /// Query parameter: issue_type~neq
+    /// Query parameter: `issue_type~neq`.
     pub issue_type_neq: Option<String>,
-    /// Query parameter: product~neq
+    /// Query parameter: `product~neq`.
     pub product_neq: Option<String>,
-    /// Query parameter: severity~neq
+    /// Query parameter: `severity~neq`.
     pub severity_neq: Option<String>,
-    /// Query parameter: subject~neq
+    /// Query parameter: `subject~neq`.
     pub subject_neq: Option<String>,
 }
 
 /// Arguments for [`get-security-center-insight-context_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSecurityCenterInsightContextArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: issue_id
+    /// Path parameter: `issue_id`.
     pub issue_id: String,
 }
 
 /// Arguments for [`archive-security-center-insight_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ArchiveSecurityCenterInsightArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: issue_id
+    /// Path parameter: `issue_id`.
     pub issue_id: String,
 }
 
@@ -189,7 +195,6 @@ pub struct ArchiveSecurityCenterInsightArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_security_center_insights_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -226,7 +231,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -274,7 +279,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_security_center_insight_counts_by_class_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -363,7 +367,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_security_center_insight_counts_by_severity_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -452,7 +455,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_security_center_insight_counts_by_type_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -541,7 +543,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_security_center_insight_context_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -578,7 +579,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -626,7 +627,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn archive_security_center_insight_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -663,7 +663,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

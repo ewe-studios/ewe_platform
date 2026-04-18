@@ -6,8 +6,14 @@
 //! Feature flag: `cloudflare_load_balancers `
 
 #![cfg(feature = "cloudflare_load_balancers")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -26,88 +32,88 @@ use super::shared::LoadBalancingSchemasResponseCollection;
 use super::shared::LoadBalancingSchemasSingleResponse;
 use super::shared::MagicVisibilityMnmMnmConfigSingleResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// LoadBalancingComponentsSchemasSingleResponse response type.
+/// `LoadBalancingComponentsSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingComponentsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LoadBalancingMonitorGroup response type.
+/// `LoadBalancingMonitorGroup` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingMonitorGroup {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LoadBalancingMonitorGroupReferencesResponse response type.
+/// `LoadBalancingMonitorGroupReferencesResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingMonitorGroupReferencesResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LoadBalancingMonitorGroupResponseCollection response type.
+/// `LoadBalancingMonitorGroupResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingMonitorGroupResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LoadBalancingMonitorGroupSingleResponse response type.
+/// `LoadBalancingMonitorGroupSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingMonitorGroupSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LoadBalancingRegionComponentsSchemasResponseCollection response type.
+/// `LoadBalancingRegionComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingRegionComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicTransitApiResponseCommon response type.
+/// `MagicTransitApiResponseCommon` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicTransitApiResponseCommon {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicTransitEndpointHealthCheck response type.
+/// `MagicTransitEndpointHealthCheck` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicTransitEndpointHealthCheck {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicTransitEndpointHealthCheckResponseSingle response type.
+/// `MagicTransitEndpointHealthCheckResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicTransitEndpointHealthCheckResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicVisibilityMnmMnmVpcFlowsSingleResponse response type.
+/// `MagicVisibilityMnmMnmVpcFlowsSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityMnmMnmVpcFlowsSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -119,14 +125,14 @@ pub struct MagicVisibilityMnmMnmVpcFlowsSingleResponse {
 /// Arguments for [`diagnostics-endpoint-healthcheck-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DiagnosticsEndpointHealthcheckListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`diagnostics-endpoint-healthcheck-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DiagnosticsEndpointHealthcheckCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicTransitEndpointHealthCheck,
@@ -135,18 +141,18 @@ pub struct DiagnosticsEndpointHealthcheckCreateArgs {
 /// Arguments for [`diagnostics-endpoint-healthcheck-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DiagnosticsEndpointHealthcheckGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`diagnostics-endpoint-healthcheck-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DiagnosticsEndpointHealthcheckUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
     /// Request body.
     pub body: MagicTransitEndpointHealthCheck,
@@ -155,23 +161,23 @@ pub struct DiagnosticsEndpointHealthcheckUpdateArgs {
 /// Arguments for [`diagnostics-endpoint-healthcheck-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DiagnosticsEndpointHealthcheckDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`account-load-balancer-monitor-groups-list-monitor-groups_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorGroupsListMonitorGroupsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-monitor-groups-create-monitor-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorGroupsCreateMonitorGroupArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: LoadBalancingMonitorGroup,
@@ -180,18 +186,18 @@ pub struct AccountLoadBalancerMonitorGroupsCreateMonitorGroupArgs {
 /// Arguments for [`account-load-balancer-monitor-groups-monitor-group-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorGroupsMonitorGroupDetailsArgs {
-    /// Path parameter: monitor_group_id
+    /// Path parameter: `monitor_group_id`.
     pub monitor_group_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-monitor-groups-update-monitor-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorGroupsUpdateMonitorGroupArgs {
-    /// Path parameter: monitor_group_id
+    /// Path parameter: `monitor_group_id`.
     pub monitor_group_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: LoadBalancingMonitorGroup,
@@ -200,9 +206,9 @@ pub struct AccountLoadBalancerMonitorGroupsUpdateMonitorGroupArgs {
 /// Arguments for [`account-load-balancer-monitor-groups-patch-monitor-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorGroupsPatchMonitorGroupArgs {
-    /// Path parameter: monitor_group_id
+    /// Path parameter: `monitor_group_id`.
     pub monitor_group_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: LoadBalancingMonitorGroup,
@@ -211,260 +217,260 @@ pub struct AccountLoadBalancerMonitorGroupsPatchMonitorGroupArgs {
 /// Arguments for [`account-load-balancer-monitor-groups-delete-monitor-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorGroupsDeleteMonitorGroupArgs {
-    /// Path parameter: monitor_group_id
+    /// Path parameter: `monitor_group_id`.
     pub monitor_group_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-monitor-groups-list-monitor-group-references_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorGroupsListMonitorGroupReferencesArgs {
-    /// Path parameter: monitor_group_id
+    /// Path parameter: `monitor_group_id`.
     pub monitor_group_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-monitors-list-monitors_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorsListMonitorsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-monitors-create-monitor_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorsCreateMonitorArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-monitors-monitor-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorsMonitorDetailsArgs {
-    /// Path parameter: monitor_id
+    /// Path parameter: `monitor_id`.
     pub monitor_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-monitors-update-monitor_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorsUpdateMonitorArgs {
-    /// Path parameter: monitor_id
+    /// Path parameter: `monitor_id`.
     pub monitor_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-monitors-patch-monitor_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorsPatchMonitorArgs {
-    /// Path parameter: monitor_id
+    /// Path parameter: `monitor_id`.
     pub monitor_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-monitors-delete-monitor_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorsDeleteMonitorArgs {
-    /// Path parameter: monitor_id
+    /// Path parameter: `monitor_id`.
     pub monitor_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-monitors-preview-monitor_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorsPreviewMonitorArgs {
-    /// Path parameter: monitor_id
+    /// Path parameter: `monitor_id`.
     pub monitor_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-monitors-list-monitor-references_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorsListMonitorReferencesArgs {
-    /// Path parameter: monitor_id
+    /// Path parameter: `monitor_id`.
     pub monitor_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-pools-list-pools_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerPoolsListPoolsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: monitor
+    /// Query parameter: `monitor`.
     pub monitor: Option<String>,
 }
 
 /// Arguments for [`account-load-balancer-pools-create-pool_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerPoolsCreatePoolArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-pools-patch-pools_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerPoolsPatchPoolsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-pools-pool-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerPoolsPoolDetailsArgs {
-    /// Path parameter: pool_id
+    /// Path parameter: `pool_id`.
     pub pool_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-pools-update-pool_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerPoolsUpdatePoolArgs {
-    /// Path parameter: pool_id
+    /// Path parameter: `pool_id`.
     pub pool_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-pools-patch-pool_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerPoolsPatchPoolArgs {
-    /// Path parameter: pool_id
+    /// Path parameter: `pool_id`.
     pub pool_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-pools-delete-pool_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerPoolsDeletePoolArgs {
-    /// Path parameter: pool_id
+    /// Path parameter: `pool_id`.
     pub pool_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-pools-pool-health-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerPoolsPoolHealthDetailsArgs {
-    /// Path parameter: pool_id
+    /// Path parameter: `pool_id`.
     pub pool_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-pools-preview-pool_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerPoolsPreviewPoolArgs {
-    /// Path parameter: pool_id
+    /// Path parameter: `pool_id`.
     pub pool_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-pools-list-pool-references_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerPoolsListPoolReferencesArgs {
-    /// Path parameter: pool_id
+    /// Path parameter: `pool_id`.
     pub pool_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-monitors-preview-result_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerMonitorsPreviewResultArgs {
-    /// Path parameter: preview_id
+    /// Path parameter: `preview_id`.
     pub preview_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`load-balancer-regions-list-regions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct LoadBalancerRegionsListRegionsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: subdivision_code
+    /// Query parameter: `subdivision_code`.
     pub subdivision_code: Option<String>,
-    /// Query parameter: subdivision_code_a2
+    /// Query parameter: `subdivision_code_a2`.
     pub subdivision_code_a2: Option<String>,
-    /// Query parameter: country_code_a2
+    /// Query parameter: `country_code_a2`.
     pub country_code_a2: Option<String>,
 }
 
 /// Arguments for [`load-balancer-regions-get-region_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct LoadBalancerRegionsGetRegionArgs {
-    /// Path parameter: region_id
+    /// Path parameter: `region_id`.
     pub region_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-load-balancer-search-search-resources_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountLoadBalancerSearchSearchResourcesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: query
+    /// Query parameter: `query`.
     pub query: Option<String>,
-    /// Query parameter: references
+    /// Query parameter: `references`.
     pub references: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`magic-network-monitoring-configuration-list-account-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringConfigurationListAccountConfigurationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-network-monitoring-configuration-create-account-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringConfigurationCreateAccountConfigurationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-network-monitoring-configuration-update-an-entire-account-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringConfigurationUpdateAnEntireAccountConfigurationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-network-monitoring-configuration-update-account-configuration-fields_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringConfigurationUpdateAccountConfigurationFieldsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-network-monitoring-configuration-delete-account-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringConfigurationDeleteAccountConfigurationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-network-monitoring-vpc-flows-generate-authentication-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicNetworkMonitoringVpcFlowsGenerateAuthenticationTokenArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
@@ -494,7 +500,6 @@ pub struct MagicNetworkMonitoringVpcFlowsGenerateAuthenticationTokenArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn diagnostics_endpoint_healthcheck_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -587,7 +592,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn diagnostics_endpoint_healthcheck_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -684,7 +688,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn diagnostics_endpoint_healthcheck_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -777,7 +780,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn diagnostics_endpoint_healthcheck_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -874,7 +876,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn diagnostics_endpoint_healthcheck_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -963,7 +964,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitor_groups_list_monitor_groups_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1056,7 +1056,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitor_groups_create_monitor_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1153,7 +1152,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitor_groups_monitor_group_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1246,7 +1244,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitor_groups_update_monitor_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1343,7 +1340,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitor_groups_patch_monitor_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1440,7 +1436,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitor_groups_delete_monitor_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1533,7 +1528,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitor_groups_list_monitor_group_references_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1627,7 +1621,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitors_list_monitors_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1719,7 +1712,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitors_create_monitor_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1811,7 +1803,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitors_monitor_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1903,7 +1894,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitors_update_monitor_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1995,7 +1985,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitors_patch_monitor_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2087,7 +2076,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitors_delete_monitor_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2176,7 +2164,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitors_preview_monitor_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2265,7 +2252,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitors_list_monitor_references_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2357,7 +2343,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_pools_list_pools_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2449,7 +2434,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_pools_create_pool_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2541,7 +2525,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_pools_patch_pools_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2633,7 +2616,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_pools_pool_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2725,7 +2707,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_pools_update_pool_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2817,7 +2798,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_pools_patch_pool_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2909,7 +2889,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_pools_delete_pool_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2998,7 +2977,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_pools_pool_health_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3087,7 +3065,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_pools_preview_pool_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3176,7 +3153,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_pools_list_pool_references_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3268,7 +3244,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_monitors_preview_result_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3360,7 +3335,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn load_balancer_regions_list_regions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3453,7 +3427,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn load_balancer_regions_get_region_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3546,7 +3519,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_load_balancer_search_search_resources_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3583,7 +3555,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3631,7 +3603,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_configuration_list_account_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3723,7 +3694,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_configuration_create_account_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3815,7 +3785,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_configuration_update_an_entire_account_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3907,7 +3876,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_configuration_update_account_configuration_fields_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3999,7 +3967,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_configuration_delete_account_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4091,7 +4058,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_network_monitoring_vpc_flows_generate_authentication_token_request<R, F>(
     client: &SimpleHttpClient<R>,

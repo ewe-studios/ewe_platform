@@ -6,62 +6,68 @@
 //! Feature flag: `cloudflare_apps `
 
 #![cfg(feature = "cloudflare_apps")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// AbuseReportsMitigationAppealRequest response type.
+/// `AbuseReportsMitigationAppealRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AbuseReportsMitigationAppealRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AbuseReportsMitigationAppealResult response type.
+/// `AbuseReportsMitigationAppealResult` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AbuseReportsMitigationAppealResult {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AlexandriaCreateApplicationRequest response type.
+/// `AlexandriaCreateApplicationRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlexandriaCreateApplicationRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AlexandriaGetApplicationResponse response type.
+/// `AlexandriaGetApplicationResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlexandriaGetApplicationResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AlexandriaGetApplicationsResponse response type.
+/// `AlexandriaGetApplicationsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlexandriaGetApplicationsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AlexandriaUpdateApplicationVersionRequest response type.
+/// `AlexandriaUpdateApplicationVersionRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlexandriaUpdateApplicationVersionRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -73,23 +79,23 @@ pub struct AlexandriaUpdateApplicationVersionRequest {
 /// Arguments for [`getApplications_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetApplicationsArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Query parameter: filter
+    /// Path parameter: `accountId`.
+    pub account_id: String,
+    /// Query parameter: `filter`.
     pub filter: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: order_by
+    /// Query parameter: `order_by`.
     pub order_by: Option<String>,
 }
 
 /// Arguments for [`createApplication_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateApplicationArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
+    /// Path parameter: `accountId`.
+    pub account_id: String,
     /// Request body.
     pub body: AlexandriaCreateApplicationRequest,
 }
@@ -97,18 +103,18 @@ pub struct CreateApplicationArgs {
 /// Arguments for [`getApplicationById_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetApplicationByIdArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: id
+    /// Path parameter: `accountId`.
+    pub account_id: String,
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`updateApplicationVersion_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateApplicationVersionArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: id
+    /// Path parameter: `accountId`.
+    pub account_id: String,
+    /// Path parameter: `id`.
     pub id: String,
     /// Request body.
     pub body: AlexandriaUpdateApplicationVersionRequest,
@@ -117,9 +123,9 @@ pub struct UpdateApplicationVersionArgs {
 /// Arguments for [`RequestReview_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RequestReviewArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: report_id
+    /// Path parameter: `report_id`.
     pub report_id: String,
     /// Request body.
     pub body: AbuseReportsMitigationAppealRequest,
@@ -151,7 +157,6 @@ pub struct RequestReviewArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_applications_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -172,7 +177,7 @@ where
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/resource-library/applications",
-        args.accountId,
+        args.account_id,
     );
 
     let mut builder = client
@@ -240,7 +245,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_application_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -261,7 +265,7 @@ where
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/resource-library/applications",
-        args.accountId,
+        args.account_id,
     );
 
     let mut builder = client
@@ -333,7 +337,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_application_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -354,7 +357,7 @@ where
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/resource-library/applications/{}",
-        args.accountId, args.id,
+        args.account_id, args.id,
     );
 
     let mut builder = client
@@ -422,7 +425,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_application_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -443,7 +445,7 @@ where
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/accounts/{}/resource-library/applications/{}",
-        args.accountId, args.id,
+        args.account_id, args.id,
     );
 
     let mut builder = client
@@ -515,7 +517,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn request_review_request<R, F>(
     client: &SimpleHttpClient<R>,

@@ -6,13 +6,19 @@
 //! Feature flag: `cloudflare_reports `
 
 #![cfg(feature = "cloudflare_reports")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -25,38 +31,38 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// Arguments for [`ListEmails_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListEmailsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: report_id
+    /// Path parameter: `report_id`.
     pub report_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`ListMitigations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListMitigationsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: report_id
+    /// Path parameter: `report_id`.
     pub report_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: sort
+    /// Query parameter: `sort`.
     pub sort: Option<String>,
-    /// Query parameter: type
+    /// Query parameter: `type`.
     pub r#type: Option<String>,
-    /// Query parameter: effective_before
+    /// Query parameter: `effective_before`.
     pub effective_before: Option<String>,
-    /// Query parameter: effective_after
+    /// Query parameter: `effective_after`.
     pub effective_after: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: entity_type
+    /// Query parameter: `entity_type`.
     pub entity_type: Option<String>,
 }
 
@@ -86,7 +92,6 @@ pub struct ListMitigationsArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_emails_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -123,7 +128,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -171,7 +176,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_mitigations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -208,7 +212,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

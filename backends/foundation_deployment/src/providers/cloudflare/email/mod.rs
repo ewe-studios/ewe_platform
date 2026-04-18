@@ -6,118 +6,124 @@
 //! Feature flag: `cloudflare_email `
 
 #![cfg(feature = "cloudflare_email")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// DlpCreateEmailRule response type.
+/// `DlpCreateEmailRule` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpCreateEmailRule {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpUpdateAddinAccountMapping response type.
+/// `DlpUpdateAddinAccountMapping` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpUpdateAddinAccountMapping {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpUpdateEmailRulePriorities response type.
+/// `DlpUpdateEmailRulePriorities` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpUpdateEmailRulePriorities {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailCreateDestinationAddressProperties response type.
+/// `EmailCreateDestinationAddressProperties` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailCreateDestinationAddressProperties {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailDestinationAddressResponseSingle response type.
+/// `EmailDestinationAddressResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailDestinationAddressResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailDestinationAddressesResponseCollection response type.
+/// `EmailDestinationAddressesResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailDestinationAddressesResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailSecurityCreateAllowPolicy response type.
+/// `EmailSecurityCreateAllowPolicy` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityCreateAllowPolicy {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailSecurityCreateBlockedSender response type.
+/// `EmailSecurityCreateBlockedSender` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityCreateBlockedSender {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailSecurityCreateDisplayName response type.
+/// `EmailSecurityCreateDisplayName` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityCreateDisplayName {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailSecurityUpdateAllowPolicy response type.
+/// `EmailSecurityUpdateAllowPolicy` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityUpdateAllowPolicy {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailSecurityUpdateBlockedSender response type.
+/// `EmailSecurityUpdateBlockedSender` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailSecurityUpdateBlockedSender {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailSendingEmailBuilder response type.
+/// `EmailSendingEmailBuilder` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailSendingEmailBuilder {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailSendingSendRawRequest response type.
+/// `EmailSendingSendRawRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailSendingSendRawRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -129,14 +135,14 @@ pub struct EmailSendingSendRawRequest {
 /// Arguments for [`dlp-email-scanner-get-account-mapping_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEmailScannerGetAccountMappingArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dlp-email-scanner-create-account-mapping_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEmailScannerCreateAccountMappingArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DlpUpdateAddinAccountMapping,
@@ -145,14 +151,14 @@ pub struct DlpEmailScannerCreateAccountMappingArgs {
 /// Arguments for [`dlp-email-scanner-list-all-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEmailScannerListAllRulesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dlp-email-scanner-create-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEmailScannerCreateRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DlpCreateEmailRule,
@@ -161,7 +167,7 @@ pub struct DlpEmailScannerCreateRuleArgs {
 /// Arguments for [`dlp-email-scanner-update-rule-priorities_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEmailScannerUpdateRulePrioritiesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DlpUpdateEmailRulePriorities,
@@ -170,18 +176,18 @@ pub struct DlpEmailScannerUpdateRulePrioritiesArgs {
 /// Arguments for [`dlp-email-scanner-get-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEmailScannerGetRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`dlp-email-scanner-update-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEmailScannerUpdateRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
     /// Request body.
     pub body: DlpCreateEmailRule,
@@ -190,195 +196,195 @@ pub struct DlpEmailScannerUpdateRuleArgs {
 /// Arguments for [`dlp-email-scanner-delete-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEmailScannerDeleteRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`email_security_investigate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityInvestigateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: start
+    /// Query parameter: `start`.
     pub start: Option<String>,
-    /// Query parameter: end
+    /// Query parameter: `end`.
     pub end: Option<String>,
-    /// Query parameter: query
+    /// Query parameter: `query`.
     pub query: Option<String>,
-    /// Query parameter: detections_only
+    /// Query parameter: `detections_only`.
     pub detections_only: Option<String>,
-    /// Query parameter: action_log
+    /// Query parameter: `action_log`.
     pub action_log: Option<String>,
-    /// Query parameter: final_disposition
+    /// Query parameter: `final_disposition`.
     pub final_disposition: Option<String>,
-    /// Query parameter: metric
+    /// Query parameter: `metric`.
     pub metric: Option<String>,
-    /// Query parameter: message_action
+    /// Query parameter: `message_action`.
     pub message_action: Option<String>,
-    /// Query parameter: recipient
+    /// Query parameter: `recipient`.
     pub recipient: Option<String>,
-    /// Query parameter: sender
+    /// Query parameter: `sender`.
     pub sender: Option<String>,
-    /// Query parameter: alert_id
+    /// Query parameter: `alert_id`.
     pub alert_id: Option<String>,
-    /// Query parameter: domain
+    /// Query parameter: `domain`.
     pub domain: Option<String>,
-    /// Query parameter: message_id
+    /// Query parameter: `message_id`.
     pub message_id: Option<String>,
-    /// Query parameter: subject
+    /// Query parameter: `subject`.
     pub subject: Option<String>,
-    /// Query parameter: exact_subject
+    /// Query parameter: `exact_subject`.
     pub exact_subject: Option<String>,
-    /// Query parameter: submissions
+    /// Query parameter: `submissions`.
     pub submissions: Option<String>,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
 }
 
 /// Arguments for [`email_security_post_bulk_message_move_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityPostBulkMessageMoveArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`email_security_post_preview_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityPostPreviewArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`email_security_post_release_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityPostReleaseArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`email_security_get_message_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityGetMessageArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: postfix_id
+    /// Path parameter: `postfix_id`.
     pub postfix_id: String,
 }
 
 /// Arguments for [`email_security_get_message_detections_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityGetMessageDetectionsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: postfix_id
+    /// Path parameter: `postfix_id`.
     pub postfix_id: String,
 }
 
 /// Arguments for [`email_security_post_message_move_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityPostMessageMoveArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: postfix_id
+    /// Path parameter: `postfix_id`.
     pub postfix_id: String,
 }
 
 /// Arguments for [`email_security_get_message_preview_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityGetMessagePreviewArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: postfix_id
+    /// Path parameter: `postfix_id`.
     pub postfix_id: String,
 }
 
 /// Arguments for [`email_security_get_message_raw_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityGetMessageRawArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: postfix_id
+    /// Path parameter: `postfix_id`.
     pub postfix_id: String,
 }
 
 /// Arguments for [`email_security_post_reclassify_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityPostReclassifyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: postfix_id
+    /// Path parameter: `postfix_id`.
     pub postfix_id: String,
 }
 
 /// Arguments for [`email_security_get_message_trace_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityGetMessageTraceArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: postfix_id
+    /// Path parameter: `postfix_id`.
     pub postfix_id: String,
 }
 
 /// Arguments for [`email_security_get_phishguard_reports_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityGetPhishguardReportsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: from_date
+    /// Query parameter: `from_date`.
     pub from_date: Option<String>,
-    /// Query parameter: to_date
+    /// Query parameter: `to_date`.
     pub to_date: Option<String>,
-    /// Query parameter: start
+    /// Query parameter: `start`.
     pub start: Option<String>,
-    /// Query parameter: end
+    /// Query parameter: `end`.
     pub end: Option<String>,
 }
 
 /// Arguments for [`email_security_list_allow_policies_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityListAllowPoliciesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: is_sender
+    /// Query parameter: `is_sender`.
     pub is_sender: Option<String>,
-    /// Query parameter: is_trusted_sender
+    /// Query parameter: `is_trusted_sender`.
     pub is_trusted_sender: Option<String>,
-    /// Query parameter: is_recipient
+    /// Query parameter: `is_recipient`.
     pub is_recipient: Option<String>,
-    /// Query parameter: is_exempt_recipient
+    /// Query parameter: `is_exempt_recipient`.
     pub is_exempt_recipient: Option<String>,
-    /// Query parameter: is_spoof
+    /// Query parameter: `is_spoof`.
     pub is_spoof: Option<String>,
-    /// Query parameter: is_acceptable_sender
+    /// Query parameter: `is_acceptable_sender`.
     pub is_acceptable_sender: Option<String>,
-    /// Query parameter: verify_sender
+    /// Query parameter: `verify_sender`.
     pub verify_sender: Option<String>,
-    /// Query parameter: pattern_type
+    /// Query parameter: `pattern_type`.
     pub pattern_type: Option<String>,
-    /// Query parameter: pattern
+    /// Query parameter: `pattern`.
     pub pattern: Option<String>,
 }
 
 /// Arguments for [`email_security_create_allow_policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityCreateAllowPolicyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: EmailSecurityCreateAllowPolicy,
@@ -387,25 +393,25 @@ pub struct EmailSecurityCreateAllowPolicyArgs {
 /// Arguments for [`email_security_batch_allow_policies_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityBatchAllowPoliciesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`email_security_get_allow_policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityGetAllowPolicyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
 }
 
 /// Arguments for [`email_security_update_allow_policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityUpdateAllowPolicyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
     /// Request body.
     pub body: EmailSecurityUpdateAllowPolicy,
@@ -414,37 +420,37 @@ pub struct EmailSecurityUpdateAllowPolicyArgs {
 /// Arguments for [`email_security_delete_allow_policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityDeleteAllowPolicyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
 }
 
 /// Arguments for [`email_security_list_blocked_senders_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityListBlockedSendersArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: pattern_type
+    /// Query parameter: `pattern_type`.
     pub pattern_type: Option<String>,
-    /// Query parameter: pattern
+    /// Query parameter: `pattern`.
     pub pattern: Option<String>,
 }
 
 /// Arguments for [`email_security_create_blocked_sender_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityCreateBlockedSenderArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: EmailSecurityCreateBlockedSender,
@@ -453,25 +459,25 @@ pub struct EmailSecurityCreateBlockedSenderArgs {
 /// Arguments for [`email_security_batch_blocked_senders_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityBatchBlockedSendersArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`email_security_get_blocked_sender_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityGetBlockedSenderArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: pattern_id
+    /// Path parameter: `pattern_id`.
     pub pattern_id: String,
 }
 
 /// Arguments for [`email_security_update_blocked_sender_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityUpdateBlockedSenderArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: pattern_id
+    /// Path parameter: `pattern_id`.
     pub pattern_id: String,
     /// Request body.
     pub body: EmailSecurityUpdateBlockedSender,
@@ -480,35 +486,35 @@ pub struct EmailSecurityUpdateBlockedSenderArgs {
 /// Arguments for [`email_security_delete_blocked_sender_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityDeleteBlockedSenderArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: pattern_id
+    /// Path parameter: `pattern_id`.
     pub pattern_id: String,
 }
 
 /// Arguments for [`email_security_list_display_names_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityListDisplayNamesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: provenance
+    /// Query parameter: `provenance`.
     pub provenance: Option<String>,
 }
 
 /// Arguments for [`email_security_create_display_name_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityCreateDisplayNameArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: EmailSecurityCreateDisplayName,
@@ -517,80 +523,80 @@ pub struct EmailSecurityCreateDisplayNameArgs {
 /// Arguments for [`email_security_get_display_name_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityGetDisplayNameArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: display_name_id
+    /// Path parameter: `display_name_id`.
     pub display_name_id: String,
 }
 
 /// Arguments for [`email_security_update_display_name_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityUpdateDisplayNameArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: display_name_id
+    /// Path parameter: `display_name_id`.
     pub display_name_id: String,
 }
 
 /// Arguments for [`email_security_delete_display_name_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityDeleteDisplayNameArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: display_name_id
+    /// Path parameter: `display_name_id`.
     pub display_name_id: String,
 }
 
 /// Arguments for [`email_security_submissions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecuritySubmissionsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: start
+    /// Query parameter: `start`.
     pub start: Option<String>,
-    /// Query parameter: end
+    /// Query parameter: `end`.
     pub end: Option<String>,
-    /// Query parameter: type
+    /// Query parameter: `type`.
     pub r#type: Option<String>,
-    /// Query parameter: submission_id
+    /// Query parameter: `submission_id`.
     pub submission_id: Option<String>,
-    /// Query parameter: original_disposition
+    /// Query parameter: `original_disposition`.
     pub original_disposition: Option<String>,
-    /// Query parameter: requested_disposition
+    /// Query parameter: `requested_disposition`.
     pub requested_disposition: Option<String>,
-    /// Query parameter: outcome_disposition
+    /// Query parameter: `outcome_disposition`.
     pub outcome_disposition: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: query
+    /// Query parameter: `query`.
     pub query: Option<String>,
-    /// Query parameter: customer_status
+    /// Query parameter: `customer_status`.
     pub customer_status: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`email-routing-destination-addresses-list-destination-addresses_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingDestinationAddressesListDestinationAddressesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: verified
+    /// Query parameter: `verified`.
     pub verified: Option<String>,
 }
 
 /// Arguments for [`email-routing-destination-addresses-create-a-destination-address_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingDestinationAddressesCreateADestinationAddressArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: EmailCreateDestinationAddressProperties,
@@ -599,25 +605,25 @@ pub struct EmailRoutingDestinationAddressesCreateADestinationAddressArgs {
 /// Arguments for [`email-routing-destination-addresses-get-a-destination-address_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingDestinationAddressesGetADestinationAddressArgs {
-    /// Path parameter: destination_address_identifier
+    /// Path parameter: `destination_address_identifier`.
     pub destination_address_identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`email-routing-destination-addresses-delete-destination-address_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingDestinationAddressesDeleteDestinationAddressArgs {
-    /// Path parameter: destination_address_identifier
+    /// Path parameter: `destination_address_identifier`.
     pub destination_address_identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`email-sending-account-send-builder_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSendingAccountSendBuilderArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: EmailSendingEmailBuilder,
@@ -626,841 +632,133 @@ pub struct EmailSendingAccountSendBuilderArgs {
 /// Arguments for [`email-sending-account-send-raw-message_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSendingAccountSendRawMessageArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: EmailSendingSendRawRequest,
 }
 
-/// Arguments for [`radar-get-email-routing-summary-by-arc_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailRoutingSummaryByArcArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: encrypted
-    pub encrypted: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-routing-summary-by-dkim_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailRoutingSummaryByDkimArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: encrypted
-    pub encrypted: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-routing-summary-by-dmarc_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailRoutingSummaryByDmarcArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: encrypted
-    pub encrypted: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-routing-summary-by-encrypted_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailRoutingSummaryByEncryptedArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-routing-summary-by-ip-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailRoutingSummaryByIpVersionArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: encrypted
-    pub encrypted: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-routing-summary-by-spf_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailRoutingSummaryBySpfArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: encrypted
-    pub encrypted: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
 /// Arguments for [`radar-get-email-routing-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEmailRoutingSummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `arc`.
     pub arc: Option<String>,
-    /// Query parameter: dkim
+    /// Query parameter: `dkim`.
     pub dkim: Option<String>,
-    /// Query parameter: dmarc
+    /// Query parameter: `dmarc`.
     pub dmarc: Option<String>,
-    /// Query parameter: spf
+    /// Query parameter: `spf`.
     pub spf: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: encrypted
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `encrypted`.
     pub encrypted: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-routing-timeseries-group-by-arc_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailRoutingTimeseriesGroupByArcArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: encrypted
-    pub encrypted: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-routing-timeseries-group-by-dkim_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailRoutingTimeseriesGroupByDkimArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: encrypted
-    pub encrypted: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-routing-timeseries-group-by-dmarc_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailRoutingTimeseriesGroupByDmarcArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: encrypted
-    pub encrypted: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-routing-timeseries-group-by-encrypted_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailRoutingTimeseriesGroupByEncryptedArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-routing-timeseries-group-by-ip-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailRoutingTimeseriesGroupByIpVersionArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: encrypted
-    pub encrypted: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-routing-timeseries-group-by-spf_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailRoutingTimeseriesGroupBySpfArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: encrypted
-    pub encrypted: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-email-routing-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEmailRoutingTimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `arc`.
     pub arc: Option<String>,
-    /// Query parameter: dkim
+    /// Query parameter: `dkim`.
     pub dkim: Option<String>,
-    /// Query parameter: dmarc
+    /// Query parameter: `dmarc`.
     pub dmarc: Option<String>,
-    /// Query parameter: spf
+    /// Query parameter: `spf`.
     pub spf: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: encrypted
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `encrypted`.
     pub encrypted: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-summary-by-arc_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecuritySummaryByArcArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-summary-by-dkim_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecuritySummaryByDkimArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-summary-by-dmarc_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecuritySummaryByDmarcArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-summary-by-malicious_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecuritySummaryByMaliciousArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-summary-by-spam_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecuritySummaryBySpamArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-summary-by-spf_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecuritySummaryBySpfArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-summary-by-spoof_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecuritySummaryBySpoofArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-summary-by-tls-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecuritySummaryByTlsVersionArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-email-security-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEmailSecuritySummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `arc`.
     pub arc: Option<String>,
-    /// Query parameter: dkim
+    /// Query parameter: `dkim`.
     pub dkim: Option<String>,
-    /// Query parameter: dmarc
+    /// Query parameter: `dmarc`.
     pub dmarc: Option<String>,
-    /// Query parameter: spf
+    /// Query parameter: `spf`.
     pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-timeseries-group-by-arc_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupByArcArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-timeseries-group-by-dkim_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupByDkimArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-timeseries-group-by-dmarc_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupByDmarcArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-timeseries-group-by-malicious_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupByMaliciousArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-timeseries-group-by-spam_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupBySpamArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-timeseries-group-by-spf_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupBySpfArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-timeseries-group-by-spoof_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupBySpoofArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-timeseries-group-by-tls-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupByTlsVersionArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-email-security-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEmailSecurityTimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `arc`.
     pub arc: Option<String>,
-    /// Query parameter: dkim
+    /// Query parameter: `dkim`.
     pub dkim: Option<String>,
-    /// Query parameter: dmarc
+    /// Query parameter: `dmarc`.
     pub dmarc: Option<String>,
-    /// Query parameter: spf
+    /// Query parameter: `spf`.
     pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
@@ -1490,7 +788,6 @@ pub struct RadarGetEmailSecurityTimeseriesGroupArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_email_scanner_get_account_mapping_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1527,7 +824,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1575,7 +872,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_email_scanner_create_account_mapping_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1616,7 +912,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1664,7 +960,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_email_scanner_list_all_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1701,7 +996,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1749,7 +1044,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_email_scanner_create_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1790,7 +1084,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1838,7 +1132,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_email_scanner_update_rule_priorities_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1879,7 +1172,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1927,7 +1220,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_email_scanner_get_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1964,7 +1256,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2012,7 +1304,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_email_scanner_update_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2053,7 +1344,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2101,7 +1392,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_email_scanner_delete_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2138,7 +1428,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2186,7 +1476,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_investigate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2223,7 +1512,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2271,7 +1560,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_post_bulk_message_move_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2308,7 +1596,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2356,7 +1644,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_post_preview_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2393,7 +1680,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2441,7 +1728,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_post_release_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2478,7 +1764,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2526,7 +1812,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_get_message_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2563,7 +1848,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2611,7 +1896,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_get_message_detections_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2648,7 +1932,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2696,7 +1980,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_post_message_move_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2733,7 +2016,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2781,7 +2064,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_get_message_preview_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2818,7 +2100,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2866,7 +2148,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_get_message_raw_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2903,7 +2184,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2951,7 +2232,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_post_reclassify_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2988,7 +2268,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3036,7 +2316,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_get_message_trace_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3073,7 +2352,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3121,7 +2400,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_get_phishguard_reports_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3158,7 +2436,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3206,7 +2484,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_list_allow_policies_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3243,7 +2520,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3291,7 +2568,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_create_allow_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3332,7 +2608,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3380,7 +2656,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_batch_allow_policies_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3417,7 +2692,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3465,7 +2740,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_get_allow_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3503,7 +2777,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3551,7 +2825,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_update_allow_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3593,7 +2866,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3641,7 +2914,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_delete_allow_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3679,7 +2951,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3727,7 +2999,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_list_blocked_senders_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3764,7 +3035,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3812,7 +3083,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_create_blocked_sender_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3853,7 +3123,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3901,7 +3171,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_batch_blocked_senders_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3938,7 +3207,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3986,7 +3255,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_get_blocked_sender_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4023,7 +3291,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4071,7 +3339,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_update_blocked_sender_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4112,7 +3379,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4160,7 +3427,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_delete_blocked_sender_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4197,7 +3463,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4245,7 +3511,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_list_display_names_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4282,7 +3547,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4330,7 +3595,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_create_display_name_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4371,7 +3635,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4419,7 +3683,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_get_display_name_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4457,7 +3720,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4505,7 +3768,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_update_display_name_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4543,7 +3805,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4591,7 +3853,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_delete_display_name_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4629,7 +3890,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4677,7 +3938,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_submissions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4714,7 +3974,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4762,7 +4022,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_destination_addresses_list_destination_addresses_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4855,7 +4114,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_destination_addresses_create_a_destination_address_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4951,7 +4209,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_destination_addresses_get_a_destination_address_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5043,7 +4300,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_destination_addresses_delete_destination_address_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5135,7 +4391,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_sending_account_send_builder_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5176,7 +4431,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5224,7 +4479,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_sending_account_send_raw_message_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5265,505 +4519,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/routing/summary/arc
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/routing/summary/arc.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_routing_summary_by_arc_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_routing_summary_by_arc_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailRoutingSummaryByArcArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/routing/summary/arc",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/routing/summary/dkim
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/routing/summary/dkim.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_routing_summary_by_dkim_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_routing_summary_by_dkim_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailRoutingSummaryByDkimArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/routing/summary/dkim",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/routing/summary/dmarc
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/routing/summary/dmarc.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_routing_summary_by_dmarc_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_routing_summary_by_dmarc_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailRoutingSummaryByDmarcArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/routing/summary/dmarc",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/routing/summary/encrypted
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/routing/summary/encrypted.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_routing_summary_by_encrypted_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_routing_summary_by_encrypted_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailRoutingSummaryByEncryptedArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/routing/summary/encrypted",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/routing/summary/ip_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/routing/summary/ip_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_routing_summary_by_ip_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_routing_summary_by_ip_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailRoutingSummaryByIpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/routing/summary/ip_version",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/routing/summary/spf
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/routing/summary/spf.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_routing_summary_by_spf_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_routing_summary_by_spf_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailRoutingSummaryBySpfArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/routing/summary/spf",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5811,7 +4567,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_email_routing_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5848,508 +4603,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/routing/timeseries_groups/arc
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/routing/timeseries_groups/arc.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_routing_timeseries_group_by_arc_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_routing_timeseries_group_by_arc_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailRoutingTimeseriesGroupByArcArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/routing/timeseries_groups/arc",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/routing/timeseries_groups/dkim
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/routing/timeseries_groups/dkim.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_routing_timeseries_group_by_dkim_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_routing_timeseries_group_by_dkim_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailRoutingTimeseriesGroupByDkimArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/routing/timeseries_groups/dkim",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/routing/timeseries_groups/dmarc
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/routing/timeseries_groups/dmarc.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_routing_timeseries_group_by_dmarc_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_routing_timeseries_group_by_dmarc_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailRoutingTimeseriesGroupByDmarcArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/routing/timeseries_groups/dmarc",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/routing/timeseries_groups/encrypted
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/routing/timeseries_groups/encrypted.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_routing_timeseries_group_by_encrypted_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_routing_timeseries_group_by_encrypted_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailRoutingTimeseriesGroupByEncryptedArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/routing/timeseries_groups/encrypted",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/routing/timeseries_groups/ip_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/routing/timeseries_groups/ip_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_routing_timeseries_group_by_ip_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_routing_timeseries_group_by_ip_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailRoutingTimeseriesGroupByIpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/routing/timeseries_groups/ip_version",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/routing/timeseries_groups/spf
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/routing/timeseries_groups/spf.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_routing_timeseries_group_by_spf_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_routing_timeseries_group_by_spf_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailRoutingTimeseriesGroupBySpfArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/routing/timeseries_groups/spf",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6397,7 +4651,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_email_routing_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6434,671 +4687,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/summary/arc
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/summary/arc.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_summary_by_arc_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_summary_by_arc_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecuritySummaryByArcArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/security/summary/arc",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/summary/dkim
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/summary/dkim.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_summary_by_dkim_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_summary_by_dkim_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecuritySummaryByDkimArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/security/summary/dkim",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/summary/dmarc
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/summary/dmarc.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_summary_by_dmarc_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_summary_by_dmarc_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecuritySummaryByDmarcArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/security/summary/dmarc",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/summary/malicious
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/summary/malicious.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_summary_by_malicious_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_summary_by_malicious_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecuritySummaryByMaliciousArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/security/summary/malicious",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/summary/spam
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/summary/spam.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_summary_by_spam_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_summary_by_spam_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecuritySummaryBySpamArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/security/summary/spam",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/summary/spf
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/summary/spf.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_summary_by_spf_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_summary_by_spf_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecuritySummaryBySpfArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/security/summary/spf",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/summary/spoof
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/summary/spoof.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_summary_by_spoof_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_summary_by_spoof_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecuritySummaryBySpoofArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/security/summary/spoof",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/summary/tls_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/summary/tls_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_summary_by_tls_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_summary_by_tls_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecuritySummaryByTlsVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/security/summary/tls_version",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7146,7 +4735,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_email_security_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7183,677 +4771,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/timeseries_groups/arc
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/timeseries_groups/arc.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_timeseries_group_by_arc_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_timeseries_group_by_arc_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecurityTimeseriesGroupByArcArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/security/timeseries_groups/arc",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/timeseries_groups/dkim
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/timeseries_groups/dkim.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_timeseries_group_by_dkim_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_timeseries_group_by_dkim_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecurityTimeseriesGroupByDkimArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/timeseries_groups/dkim",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/timeseries_groups/dmarc
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/timeseries_groups/dmarc.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_timeseries_group_by_dmarc_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_timeseries_group_by_dmarc_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecurityTimeseriesGroupByDmarcArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/timeseries_groups/dmarc",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/timeseries_groups/malicious
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/timeseries_groups/malicious.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_timeseries_group_by_malicious_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_timeseries_group_by_malicious_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecurityTimeseriesGroupByMaliciousArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/timeseries_groups/malicious",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/timeseries_groups/spam
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/timeseries_groups/spam.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_timeseries_group_by_spam_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_timeseries_group_by_spam_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecurityTimeseriesGroupBySpamArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/timeseries_groups/spam",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/timeseries_groups/spf
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/timeseries_groups/spf.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_timeseries_group_by_spf_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_timeseries_group_by_spf_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecurityTimeseriesGroupBySpfArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/email/security/timeseries_groups/spf",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/timeseries_groups/spoof
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/timeseries_groups/spoof.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_timeseries_group_by_spoof_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_timeseries_group_by_spoof_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecurityTimeseriesGroupBySpoofArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/timeseries_groups/spoof",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/timeseries_groups/tls_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/timeseries_groups/tls_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_timeseries_group_by_tls_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_timeseries_group_by_tls_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecurityTimeseriesGroupByTlsVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/timeseries_groups/tls_version",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7901,7 +4819,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_email_security_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7938,7 +4855,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

@@ -6,8 +6,14 @@
 //! Feature flag: `cloudflare_devices `
 
 #![cfg(feature = "cloudflare_devices")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -15,416 +21,384 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::TunnelSubnetResponseSingle;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// DlpCreateIntegrationBody response type.
+/// `DlpCreateIntegrationBody` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpCreateIntegrationBody {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpUpdateBehaviors response type.
+/// `DlpUpdateBehaviors` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpUpdateBehaviors {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpUpdateIntegrationBody response type.
+/// `DlpUpdateIntegrationBody` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpUpdateIntegrationBody {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesApiResponseSingle response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesApiResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// TeamsDevicesComponentsSchemasResponseCollection response type.
+/// `TeamsDevicesComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesComponentsSchemasSingleResponse response type.
+/// `TeamsDevicesComponentsSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesComponentsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesDefaultDeviceSettingsResponse response type.
+/// `TeamsDevicesDefaultDeviceSettingsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesDefaultDeviceSettingsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesDeviceResponse response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDeviceResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// TeamsDevicesDeviceSettingsResponse response type.
+/// `TeamsDevicesDeviceSettingsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesDeviceSettingsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesDeviceSettingsResponseCollection response type.
+/// `TeamsDevicesDeviceSettingsResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesDeviceSettingsResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesIdResponse response type.
+/// `TeamsDevicesIdResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesIdResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesIpProfileCreateRequest response type.
+/// `TeamsDevicesIpProfileCreateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesIpProfileCreateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesIpProfileUpdateRequest response type.
+/// `TeamsDevicesIpProfileUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesIpProfileUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesOverrideCodesResponse response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesOverrideCodesResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// TeamsDevicesResponseCollection response type.
+/// `TeamsDevicesResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesSchemasIdResponse response type.
+/// `TeamsDevicesSchemasIdResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSchemasIdResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesSchemasResponseCollection response type.
+/// `TeamsDevicesSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesSchemasSingleResponse response type.
+/// `TeamsDevicesSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesSingleResponse response type.
+/// `TeamsDevicesSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesSplitTunnel response type.
+/// `TeamsDevicesSplitTunnel` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSplitTunnel {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesSplitTunnelInclude response type.
+/// `TeamsDevicesSplitTunnelInclude` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSplitTunnelInclude {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesSplitTunnelIncludeResponseCollection response type.
+/// `TeamsDevicesSplitTunnelIncludeResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSplitTunnelIncludeResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesSplitTunnelResponseCollection response type.
+/// `TeamsDevicesSplitTunnelResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesSplitTunnelResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesZeroTrustAccountDeviceSettings response type.
+/// `TeamsDevicesZeroTrustAccountDeviceSettings` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesZeroTrustAccountDeviceSettings {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesZeroTrustAccountDeviceSettingsResponse response type.
+/// `TeamsDevicesZeroTrustAccountDeviceSettingsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesZeroTrustAccountDeviceSettingsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelSubnetResponseCollection response type.
+/// `TunnelSubnetResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelSubnetResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection response type.
+/// `ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayApplicationsReviewStatusResponse response type.
+/// `ZeroTrustGatewayApplicationsReviewStatusResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayApplicationsReviewStatusResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse response type.
+/// `ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection response type.
+/// `ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayComponentsSchemasResponseCollection response type.
+/// `ZeroTrustGatewayComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayComponentsSchemasSingleResponse response type.
+/// `ZeroTrustGatewayComponentsSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayComponentsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayCustomCertificateSettings response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ZeroTrustGatewayCustomCertificateSettings {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// ZeroTrustGatewayEmptyResponse response type.
+/// `ZeroTrustGatewayEmptyResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayEmptyResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayGatewayAccount response type.
+/// `ZeroTrustGatewayGatewayAccount` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayGatewayAccount {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayGatewayAccountConfig response type.
+/// `ZeroTrustGatewayGatewayAccountConfig` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayGatewayAccountConfig {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayGatewayAccountLoggingSettings response type.
+/// `ZeroTrustGatewayGatewayAccountLoggingSettings` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayGatewayAccountLoggingSettings {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayGatewayAccountLoggingSettingsResponse response type.
+/// `ZeroTrustGatewayGatewayAccountLoggingSettingsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayGatewayAccountLoggingSettingsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayGenerateCertRequest response type.
+/// `ZeroTrustGatewayGenerateCertRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayGenerateCertRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayListItemResponseCollection response type.
+/// `ZeroTrustGatewayListItemResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayListItemResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayListSingleResponse response type.
+/// `ZeroTrustGatewayListSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayListSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection response type.
+/// `ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse response type.
+/// `ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection response type.
+/// `ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse response type.
+/// `ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayResponseCollection response type.
+/// `ZeroTrustGatewayResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewayRulesComponentsSchemasResponseCollection response type.
+/// `ZeroTrustGatewayRulesComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewayRulesComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewaySchemasResponseCollection response type.
+/// `ZeroTrustGatewaySchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewaySchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewaySchemasSingleResponse response type.
+/// `ZeroTrustGatewaySchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewaySchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewaySingleResponse response type.
+/// `ZeroTrustGatewaySingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewaySingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZeroTrustGatewaySingleResponseWithListItems response type.
+/// `ZeroTrustGatewaySingleResponseWithListItems` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZeroTrustGatewaySingleResponseWithListItems {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -436,16 +410,16 @@ pub struct ZeroTrustGatewaySingleResponseWithListItems {
 /// Arguments for [`list-ip-profiles_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListIpProfilesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`create-ip-profile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateIpProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: TeamsDevicesIpProfileCreateRequest,
@@ -454,18 +428,18 @@ pub struct CreateIpProfileArgs {
 /// Arguments for [`get-ip-profile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIpProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: profile_id
+    /// Path parameter: `profile_id`.
     pub profile_id: String,
 }
 
 /// Arguments for [`update-ip-profile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateIpProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: profile_id
+    /// Path parameter: `profile_id`.
     pub profile_id: String,
     /// Request body.
     pub body: TeamsDevicesIpProfileUpdateRequest,
@@ -474,126 +448,126 @@ pub struct UpdateIpProfileArgs {
 /// Arguments for [`delete-ip-profile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteIpProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: profile_id
+    /// Path parameter: `profile_id`.
     pub profile_id: String,
 }
 
 /// Arguments for [`device-managed-networks-list-device-managed-networks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeviceManagedNetworksListDeviceManagedNetworksArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`device-managed-networks-create-device-managed-network_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeviceManagedNetworksCreateDeviceManagedNetworkArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`device-managed-networks-device-managed-network-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeviceManagedNetworksDeviceManagedNetworkDetailsArgs {
-    /// Path parameter: network_id
+    /// Path parameter: `network_id`.
     pub network_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`device-managed-networks-update-device-managed-network_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeviceManagedNetworksUpdateDeviceManagedNetworkArgs {
-    /// Path parameter: network_id
+    /// Path parameter: `network_id`.
     pub network_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`device-managed-networks-delete-device-managed-network_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeviceManagedNetworksDeleteDeviceManagedNetworkArgs {
-    /// Path parameter: network_id
+    /// Path parameter: `network_id`.
     pub network_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`list-devices_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListDevicesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get-device_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetDeviceArgs {
-    /// Path parameter: device_id
+    /// Path parameter: `device_id`.
     pub device_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`delete-device_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteDeviceArgs {
-    /// Path parameter: device_id
+    /// Path parameter: `device_id`.
     pub device_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`revoke-device_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RevokeDeviceArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: device_id
+    /// Path parameter: `device_id`.
     pub device_id: String,
 }
 
 /// Arguments for [`devices-list-device-settings-policies_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesListDeviceSettingsPoliciesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-get-default-device-settings-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesGetDefaultDeviceSettingsPolicyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-create-device-settings-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesCreateDeviceSettingsPolicyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-update-default-device-settings-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesUpdateDefaultDeviceSettingsPolicyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-get-split-tunnel-exclude-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesGetSplitTunnelExcludeListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-set-split-tunnel-exclude-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesSetSplitTunnelExcludeListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<TeamsDevicesSplitTunnel>,
@@ -602,14 +576,14 @@ pub struct DevicesSetSplitTunnelExcludeListArgs {
 /// Arguments for [`devices-get-split-tunnel-include-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesGetSplitTunnelIncludeListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-set-split-tunnel-include-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesSetSplitTunnelIncludeListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<TeamsDevicesSplitTunnelInclude>,
@@ -618,45 +592,45 @@ pub struct DevicesSetSplitTunnelIncludeListArgs {
 /// Arguments for [`devices-get-device-settings-policy-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesGetDeviceSettingsPolicyByIdArgs {
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-update-device-settings-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesUpdateDeviceSettingsPolicyArgs {
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-delete-device-settings-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesDeleteDeviceSettingsPolicyArgs {
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-get-split-tunnel-exclude-list-for-a-device-settings-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesGetSplitTunnelExcludeListForADeviceSettingsPolicyArgs {
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-set-split-tunnel-exclude-list-for-a-device-settings-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesSetSplitTunnelExcludeListForADeviceSettingsPolicyArgs {
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<TeamsDevicesSplitTunnel>,
@@ -665,18 +639,18 @@ pub struct DevicesSetSplitTunnelExcludeListForADeviceSettingsPolicyArgs {
 /// Arguments for [`devices-get-split-tunnel-include-list-for-a-device-settings-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesGetSplitTunnelIncludeListForADeviceSettingsPolicyArgs {
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-set-split-tunnel-include-list-for-a-device-settings-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesSetSplitTunnelIncludeListForADeviceSettingsPolicyArgs {
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<TeamsDevicesSplitTunnelInclude>,
@@ -685,164 +659,157 @@ pub struct DevicesSetSplitTunnelIncludeListForADeviceSettingsPolicyArgs {
 /// Arguments for [`device-posture-rules-list-device-posture-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicePostureRulesListDevicePostureRulesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`device-posture-rules-create-device-posture-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicePostureRulesCreateDevicePostureRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`device-posture-integrations-list-device-posture-integrations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicePostureIntegrationsListDevicePostureIntegrationsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`device-posture-integrations-create-device-posture-integration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicePostureIntegrationsCreateDevicePostureIntegrationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`device-posture-integrations-device-posture-integration-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicePostureIntegrationsDevicePostureIntegrationDetailsArgs {
-    /// Path parameter: integration_id
+    /// Path parameter: `integration_id`.
     pub integration_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`device-posture-integrations-update-device-posture-integration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicePostureIntegrationsUpdateDevicePostureIntegrationArgs {
-    /// Path parameter: integration_id
+    /// Path parameter: `integration_id`.
     pub integration_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`device-posture-integrations-delete-device-posture-integration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicePostureIntegrationsDeleteDevicePostureIntegrationArgs {
-    /// Path parameter: integration_id
+    /// Path parameter: `integration_id`.
     pub integration_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`device-posture-rules-device-posture-rules-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicePostureRulesDevicePostureRulesDetailsArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`device-posture-rules-update-device-posture-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicePostureRulesUpdateDevicePostureRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`device-posture-rules-delete-device-posture-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicePostureRulesDeleteDevicePostureRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`list-registrations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListRegistrationsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`delete-registrations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteRegistrationsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: id
+    /// Query parameter: `id`.
     pub id: Option<String>,
 }
 
 /// Arguments for [`revoke-registrations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RevokeRegistrationsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: id
+    /// Query parameter: `id`.
     pub id: Option<String>,
 }
 
 /// Arguments for [`unrevoke-registrations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UnrevokeRegistrationsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: id
+    /// Query parameter: `id`.
     pub id: Option<String>,
 }
 
 /// Arguments for [`get-registration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetRegistrationArgs {
-    /// Path parameter: registration_id
+    /// Path parameter: `registration_id`.
     pub registration_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`delete-registration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteRegistrationArgs {
-    /// Path parameter: registration_id
+    /// Path parameter: `registration_id`.
     pub registration_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get-registration-override-codes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetRegistrationOverrideCodesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: registration_id
+    /// Path parameter: `registration_id`.
     pub registration_id: String,
-}
-
-/// Arguments for [`devices-revoke-devices_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DevicesRevokeDevicesArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-accounts-get-device-settings-for-zero-trust-account_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsGetDeviceSettingsForZeroTrustAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-accounts-update-device-settings-for-the-zero-trust-account_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsUpdateDeviceSettingsForTheZeroTrustAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: TeamsDevicesZeroTrustAccountDeviceSettings,
@@ -851,7 +818,7 @@ pub struct ZeroTrustAccountsUpdateDeviceSettingsForTheZeroTrustAccountArgs {
 /// Arguments for [`zero-trust-accounts-patch-device-settings-for-the-zero-trust-account_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsPatchDeviceSettingsForTheZeroTrustAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: TeamsDevicesZeroTrustAccountDeviceSettings,
@@ -860,46 +827,21 @@ pub struct ZeroTrustAccountsPatchDeviceSettingsForTheZeroTrustAccountArgs {
 /// Arguments for [`zero-trust-accounts-delete-device-settings-for-zero-trust-account_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsDeleteDeviceSettingsForZeroTrustAccountArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
-/// Arguments for [`devices-unrevoke-devices_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DevicesUnrevokeDevicesArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
-/// Arguments for [`devices-device-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DevicesDeviceDetailsArgs {
-    /// Path parameter: device_id
-    pub device_id: String,
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
-/// Arguments for [`devices-list-admin-override-code-for-device_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DevicesListAdminOverrideCodeForDeviceArgs {
-    /// Path parameter: device_id
-    pub device_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-accounts-get-zero-trust-account-information_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsGetZeroTrustAccountInformationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-accounts-create-zero-trust-account_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsCreateZeroTrustAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
@@ -907,63 +849,63 @@ pub struct ZeroTrustAccountsCreateZeroTrustAccountArgs {
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayApplicationAndApplicationTypeMappingsListApplicationAndApplicationTypeMappingsArgs
 {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-applications-review-status-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustApplicationsReviewStatusListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-applications-review-status-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustApplicationsReviewStatusUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-get-audit-ssh-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGetAuditSshSettingsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-update-audit-ssh-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustUpdateAuditSshSettingsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-rotate-ssh-account-seed_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustRotateSshAccountSeedArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-categories-list-categories_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayCategoriesListCategoriesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-certificates-list-zero-trust-certificates_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustCertificatesListZeroTrustCertificatesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-certificates-create-zero-trust-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustCertificatesCreateZeroTrustCertificateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: ZeroTrustGatewayGenerateCertRequest,
@@ -972,180 +914,173 @@ pub struct ZeroTrustCertificatesCreateZeroTrustCertificateArgs {
 /// Arguments for [`zero-trust-certificates-zero-trust-certificate-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustCertificatesZeroTrustCertificateDetailsArgs {
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-certificates-delete-zero-trust-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustCertificatesDeleteZeroTrustCertificateArgs {
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-certificates-activate-zero-trust-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustCertificatesActivateZeroTrustCertificateArgs {
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-certificates-deactivate-zero-trust-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustCertificatesDeactivateZeroTrustCertificateArgs {
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-accounts-get-zero-trust-account-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsGetZeroTrustAccountConfigurationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-accounts-update-zero-trust-account-configuration._builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsUpdateZeroTrustAccountConfigurationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-accounts-patch-zero-trust-account-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsPatchZeroTrustAccountConfigurationArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
-/// Arguments for [`zero-trust-accounts-get-zero-trust-certificate-configuration_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ZeroTrustAccountsGetZeroTrustCertificateConfigurationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-lists-list-zero-trust-lists_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustListsListZeroTrustListsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: type
+    /// Query parameter: `type`.
     pub r#type: Option<String>,
 }
 
 /// Arguments for [`zero-trust-lists-create-zero-trust-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustListsCreateZeroTrustListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-lists-zero-trust-list-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustListsZeroTrustListDetailsArgs {
-    /// Path parameter: list_id
+    /// Path parameter: `list_id`.
     pub list_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-lists-update-zero-trust-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustListsUpdateZeroTrustListArgs {
-    /// Path parameter: list_id
+    /// Path parameter: `list_id`.
     pub list_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-lists-patch-zero-trust-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustListsPatchZeroTrustListArgs {
-    /// Path parameter: list_id
+    /// Path parameter: `list_id`.
     pub list_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-lists-delete-zero-trust-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustListsDeleteZeroTrustListArgs {
-    /// Path parameter: list_id
+    /// Path parameter: `list_id`.
     pub list_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-lists-zero-trust-list-items_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustListsZeroTrustListItemsArgs {
-    /// Path parameter: list_id
+    /// Path parameter: `list_id`.
     pub list_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-locations-list-zero-trust-gateway-locations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayLocationsListZeroTrustGatewayLocationsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-locations-create-zero-trust-gateway-location_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayLocationsCreateZeroTrustGatewayLocationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-locations-zero-trust-gateway-location-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayLocationsZeroTrustGatewayLocationDetailsArgs {
-    /// Path parameter: location_id
+    /// Path parameter: `location_id`.
     pub location_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-locations-update-zero-trust-gateway-location_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayLocationsUpdateZeroTrustGatewayLocationArgs {
-    /// Path parameter: location_id
+    /// Path parameter: `location_id`.
     pub location_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-locations-delete-zero-trust-gateway-location_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayLocationsDeleteZeroTrustGatewayLocationArgs {
-    /// Path parameter: location_id
+    /// Path parameter: `location_id`.
     pub location_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-accounts-get-logging-settings-for-the-zero-trust-account_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsGetLoggingSettingsForTheZeroTrustAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-accounts-update-logging-settings-for-the-zero-trust-account_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsUpdateLoggingSettingsForTheZeroTrustAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: ZeroTrustGatewayGatewayAccountLoggingSettings,
@@ -1154,191 +1089,191 @@ pub struct ZeroTrustAccountsUpdateLoggingSettingsForTheZeroTrustAccountArgs {
 /// Arguments for [`zero-trust-gateway-pacfiles-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayPacfilesListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-pacfiles-create-pacfile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayPacfilesCreatePacfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-pacfiles-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayPacfilesDetailsArgs {
-    /// Path parameter: pacfile_id
+    /// Path parameter: `pacfile_id`.
     pub pacfile_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-pacfiles-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayPacfilesUpdateArgs {
-    /// Path parameter: pacfile_id
+    /// Path parameter: `pacfile_id`.
     pub pacfile_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-pacfiles-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayPacfilesDeleteArgs {
-    /// Path parameter: pacfile_id
+    /// Path parameter: `pacfile_id`.
     pub pacfile_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-proxy-endpoints-list-proxy-endpoints_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayProxyEndpointsListProxyEndpointsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-proxy-endpoints-create-proxy-endpoint_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayProxyEndpointsCreateProxyEndpointArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-proxy-endpoints-proxy-endpoint-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayProxyEndpointsProxyEndpointDetailsArgs {
-    /// Path parameter: proxy_endpoint_id
+    /// Path parameter: `proxy_endpoint_id`.
     pub proxy_endpoint_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-proxy-endpoints-update-proxy-endpoint_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayProxyEndpointsUpdateProxyEndpointArgs {
-    /// Path parameter: proxy_endpoint_id
+    /// Path parameter: `proxy_endpoint_id`.
     pub proxy_endpoint_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-proxy-endpoints-delete-proxy-endpoint_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayProxyEndpointsDeleteProxyEndpointArgs {
-    /// Path parameter: proxy_endpoint_id
+    /// Path parameter: `proxy_endpoint_id`.
     pub proxy_endpoint_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-rules-list-zero-trust-gateway-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayRulesListZeroTrustGatewayRulesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-rules-create-zero-trust-gateway-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayRulesCreateZeroTrustGatewayRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-rules-list-zero-trust-gateway-rules-tenant_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayRulesListZeroTrustGatewayRulesTenantArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-rules-zero-trust-gateway-rule-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayRulesZeroTrustGatewayRuleDetailsArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-rules-update-zero-trust-gateway-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayRulesUpdateZeroTrustGatewayRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-rules-delete-zero-trust-gateway-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayRulesDeleteZeroTrustGatewayRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-gateway-rules-reset-expiration-zero-trust-gateway-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustGatewayRulesResetExpirationZeroTrustGatewayRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-networks-subnets-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustNetworksSubnetsListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: comment
+    /// Query parameter: `comment`.
     pub comment: Option<String>,
-    /// Query parameter: network
+    /// Query parameter: `network`.
     pub network: Option<String>,
-    /// Query parameter: existed_at
+    /// Query parameter: `existed_at`.
     pub existed_at: Option<String>,
-    /// Query parameter: address_family
+    /// Query parameter: `address_family`.
     pub address_family: Option<String>,
-    /// Query parameter: is_default_network
+    /// Query parameter: `is_default_network`.
     pub is_default_network: Option<String>,
-    /// Query parameter: is_deleted
+    /// Query parameter: `is_deleted`.
     pub is_deleted: Option<String>,
-    /// Query parameter: sort_order
+    /// Query parameter: `sort_order`.
     pub sort_order: Option<String>,
-    /// Query parameter: subnet_types
+    /// Query parameter: `subnet_types`.
     pub subnet_types: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
 }
 
 /// Arguments for [`zero-trust-networks-subnet-update-cloudflare-source_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustNetworksSubnetUpdateCloudflareSourceArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: address_family
+    /// Path parameter: `address_family`.
     pub address_family: String,
 }
 
 /// Arguments for [`dlp-risk-score-behaviors-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpRiskScoreBehaviorsGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dlp-risk-score-behaviors-put_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpRiskScoreBehaviorsPutArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DlpUpdateBehaviors,
@@ -1347,14 +1282,14 @@ pub struct DlpRiskScoreBehaviorsPutArgs {
 /// Arguments for [`dlp-zt-risk-score-integration-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpZtRiskScoreIntegrationListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dlp-zt-risk-score-integration-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpZtRiskScoreIntegrationCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DlpCreateIntegrationBody,
@@ -1363,27 +1298,27 @@ pub struct DlpZtRiskScoreIntegrationCreateArgs {
 /// Arguments for [`dlp-zt-risk-score-integration-get-by-reference-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpZtRiskScoreIntegrationGetByReferenceIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: reference_id
+    /// Path parameter: `reference_id`.
     pub reference_id: String,
 }
 
 /// Arguments for [`dlp-zt-risk-score-integration-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpZtRiskScoreIntegrationGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: integration_id
+    /// Path parameter: `integration_id`.
     pub integration_id: String,
 }
 
 /// Arguments for [`dlp-zt-risk-score-integration-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpZtRiskScoreIntegrationUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: integration_id
+    /// Path parameter: `integration_id`.
     pub integration_id: String,
     /// Request body.
     pub body: DlpUpdateIntegrationBody,
@@ -1392,16 +1327,16 @@ pub struct DlpZtRiskScoreIntegrationUpdateArgs {
 /// Arguments for [`dlp-zt-risk-score-integration-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpZtRiskScoreIntegrationDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: integration_id
+    /// Path parameter: `integration_id`.
     pub integration_id: String,
 }
 
 /// Arguments for [`dlp-risk-score-summary-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpRiskScoreSummaryGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
@@ -1431,7 +1366,6 @@ pub struct DlpRiskScoreSummaryGetArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_ip_profiles_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1468,7 +1402,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1516,7 +1450,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_ip_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1557,7 +1490,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1605,7 +1538,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_ip_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1642,7 +1574,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1690,7 +1622,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_ip_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1731,7 +1662,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1779,7 +1710,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_ip_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1816,7 +1746,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1864,7 +1794,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_managed_networks_list_device_managed_networks_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1957,7 +1886,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_managed_networks_create_device_managed_network_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2050,7 +1978,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_managed_networks_device_managed_network_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2143,7 +2070,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_managed_networks_update_device_managed_network_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2236,7 +2162,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_managed_networks_delete_device_managed_network_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2329,7 +2254,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_devices_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2366,7 +2290,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2414,7 +2338,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_device_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2451,7 +2374,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2499,7 +2422,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_device_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2536,7 +2458,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2584,7 +2506,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn revoke_device_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2621,7 +2542,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2669,7 +2590,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_list_device_settings_policies_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2762,7 +2682,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_get_default_device_settings_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2854,7 +2773,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_create_device_settings_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2946,7 +2864,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_update_default_device_settings_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3038,7 +2955,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_get_split_tunnel_exclude_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3130,7 +3046,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_set_split_tunnel_exclude_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3226,7 +3141,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_get_split_tunnel_include_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3319,7 +3233,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_set_split_tunnel_include_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3416,7 +3329,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_get_device_settings_policy_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3508,7 +3420,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_update_device_settings_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3600,7 +3511,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_delete_device_settings_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3693,7 +3603,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_get_split_tunnel_exclude_list_for_a_device_settings_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3785,7 +3694,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_set_split_tunnel_exclude_list_for_a_device_settings_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3881,7 +3789,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_get_split_tunnel_include_list_for_a_device_settings_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3974,7 +3881,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_set_split_tunnel_include_list_for_a_device_settings_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4071,7 +3977,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_posture_rules_list_device_posture_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4160,7 +4065,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_posture_rules_create_device_posture_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4249,7 +4153,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_posture_integrations_list_device_posture_integrations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4341,7 +4244,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_posture_integrations_create_device_posture_integration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4430,7 +4332,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_posture_integrations_device_posture_integration_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4519,7 +4420,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_posture_integrations_update_device_posture_integration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4608,7 +4508,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_posture_integrations_delete_device_posture_integration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4697,7 +4596,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_posture_rules_device_posture_rules_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4786,7 +4684,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_posture_rules_update_device_posture_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4875,7 +4772,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_posture_rules_delete_device_posture_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4964,7 +4860,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_registrations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5001,7 +4896,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5049,7 +4944,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_registrations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5086,7 +4980,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5134,7 +5028,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn revoke_registrations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5171,7 +5064,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5219,7 +5112,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn unrevoke_registrations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5256,7 +5148,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5304,7 +5196,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_registration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5341,7 +5232,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5389,7 +5280,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_registration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5426,7 +5316,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5474,7 +5364,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_registration_override_codes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5511,7 +5400,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5528,95 +5417,6 @@ where
                     status: status as u16,
                     headers: headers.clone(),
                     body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /accounts/{account_id}/devices/revoke
-// -----------------------------------------------------------------------------
-
-/// POST /accounts/{account_id}/devices/revoke.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = devices_revoke_devices_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn devices_revoke_devices_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &DevicesRevokeDevicesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<TeamsDevicesApiResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/revoke",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: TeamsDevicesApiResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
                 })
             }
             super::shared::RequestIntro::Failed(e) => {
@@ -5648,7 +5448,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_accounts_get_device_settings_for_zero_trust_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5741,7 +5540,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_accounts_update_device_settings_for_the_zero_trust_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5838,7 +5636,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_accounts_patch_device_settings_for_the_zero_trust_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5935,7 +5732,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_accounts_delete_device_settings_for_zero_trust_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6007,273 +5803,6 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST /accounts/{account_id}/devices/unrevoke
-// -----------------------------------------------------------------------------
-
-/// POST /accounts/{account_id}/devices/unrevoke.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = devices_unrevoke_devices_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn devices_unrevoke_devices_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &DevicesUnrevokeDevicesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<TeamsDevicesApiResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/unrevoke",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: TeamsDevicesApiResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/devices/{device_id}
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/devices/{device_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = devices_device_details_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn devices_device_details_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &DevicesDeviceDetailsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<TeamsDevicesDeviceResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/{}",
-        args.account_id, args.device_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: TeamsDevicesDeviceResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/devices/{device_id}/override_codes
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/devices/{device_id}/override_codes.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = devices_list_admin_override_code_for_device_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn devices_list_admin_override_code_for_device_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &DevicesListAdminOverrideCodeForDeviceArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<TeamsDevicesOverrideCodesResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices/{}/override_codes",
-        args.account_id, args.device_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: TeamsDevicesOverrideCodesResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
 // GET /accounts/{account_id}/gateway
 // -----------------------------------------------------------------------------
 
@@ -6295,7 +5824,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_accounts_get_zero_trust_account_information_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6384,7 +5912,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_accounts_create_zero_trust_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6473,7 +6000,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_application_and_application_type_mappings_list_application_and_application_type_mappings_request<
     R,
@@ -6569,7 +6095,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_applications_review_status_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6662,7 +6187,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_applications_review_status_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6755,7 +6279,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_get_audit_ssh_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6848,7 +6371,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_update_audit_ssh_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6941,7 +6463,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_rotate_ssh_account_seed_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7034,7 +6555,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_categories_list_categories_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7127,7 +6647,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_certificates_list_zero_trust_certificates_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7219,7 +6738,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_certificates_create_zero_trust_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7312,7 +6830,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_certificates_zero_trust_certificate_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7401,7 +6918,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_certificates_delete_zero_trust_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7490,7 +7006,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_certificates_activate_zero_trust_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7579,7 +7094,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_certificates_deactivate_zero_trust_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7668,7 +7182,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_accounts_get_zero_trust_account_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7760,7 +7273,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_accounts_update_zero_trust_account_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7852,7 +7364,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_accounts_patch_zero_trust_account_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7923,98 +7434,6 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/gateway/configuration/custom_certificate
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/gateway/configuration/custom_certificate.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = zero_trust_accounts_get_zero_trust_certificate_configuration_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn zero_trust_accounts_get_zero_trust_certificate_configuration_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ZeroTrustAccountsGetZeroTrustCertificateConfigurationArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<ZeroTrustGatewayCustomCertificateSettings>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/gateway/configuration/custom_certificate",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ZeroTrustGatewayCustomCertificateSettings = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
 // GET /accounts/{account_id}/gateway/lists
 // -----------------------------------------------------------------------------
 
@@ -8036,7 +7455,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_lists_list_zero_trust_lists_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8128,7 +7546,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_lists_create_zero_trust_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8221,7 +7638,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_lists_zero_trust_list_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8313,7 +7729,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_lists_update_zero_trust_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8405,7 +7820,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_lists_patch_zero_trust_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8497,7 +7911,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_lists_delete_zero_trust_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8586,7 +7999,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_lists_zero_trust_list_items_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8679,7 +8091,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_locations_list_zero_trust_gateway_locations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8772,7 +8183,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_locations_create_zero_trust_gateway_location_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8864,7 +8274,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_locations_zero_trust_gateway_location_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8956,7 +8365,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_locations_update_zero_trust_gateway_location_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9048,7 +8456,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_locations_delete_zero_trust_gateway_location_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9137,7 +8544,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_accounts_get_logging_settings_for_the_zero_trust_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9230,7 +8636,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_accounts_update_logging_settings_for_the_zero_trust_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9327,7 +8732,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_pacfiles_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9420,7 +8824,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_pacfiles_create_pacfile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9513,7 +8916,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_pacfiles_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9606,7 +9008,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_pacfiles_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9699,7 +9100,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_pacfiles_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9788,7 +9188,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_proxy_endpoints_list_proxy_endpoints_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9881,7 +9280,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_proxy_endpoints_create_proxy_endpoint_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9974,7 +9372,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_proxy_endpoints_proxy_endpoint_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10067,7 +9464,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_proxy_endpoints_update_proxy_endpoint_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10160,7 +9556,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_proxy_endpoints_delete_proxy_endpoint_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10249,7 +9644,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_rules_list_zero_trust_gateway_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10342,7 +9736,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_rules_create_zero_trust_gateway_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10435,7 +9828,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_rules_list_zero_trust_gateway_rules_tenant_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10528,7 +9920,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_rules_zero_trust_gateway_rule_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10621,7 +10012,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_rules_update_zero_trust_gateway_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10714,7 +10104,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_rules_delete_zero_trust_gateway_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10803,7 +10192,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_gateway_rules_reset_expiration_zero_trust_gateway_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10896,7 +10284,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_networks_subnets_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10985,7 +10372,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_networks_subnet_update_cloudflare_source_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11074,7 +10460,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_risk_score_behaviors_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11111,7 +10496,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11159,7 +10544,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_risk_score_behaviors_put_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11200,7 +10584,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11248,7 +10632,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_zt_risk_score_integration_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11285,7 +10668,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11333,7 +10716,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_zt_risk_score_integration_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11374,7 +10756,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11422,7 +10804,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_zt_risk_score_integration_get_by_reference_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11460,7 +10841,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11508,7 +10889,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_zt_risk_score_integration_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11545,7 +10925,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11593,7 +10973,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_zt_risk_score_integration_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11634,7 +11013,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11682,7 +11061,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_zt_risk_score_integration_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11719,7 +11097,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11767,7 +11145,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_risk_score_summary_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11804,7 +11181,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

@@ -6,8 +6,14 @@
 //! Feature flag: `cloudflare_events `
 
 #![cfg(feature = "cloudflare_events")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -16,144 +22,144 @@ use serde::{Deserialize, Serialize};
 use super::shared::AaaIdResponse;
 use super::shared::ResourceTaggingTaggedResourceResponseSingle;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// AaaAlertsResponseCollection response type.
+/// `AaaAlertsResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaAlertsResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AaaComponentsSchemasResponseCollection response type.
+/// `AaaComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AaaHistoryComponentsSchemasResponseCollection response type.
+/// `AaaHistoryComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaHistoryComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AaaSchemasApiResponseCommon response type.
+/// `AaaSchemasApiResponseCommon` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaSchemasApiResponseCommon {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AaaSchemasResponseCollection response type.
+/// `AaaSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AaaSchemasSingleResponse response type.
+/// `AaaSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AaaSensitiveIdResponse response type.
+/// `AaaSensitiveIdResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaSensitiveIdResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AaaSilenceComponentsSchemasResponseCollection response type.
+/// `AaaSilenceComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaSilenceComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AaaSilenceCreateRequest response type.
+/// `AaaSilenceCreateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaSilenceCreateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AaaSilenceUpdateRequest response type.
+/// `AaaSilenceUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaSilenceUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AaaSilencesComponentsSchemasResponseCollection response type.
+/// `AaaSilencesComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaSilencesComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AaaWebhooksComponentsSchemasResponseCollection response type.
+/// `AaaWebhooksComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AaaWebhooksComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceTaggingDeleteTagsRequestAccountLevel response type.
+/// `ResourceTaggingDeleteTagsRequestAccountLevel` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingDeleteTagsRequestAccountLevel {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceTaggingSetTagsRequestAccountLevel response type.
+/// `ResourceTaggingSetTagsRequestAccountLevel` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingSetTagsRequestAccountLevel {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceTaggingTagKeysResponseCollection response type.
+/// `ResourceTaggingTagKeysResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTagKeysResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceTaggingTagValuesResponseCollection response type.
+/// `ResourceTaggingTagValuesResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTagValuesResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceTaggingTaggedResourceResponseCollection response type.
+/// `ResourceTaggingTaggedResourceResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -165,105 +171,105 @@ pub struct ResourceTaggingTaggedResourceResponseCollection {
 /// Arguments for [`notification-alert-types-get-alert-types_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationAlertTypesGetAlertTypesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-mechanism-eligibility-get-delivery-mechanism-eligibility_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationMechanismEligibilityGetDeliveryMechanismEligibilityArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-destinations-with-pager-duty-list-pager-duty-services_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationDestinationsWithPagerDutyListPagerDutyServicesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-destinations-with-pager-duty-delete-pager-duty-services_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationDestinationsWithPagerDutyDeletePagerDutyServicesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-destinations-with-pager-duty-connect-pager-duty_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationDestinationsWithPagerDutyConnectPagerDutyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-webhooks-list-webhooks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationWebhooksListWebhooksArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-webhooks-create-a-webhook_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationWebhooksCreateAWebhookArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-webhooks-get-a-webhook_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationWebhooksGetAWebhookArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: webhook_id
+    /// Path parameter: `webhook_id`.
     pub webhook_id: String,
 }
 
 /// Arguments for [`notification-webhooks-update-a-webhook_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationWebhooksUpdateAWebhookArgs {
-    /// Path parameter: webhook_id
+    /// Path parameter: `webhook_id`.
     pub webhook_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-webhooks-delete-a-webhook_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationWebhooksDeleteAWebhookArgs {
-    /// Path parameter: webhook_id
+    /// Path parameter: `webhook_id`.
     pub webhook_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-history-list-history_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationHistoryListHistoryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: before
+    /// Query parameter: `before`.
     pub before: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: since
+    /// Query parameter: `since`.
     pub since: Option<String>,
 }
 
 /// Arguments for [`notification-silences-list-silences_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationSilencesListSilencesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-silences-create-silences_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationSilencesCreateSilencesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<AaaSilenceCreateRequest>,
@@ -272,7 +278,7 @@ pub struct NotificationSilencesCreateSilencesArgs {
 /// Arguments for [`notification-silences-update-silences_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationSilencesUpdateSilencesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<AaaSilenceUpdateRequest>,
@@ -281,38 +287,38 @@ pub struct NotificationSilencesUpdateSilencesArgs {
 /// Arguments for [`notification-silences-get-silence_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationSilencesGetSilenceArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: silence_id
+    /// Path parameter: `silence_id`.
     pub silence_id: String,
 }
 
 /// Arguments for [`notification-silences-delete-silences_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationSilencesDeleteSilencesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: silence_id
+    /// Path parameter: `silence_id`.
     pub silence_id: String,
 }
 
 /// Arguments for [`tags-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TagsGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: resource_id
+    /// Query parameter: `resource_id`.
     pub resource_id: Option<String>,
-    /// Query parameter: resource_type
+    /// Query parameter: `resource_type`.
     pub resource_type: Option<String>,
-    /// Query parameter: worker_id
+    /// Query parameter: `worker_id`.
     pub worker_id: Option<String>,
 }
 
 /// Arguments for [`tags-set_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TagsSetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: ResourceTaggingSetTagsRequestAccountLevel,
@@ -321,7 +327,7 @@ pub struct TagsSetArgs {
 /// Arguments for [`tags-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TagsDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: ResourceTaggingDeleteTagsRequestAccountLevel,
@@ -330,38 +336,38 @@ pub struct TagsDeleteArgs {
 /// Arguments for [`tags-list-keys_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TagsListKeysArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`tags-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TagsListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: type
+    /// Query parameter: `type`.
     pub r#type: Option<String>,
 }
 
 /// Arguments for [`tags-list-values_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TagsListValuesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tag_key
+    /// Path parameter: `tag_key`.
     pub tag_key: String,
 }
 
 /// Arguments for [`wor-send-event-workflow-instance_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorSendEventWorkflowInstanceArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: instance_id
+    /// Path parameter: `instance_id`.
     pub instance_id: String,
-    /// Path parameter: event_type
+    /// Path parameter: `event_type`.
     pub event_type: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
@@ -391,7 +397,6 @@ pub struct WorSendEventWorkflowInstanceArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_alert_types_get_alert_types_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -480,7 +485,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_mechanism_eligibility_get_delivery_mechanism_eligibility_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -569,7 +573,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_destinations_with_pager_duty_list_pager_duty_services_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -661,7 +664,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_destinations_with_pager_duty_delete_pager_duty_services_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -750,7 +752,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_destinations_with_pager_duty_connect_pager_duty_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -839,7 +840,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_webhooks_list_webhooks_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -932,7 +932,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_webhooks_create_a_webhook_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1021,7 +1020,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_webhooks_get_a_webhook_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1110,7 +1108,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_webhooks_update_a_webhook_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1199,7 +1196,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_webhooks_delete_a_webhook_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1288,7 +1284,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_history_list_history_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1381,7 +1376,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_silences_list_silences_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1474,7 +1468,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_silences_create_silences_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1567,7 +1560,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_silences_update_silences_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1664,7 +1656,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_silences_get_silence_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1757,7 +1748,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_silences_delete_silences_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1846,7 +1836,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tags_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1939,7 +1928,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tags_set_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2036,7 +2024,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tags_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2077,7 +2064,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2125,7 +2112,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tags_list_keys_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2217,7 +2203,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tags_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2310,7 +2295,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tags_list_values_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2403,7 +2387,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_send_event_workflow_instance_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2440,7 +2423,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

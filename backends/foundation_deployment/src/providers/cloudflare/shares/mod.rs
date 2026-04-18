@@ -6,8 +6,14 @@
 //! Feature flag: `cloudflare_shares `
 
 #![cfg(feature = "cloudflare_shares")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -15,88 +21,88 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::ResourceSharingShareResponseCollection;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// ResourceSharingCreateShareRecipientRequest response type.
+/// `ResourceSharingCreateShareRecipientRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingCreateShareRecipientRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceSharingCreateShareRequest response type.
+/// `ResourceSharingCreateShareRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingCreateShareRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceSharingCreateShareResourceRequest response type.
+/// `ResourceSharingCreateShareResourceRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingCreateShareResourceRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceSharingShareRecipientResponseCollection response type.
+/// `ResourceSharingShareRecipientResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingShareRecipientResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceSharingShareRecipientResponseSingle response type.
+/// `ResourceSharingShareRecipientResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingShareRecipientResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceSharingShareResourceResponseCollection response type.
+/// `ResourceSharingShareResourceResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingShareResourceResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceSharingShareResourceResponseSingle response type.
+/// `ResourceSharingShareResourceResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingShareResourceResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceSharingShareResponseSingle response type.
+/// `ResourceSharingShareResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingShareResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceSharingUpdateShareRequest response type.
+/// `ResourceSharingUpdateShareRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingUpdateShareRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceSharingUpdateShareResourceRequest response type.
+/// `ResourceSharingUpdateShareResourceRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSharingUpdateShareResourceRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -108,14 +114,14 @@ pub struct ResourceSharingUpdateShareResourceRequest {
 /// Arguments for [`shares-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SharesListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`share-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ShareCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: ResourceSharingCreateShareRequest,
@@ -124,18 +130,18 @@ pub struct ShareCreateArgs {
 /// Arguments for [`shares-get-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SharesGetByIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: share_id
+    /// Path parameter: `share_id`.
     pub share_id: String,
 }
 
 /// Arguments for [`share-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ShareUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: share_id
+    /// Path parameter: `share_id`.
     pub share_id: String,
     /// Request body.
     pub body: ResourceSharingUpdateShareRequest,
@@ -144,27 +150,27 @@ pub struct ShareUpdateArgs {
 /// Arguments for [`share-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ShareDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: share_id
+    /// Path parameter: `share_id`.
     pub share_id: String,
 }
 
 /// Arguments for [`share-recipients-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ShareRecipientsListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: share_id
+    /// Path parameter: `share_id`.
     pub share_id: String,
 }
 
 /// Arguments for [`share-recipient-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ShareRecipientCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: share_id
+    /// Path parameter: `share_id`.
     pub share_id: String,
     /// Request body.
     pub body: ResourceSharingCreateShareRecipientRequest,
@@ -173,9 +179,9 @@ pub struct ShareRecipientCreateArgs {
 /// Arguments for [`share-recipients-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ShareRecipientsUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: share_id
+    /// Path parameter: `share_id`.
     pub share_id: String,
     /// Request body.
     pub body: Vec<ResourceSharingCreateShareRecipientRequest>,
@@ -184,40 +190,40 @@ pub struct ShareRecipientsUpdateArgs {
 /// Arguments for [`share-recipients-get-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ShareRecipientsGetByIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: share_id
+    /// Path parameter: `share_id`.
     pub share_id: String,
-    /// Path parameter: recipient_id
+    /// Path parameter: `recipient_id`.
     pub recipient_id: String,
 }
 
 /// Arguments for [`share-recipient-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ShareRecipientDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: share_id
+    /// Path parameter: `share_id`.
     pub share_id: String,
-    /// Path parameter: recipient_id
+    /// Path parameter: `recipient_id`.
     pub recipient_id: String,
 }
 
 /// Arguments for [`share-resources-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ShareResourcesListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: share_id
+    /// Path parameter: `share_id`.
     pub share_id: String,
 }
 
 /// Arguments for [`share-resource-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ShareResourceCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: share_id
+    /// Path parameter: `share_id`.
     pub share_id: String,
     /// Request body.
     pub body: ResourceSharingCreateShareResourceRequest,
@@ -226,22 +232,22 @@ pub struct ShareResourceCreateArgs {
 /// Arguments for [`share-resources-get-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ShareResourcesGetByIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: share_id
+    /// Path parameter: `share_id`.
     pub share_id: String,
-    /// Path parameter: resource_id
+    /// Path parameter: `resource_id`.
     pub resource_id: String,
 }
 
 /// Arguments for [`share-resource-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ShareResourceUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: share_id
+    /// Path parameter: `share_id`.
     pub share_id: String,
-    /// Path parameter: resource_id
+    /// Path parameter: `resource_id`.
     pub resource_id: String,
     /// Request body.
     pub body: ResourceSharingUpdateShareResourceRequest,
@@ -250,11 +256,11 @@ pub struct ShareResourceUpdateArgs {
 /// Arguments for [`share-resource-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ShareResourceDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: share_id
+    /// Path parameter: `share_id`.
     pub share_id: String,
-    /// Path parameter: resource_id
+    /// Path parameter: `resource_id`.
     pub resource_id: String,
 }
 
@@ -284,7 +290,6 @@ pub struct ShareResourceDeleteArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn shares_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -376,7 +381,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn share_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -472,7 +476,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn shares_get_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -564,7 +567,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn share_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -660,7 +662,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn share_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -752,7 +753,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn share_recipients_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -845,7 +845,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn share_recipient_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -942,7 +941,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn share_recipients_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -983,7 +981,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1031,7 +1029,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn share_recipients_get_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1124,7 +1121,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn share_recipient_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1217,7 +1213,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn share_resources_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1310,7 +1305,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn share_resource_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1407,7 +1401,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn share_resources_get_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1500,7 +1493,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn share_resource_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1597,7 +1589,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn share_resource_delete_request<R, F>(
     client: &SimpleHttpClient<R>,

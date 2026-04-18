@@ -6,8 +6,14 @@
 //! Feature flag: `cloudflare_accounts `
 
 #![cfg(feature = "cloudflare_accounts")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -15,88 +21,80 @@ use serde::{Deserialize, Serialize};
 // Import shared types used by this module
 use super::shared::IamApiResponseSingleId;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// IamComponentsSchemasAccount response type.
+/// `IamComponentsSchemasAccount` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamComponentsSchemasAccount {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// IamCreateAccount response type.
+/// `IamCreateAccount` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamCreateAccount {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// IamResponseCollectionAccounts response type.
+/// `IamResponseCollectionAccounts` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamResponseCollectionAccounts {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// IamResponseSingleAccount response type.
+/// `IamResponseSingleAccount` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamResponseSingleAccount {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicVisibilityPcapsPcapsCollectionResponse response type.
+/// `MagicVisibilityPcapsPcapsCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityPcapsPcapsCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicVisibilityPcapsPcapsRequestPcap response type.
+/// `MagicVisibilityPcapsPcapsRequestPcap` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityPcapsPcapsRequestPcap {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicVisibilityPcapsPcapsSingleResponse response type.
+/// `MagicVisibilityPcapsPcapsSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicVisibilityPcapsPcapsSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StringType response type.
+/// `StringType` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StringType {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesDevicesResponse response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesDevicesResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// TunnelTunnelResponseCollection response type.
+/// `TunnelTunnelResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTunnelResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -108,13 +106,13 @@ pub struct TunnelTunnelResponseCollection {
 /// Arguments for [`accounts-list-accounts_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountsListAccountsArgs {
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
@@ -128,14 +126,14 @@ pub struct AccountCreationArgs {
 /// Arguments for [`accounts-account-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountsAccountDetailsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`accounts-update-account_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountsUpdateAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: IamComponentsSchemasAccount,
@@ -144,28 +142,21 @@ pub struct AccountsUpdateAccountArgs {
 /// Arguments for [`account-deletion_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountDeletionArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
-/// Arguments for [`devices-list-devices_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DevicesListDevicesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-pcap-collection-list-packet-capture-requests_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicPcapCollectionListPacketCaptureRequestsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-pcap-collection-create-pcap-request_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicPcapCollectionCreatePcapRequestArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicVisibilityPcapsPcapsRequestPcap,
@@ -174,139 +165,139 @@ pub struct MagicPcapCollectionCreatePcapRequestArgs {
 /// Arguments for [`magic-pcap-collection-get-pcap-request_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicPcapCollectionGetPcapRequestArgs {
-    /// Path parameter: pcap_id
+    /// Path parameter: `pcap_id`.
     pub pcap_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-pcap-collection-download-simple-pcap_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicPcapCollectionDownloadSimplePcapArgs {
-    /// Path parameter: pcap_id
+    /// Path parameter: `pcap_id`.
     pub pcap_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-pcap-collection-stop-full-pcap_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicPcapCollectionStopFullPcapArgs {
-    /// Path parameter: pcap_id
+    /// Path parameter: `pcap_id`.
     pub pcap_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-list-all-tunnels_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelListAllTunnelsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: is_deleted
+    /// Query parameter: `is_deleted`.
     pub is_deleted: Option<String>,
-    /// Query parameter: existed_at
+    /// Query parameter: `existed_at`.
     pub existed_at: Option<String>,
-    /// Query parameter: uuid
+    /// Query parameter: `uuid`.
     pub uuid: Option<String>,
-    /// Query parameter: was_active_at
+    /// Query parameter: `was_active_at`.
     pub was_active_at: Option<String>,
-    /// Query parameter: was_inactive_at
+    /// Query parameter: `was_inactive_at`.
     pub was_inactive_at: Option<String>,
-    /// Query parameter: include_prefix
+    /// Query parameter: `include_prefix`.
     pub include_prefix: Option<String>,
-    /// Query parameter: exclude_prefix
+    /// Query parameter: `exclude_prefix`.
     pub exclude_prefix: Option<String>,
-    /// Query parameter: tun_types
+    /// Query parameter: `tun_types`.
     pub tun_types: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
 }
 
 /// Arguments for [`wor-list-workflows_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorListWorkflowsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
 }
 
 /// Arguments for [`wor-get-workflow-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorGetWorkflowDetailsArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`wor-create-or-modify-workflow_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorCreateOrModifyWorkflowArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`wor-delete-workflow_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorDeleteWorkflowArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`wor-list-workflow-instances_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorListWorkflowInstancesArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: date_start
+    /// Query parameter: `date_start`.
     pub date_start: Option<String>,
-    /// Query parameter: date_end
+    /// Query parameter: `date_end`.
     pub date_end: Option<String>,
 }
 
 /// Arguments for [`wor-create-new-workflow-instance_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorCreateNewWorkflowInstanceArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`wor-batch-create-workflow-instance_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorBatchCreateWorkflowInstanceArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<serde_json::Value>,
@@ -315,9 +306,9 @@ pub struct WorBatchCreateWorkflowInstanceArgs {
 /// Arguments for [`wor-batch-terminate-workflow-instances_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorBatchTerminateWorkflowInstancesArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<String>,
@@ -326,81 +317,81 @@ pub struct WorBatchTerminateWorkflowInstancesArgs {
 /// Arguments for [`wor-status-terminate-workflow-instances_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorStatusTerminateWorkflowInstancesArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`wor-describe-workflow-instance_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorDescribeWorkflowInstanceArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: instance_id
+    /// Path parameter: `instance_id`.
     pub instance_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: simple
+    /// Query parameter: `simple`.
     pub simple: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
 }
 
 /// Arguments for [`wor-change-status-workflow-instance_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorChangeStatusWorkflowInstanceArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: instance_id
+    /// Path parameter: `instance_id`.
     pub instance_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`wor-list-workflow-versions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorListWorkflowVersionsArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
 }
 
 /// Arguments for [`wor-describe-workflow-versions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorDescribeWorkflowVersionsArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: version_id
+    /// Path parameter: `version_id`.
     pub version_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`wor-describe-workflow-versions-dag_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorDescribeWorkflowVersionsDagArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: version_id
+    /// Path parameter: `version_id`.
     pub version_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`wor-describe-workflow-versions-graph_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorDescribeWorkflowVersionsGraphArgs {
-    /// Path parameter: workflow_name
+    /// Path parameter: `workflow_name`.
     pub workflow_name: String,
-    /// Path parameter: version_id
+    /// Path parameter: `version_id`.
     pub version_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
@@ -420,7 +411,6 @@ pub struct WorDescribeWorkflowVersionsGraphArgs {
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -430,11 +420,9 @@ pub struct WorDescribeWorkflowVersionsGraphArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn accounts_list_accounts_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &AccountsListAccountsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -516,7 +504,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_creation_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -606,7 +593,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn accounts_account_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -695,7 +681,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn accounts_update_account_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -788,7 +773,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_deletion_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -856,95 +840,6 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/devices
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/devices.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = devices_list_devices_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn devices_list_devices_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &DevicesListDevicesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<TeamsDevicesDevicesResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/devices",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: TeamsDevicesDevicesResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
 // GET /accounts/{account_id}/pcaps
 // -----------------------------------------------------------------------------
 
@@ -966,7 +861,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_pcap_collection_list_packet_capture_requests_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1059,7 +953,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_pcap_collection_create_pcap_request_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1156,7 +1049,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_pcap_collection_get_pcap_request_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1249,7 +1141,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_pcap_collection_download_simple_pcap_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1286,7 +1177,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1334,7 +1225,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_pcap_collection_stop_full_pcap_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1371,7 +1261,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1419,7 +1309,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_list_all_tunnels_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1508,7 +1397,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_list_workflows_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1545,7 +1433,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1593,7 +1481,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_get_workflow_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1630,7 +1517,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1678,7 +1565,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_create_or_modify_workflow_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1715,7 +1601,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1763,7 +1649,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_delete_workflow_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1800,7 +1685,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1848,7 +1733,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_list_workflow_instances_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1885,7 +1769,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1933,7 +1817,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_create_new_workflow_instance_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1970,7 +1853,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2018,7 +1901,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_batch_create_workflow_instance_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2059,7 +1941,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2107,7 +1989,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_batch_terminate_workflow_instances_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2148,7 +2029,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2196,7 +2077,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_status_terminate_workflow_instances_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2233,7 +2113,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2281,7 +2161,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_describe_workflow_instance_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2318,7 +2197,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2366,7 +2245,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_change_status_workflow_instance_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2403,7 +2281,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2451,7 +2329,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_list_workflow_versions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2488,7 +2365,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2536,7 +2413,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_describe_workflow_versions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2573,7 +2449,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2621,7 +2497,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_describe_workflow_versions_dag_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2658,7 +2533,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2706,7 +2581,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn wor_describe_workflow_versions_graph_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2743,7 +2617,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

@@ -34,7 +34,7 @@ impl EndpointExtractor {
 
     /// Extract all endpoints from the spec.
     /// Handles both `OpenAPI` 3.x and GCP Discovery formats.
-    #[must_use] 
+    #[must_use]
     pub fn extract_all(&self) -> Vec<EndpointInfo> {
         let mut endpoints = Vec::new();
 
@@ -44,9 +44,12 @@ impl EndpointExtractor {
         // Try GCP Discovery resources
         endpoints.extend(self.extract_from_resources());
 
-        // Deduplicate by operation_id + method
+        // Deduplicate by operation_id + method and filter out deprecated
         let mut seen = HashSet::new();
         endpoints.retain(|e| {
+            if e.deprecated {
+                return false; // Filter out deprecated endpoints
+            }
             let key = format!("{}:{}", e.operation_id, e.method);
             seen.insert(key)
         });
@@ -165,6 +168,7 @@ impl EndpointExtractor {
             base_url: base_url.map(str::to_string),
             summary: operation.summary.clone(),
             operation_type: OperationType::Read, // Temporary, will be classified below
+            deprecated: operation.deprecated,
         };
 
         // Classify the operation type
@@ -324,6 +328,7 @@ impl EndpointExtractor {
             base_url: base_url.map(str::to_string),
             summary: method.description.clone(),
             operation_type: OperationType::Read, // Temporary, will be classified below
+            deprecated: false, // GCP methods don't have a deprecated field
         };
 
         // Classify the operation type

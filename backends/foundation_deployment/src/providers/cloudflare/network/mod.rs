@@ -6,8 +6,14 @@
 //! Feature flag: `cloudflare_network `
 
 #![cfg(feature = "cloudflare_network")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -16,584 +22,576 @@ use serde::{Deserialize, Serialize};
 use super::shared::AddressingApiResponseCommon;
 use super::shared::TunnelSubnetResponseSingle;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// AddressingAdvertisedResponse response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddressingAdvertisedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// AddressingBgpPrefixCreate response type.
+/// `AddressingBgpPrefixCreate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingBgpPrefixCreate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AddressingBgpPrefixUpdateAdvertisement response type.
+/// `AddressingBgpPrefixUpdateAdvertisement` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingBgpPrefixUpdateAdvertisement {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AddressingResponseCollectionBgp response type.
+/// `AddressingResponseCollectionBgp` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingResponseCollectionBgp {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AddressingSingleResponseBgp response type.
+/// `AddressingSingleResponseBgp` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressingSingleResponseBgp {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DigitalExperienceMonitoringCreateRuleBody response type.
+/// `DigitalExperienceMonitoringCreateRuleBody` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringCreateRuleBody {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DigitalExperienceMonitoringDevice response type.
+/// `DigitalExperienceMonitoringDevice` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringDevice {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DigitalExperienceMonitoringDeviceDexTestSchemasHttp response type.
+/// `DigitalExperienceMonitoringDeviceDexTestSchemasHttp` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringDeviceDexTestSchemasHttp {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DigitalExperienceMonitoringDexDeleteResponseCollection response type.
+/// `DigitalExperienceMonitoringDexDeleteResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringDexDeleteResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DigitalExperienceMonitoringDexResponseCollection response type.
+/// `DigitalExperienceMonitoringDexResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringDexResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DigitalExperienceMonitoringDexSingleResponse response type.
+/// `DigitalExperienceMonitoringDexSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringDexSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DigitalExperienceMonitoringFleetStatusDevicesResponse response type.
+/// `DigitalExperienceMonitoringFleetStatusDevicesResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringFleetStatusDevicesResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DigitalExperienceMonitoringFleetStatusLiveResponse response type.
+/// `DigitalExperienceMonitoringFleetStatusLiveResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringFleetStatusLiveResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DigitalExperienceMonitoringFleetStatusOverTimeResponse response type.
+/// `DigitalExperienceMonitoringFleetStatusOverTimeResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringFleetStatusOverTimeResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DigitalExperienceMonitoringPatchRuleBody response type.
+/// `DigitalExperienceMonitoringPatchRuleBody` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DigitalExperienceMonitoringPatchRuleBody {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// InfraServiceConfig response type.
+/// `InfraServiceConfig` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InfraServiceConfig {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicComponentsSchemasModifiedTunnelsCollectionResponse response type.
+/// `MagicComponentsSchemasModifiedTunnelsCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicComponentsSchemasModifiedTunnelsCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicComponentsSchemasTunnelModifiedResponse response type.
+/// `MagicComponentsSchemasTunnelModifiedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicComponentsSchemasTunnelModifiedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicComponentsSchemasTunnelSingleResponse response type.
+/// `MagicComponentsSchemasTunnelSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicComponentsSchemasTunnelSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicComponentsSchemasTunnelsCollectionResponse response type.
+/// `MagicComponentsSchemasTunnelsCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicComponentsSchemasTunnelsCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicCreateGreTunnelRequest response type.
+/// `MagicCreateGreTunnelRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicCreateGreTunnelRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicCreateGreTunnelResponse response type.
+/// `MagicCreateGreTunnelResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicCreateGreTunnelResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicGreTunnelUpdateRequest response type.
+/// `MagicGreTunnelUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicGreTunnelUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicInterconnectTunnelUpdateRequest response type.
+/// `MagicInterconnectTunnelUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicInterconnectTunnelUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicIpsecTunnelAddRequest response type.
+/// `MagicIpsecTunnelAddRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicIpsecTunnelAddRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicIpsecTunnelAddSingleRequest response type.
+/// `MagicIpsecTunnelAddSingleRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicIpsecTunnelAddSingleRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicModifiedTunnelsCollectionResponse response type.
+/// `MagicModifiedTunnelsCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicModifiedTunnelsCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicPskGenerationResponse response type.
+/// `MagicPskGenerationResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicPskGenerationResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicSchemasCreateIpsecTunnelResponse response type.
+/// `MagicSchemasCreateIpsecTunnelResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicSchemasCreateIpsecTunnelResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicSchemasModifiedTunnelsCollectionResponse response type.
+/// `MagicSchemasModifiedTunnelsCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicSchemasModifiedTunnelsCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicSchemasTunnelDeletedResponse response type.
+/// `MagicSchemasTunnelDeletedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicSchemasTunnelDeletedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicSchemasTunnelModifiedResponse response type.
+/// `MagicSchemasTunnelModifiedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicSchemasTunnelModifiedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicSchemasTunnelSingleResponse response type.
+/// `MagicSchemasTunnelSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicSchemasTunnelSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicSchemasTunnelsCollectionResponse response type.
+/// `MagicSchemasTunnelsCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicSchemasTunnelsCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicTunnelDeletedResponse response type.
+/// `MagicTunnelDeletedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicTunnelDeletedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicTunnelModifiedResponse response type.
+/// `MagicTunnelModifiedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicTunnelModifiedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicTunnelSingleResponse response type.
+/// `MagicTunnelSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicTunnelSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MagicTunnelsCollectionResponse response type.
+/// `MagicTunnelsCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicTunnelsCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// NscCni response type.
+/// `NscCni` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NscCni {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// NscCniCreate response type.
+/// `NscCniCreate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NscCniCreate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// NscCniList response type.
+/// `NscCniList` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NscCniList {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// NscInterconnect response type.
+/// `NscInterconnect` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NscInterconnect {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// NscInterconnectCreate response type.
+/// `NscInterconnectCreate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NscInterconnectCreate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// NscInterconnectList response type.
+/// `NscInterconnectList` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NscInterconnectList {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// NscSettings response type.
+/// `NscSettings` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NscSettings {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// NscSettingsRequest response type.
+/// `NscSettingsRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NscSettingsRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// NscSlotInfo response type.
+/// `NscSlotInfo` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NscSlotInfo {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// NscSlotList response type.
+/// `NscSlotList` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NscSlotList {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// NscStatusInfo response type.
+/// `NscStatusInfo` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NscStatusInfo {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// R2SlurperR2TargetSchema response type.
+/// `R2SlurperR2TargetSchema` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2SlurperR2TargetSchema {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// R2SlurperSourceJobSchema response type.
+/// `R2SlurperSourceJobSchema` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2SlurperSourceJobSchema {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SpectrumAnalyticsQueryResponseAggregate response type.
+/// `SpectrumAnalyticsQueryResponseAggregate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpectrumAnalyticsQueryResponseAggregate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesGlobalWarpOverrideRequest response type.
+/// `TeamsDevicesGlobalWarpOverrideRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesGlobalWarpOverrideRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesGlobalWarpOverrideResponse response type.
+/// `TeamsDevicesGlobalWarpOverrideResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesGlobalWarpOverrideResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelCfdTunnelResponseCollection response type.
+/// `TunnelCfdTunnelResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelCfdTunnelResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelCfdTunnelResponseSingle response type.
+/// `TunnelCfdTunnelResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelCfdTunnelResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelConfigurationResponse response type.
+/// `TunnelConfigurationResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelConfigurationResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelEmptyResponse response type.
+/// `TunnelEmptyResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelEmptyResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelRouteResponseSingle response type.
+/// `TunnelRouteResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelRouteResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelSubnetResponseSingleNullable response type.
+/// `TunnelSubnetResponseSingleNullable` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelSubnetResponseSingleNullable {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelTeamnetResponseCollection response type.
+/// `TunnelTeamnetResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTeamnetResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelTeamnetResponseSingle response type.
+/// `TunnelTeamnetResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTeamnetResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelTunnelClientResponse response type.
+/// `TunnelTunnelClientResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTunnelClientResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelTunnelConnectionsResponse response type.
+/// `TunnelTunnelConnectionsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTunnelConnectionsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelTunnelResponseToken response type.
+/// `TunnelTunnelResponseToken` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTunnelResponseToken {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelTunnelWarpConnectorClientResponse response type.
+/// `TunnelTunnelWarpConnectorClientResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTunnelWarpConnectorClientResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelTunnelWarpConnectorConnectionsResponse response type.
+/// `TunnelTunnelWarpConnectorConnectionsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelTunnelWarpConnectorConnectionsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelVnetResponseCollection response type.
+/// `TunnelVnetResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelVnetResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelVnetResponseSingle response type.
+/// `TunnelVnetResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelVnetResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelWarpConnectorResponseCollection response type.
+/// `TunnelWarpConnectorResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelWarpConnectorResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelWarpConnectorResponseSingle response type.
+/// `TunnelWarpConnectorResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelWarpConnectorResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TunnelZeroTrustConnectivitySettingsResponse response type.
+/// `TunnelZeroTrustConnectivitySettingsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TunnelZeroTrustConnectivitySettingsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -605,18 +603,18 @@ pub struct TunnelZeroTrustConnectivitySettingsResponse {
 /// Arguments for [`ip-address-management-prefixes-list-bgp-prefixes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixesListBgpPrefixesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
 }
 
 /// Arguments for [`ip-address-management-prefixes-create-bgp-prefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixesCreateBgpPrefixArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
     /// Request body.
     pub body: AddressingBgpPrefixCreate,
@@ -625,22 +623,22 @@ pub struct IpAddressManagementPrefixesCreateBgpPrefixArgs {
 /// Arguments for [`ip-address-management-prefixes-fetch-bgp-prefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixesFetchBgpPrefixArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
-    /// Path parameter: bgp_prefix_id
+    /// Path parameter: `bgp_prefix_id`.
     pub bgp_prefix_id: String,
 }
 
 /// Arguments for [`ip-address-management-prefixes-update-bgp-prefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixesUpdateBgpPrefixArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
-    /// Path parameter: bgp_prefix_id
+    /// Path parameter: `bgp_prefix_id`.
     pub bgp_prefix_id: String,
     /// Request body.
     pub body: AddressingBgpPrefixUpdateAdvertisement,
@@ -649,200 +647,182 @@ pub struct IpAddressManagementPrefixesUpdateBgpPrefixArgs {
 /// Arguments for [`ip-address-management-prefixes-delete-bgp-prefix_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementPrefixesDeleteBgpPrefixArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: prefix_id
+    /// Path parameter: `prefix_id`.
     pub prefix_id: String,
-    /// Path parameter: bgp_prefix_id
+    /// Path parameter: `bgp_prefix_id`.
     pub bgp_prefix_id: String,
-}
-
-/// Arguments for [`ip-address-management-dynamic-advertisement-get-advertisement-status_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IpAddressManagementDynamicAdvertisementGetAdvertisementStatusArgs {
-    /// Path parameter: prefix_id
-    pub prefix_id: String,
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
-/// Arguments for [`ip-address-management-dynamic-advertisement-update-prefix-dynamic-advertisement-status_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IpAddressManagementDynamicAdvertisementUpdatePrefixDynamicAdvertisementStatusArgs {
-    /// Path parameter: prefix_id
-    pub prefix_id: String,
-    /// Path parameter: account_id
-    pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-list-cloudflare-tunnels_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelListCloudflareTunnelsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: is_deleted
+    /// Query parameter: `is_deleted`.
     pub is_deleted: Option<String>,
-    /// Query parameter: existed_at
+    /// Query parameter: `existed_at`.
     pub existed_at: Option<String>,
-    /// Query parameter: uuid
+    /// Query parameter: `uuid`.
     pub uuid: Option<String>,
-    /// Query parameter: was_active_at
+    /// Query parameter: `was_active_at`.
     pub was_active_at: Option<String>,
-    /// Query parameter: was_inactive_at
+    /// Query parameter: `was_inactive_at`.
     pub was_inactive_at: Option<String>,
-    /// Query parameter: include_prefix
+    /// Query parameter: `include_prefix`.
     pub include_prefix: Option<String>,
-    /// Query parameter: exclude_prefix
+    /// Query parameter: `exclude_prefix`.
     pub exclude_prefix: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
 }
 
 /// Arguments for [`cloudflare-tunnel-create-a-cloudflare-tunnel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelCreateACloudflareTunnelArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-get-a-cloudflare-tunnel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelGetACloudflareTunnelArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-update-a-cloudflare-tunnel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelUpdateACloudflareTunnelArgs {
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-delete-a-cloudflare-tunnel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelDeleteACloudflareTunnelArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-configuration-get-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelConfigurationGetConfigurationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-configuration-put-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelConfigurationPutConfigurationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-list-cloudflare-tunnel-connections_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelListCloudflareTunnelConnectionsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-clean-up-cloudflare-tunnel-connections_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelCleanUpCloudflareTunnelConnectionsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
-    /// Query parameter: client_id
+    /// Query parameter: `client_id`.
     pub client_id: Option<String>,
 }
 
 /// Arguments for [`cloudflare-tunnel-get-cloudflare-tunnel-connector_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelGetCloudflareTunnelConnectorArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
-    /// Path parameter: connector_id
+    /// Path parameter: `connector_id`.
     pub connector_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-get-a-cloudflare-tunnel-management-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelGetACloudflareTunnelManagementTokenArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-get-a-cloudflare-tunnel-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelGetACloudflareTunnelTokenArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
 }
 
 /// Arguments for [`get_EventAggregate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEventAggregateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: aggregateBy
-    pub aggregateBy: Option<String>,
-    /// Query parameter: datasetId
-    pub datasetId: Option<String>,
-    /// Query parameter: startDate
-    pub startDate: Option<String>,
-    /// Query parameter: endDate
-    pub endDate: Option<String>,
-    /// Query parameter: groupByDate
-    pub groupByDate: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `aggregateBy`.
+    pub aggregate_by: Option<String>,
+    /// Query parameter: `datasetId`.
+    pub dataset_id: Option<String>,
+    /// Query parameter: `startDate`.
+    pub start_date: Option<String>,
+    /// Query parameter: `endDate`.
+    pub end_date: Option<String>,
+    /// Query parameter: `groupByDate`.
+    pub group_by_date: Option<String>,
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
 }
 
 /// Arguments for [`list_cnis_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListCnisArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: slot
+    /// Query parameter: `slot`.
     pub slot: Option<String>,
-    /// Query parameter: tunnel_id
+    /// Query parameter: `tunnel_id`.
     pub tunnel_id: Option<String>,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
 }
 
 /// Arguments for [`create_cni_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateCniArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: NscCniCreate,
@@ -851,18 +831,18 @@ pub struct CreateCniArgs {
 /// Arguments for [`get_cni_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCniArgs {
-    /// Path parameter: cni
+    /// Path parameter: `cni`.
     pub cni: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`update_cni_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateCniArgs {
-    /// Path parameter: cni
+    /// Path parameter: `cni`.
     pub cni: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: NscCni,
@@ -871,31 +851,31 @@ pub struct UpdateCniArgs {
 /// Arguments for [`delete_cni_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteCniArgs {
-    /// Path parameter: cni
+    /// Path parameter: `cni`.
     pub cni: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`list_interconnects_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListInterconnectsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: site
+    /// Query parameter: `site`.
     pub site: Option<String>,
-    /// Query parameter: type
+    /// Query parameter: `type`.
     pub r#type: Option<String>,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
 }
 
 /// Arguments for [`create_interconnect_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateInterconnectArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: NscInterconnectCreate,
@@ -904,50 +884,50 @@ pub struct CreateInterconnectArgs {
 /// Arguments for [`get_interconnect_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetInterconnectArgs {
-    /// Path parameter: icon
+    /// Path parameter: `icon`.
     pub icon: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`delete_interconnect_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteInterconnectArgs {
-    /// Path parameter: icon
+    /// Path parameter: `icon`.
     pub icon: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_interconnect_loa_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetInterconnectLoaArgs {
-    /// Path parameter: icon
+    /// Path parameter: `icon`.
     pub icon: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_interconnect_status_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetInterconnectStatusArgs {
-    /// Path parameter: icon
+    /// Path parameter: `icon`.
     pub icon: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSettingsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`update_settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateSettingsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: NscSettingsRequest,
@@ -956,48 +936,48 @@ pub struct UpdateSettingsArgs {
 /// Arguments for [`list_slots_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListSlotsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: address_contains
+    /// Query parameter: `address_contains`.
     pub address_contains: Option<String>,
-    /// Query parameter: site
+    /// Query parameter: `site`.
     pub site: Option<String>,
-    /// Query parameter: speed
+    /// Query parameter: `speed`.
     pub speed: Option<String>,
-    /// Query parameter: occupied
+    /// Query parameter: `occupied`.
     pub occupied: Option<String>,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
 }
 
 /// Arguments for [`get_slot_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSlotArgs {
-    /// Path parameter: slot
+    /// Path parameter: `slot`.
     pub slot: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`connectivity-services-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ConnectivityServicesListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: type
+    /// Query parameter: `type`.
     pub r#type: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`connectivity-services-post_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ConnectivityServicesPostArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: InfraServiceConfig,
@@ -1006,18 +986,18 @@ pub struct ConnectivityServicesPostArgs {
 /// Arguments for [`connectivity-services-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ConnectivityServicesGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: service_id
+    /// Path parameter: `service_id`.
     pub service_id: String,
 }
 
 /// Arguments for [`connectivity-services-put_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ConnectivityServicesPutArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: service_id
+    /// Path parameter: `service_id`.
     pub service_id: String,
     /// Request body.
     pub body: InfraServiceConfig,
@@ -1026,23 +1006,23 @@ pub struct ConnectivityServicesPutArgs {
 /// Arguments for [`connectivity-services-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ConnectivityServicesDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: service_id
+    /// Path parameter: `service_id`.
     pub service_id: String,
 }
 
 /// Arguments for [`devices-resilience-retrieve-global-warp-override_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesResilienceRetrieveGlobalWarpOverrideArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-resilience-set-global-warp-override_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesResilienceSetGlobalWarpOverrideArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: TeamsDevicesGlobalWarpOverrideRequest,
@@ -1051,96 +1031,96 @@ pub struct DevicesResilienceSetGlobalWarpOverrideArgs {
 /// Arguments for [`dex-endpoints-list-colos_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DexEndpointsListColosArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: from
+    /// Query parameter: `from`.
     pub from: Option<String>,
-    /// Query parameter: to
+    /// Query parameter: `to`.
     pub to: Option<String>,
-    /// Query parameter: sortBy
-    pub sortBy: Option<String>,
+    /// Query parameter: `sortBy`.
+    pub sort_by: Option<String>,
 }
 
 /// Arguments for [`get-commands_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCommandsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: from
+    /// Query parameter: `from`.
     pub from: Option<String>,
-    /// Query parameter: to
+    /// Query parameter: `to`.
     pub to: Option<String>,
-    /// Query parameter: device_id
+    /// Query parameter: `device_id`.
     pub device_id: Option<String>,
-    /// Query parameter: user_email
+    /// Query parameter: `user_email`.
     pub user_email: Option<String>,
-    /// Query parameter: command_type
+    /// Query parameter: `command_type`.
     pub command_type: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
 }
 
 /// Arguments for [`post-commands_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostCommandsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get-commands-eligible-devices_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCommandsEligibleDevicesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
 }
 
 /// Arguments for [`get-commands-quota_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCommandsQuotaArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get-commands-command-id-downloads-filename_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCommandsCommandIdDownloadsFilenameArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: command_id
+    /// Path parameter: `command_id`.
     pub command_id: String,
-    /// Path parameter: filename
+    /// Path parameter: `filename`.
     pub filename: String,
 }
 
 /// Arguments for [`device-dex-test-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeviceDexTestDetailsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: testName
-    pub testName: Option<String>,
-    /// Query parameter: kind
+    /// Query parameter: `testName`.
+    pub test_name: Option<String>,
+    /// Query parameter: `kind`.
     pub kind: Option<String>,
 }
 
 /// Arguments for [`device-dex-test-create-device-dex-test_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeviceDexTestCreateDeviceDexTestArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DigitalExperienceMonitoringDeviceDexTestSchemasHttp,
@@ -1149,18 +1129,18 @@ pub struct DeviceDexTestCreateDeviceDexTestArgs {
 /// Arguments for [`device-dex-test-get-device-dex-test_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeviceDexTestGetDeviceDexTestArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dex_test_id
+    /// Path parameter: `dex_test_id`.
     pub dex_test_id: String,
 }
 
 /// Arguments for [`device-dex-test-update-device-dex-test_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeviceDexTestUpdateDeviceDexTestArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dex_test_id
+    /// Path parameter: `dex_test_id`.
     pub dex_test_id: String,
     /// Request body.
     pub body: DigitalExperienceMonitoringDeviceDexTestSchemasHttp,
@@ -1169,139 +1149,139 @@ pub struct DeviceDexTestUpdateDeviceDexTestArgs {
 /// Arguments for [`device-dex-test-delete-device-dex-test_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeviceDexTestDeleteDeviceDexTestArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dex_test_id
+    /// Path parameter: `dex_test_id`.
     pub dex_test_id: String,
 }
 
 /// Arguments for [`devices-live-status_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesLiveStatusArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: device_id
+    /// Path parameter: `device_id`.
     pub device_id: String,
-    /// Query parameter: since_minutes
+    /// Query parameter: `since_minutes`.
     pub since_minutes: Option<String>,
-    /// Query parameter: time_now
+    /// Query parameter: `time_now`.
     pub time_now: Option<String>,
-    /// Query parameter: colo
+    /// Query parameter: `colo`.
     pub colo: Option<String>,
 }
 
 /// Arguments for [`dex-fleet-status-devices_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DexFleetStatusDevicesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: to
+    /// Query parameter: `to`.
     pub to: Option<String>,
-    /// Query parameter: from
+    /// Query parameter: `from`.
     pub from: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: sort_by
+    /// Query parameter: `sort_by`.
     pub sort_by: Option<String>,
-    /// Query parameter: colo
+    /// Query parameter: `colo`.
     pub colo: Option<String>,
-    /// Query parameter: device_id
+    /// Query parameter: `device_id`.
     pub device_id: Option<String>,
-    /// Query parameter: mode
+    /// Query parameter: `mode`.
     pub mode: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: platform
+    /// Query parameter: `platform`.
     pub platform: Option<String>,
-    /// Query parameter: version
+    /// Query parameter: `version`.
     pub version: Option<String>,
-    /// Query parameter: source
+    /// Query parameter: `source`.
     pub source: Option<String>,
 }
 
 /// Arguments for [`dex-fleet-status-live_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DexFleetStatusLiveArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: since_minutes
+    /// Query parameter: `since_minutes`.
     pub since_minutes: Option<String>,
 }
 
 /// Arguments for [`dex-fleet-status-over-time_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DexFleetStatusOverTimeArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: to
+    /// Query parameter: `to`.
     pub to: Option<String>,
-    /// Query parameter: from
+    /// Query parameter: `from`.
     pub from: Option<String>,
-    /// Query parameter: colo
+    /// Query parameter: `colo`.
     pub colo: Option<String>,
-    /// Query parameter: device_id
+    /// Query parameter: `device_id`.
     pub device_id: Option<String>,
 }
 
 /// Arguments for [`dex-endpoints-http-test-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DexEndpointsHttpTestDetailsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: test_id
+    /// Path parameter: `test_id`.
     pub test_id: String,
-    /// Query parameter: deviceId
-    pub deviceId: Option<String>,
-    /// Query parameter: from
+    /// Query parameter: `deviceId`.
+    pub device_id: Option<String>,
+    /// Query parameter: `from`.
     pub from: Option<String>,
-    /// Query parameter: to
+    /// Query parameter: `to`.
     pub to: Option<String>,
-    /// Query parameter: interval
+    /// Query parameter: `interval`.
     pub interval: Option<String>,
-    /// Query parameter: colo
+    /// Query parameter: `colo`.
     pub colo: Option<String>,
 }
 
 /// Arguments for [`dex-endpoints-http-test-percentiles_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DexEndpointsHttpTestPercentilesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: test_id
+    /// Path parameter: `test_id`.
     pub test_id: String,
-    /// Query parameter: deviceId
-    pub deviceId: Option<String>,
-    /// Query parameter: from
+    /// Query parameter: `deviceId`.
+    pub device_id: Option<String>,
+    /// Query parameter: `from`.
     pub from: Option<String>,
-    /// Query parameter: to
+    /// Query parameter: `to`.
     pub to: Option<String>,
-    /// Query parameter: colo
+    /// Query parameter: `colo`.
     pub colo: Option<String>,
 }
 
 /// Arguments for [`list-dex-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListDexRulesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: sort_order
+    /// Query parameter: `sort_order`.
     pub sort_order: Option<String>,
-    /// Query parameter: sort_by
+    /// Query parameter: `sort_by`.
     pub sort_by: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
 }
 
 /// Arguments for [`create-dex-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateDexRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DigitalExperienceMonitoringCreateRuleBody,
@@ -1310,18 +1290,18 @@ pub struct CreateDexRuleArgs {
 /// Arguments for [`get-dex-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetDexRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`update-dex-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateDexRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
     /// Request body.
     pub body: DigitalExperienceMonitoringPatchRuleBody,
@@ -1330,158 +1310,158 @@ pub struct UpdateDexRuleArgs {
 /// Arguments for [`delete-dex-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteDexRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`dex-endpoints-list-tests-overview_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DexEndpointsListTestsOverviewArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: colo
+    /// Query parameter: `colo`.
     pub colo: Option<String>,
-    /// Query parameter: testName
-    pub testName: Option<String>,
-    /// Query parameter: deviceId
-    pub deviceId: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `testName`.
+    pub test_name: Option<String>,
+    /// Query parameter: `deviceId`.
+    pub device_id: Option<String>,
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: kind
+    /// Query parameter: `kind`.
     pub kind: Option<String>,
 }
 
 /// Arguments for [`dex-endpoints-tests-unique-devices_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DexEndpointsTestsUniqueDevicesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: testName
-    pub testName: Option<String>,
-    /// Query parameter: deviceId
-    pub deviceId: Option<String>,
+    /// Query parameter: `testName`.
+    pub test_name: Option<String>,
+    /// Query parameter: `deviceId`.
+    pub device_id: Option<String>,
 }
 
 /// Arguments for [`dex-endpoints-traceroute-test-result-network-path_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DexEndpointsTracerouteTestResultNetworkPathArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: test_result_id
+    /// Path parameter: `test_result_id`.
     pub test_result_id: String,
 }
 
 /// Arguments for [`dex-endpoints-traceroute-test-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DexEndpointsTracerouteTestDetailsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: test_id
+    /// Path parameter: `test_id`.
     pub test_id: String,
-    /// Query parameter: deviceId
-    pub deviceId: Option<String>,
-    /// Query parameter: from
+    /// Query parameter: `deviceId`.
+    pub device_id: Option<String>,
+    /// Query parameter: `from`.
     pub from: Option<String>,
-    /// Query parameter: to
+    /// Query parameter: `to`.
     pub to: Option<String>,
-    /// Query parameter: interval
+    /// Query parameter: `interval`.
     pub interval: Option<String>,
-    /// Query parameter: colo
+    /// Query parameter: `colo`.
     pub colo: Option<String>,
 }
 
 /// Arguments for [`dex-endpoints-traceroute-test-network-path_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DexEndpointsTracerouteTestNetworkPathArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: test_id
+    /// Path parameter: `test_id`.
     pub test_id: String,
-    /// Query parameter: deviceId
-    pub deviceId: Option<String>,
-    /// Query parameter: from
+    /// Query parameter: `deviceId`.
+    pub device_id: Option<String>,
+    /// Query parameter: `from`.
     pub from: Option<String>,
-    /// Query parameter: to
+    /// Query parameter: `to`.
     pub to: Option<String>,
-    /// Query parameter: interval
+    /// Query parameter: `interval`.
     pub interval: Option<String>,
 }
 
 /// Arguments for [`dex-endpoints-traceroute-test-percentiles_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DexEndpointsTracerouteTestPercentilesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: test_id
+    /// Path parameter: `test_id`.
     pub test_id: String,
-    /// Query parameter: deviceId
-    pub deviceId: Option<String>,
-    /// Query parameter: from
+    /// Query parameter: `deviceId`.
+    pub device_id: Option<String>,
+    /// Query parameter: `from`.
     pub from: Option<String>,
-    /// Query parameter: to
+    /// Query parameter: `to`.
     pub to: Option<String>,
-    /// Query parameter: colo
+    /// Query parameter: `colo`.
     pub colo: Option<String>,
 }
 
 /// Arguments for [`list-warp-change-events_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListWarpChangeEventsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: from
+    /// Query parameter: `from`.
     pub from: Option<String>,
-    /// Query parameter: to
+    /// Query parameter: `to`.
     pub to: Option<String>,
-    /// Query parameter: type
+    /// Query parameter: `type`.
     pub r#type: Option<String>,
-    /// Query parameter: toggle
+    /// Query parameter: `toggle`.
     pub toggle: Option<String>,
-    /// Query parameter: config_name
+    /// Query parameter: `config_name`.
     pub config_name: Option<String>,
-    /// Query parameter: account_name
+    /// Query parameter: `account_name`.
     pub account_name: Option<String>,
-    /// Query parameter: sort_order
+    /// Query parameter: `sort_order`.
     pub sort_order: Option<String>,
 }
 
 /// Arguments for [`magic-interconnects-list-interconnects_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicInterconnectsListInterconnectsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-interconnects-update-multiple-interconnects_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicInterconnectsUpdateMultipleInterconnectsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-interconnects-list-interconnect-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicInterconnectsListInterconnectDetailsArgs {
-    /// Path parameter: cf_interconnect_id
+    /// Path parameter: `cf_interconnect_id`.
     pub cf_interconnect_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-interconnects-update-interconnect_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicInterconnectsUpdateInterconnectArgs {
-    /// Path parameter: cf_interconnect_id
+    /// Path parameter: `cf_interconnect_id`.
     pub cf_interconnect_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicInterconnectTunnelUpdateRequest,
@@ -1490,14 +1470,14 @@ pub struct MagicInterconnectsUpdateInterconnectArgs {
 /// Arguments for [`magic-gre-tunnels-list-gre-tunnels_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicGreTunnelsListGreTunnelsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-gre-tunnels-create-gre-tunnels_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicGreTunnelsCreateGreTunnelsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicCreateGreTunnelRequest,
@@ -1506,25 +1486,25 @@ pub struct MagicGreTunnelsCreateGreTunnelsArgs {
 /// Arguments for [`magic-gre-tunnels-update-multiple-gre-tunnels_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicGreTunnelsUpdateMultipleGreTunnelsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-gre-tunnels-list-gre-tunnel-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicGreTunnelsListGreTunnelDetailsArgs {
-    /// Path parameter: gre_tunnel_id
+    /// Path parameter: `gre_tunnel_id`.
     pub gre_tunnel_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-gre-tunnels-update-gre-tunnel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicGreTunnelsUpdateGreTunnelArgs {
-    /// Path parameter: gre_tunnel_id
+    /// Path parameter: `gre_tunnel_id`.
     pub gre_tunnel_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicGreTunnelUpdateRequest,
@@ -1533,23 +1513,23 @@ pub struct MagicGreTunnelsUpdateGreTunnelArgs {
 /// Arguments for [`magic-gre-tunnels-delete-gre-tunnel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicGreTunnelsDeleteGreTunnelArgs {
-    /// Path parameter: gre_tunnel_id
+    /// Path parameter: `gre_tunnel_id`.
     pub gre_tunnel_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-ipsec-tunnels-list-ipsec-tunnels_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicIpsecTunnelsListIpsecTunnelsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-ipsec-tunnels-create-ipsec-tunnels_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicIpsecTunnelsCreateIpsecTunnelsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicIpsecTunnelAddRequest,
@@ -1558,25 +1538,25 @@ pub struct MagicIpsecTunnelsCreateIpsecTunnelsArgs {
 /// Arguments for [`magic-ipsec-tunnels-update-multiple-ipsec-tunnels_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicIpsecTunnelsUpdateMultipleIpsecTunnelsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-ipsec-tunnels-list-ipsec-tunnel-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicIpsecTunnelsListIpsecTunnelDetailsArgs {
-    /// Path parameter: ipsec_tunnel_id
+    /// Path parameter: `ipsec_tunnel_id`.
     pub ipsec_tunnel_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-ipsec-tunnels-update-ipsec-tunnel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicIpsecTunnelsUpdateIpsecTunnelArgs {
-    /// Path parameter: ipsec_tunnel_id
+    /// Path parameter: `ipsec_tunnel_id`.
     pub ipsec_tunnel_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MagicIpsecTunnelAddSingleRequest,
@@ -1585,34 +1565,34 @@ pub struct MagicIpsecTunnelsUpdateIpsecTunnelArgs {
 /// Arguments for [`magic-ipsec-tunnels-delete-ipsec-tunnel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicIpsecTunnelsDeleteIpsecTunnelArgs {
-    /// Path parameter: ipsec_tunnel_id
+    /// Path parameter: `ipsec_tunnel_id`.
     pub ipsec_tunnel_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`magic-ipsec-tunnels-generate-pre-shared-key-(-psk)-for-ipsec-tunnels_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MagicIpsecTunnelsGeneratePreSharedKeyPskForIpsecTunnelsArgs {
-    /// Path parameter: ipsec_tunnel_id
+    /// Path parameter: `ipsec_tunnel_id`.
     pub ipsec_tunnel_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`slurper-get-job-progress_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SlurperGetJobProgressArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
 }
 
 /// Arguments for [`slurper-check-source-connectivity_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SlurperCheckSourceConnectivityArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: R2SlurperSourceJobSchema,
@@ -1621,7 +1601,7 @@ pub struct SlurperCheckSourceConnectivityArgs {
 /// Arguments for [`slurper-check-target-connectivity_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SlurperCheckTargetConnectivityArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: R2SlurperR2TargetSchema,
@@ -1630,638 +1610,605 @@ pub struct SlurperCheckTargetConnectivityArgs {
 /// Arguments for [`tunnel-route-list-tunnel-routes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TunnelRouteListTunnelRoutesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: comment
+    /// Query parameter: `comment`.
     pub comment: Option<String>,
-    /// Query parameter: is_deleted
+    /// Query parameter: `is_deleted`.
     pub is_deleted: Option<String>,
-    /// Query parameter: network_subset
+    /// Query parameter: `network_subset`.
     pub network_subset: Option<String>,
-    /// Query parameter: network_superset
+    /// Query parameter: `network_superset`.
     pub network_superset: Option<String>,
-    /// Query parameter: existed_at
+    /// Query parameter: `existed_at`.
     pub existed_at: Option<String>,
-    /// Query parameter: tunnel_id
+    /// Query parameter: `tunnel_id`.
     pub tunnel_id: Option<String>,
-    /// Query parameter: route_id
+    /// Query parameter: `route_id`.
     pub route_id: Option<String>,
-    /// Query parameter: tun_types
+    /// Query parameter: `tun_types`.
     pub tun_types: Option<String>,
-    /// Query parameter: virtual_network_id
+    /// Query parameter: `virtual_network_id`.
     pub virtual_network_id: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
 }
 
 /// Arguments for [`tunnel-route-create-a-tunnel-route_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TunnelRouteCreateATunnelRouteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`tunnel-route-get-tunnel-route-by-ip_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TunnelRouteGetTunnelRouteByIpArgs {
-    /// Path parameter: ip
+    /// Path parameter: `ip`.
     pub ip: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: virtual_network_id
+    /// Query parameter: `virtual_network_id`.
     pub virtual_network_id: Option<String>,
-    /// Query parameter: default_virtual_network_fallback
+    /// Query parameter: `default_virtual_network_fallback`.
     pub default_virtual_network_fallback: Option<String>,
-}
-
-/// Arguments for [`tunnel-route-create-a-tunnel-route-with-cidr_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TunnelRouteCreateATunnelRouteWithCidrArgs {
-    /// Path parameter: ip_network_encoded
-    pub ip_network_encoded: String,
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
-/// Arguments for [`tunnel-route-update-a-tunnel-route-with-cidr_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TunnelRouteUpdateATunnelRouteWithCidrArgs {
-    /// Path parameter: ip_network_encoded
-    pub ip_network_encoded: String,
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
-/// Arguments for [`tunnel-route-delete-a-tunnel-route-with-cidr_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TunnelRouteDeleteATunnelRouteWithCidrArgs {
-    /// Path parameter: ip_network_encoded
-    pub ip_network_encoded: String,
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Query parameter: virtual_network_id
-    pub virtual_network_id: Option<String>,
-    /// Query parameter: tun_type
-    pub tun_type: Option<String>,
-    /// Query parameter: tunnel_id
-    pub tunnel_id: Option<String>,
 }
 
 /// Arguments for [`tunnel-route-get-tunnel-route_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TunnelRouteGetTunnelRouteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: route_id
+    /// Path parameter: `route_id`.
     pub route_id: String,
 }
 
 /// Arguments for [`tunnel-route-update-a-tunnel-route_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TunnelRouteUpdateATunnelRouteArgs {
-    /// Path parameter: route_id
+    /// Path parameter: `route_id`.
     pub route_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`tunnel-route-delete-a-tunnel-route_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TunnelRouteDeleteATunnelRouteArgs {
-    /// Path parameter: route_id
+    /// Path parameter: `route_id`.
     pub route_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`tunnel-virtual-network-list-virtual-networks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TunnelVirtualNetworkListVirtualNetworksArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: id
+    /// Query parameter: `id`.
     pub id: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: is_default
+    /// Query parameter: `is_default`.
     pub is_default: Option<String>,
-    /// Query parameter: is_default_network
+    /// Query parameter: `is_default_network`.
     pub is_default_network: Option<String>,
-    /// Query parameter: is_deleted
+    /// Query parameter: `is_deleted`.
     pub is_deleted: Option<String>,
 }
 
 /// Arguments for [`tunnel-virtual-network-create-a-virtual-network_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TunnelVirtualNetworkCreateAVirtualNetworkArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`tunnel-virtual-network-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TunnelVirtualNetworkGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: virtual_network_id
+    /// Path parameter: `virtual_network_id`.
     pub virtual_network_id: String,
 }
 
 /// Arguments for [`tunnel-virtual-network-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TunnelVirtualNetworkUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: virtual_network_id
+    /// Path parameter: `virtual_network_id`.
     pub virtual_network_id: String,
 }
 
 /// Arguments for [`tunnel-virtual-network-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TunnelVirtualNetworkDeleteArgs {
-    /// Path parameter: virtual_network_id
+    /// Path parameter: `virtual_network_id`.
     pub virtual_network_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-list-warp-connector-tunnels_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelListWarpConnectorTunnelsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: is_deleted
+    /// Query parameter: `is_deleted`.
     pub is_deleted: Option<String>,
-    /// Query parameter: existed_at
+    /// Query parameter: `existed_at`.
     pub existed_at: Option<String>,
-    /// Query parameter: uuid
+    /// Query parameter: `uuid`.
     pub uuid: Option<String>,
-    /// Query parameter: was_active_at
+    /// Query parameter: `was_active_at`.
     pub was_active_at: Option<String>,
-    /// Query parameter: was_inactive_at
+    /// Query parameter: `was_inactive_at`.
     pub was_inactive_at: Option<String>,
-    /// Query parameter: include_prefix
+    /// Query parameter: `include_prefix`.
     pub include_prefix: Option<String>,
-    /// Query parameter: exclude_prefix
+    /// Query parameter: `exclude_prefix`.
     pub exclude_prefix: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
 }
 
 /// Arguments for [`cloudflare-tunnel-create-a-warp-connector-tunnel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelCreateAWarpConnectorTunnelArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-get-a-warp-connector-tunnel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelGetAWarpConnectorTunnelArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-update-a-warp-connector-tunnel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelUpdateAWarpConnectorTunnelArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-delete-a-warp-connector-tunnel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelDeleteAWarpConnectorTunnelArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-list-warp-connector-tunnel-connections_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelListWarpConnectorTunnelConnectionsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-get-warp-connector-tunnel-connector_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelGetWarpConnectorTunnelConnectorArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
-    /// Path parameter: connector_id
+    /// Path parameter: `connector_id`.
     pub connector_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-manual-failover-warp-connector-tunnel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelManualFailoverWarpConnectorTunnelArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
 }
 
 /// Arguments for [`cloudflare-tunnel-get-a-warp-connector-tunnel-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareTunnelGetAWarpConnectorTunnelTokenArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tunnel_id
+    /// Path parameter: `tunnel_id`.
     pub tunnel_id: String,
 }
 
 /// Arguments for [`zero-trust-accounts-get-connectivity-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsGetConnectivitySettingsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-accounts-patch-connectivity-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustAccountsPatchConnectivitySettingsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-networks-subnet-create-warp_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustNetworksSubnetCreateWarpArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-networks-subnet-get-warp_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustNetworksSubnetGetWarpArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: subnet_id
+    /// Path parameter: `subnet_id`.
     pub subnet_id: String,
 }
 
 /// Arguments for [`zero-trust-networks-subnet-update-warp_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustNetworksSubnetUpdateWarpArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: subnet_id
+    /// Path parameter: `subnet_id`.
     pub subnet_id: String,
 }
 
 /// Arguments for [`zero-trust-networks-subnet-delete-warp_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZeroTrustNetworksSubnetDeleteWarpArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: subnet_id
+    /// Path parameter: `subnet_id`.
     pub subnet_id: String,
 }
 
 /// Arguments for [`radar-get-bgp-hijacks-events_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpHijacksEventsArgs {
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: eventId
-    pub eventId: Option<String>,
-    /// Query parameter: hijackerAsn
-    pub hijackerAsn: Option<String>,
-    /// Query parameter: victimAsn
-    pub victimAsn: Option<String>,
-    /// Query parameter: involvedAsn
-    pub involvedAsn: Option<String>,
-    /// Query parameter: involvedCountry
-    pub involvedCountry: Option<String>,
-    /// Query parameter: prefix
+    /// Query parameter: `eventId`.
+    pub event_id: Option<String>,
+    /// Query parameter: `hijackerAsn`.
+    pub hijacker_asn: Option<String>,
+    /// Query parameter: `victimAsn`.
+    pub victim_asn: Option<String>,
+    /// Query parameter: `involvedAsn`.
+    pub involved_asn: Option<String>,
+    /// Query parameter: `involvedCountry`.
+    pub involved_country: Option<String>,
+    /// Query parameter: `prefix`.
     pub prefix: Option<String>,
-    /// Query parameter: minConfidence
-    pub minConfidence: Option<String>,
-    /// Query parameter: maxConfidence
-    pub maxConfidence: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: sortBy
-    pub sortBy: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `minConfidence`.
+    pub min_confidence: Option<String>,
+    /// Query parameter: `maxConfidence`.
+    pub max_confidence: Option<String>,
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `sortBy`.
+    pub sort_by: Option<String>,
+    /// Query parameter: `sortOrder`.
+    pub sort_order: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-ips-timeseries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpIpsTimeseriesArgs {
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: includeDelay
-    pub includeDelay: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `includeDelay`.
+    pub include_delay: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-route-leak-events_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpRouteLeakEventsArgs {
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: eventId
-    pub eventId: Option<String>,
-    /// Query parameter: leakAsn
-    pub leakAsn: Option<String>,
-    /// Query parameter: involvedAsn
-    pub involvedAsn: Option<String>,
-    /// Query parameter: involvedCountry
-    pub involvedCountry: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: sortBy
-    pub sortBy: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `eventId`.
+    pub event_id: Option<String>,
+    /// Query parameter: `leakAsn`.
+    pub leak_asn: Option<String>,
+    /// Query parameter: `involvedAsn`.
+    pub involved_asn: Option<String>,
+    /// Query parameter: `involvedCountry`.
+    pub involved_country: Option<String>,
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `sortBy`.
+    pub sort_by: Option<String>,
+    /// Query parameter: `sortOrder`.
+    pub sort_order: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-routes-asns_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpRoutesAsnsArgs {
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: sortBy
-    pub sortBy: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `sortBy`.
+    pub sort_by: Option<String>,
+    /// Query parameter: `sortOrder`.
+    pub sort_order: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-pfx2as-moas_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpPfx2AsMoasArgs {
-    /// Query parameter: origin
+    /// Query parameter: `origin`.
     pub origin: Option<String>,
-    /// Query parameter: prefix
+    /// Query parameter: `prefix`.
     pub prefix: Option<String>,
-    /// Query parameter: invalid_only
+    /// Query parameter: `invalid_only`.
     pub invalid_only: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-pfx2as_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpPfx2AsArgs {
-    /// Query parameter: prefix
+    /// Query parameter: `prefix`.
     pub prefix: Option<String>,
-    /// Query parameter: origin
+    /// Query parameter: `origin`.
     pub origin: Option<String>,
-    /// Query parameter: rpkiStatus
-    pub rpkiStatus: Option<String>,
-    /// Query parameter: longestPrefixMatch
-    pub longestPrefixMatch: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `rpkiStatus`.
+    pub rpki_status: Option<String>,
+    /// Query parameter: `longestPrefixMatch`.
+    pub longest_prefix_match: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-routes-stats_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpRoutesStatsArgs {
-    /// Query parameter: asn
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-rpki-aspa-changes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpRpkiAspaChangesArgs {
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: includeAsnInfo
-    pub includeAsnInfo: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `includeAsnInfo`.
+    pub include_asn_info: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-rpki-aspa-snapshot_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpRpkiAspaSnapshotArgs {
-    /// Query parameter: customerAsn
-    pub customerAsn: Option<String>,
-    /// Query parameter: providerAsn
-    pub providerAsn: Option<String>,
-    /// Query parameter: date
+    /// Query parameter: `customerAsn`.
+    pub customer_asn: Option<String>,
+    /// Query parameter: `providerAsn`.
+    pub provider_asn: Option<String>,
+    /// Query parameter: `date`.
     pub date: Option<String>,
-    /// Query parameter: includeAsnInfo
-    pub includeAsnInfo: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `includeAsnInfo`.
+    pub include_asn_info: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-rpki-aspa-timeseries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpRpkiAspaTimeseriesArgs {
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: rir
+    /// Query parameter: `rir`.
     pub rir: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-timeseries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpTimeseriesArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: prefix
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `prefix`.
     pub prefix: Option<String>,
-    /// Query parameter: updateType
-    pub updateType: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `updateType`.
+    pub update_type: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-top-ases_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpTopAsesArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: prefix
+    /// Query parameter: `prefix`.
     pub prefix: Option<String>,
-    /// Query parameter: updateType
-    pub updateType: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `updateType`.
+    pub update_type: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-top-asns-by-prefixes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpTopAsnsByPrefixesArgs {
-    /// Query parameter: country
+    /// Query parameter: `country`.
     pub country: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bgp-top-prefixes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBgpTopPrefixesArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: updateType
-    pub updateType: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `updateType`.
+    pub update_type: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-quality-index-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetQualityIndexSummaryArgs {
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: metric
+    /// Query parameter: `metric`.
     pub metric: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-quality-index-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetQualityIndexTimeseriesGroupArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: interpolation
+    /// Query parameter: `interpolation`.
     pub interpolation: Option<String>,
-    /// Query parameter: metric
+    /// Query parameter: `metric`.
     pub metric: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`spectrum-aggregate-analytics-get-current-aggregated-analytics_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpectrumAggregateAnalyticsGetCurrentAggregatedAnalyticsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: appID
-    pub appID: Option<String>,
-    /// Query parameter: colo_name
+    /// Query parameter: `appID`.
+    pub app_id: Option<String>,
+    /// Query parameter: `colo_name`.
     pub colo_name: Option<String>,
 }
 
@@ -2291,7 +2238,6 @@ pub struct SpectrumAggregateAnalyticsGetCurrentAggregatedAnalyticsArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefixes_list_bgp_prefixes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2380,7 +2326,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefixes_create_bgp_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2473,7 +2418,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefixes_fetch_bgp_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2562,7 +2506,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefixes_update_bgp_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2655,7 +2598,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_prefixes_delete_bgp_prefix_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2723,187 +2665,6 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/addressing/prefixes/{prefix_id}/bgp/status
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/addressing/prefixes/{prefix_id}/bgp/status.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = ip_address_management_dynamic_advertisement_get_advertisement_status_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn ip_address_management_dynamic_advertisement_get_advertisement_status_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &IpAddressManagementDynamicAdvertisementGetAdvertisementStatusArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<AddressingAdvertisedResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/addressing/prefixes/{}/bgp/status",
-        args.account_id, args.prefix_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AddressingAdvertisedResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PATCH /accounts/{account_id}/addressing/prefixes/{prefix_id}/bgp/status
-// -----------------------------------------------------------------------------
-
-/// PATCH /accounts/{account_id}/addressing/prefixes/{prefix_id}/bgp/status.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = ip_address_management_dynamic_advertisement_update_prefix_dynamic_advertisement_status_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn ip_address_management_dynamic_advertisement_update_prefix_dynamic_advertisement_status_request<
-    R,
-    F,
->(
-    client: &SimpleHttpClient<R>,
-    args: &IpAddressManagementDynamicAdvertisementUpdatePrefixDynamicAdvertisementStatusArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<AddressingAdvertisedResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/addressing/prefixes/{}/bgp/status",
-        args.account_id, args.prefix_id,
-    );
-
-    let mut builder = client
-        .patch(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AddressingAdvertisedResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
 // GET /accounts/{account_id}/cfd_tunnel
 // -----------------------------------------------------------------------------
 
@@ -2925,7 +2686,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_list_cloudflare_tunnels_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3014,7 +2774,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_create_a_cloudflare_tunnel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3103,7 +2862,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_get_a_cloudflare_tunnel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3192,7 +2950,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_update_a_cloudflare_tunnel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3281,7 +3038,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_delete_a_cloudflare_tunnel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3370,7 +3126,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_configuration_get_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3459,7 +3214,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_configuration_put_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3548,7 +3302,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_list_cloudflare_tunnel_connections_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3637,7 +3390,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_clean_up_cloudflare_tunnel_connections_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3726,7 +3478,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_get_cloudflare_tunnel_connector_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3815,7 +3566,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_get_a_cloudflare_tunnel_management_token_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3904,7 +3654,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_get_a_cloudflare_tunnel_token_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3993,7 +3742,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_event_aggregate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4030,7 +3778,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4078,7 +3826,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_cnis_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4167,7 +3914,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_cni_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4260,7 +4006,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_cni_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4349,7 +4094,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_cni_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4442,7 +4186,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_cni_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4479,7 +4222,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4527,7 +4270,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_interconnects_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4616,7 +4358,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_interconnect_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4709,7 +4450,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_interconnect_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4798,7 +4538,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_interconnect_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4835,7 +4574,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4883,7 +4622,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_interconnect_loa_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4920,7 +4658,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4968,7 +4706,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_interconnect_status_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5057,7 +4794,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5146,7 +4882,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5239,7 +4974,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_slots_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5328,7 +5062,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_slot_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5417,7 +5150,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn connectivity_services_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5454,7 +5186,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5502,7 +5234,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn connectivity_services_post_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5543,7 +5274,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5591,7 +5322,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn connectivity_services_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5628,7 +5358,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5676,7 +5406,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn connectivity_services_put_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5717,7 +5446,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5765,7 +5494,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn connectivity_services_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5802,7 +5530,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5850,7 +5578,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_resilience_retrieve_global_warp_override_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5942,7 +5669,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_resilience_set_global_warp_override_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6038,7 +5764,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dex_endpoints_list_colos_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6075,7 +5800,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6123,7 +5848,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_commands_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6160,7 +5884,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6208,7 +5932,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_commands_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6245,7 +5968,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6293,7 +6016,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_commands_eligible_devices_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6330,7 +6052,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6378,7 +6100,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_commands_quota_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6415,7 +6136,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6463,7 +6184,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_commands_command_id_downloads_filename_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6500,7 +6220,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6548,7 +6268,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_dex_test_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6641,7 +6360,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_dex_test_create_device_dex_test_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6738,7 +6456,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_dex_test_get_device_dex_test_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6831,7 +6548,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_dex_test_update_device_dex_test_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6928,7 +6644,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn device_dex_test_delete_device_dex_test_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7021,7 +6736,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_live_status_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7110,7 +6824,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dex_fleet_status_devices_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7203,7 +6916,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dex_fleet_status_live_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7296,7 +7008,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dex_fleet_status_over_time_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7389,7 +7100,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dex_endpoints_http_test_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7426,7 +7136,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7474,7 +7184,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dex_endpoints_http_test_percentiles_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7511,7 +7220,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7559,7 +7268,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_dex_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7596,7 +7304,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7644,7 +7352,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_dex_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7685,7 +7392,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7733,7 +7440,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_dex_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7770,7 +7476,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7818,7 +7524,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_dex_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7859,7 +7564,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7907,7 +7612,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_dex_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7944,7 +7648,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7992,7 +7696,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dex_endpoints_list_tests_overview_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8029,7 +7732,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8077,7 +7780,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dex_endpoints_tests_unique_devices_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8114,7 +7816,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8162,7 +7864,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dex_endpoints_traceroute_test_result_network_path_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8200,7 +7901,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8248,7 +7949,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dex_endpoints_traceroute_test_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8285,7 +7985,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8333,7 +8033,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dex_endpoints_traceroute_test_network_path_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8370,7 +8069,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8418,7 +8117,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dex_endpoints_traceroute_test_percentiles_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8455,7 +8153,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8503,7 +8201,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_warp_change_events_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8540,7 +8237,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8588,7 +8285,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_interconnects_list_interconnects_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8681,7 +8377,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_interconnects_update_multiple_interconnects_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8774,7 +8469,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_interconnects_list_interconnect_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8867,7 +8561,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_interconnects_update_interconnect_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8964,7 +8657,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_gre_tunnels_list_gre_tunnels_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9053,7 +8745,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_gre_tunnels_create_gre_tunnels_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9146,7 +8837,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_gre_tunnels_update_multiple_gre_tunnels_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9238,7 +8928,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_gre_tunnels_list_gre_tunnel_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9327,7 +9016,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_gre_tunnels_update_gre_tunnel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9420,7 +9108,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_gre_tunnels_delete_gre_tunnel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9509,7 +9196,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_ipsec_tunnels_list_ipsec_tunnels_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9601,7 +9287,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_ipsec_tunnels_create_ipsec_tunnels_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9697,7 +9382,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_ipsec_tunnels_update_multiple_ipsec_tunnels_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9790,7 +9474,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_ipsec_tunnels_list_ipsec_tunnel_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9879,7 +9562,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_ipsec_tunnels_update_ipsec_tunnel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9975,7 +9657,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_ipsec_tunnels_delete_ipsec_tunnel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10064,7 +9745,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn magic_ipsec_tunnels_generate_pre_shared_key_psk_for_ipsec_tunnels_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10153,7 +9833,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn slurper_get_job_progress_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10190,7 +9869,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10238,7 +9917,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn slurper_check_source_connectivity_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10279,7 +9957,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10327,7 +10005,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn slurper_check_target_connectivity_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10368,7 +10045,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10416,7 +10093,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tunnel_route_list_tunnel_routes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10505,7 +10181,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tunnel_route_create_a_tunnel_route_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10594,7 +10269,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tunnel_route_get_tunnel_route_by_ip_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10662,273 +10336,6 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST /accounts/{account_id}/teamnet/routes/network/{ip_network_encoded}
-// -----------------------------------------------------------------------------
-
-/// POST /accounts/{account_id}/teamnet/routes/network/{ip_network_encoded}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = tunnel_route_create_a_tunnel_route_with_cidr_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn tunnel_route_create_a_tunnel_route_with_cidr_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &TunnelRouteCreateATunnelRouteWithCidrArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<TunnelRouteResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/teamnet/routes/network/{}",
-        args.account_id, args.ip_network_encoded,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: TunnelRouteResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PATCH /accounts/{account_id}/teamnet/routes/network/{ip_network_encoded}
-// -----------------------------------------------------------------------------
-
-/// PATCH /accounts/{account_id}/teamnet/routes/network/{ip_network_encoded}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = tunnel_route_update_a_tunnel_route_with_cidr_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn tunnel_route_update_a_tunnel_route_with_cidr_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &TunnelRouteUpdateATunnelRouteWithCidrArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<TunnelRouteResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/teamnet/routes/network/{}",
-        args.account_id, args.ip_network_encoded,
-    );
-
-    let mut builder = client
-        .patch(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: TunnelRouteResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// DELETE /accounts/{account_id}/teamnet/routes/network/{ip_network_encoded}
-// -----------------------------------------------------------------------------
-
-/// DELETE /accounts/{account_id}/teamnet/routes/network/{ip_network_encoded}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = tunnel_route_delete_a_tunnel_route_with_cidr_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn tunnel_route_delete_a_tunnel_route_with_cidr_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &TunnelRouteDeleteATunnelRouteWithCidrArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<TunnelRouteResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/teamnet/routes/network/{}",
-        args.account_id, args.ip_network_encoded,
-    );
-
-    let mut builder = client
-        .delete(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: TunnelRouteResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
 // GET /accounts/{account_id}/teamnet/routes/{route_id}
 // -----------------------------------------------------------------------------
 
@@ -10950,7 +10357,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tunnel_route_get_tunnel_route_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11039,7 +10445,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tunnel_route_update_a_tunnel_route_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11128,7 +10533,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tunnel_route_delete_a_tunnel_route_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11217,7 +10621,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tunnel_virtual_network_list_virtual_networks_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11306,7 +10709,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tunnel_virtual_network_create_a_virtual_network_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11395,7 +10797,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tunnel_virtual_network_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11484,7 +10885,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tunnel_virtual_network_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11573,7 +10973,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tunnel_virtual_network_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11662,7 +11061,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_list_warp_connector_tunnels_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11754,7 +11152,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_create_a_warp_connector_tunnel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11843,7 +11240,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_get_a_warp_connector_tunnel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11932,7 +11328,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_update_a_warp_connector_tunnel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12021,7 +11416,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_delete_a_warp_connector_tunnel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12110,7 +11504,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_list_warp_connector_tunnel_connections_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12203,7 +11596,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_get_warp_connector_tunnel_connector_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12296,7 +11688,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_manual_failover_warp_connector_tunnel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12385,7 +11776,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_tunnel_get_a_warp_connector_tunnel_token_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12474,7 +11864,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_accounts_get_connectivity_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12567,7 +11956,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_accounts_patch_connectivity_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12660,7 +12048,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_networks_subnet_create_warp_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12749,7 +12136,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_networks_subnet_get_warp_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12838,7 +12224,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_networks_subnet_update_warp_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12927,7 +12312,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zero_trust_networks_subnet_delete_warp_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13009,7 +12393,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13019,11 +12402,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_hijacks_events_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpHijacksEventsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -13053,7 +12434,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13091,7 +12472,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13101,11 +12481,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_ips_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpIpsTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -13135,7 +12513,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13173,7 +12551,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13183,11 +12560,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_route_leak_events_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpRouteLeakEventsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -13217,7 +12592,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13255,7 +12630,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13265,11 +12639,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_routes_asns_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpRoutesAsnsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -13299,7 +12671,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13337,7 +12709,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13347,11 +12718,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_pfx2as_moas_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpPfx2AsMoasArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -13381,7 +12750,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13419,7 +12788,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13429,11 +12797,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_pfx2as_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpPfx2AsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -13463,7 +12829,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13501,7 +12867,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13511,11 +12876,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_routes_stats_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpRoutesStatsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -13545,7 +12908,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13583,7 +12946,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13593,11 +12955,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_rpki_aspa_changes_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpRpkiAspaChangesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -13627,7 +12987,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13665,7 +13025,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13675,11 +13034,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_rpki_aspa_snapshot_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpRpkiAspaSnapshotArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -13710,7 +13067,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13748,7 +13105,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13758,11 +13114,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_rpki_aspa_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpRpkiAspaTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -13793,7 +13147,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13831,7 +13185,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13841,11 +13194,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -13875,7 +13226,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13913,7 +13264,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -13923,11 +13273,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_top_ases_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpTopAsesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -13957,7 +13305,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13995,7 +13343,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -14005,11 +13352,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_top_asns_by_prefixes_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpTopAsnsByPrefixesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -14039,7 +13384,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14077,7 +13422,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -14087,11 +13431,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bgp_top_prefixes_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBgpTopPrefixesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -14121,7 +13463,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14159,7 +13501,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -14169,11 +13510,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_quality_index_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetQualityIndexSummaryArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -14203,7 +13542,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14241,7 +13580,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -14251,11 +13589,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_quality_index_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetQualityIndexTimeseriesGroupArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -14286,7 +13622,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14334,7 +13670,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn spectrum_aggregate_analytics_get_current_aggregated_analytics_request<R, F>(
     client: &SimpleHttpClient<R>,

@@ -6,13 +6,19 @@
 //! Feature flag: `cloudflare_tenants `
 
 #![cfg(feature = "cloudflare_tenants")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -25,21 +31,21 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// Arguments for [`Tenants_retrieveTenant_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TenantsRetrieveTenantArgs {
-    /// Path parameter: tenant_id
+    /// Path parameter: `tenant_id`.
     pub tenant_id: String,
 }
 
 /// Arguments for [`Tenants_validAccountTypes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TenantsValidAccountTypesArgs {
-    /// Path parameter: tenant_id
+    /// Path parameter: `tenant_id`.
     pub tenant_id: String,
 }
 
 /// Arguments for [`Tenants_listAccounts_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TenantsListAccountsArgs {
-    /// Path parameter: tenant_id
+    /// Path parameter: `tenant_id`.
     pub tenant_id: String,
 }
 
@@ -69,7 +75,6 @@ pub struct TenantsListAccountsArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tenants_retrieve_tenant_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -106,7 +111,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -154,7 +159,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tenants_valid_account_types_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -191,7 +195,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -239,7 +243,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tenants_list_accounts_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -276,7 +279,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

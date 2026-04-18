@@ -797,12 +797,13 @@ fn apply_provider_grouping(
     groups
 }
 
-/// Analysis result containing grouped endpoints and shared resources.
+/// Analysis result containing grouped endpoints, shared resources, and schemas.
 #[derive(Debug, Clone)]
 pub struct AnalysisResult {
     pub groups: Vec<ApiGroup>,
     pub shared_resources: Vec<String>,
     pub provider: String,
+    pub schemas: std::sync::Arc<std::collections::BTreeMap<String, crate::spec::Schema>>,
 }
 
 /// A group of related endpoints.
@@ -880,10 +881,14 @@ pub fn analyze_spec(spec_content: &str, provider: &str, options: &AnalysisOption
     groups = apply_grouping_constraints(groups, options);
     let shared_resources = detect_shared_resources(&groups);
 
+    // Get schemas from processor
+    let schemas = processor.schemas();
+
     Ok(AnalysisResult {
         groups,
         shared_resources,
         provider: provider.to_string(),
+        schemas,
     })
 }
 

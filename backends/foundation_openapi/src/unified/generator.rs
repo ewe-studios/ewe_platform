@@ -104,7 +104,7 @@ fn escape_url_for_format(path: &str, path_params: &[String]) -> (String, Vec<Str
                         }) {
                             // This is a known path parameter - replace with {}
                             result.push_str("{}");
-                            params_in_url_order.push(sanitize_identifier(matching_param));
+                            params_in_url_order.push(to_snake_case(&sanitize_identifier(matching_param)));
                         } else {
                             // Unknown param - escape as literal braces
                             result.push_str(&format!("{{{{{}}}}}", param_content));
@@ -335,7 +335,7 @@ impl UnifiedGenerator {
 
         // Generate one module per group
         for group in &analysis.groups {
-            self.generate_group_module(provider, group, &analysis.shared_resources, &provider_output_dir)?;
+            self.generate_group_module(provider, group, &analysis.shared_resources, &analysis.schemas, &provider_output_dir)?;
         }
 
         // Generate provider mod.rs with feature guards
@@ -370,6 +370,7 @@ impl UnifiedGenerator {
         provider: &str,
         group: &ApiGroup,
         shared_resources: &[String],
+        schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
         output_dir: &Path,
     ) -> Result<(), GenError> {
         // Sanitize group name for use as directory/file name
@@ -388,6 +389,8 @@ impl UnifiedGenerator {
         writeln!(out, "//! Feature flag: `{}_{} `", provider.replace('-', "_"), safe_name)?;
         writeln!(out)?;
         writeln!(out, "#![cfg(feature = \"{}_{}\")]", provider.replace('-', "_"), safe_name)?;
+        writeln!(out, "#![allow(clippy::too_many_arguments, clippy::type_complexity)]")?;
+        writeln!(out, "#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]")?;
         writeln!(out)?;
 
         // Common imports
@@ -467,7 +470,7 @@ impl UnifiedGenerator {
         writeln!(out, "// =============================================================================")?;
         writeln!(out)?;
 
-        // Generate types - skip types that are already in shared_resources
+        // Generate types from schemas - skip types that are already in shared_resources
         for (type_name, _ep) in &all_types {
             if generated_types.contains(type_name) {
                 continue;
@@ -480,15 +483,21 @@ impl UnifiedGenerator {
             // Rename types that conflict with std types
             let safe_type_name = rename_std_type_conflict(type_name);
 
-            // Generate a placeholder struct - in full impl, this would come from schema
-            writeln!(out, "/// {} response type.", safe_type_name)?;
-            writeln!(out, "#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]")?;
-            writeln!(out, "pub struct {} {{", safe_type_name)?;
-            writeln!(out, "    /// Raw JSON value - full schema generated from OpenAPI")?;
-            writeln!(out, "    #[serde(flatten)]")?;
-            writeln!(out, "    pub data: std::collections::HashMap<String, serde_json::Value>,")?;
-            writeln!(out, "}}")?;
-            writeln!(out)?;
+            // Try to find the schema for this type
+            if let Some(schema) = schemas.get(type_name) {
+                // Generate proper struct from schema
+                self.generate_type_from_schema(&mut out, &safe_type_name, schema, schemas)?;
+            } else {
+                // No schema found - generate placeholder struct
+                writeln!(out, "/// `{}` response type.", safe_type_name)?;
+                writeln!(out, "#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]")?;
+                writeln!(out, "pub struct {} {{", safe_type_name)?;
+                writeln!(out, "    /// Raw JSON value - full schema generated from `OpenAPI`")?;
+                writeln!(out, "    #[serde(flatten)]")?;
+                writeln!(out, "    pub data: std::collections::HashMap<String, serde_json::Value>,")?;
+                writeln!(out, "}}")?;
+                writeln!(out)?;
+            }
 
             generated_types.insert(safe_type_name.clone());
         }
@@ -513,13 +522,13 @@ impl UnifiedGenerator {
                 writeln!(out, "pub struct {} {{", args_name)?;
 
                 for param in &ep.path_params {
-                    let param_name = escape_rust_keyword(&sanitize_identifier(param));
-                    writeln!(out, "    /// Path parameter: {}", param)?;
+                    let param_name = escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
+                    writeln!(out, "    /// Path parameter: `{}`.", param)?;
                     writeln!(out, "    pub {}: String,", param_name)?;
                 }
                 for param in &ep.query_params {
-                    let param_name = escape_rust_keyword(&sanitize_identifier(param));
-                    writeln!(out, "    /// Query parameter: {}", param)?;
+                    let param_name = escape_rust_keyword(&to_snake_case(&sanitize_identifier(param)));
+                    writeln!(out, "    /// Query parameter: `{}`.", param)?;
                     writeln!(out, "    pub {}: Option<String>,", param_name)?;
                 }
                 if let Some(rt) = &ep.request_type {
@@ -552,6 +561,126 @@ impl UnifiedGenerator {
         Ok(())
     }
 
+    /// Generate a type definition from an OpenAPI schema.
+    fn generate_type_from_schema(
+        &self,
+        out: &mut String,
+        type_name: &str,
+        schema: &crate::spec::Schema,
+        schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+    ) -> Result<(), GenError> {
+        use crate::spec::Schema as SpecSchema;
+        use std::collections::BTreeMap;
+
+        writeln!(out, "/// `{}` type.", type_name)?;
+        writeln!(out, "#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]")?;
+        writeln!(out, "pub struct {} {{", type_name)?;
+
+        // Handle allOf - merge properties from all members
+        if let Some(all_of) = &schema.all_of {
+            let mut all_properties: BTreeMap<String, SpecSchema> = BTreeMap::new();
+            let mut required: std::collections::HashSet<String> = std::collections::HashSet::new();
+
+            for member in all_of {
+                if let Some(props) = &member.properties {
+                    for (k, v) in props {
+                        all_properties.insert(k.clone(), v.clone());
+                    }
+                }
+                for r in &member.required {
+                    required.insert(r.clone());
+                }
+            }
+
+            // Generate fields from merged properties
+            for (prop_name, prop_schema) in &all_properties {
+                let field_name = escape_rust_keyword(&to_snake_case(prop_name));
+                let rust_type = self.schema_to_rust_type(prop_schema, schemas);
+                let is_required = required.contains(prop_name);
+
+                writeln!(out, "    /// `{}` property.", prop_name)?;
+                if is_required {
+                    writeln!(out, "    pub {}: {},", field_name, rust_type)?;
+                } else {
+                    writeln!(out, "    pub {}: Option<{}>,", field_name, rust_type)?;
+                }
+            }
+        }
+        // Handle object with properties
+        else if let Some(properties) = &schema.properties {
+            let required: std::collections::HashSet<String> = schema.required.iter().cloned().collect();
+
+            for (prop_name, prop_schema) in properties {
+                let field_name = escape_rust_keyword(&to_snake_case(prop_name));
+                let rust_type = self.schema_to_rust_type(prop_schema, schemas);
+                let is_required = required.contains(prop_name);
+
+                writeln!(out, "    /// {} property.", prop_name)?;
+                if is_required {
+                    writeln!(out, "    pub {}: {},", field_name, rust_type)?;
+                } else {
+                    writeln!(out, "    pub {}: Option<{}>,", field_name, rust_type)?;
+                }
+            }
+        }
+
+        // If no properties were generated, add a fallback field
+        if schema.properties.is_none() && schema.all_of.is_none() {
+            writeln!(out, "    #[serde(flatten)]")?;
+            writeln!(out, "    pub data: std::collections::HashMap<String, serde_json::Value>,")?;
+        }
+
+        writeln!(out, "}}")?;
+        writeln!(out)?;
+
+        Ok(())
+    }
+
+    /// Convert an OpenAPI schema to a Rust type string.
+    fn schema_to_rust_type(
+        &self,
+        schema: &crate::spec::Schema,
+        schemas: &std::collections::BTreeMap<String, crate::spec::Schema>,
+    ) -> String {
+        // Check for $ref first
+        if let Some(ref_path) = &schema.ref_path {
+            let ref_name = ref_path
+                .trim_start_matches("#/components/schemas/")
+                .trim_start_matches("#/schemas/");
+
+            // Rename std type conflicts
+            let pascal_name = crate::to_pascal_case(ref_name);
+            return rename_std_type_conflict(&pascal_name);
+        }
+
+        // Check schema type
+        match schema.schema_type.as_deref() {
+            Some("string") => "String".to_string(),
+            Some("integer") => "i64".to_string(),
+            Some("number") => "f64".to_string(),
+            Some("boolean") => "bool".to_string(),
+            Some("array") => {
+                if let Some(items) = &schema.items {
+                    let item_type = self.schema_to_rust_type(items, schemas);
+                    format!("Vec<{}>", item_type)
+                } else {
+                    "Vec<serde_json::Value>".to_string()
+                }
+            }
+            Some("object") => {
+                // Check if it's an inline object with properties
+                if schema.properties.as_ref().is_some_and(|p| !p.is_empty()) {
+                    // Inline objects use HashMap
+                    "std::collections::HashMap<String, serde_json::Value>".to_string()
+                } else {
+                    // Empty object or unknown object
+                    "serde_json::Value".to_string()
+                }
+            }
+            _ => "serde_json::Value".to_string(),
+        }
+    }
+
     /// Generate client functions for a single endpoint.
     fn generate_endpoint_client_functions(
         &self,
@@ -565,9 +694,10 @@ impl UnifiedGenerator {
             .map(|rt| rt.as_rust_type().to_string())
             .unwrap_or_else(|| "()".to_string());
 
-        let has_params = !ep.path_params.is_empty()
-            || !ep.query_params.is_empty()
-            || ep.request_type.is_some();
+        // Check if args is actually used in the function body
+        // (path params in URL or request body)
+        let (_, params_in_url_order) = escape_url_for_format(&ep.path, &ep.path_params);
+        let args_is_used = !params_in_url_order.is_empty() || ep.request_type.is_some();
 
         let args_name = format!("{}Args", to_pascal_case(&sanitize_identifier(&ep.operation_id)));
 
@@ -586,7 +716,7 @@ impl UnifiedGenerator {
         writeln!(out, "/// # Arguments")?;
         writeln!(out, "///")?;
         writeln!(out, "/// * `client` - HTTP client for making the request")?;
-        if has_params {
+        if args_is_used {
             writeln!(out, "/// * `args` - Request arguments (path params, query params, body)")?;
         }
         writeln!(out, "/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)")?;
@@ -598,11 +728,10 @@ impl UnifiedGenerator {
         writeln!(out, "///     b.header(\"X-Custom-Header\", \"value\")")?;
         writeln!(out, "/// }}))?;")?;
         writeln!(out, "/// ```")?;
-        writeln!(out)?;
         writeln!(out, "#[inline]")?;
         writeln!(out, "pub fn {}_request<R, F>(", fn_prefix)?;
         writeln!(out, "    client: &SimpleHttpClient<R>,")?;
-        if has_params {
+        if args_is_used {
             writeln!(out, "    args: &{},", args_name)?;
         }
         writeln!(out, "    builder_mod: Option<F>,")?;
@@ -618,11 +747,7 @@ impl UnifiedGenerator {
         writeln!(out, "    let endpoint_url = format!(")?;
         writeln!(out, "        \"{}{}\",", escaped_base, escaped_path)?;
         for param_name in &params_in_url_order {
-            if has_params {
-                writeln!(out, "        args.{},", param_name)?;
-            } else {
-                writeln!(out, "        /* {} */ \"placeholder\",", param_name)?;
-            }
+            writeln!(out, "        args.{},", param_name)?;
         }
         writeln!(out, "    );")?;
         writeln!(out)?;
@@ -634,7 +759,7 @@ impl UnifiedGenerator {
         writeln!(out)?;
 
         // Add body if present
-        if ep.request_type.is_some() && has_params {
+        if ep.request_type.is_some() {
             writeln!(out, "    builder = builder.body_json(&args.body)")?;
             writeln!(out, "        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;")?;
             writeln!(out)?;
@@ -650,9 +775,13 @@ impl UnifiedGenerator {
         writeln!(out, "    Ok(")?;
         writeln!(out, "        builder")?;
         writeln!(out, "            .build_send_request()")?;
-        writeln!(out, "            .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?")?;
+        writeln!(out, "            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| super::shared::ApiError::RequestBuildFailed(e.to_string()))?")?;
         writeln!(out, "            .map_ready(|intro| match intro {{")?;
-        writeln!(out, "                super::shared::RequestIntro::Success {{ stream, intro, headers, .. }} => {{")?;
+        if return_type == "()" {
+            writeln!(out, "                super::shared::RequestIntro::Success {{ stream: _, intro, headers, .. }} => {{")?;
+        } else {
+            writeln!(out, "                super::shared::RequestIntro::Success {{ stream, intro, headers, .. }} => {{")?;
+        }
         writeln!(out, "                    let status: usize = intro.0.into();")?;
         writeln!(out, "                    if status < 200 || status >= 300 {{")?;
         writeln!(out, "                        return Err(super::shared::ApiError::HttpStatus {{ code: status as u16, headers: headers.clone(), body: None }});")?;
@@ -661,7 +790,7 @@ impl UnifiedGenerator {
             writeln!(out, "                    Ok(ApiResponse {{ status: status as u16, headers: headers.clone(), body: () }})")?;
         } else {
             writeln!(out, "                    let body = foundation_core::wire::simple_http::client::body_reader::collect_string(stream);")?;
-            writeln!(out, "                    let parsed: {} = serde_json::from_str(&body).map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;", return_type)?;
+            writeln!(out, "                    let parsed: {} = serde_json::from_str(&body).map_err(|e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()))?;", return_type)?;
             writeln!(out, "                    Ok(ApiResponse {{ status: status as u16, headers: headers.clone(), body: parsed }})")?;
         }
         writeln!(out, "                }}")?;
@@ -689,6 +818,9 @@ impl UnifiedGenerator {
         writeln!(out, "//!")?;
         writeln!(out, "//! Generated by `cargo run --bin ewe_platform gen_api`.")?;
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
+        writeln!(out)?;
+        writeln!(out, "#![allow(clippy::too_many_arguments, clippy::type_complexity)]")?;
+        writeln!(out, "#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]")?;
         writeln!(out)?;
 
         // Imports
@@ -726,16 +858,16 @@ impl UnifiedGenerator {
         writeln!(out, "impl std::fmt::Display for ApiError {{")?;
         writeln!(out, "    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {{")?;
         writeln!(out, "        match self {{")?;
-        writeln!(out, "            ApiError::RequestBuildFailed(e) => write!(f, \"request build failed: {{}}\", e),")?;
-        writeln!(out, "            ApiError::RequestSendFailed(e) => write!(f, \"request send failed: {{}}\", e),")?;
+        writeln!(out, "            ApiError::RequestBuildFailed(e) => write!(f, \"request build failed: {{e}}\"),")?;
+        writeln!(out, "            ApiError::RequestSendFailed(e) => write!(f, \"request send failed: {{e}}\"),")?;
         writeln!(out, "            ApiError::HttpStatus {{ code, body, .. }} => {{")?;
-        writeln!(out, "                write!(f, \"HTTP status {{}}\", code)?;")?;
+        writeln!(out, "                write!(f, \"HTTP status {{code}}\")?;")?;
         writeln!(out, "                if let Some(b) = body {{")?;
-        writeln!(out, "                    write!(f, \": {{}}\", b)?;")?;
+        writeln!(out, "                    write!(f, \": {{b}}\")?;")?;
         writeln!(out, "                }}")?;
         writeln!(out, "                Ok(())")?;
         writeln!(out, "            }}")?;
-        writeln!(out, "            ApiError::ParseFailed(e) => write!(f, \"parse failed: {{}}\", e),")?;
+        writeln!(out, "            ApiError::ParseFailed(e) => write!(f, \"parse failed: {{e}}\"),")?;
         writeln!(out, "        }}")?;
         writeln!(out, "    }}")?;
         writeln!(out, "}}")?;
@@ -784,7 +916,7 @@ impl UnifiedGenerator {
             // Rename types that conflict with std types
             let safe_name = rename_std_type_conflict(type_name);
 
-            writeln!(out, "/// Shared type: {}.", safe_name)?;
+            writeln!(out, "/// Shared type: `{}`.", safe_name)?;
             writeln!(out, "#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]")?;
             writeln!(out, "pub struct {} {{", safe_name)?;
             writeln!(out, "    #[serde(flatten)]")?;
@@ -812,6 +944,8 @@ impl UnifiedGenerator {
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
         writeln!(out)?;
         writeln!(out, "#![cfg(feature = \"{}\")]", feature_name)?;
+        writeln!(out, "#![allow(clippy::too_many_arguments, clippy::type_complexity)]")?;
+        writeln!(out, "#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]")?;
         writeln!(out)?;
 
         // Shared module - always compiled when provider is enabled (no feature flag)

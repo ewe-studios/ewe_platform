@@ -6,13 +6,19 @@
 //! Feature flag: `cloudflare_ips `
 
 #![cfg(feature = "cloudflare_ips")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -25,7 +31,7 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// Arguments for [`cloudflare-ips-cloudflare-ip-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudflareIpsCloudflareIpDetailsArgs {
-    /// Query parameter: networks
+    /// Query parameter: `networks`.
     pub networks: Option<String>,
 }
 
@@ -45,7 +51,6 @@ pub struct CloudflareIpsCloudflareIpDetailsArgs {
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -55,11 +60,9 @@ pub struct CloudflareIpsCloudflareIpDetailsArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudflare_ips_cloudflare_ip_details_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &CloudflareIpsCloudflareIpDetailsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -89,7 +92,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

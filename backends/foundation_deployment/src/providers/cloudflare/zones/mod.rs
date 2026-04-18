@@ -6,8 +6,14 @@
 //! Feature flag: `cloudflare_zones `
 
 #![cfg(feature = "cloudflare_zones")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -35,2162 +41,1898 @@ use super::shared::ResourceTaggingTaggedResourceResponseSingle;
 use super::shared::SecurityCenterValueCountsResponse;
 use super::shared::WaitingroomResponseCollection;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// AccessApps response type.
+/// `AccessApps` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessApps {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessAppsComponentsSchemasResponseCollection2 response type.
+/// `AccessAppsComponentsSchemasResponseCollection2` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessAppsComponentsSchemasResponseCollection2 {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessAppsComponentsSchemasSingleResponse2 response type.
+/// `AccessAppsComponentsSchemasSingleResponse2` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessAppsComponentsSchemasSingleResponse2 {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessCaComponentsSchemasIdResponse response type.
+/// `AccessCaComponentsSchemasIdResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessCaComponentsSchemasIdResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessCaComponentsSchemasResponseCollection2 response type.
+/// `AccessCaComponentsSchemasResponseCollection2` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessCaComponentsSchemasResponseCollection2 {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessCaComponentsSchemasSingleResponse2 response type.
+/// `AccessCaComponentsSchemasSingleResponse2` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessCaComponentsSchemasSingleResponse2 {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessCertificatesComponentsSchemasResponseCollection2 response type.
+/// `AccessCertificatesComponentsSchemasResponseCollection2` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessCertificatesComponentsSchemasResponseCollection2 {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessCertificatesComponentsSchemasSingleResponse2 response type.
+/// `AccessCertificatesComponentsSchemasSingleResponse2` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessCertificatesComponentsSchemasSingleResponse2 {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessGroupsComponentsSchemasResponseCollection response type.
+/// `AccessGroupsComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessGroupsComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessGroupsComponentsSchemasSingleResponse2 response type.
+/// `AccessGroupsComponentsSchemasSingleResponse2` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessGroupsComponentsSchemasSingleResponse2 {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessIdentityProvidersComponentsSchemasResponseCollection response type.
+/// `AccessIdentityProvidersComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessIdentityProvidersComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessIdentityProvidersComponentsSchemasSingleResponse response type.
+/// `AccessIdentityProvidersComponentsSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessIdentityProvidersComponentsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessOrganizationsComponentsSchemasSingleResponse response type.
+/// `AccessOrganizationsComponentsSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessOrganizationsComponentsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessPoliciesComponentsSchemasResponseCollection response type.
+/// `AccessPoliciesComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessPoliciesComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessPoliciesComponentsSchemasSingleResponse response type.
+/// `AccessPoliciesComponentsSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessPoliciesComponentsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessSchemasCreateResponse response type.
+/// `AccessSchemasCreateResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSchemasCreateResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessSchemasIdentityProviders response type.
+/// `AccessSchemasIdentityProviders` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSchemasIdentityProviders {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessSchemasPolicyCheckResponse response type.
+/// `AccessSchemasPolicyCheckResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSchemasPolicyCheckResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessSchemasResponseCollectionHostnames response type.
+/// `AccessSchemasResponseCollectionHostnames` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSchemasResponseCollectionHostnames {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessServiceTokensComponentsSchemasResponseCollection response type.
+/// `AccessServiceTokensComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessServiceTokensComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// AccessServiceTokensComponentsSchemasSingleResponse response type.
+/// `AccessServiceTokensComponentsSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessServiceTokensComponentsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldApiDiscoveryPatchMultipleRequest response type.
+/// `ApiShieldApiDiscoveryPatchMultipleRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldApiDiscoveryPatchMultipleRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldApiResponseCommon response type.
+/// `ApiShieldApiResponseCommon` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldApiResponseCommon {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldApiResponseSingle response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiShieldApiResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// ApiShieldBasicOperation response type.
+/// `ApiShieldBasicOperation` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldBasicOperation {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldBulkDeleteLabelsOnOperationRequest response type.
+/// `ApiShieldBulkDeleteLabelsOnOperationRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldBulkDeleteLabelsOnOperationRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldBulkPostLabelsOnOperationRequest response type.
+/// `ApiShieldBulkPostLabelsOnOperationRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldBulkPostLabelsOnOperationRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldBulkPutLabelsOnOperationRequest response type.
+/// `ApiShieldBulkPutLabelsOnOperationRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldBulkPutLabelsOnOperationRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldDeleteLabelsOnOperationRequest response type.
+/// `ApiShieldDeleteLabelsOnOperationRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldDeleteLabelsOnOperationRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldLabelRequest response type.
+/// `ApiShieldLabelRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldLabelRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldMultipleOperationResponse response type.
+/// `ApiShieldMultipleOperationResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldMultipleOperationResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldMultipleOperationResponsePaginated response type.
+/// `ApiShieldMultipleOperationResponsePaginated` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldMultipleOperationResponsePaginated {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldObjectWithOperationId response type.
+/// `ApiShieldObjectWithOperationId` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldObjectWithOperationId {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldOldOperationSchemaValidationSettings response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiShieldOldOperationSchemaValidationSettings {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// ApiShieldOldOperationSchemaValidationSettingsModifyRequest response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiShieldOldOperationSchemaValidationSettingsModifyRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// ApiShieldOldOperationSchemaValidationSettingsMultipleRequest response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiShieldOldOperationSchemaValidationSettingsMultipleRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// ApiShieldOldZoneSchemaValidationSettings response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiShieldOldZoneSchemaValidationSettings {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// ApiShieldOldZoneSchemaValidationSettingsPatch response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiShieldOldZoneSchemaValidationSettingsPatch {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// ApiShieldOldZoneSchemaValidationSettingsPut response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApiShieldOldZoneSchemaValidationSettingsPut {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// ApiShieldPatchDiscoveriesResponse response type.
+/// `ApiShieldPatchDiscoveriesResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldPatchDiscoveriesResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldPatchDiscoveryResponse response type.
+/// `ApiShieldPatchDiscoveryResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldPatchDiscoveryResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldPatchLabelRequest response type.
+/// `ApiShieldPatchLabelRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldPatchLabelRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldPostLabelsOnOperationRequest response type.
+/// `ApiShieldPostLabelsOnOperationRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldPostLabelsOnOperationRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldPutLabelRequest response type.
+/// `ApiShieldPutLabelRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldPutLabelRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldPutLabelsOnOperationRequest response type.
+/// `ApiShieldPutLabelsOnOperationRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldPutLabelsOnOperationRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldReplaceOperationsAttachedToLabelRequest response type.
+/// `ApiShieldReplaceOperationsAttachedToLabelRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldReplaceOperationsAttachedToLabelRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldRequestExpressionTemplatesFallthrough response type.
+/// `ApiShieldRequestExpressionTemplatesFallthrough` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldRequestExpressionTemplatesFallthrough {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldSchemaResponseDiscovery response type.
+/// `ApiShieldSchemaResponseDiscovery` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldSchemaResponseDiscovery {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldSchemaResponseWithThresholds response type.
+/// `ApiShieldSchemaResponseWithThresholds` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldSchemaResponseWithThresholds {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ApiShieldSingleOperationResponse response type.
+/// `ApiShieldSingleOperationResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiShieldSingleOperationResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ArgoAnalyticsResponseSingle response type.
+/// `ArgoAnalyticsResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArgoAnalyticsResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ArgoConfigApiResponseSingle response type.
+/// `ArgoConfigApiResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArgoConfigApiResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ArgoConfigPatch response type.
+/// `ArgoConfigPatch` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArgoConfigPatch {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// BillSubsApiPlanResponseCollection response type.
+/// `BillSubsApiPlanResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillSubsApiPlanResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// BillSubsApiZoneSubscriptionResponseSingle response type.
+/// `BillSubsApiZoneSubscriptionResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillSubsApiZoneSubscriptionResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// BotManagementBotManagementResponseBody response type.
+/// `BotManagementBotManagementResponseBody` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BotManagementBotManagementResponseBody {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// BotManagementConfigSingle response type.
+/// `BotManagementConfigSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BotManagementConfigSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// BotManagementFeedbackReport response type.
+/// `BotManagementFeedbackReport` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BotManagementFeedbackReport {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CacheApiResponseSingleId response type.
+/// `CacheApiResponseSingleId` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CacheApiResponseSingleId {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CachePurgeApiResponseSingleId response type.
+/// `CachePurgeApiResponseSingleId` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CachePurgeApiResponseSingleId {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CacheRulesOriginH2MaxStreamsResponseValue response type.
+/// `CacheRulesOriginH2MaxStreamsResponseValue` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CacheRulesOriginH2MaxStreamsResponseValue {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CacheRulesPatch response type.
+/// `CacheRulesPatch` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CacheRulesPatch {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CacheRulesSmartTieredCachePatch response type.
+/// `CacheRulesSmartTieredCachePatch` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CacheRulesSmartTieredCachePatch {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CacheSchemasPatch response type.
+/// `CacheSchemasPatch` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CacheSchemasPatch {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudConnectorRule response type.
+/// `CloudConnectorRule` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudConnectorRule {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnsCustomNameserversGetResponse response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsCustomNameserversGetResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// DnsCustomNameserversSchemasEmptyResponse response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsCustomNameserversSchemasEmptyResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// DnsCustomNameserversZoneMetadata response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsCustomNameserversZoneMetadata {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// DnsRecordsDnsRecordPatch response type.
+/// `DnsRecordsDnsRecordPatch` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsRecordPatch {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnsRecordsDnsRecordPost response type.
+/// `DnsRecordsDnsRecordPost` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsRecordPost {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnsRecordsDnsRequestBatchObject response type.
+/// `DnsRecordsDnsRequestBatchObject` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsRequestBatchObject {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnsRecordsDnsRequestReviewScanObject response type.
+/// `DnsRecordsDnsRequestReviewScanObject` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsRequestReviewScanObject {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnsRecordsDnsResponseBatch response type.
+/// `DnsRecordsDnsResponseBatch` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsResponseBatch {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnsRecordsDnsResponseCollection response type.
+/// `DnsRecordsDnsResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnsRecordsDnsResponseImportScan response type.
+/// `DnsRecordsDnsResponseImportScan` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsResponseImportScan {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnsRecordsDnsResponseReviewScan response type.
+/// `DnsRecordsDnsResponseReviewScan` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsResponseReviewScan {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnsRecordsDnsResponseSingle response type.
+/// `DnsRecordsDnsResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnsRecordsDnsResponseTriggerScan response type.
+/// `DnsRecordsDnsResponseTriggerScan` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsResponseTriggerScan {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnsRecordsDnsResponseZoneUsage response type.
+/// `DnsRecordsDnsResponseZoneUsage` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordsDnsResponseZoneUsage {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnsSettingsDnsSettingsZonePatch response type.
+/// `DnsSettingsDnsSettingsZonePatch` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsSettingsDnsSettingsZonePatch {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnsSettingsSchemasDnsResponseSingle response type.
+/// `DnsSettingsSchemasDnsResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsSettingsSchemasDnsResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnssecDeleteDnssecResponseSingle response type.
+/// `DnssecDeleteDnssecResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnssecDeleteDnssecResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DnssecDnssecResponseSingle response type.
+/// `DnssecDnssecResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnssecDnssecResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailApiResponseSingle response type.
+/// `EmailApiResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailApiResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailCatchAllRuleResponseSingle response type.
+/// `EmailCatchAllRuleResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailCatchAllRuleResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailCreateRuleProperties response type.
+/// `EmailCreateRuleProperties` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailCreateRuleProperties {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailCreateSendingSubdomainProperties response type.
+/// `EmailCreateSendingSubdomainProperties` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailCreateSendingSubdomainProperties {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailDnsSettingsResponseCollection response type.
+/// `EmailDnsSettingsResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailDnsSettingsResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailEmailSettingDnsRequestBody response type.
+/// `EmailEmailSettingDnsRequestBody` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailEmailSettingDnsRequestBody {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailEmailSettingsResponseSingle response type.
+/// `EmailEmailSettingsResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailEmailSettingsResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailRuleResponseSingle response type.
+/// `EmailRuleResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailRuleResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailRulesResponseCollection response type.
+/// `EmailRulesResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailRulesResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailSendingSubdomainPreviewResponse response type.
+/// `EmailSendingSubdomainPreviewResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailSendingSubdomainPreviewResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailSendingSubdomainResponseSingle response type.
+/// `EmailSendingSubdomainResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailSendingSubdomainResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailSendingSubdomainsResponseCollection response type.
+/// `EmailSendingSubdomainsResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailSendingSubdomainsResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailUpdateCatchAllRuleProperties response type.
+/// `EmailUpdateCatchAllRuleProperties` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailUpdateCatchAllRuleProperties {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// EmailUpdateRuleProperties response type.
+/// `EmailUpdateRuleProperties` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailUpdateRuleProperties {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// FirewallFilter response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallFilter {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallFilterDeleteResponseCollection response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallFilterDeleteResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallFilterDeleteResponseSingle response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallFilterDeleteResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallFilterResponseCollection response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallFilterResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallFilterResponseSingle response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallFilterResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallFilterRuleUpdateRequest response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallFilterRuleUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallFilterRulesResponseCollection response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallFilterRulesResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallFilterRulesResponseCollectionDelete response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallFilterRulesResponseCollectionDelete {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallFilterRulesSingleResponse response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallFilterRulesSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallFilterRulesSingleResponseDelete response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallFilterRulesSingleResponseDelete {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallFirewalluablockResponseCollection response type.
+/// `FirewallFirewalluablockResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallFirewalluablockResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// FirewallFirewalluablockResponseSingle response type.
+/// `FirewallFirewalluablockResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallFirewalluablockResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// FirewallOverrideResponseCollection response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallOverrideResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallOverrideResponseSingle response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallOverrideResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallPackageResponseCollection response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallPackageResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallPackageResponseSingle response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallPackageResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallRatelimitResponseCollection response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallRatelimitResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallRatelimitResponseSingle response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FirewallRatelimitResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// FirewallZonelockdownResponseCollection response type.
+/// `FirewallZonelockdownResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallZonelockdownResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// FirewallZonelockdownResponseSingle response type.
+/// `FirewallZonelockdownResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallZonelockdownResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// FraudFraudSettings response type.
+/// `FraudFraudSettings` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FraudFraudSettings {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// FraudFraudSettingsResponseBody response type.
+/// `FraudFraudSettingsResponseBody` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FraudFraudSettingsResponseBody {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// GoogleTagGatewayGoogleTagGatewayConfig response type.
+/// `GoogleTagGatewayGoogleTagGatewayConfig` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTagGatewayGoogleTagGatewayConfig {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// HealthchecksIdResponse response type.
+/// `HealthchecksIdResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthchecksIdResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// HealthchecksQueryHealthcheck response type.
+/// `HealthchecksQueryHealthcheck` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthchecksQueryHealthcheck {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// HealthchecksResponseCollection response type.
+/// `HealthchecksResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthchecksResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// HealthchecksSingleResponse response type.
+/// `HealthchecksSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthchecksSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// KaminoEnvironmentsRequest response type.
+/// `KaminoEnvironmentsRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KaminoEnvironmentsRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// KaminoEnvironmentsResponse response type.
+/// `KaminoEnvironmentsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KaminoEnvironmentsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LoadBalancingComponentsSchemasIdResponse response type.
+/// `LoadBalancingComponentsSchemasIdResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingComponentsSchemasIdResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LoadBalancingLoadBalancerComponentsSchemasResponseCollection response type.
+/// `LoadBalancingLoadBalancerComponentsSchemasResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingLoadBalancerComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LoadBalancingLoadBalancerComponentsSchemasSingleResponse response type.
+/// `LoadBalancingLoadBalancerComponentsSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancingLoadBalancerComponentsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LogcontrolRetentionFlag response type.
+/// `LogcontrolRetentionFlag` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogcontrolRetentionFlag {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LogcontrolRetentionFlagResponseSingle response type.
+/// `LogcontrolRetentionFlagResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogcontrolRetentionFlagResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LogpushInstantLogsJobResponseCollection response type.
+/// `LogpushInstantLogsJobResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogpushInstantLogsJobResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LogpushInstantLogsJobResponseSingle response type.
+/// `LogpushInstantLogsJobResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogpushInstantLogsJobResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LogshareFieldsResponse response type.
+/// `LogshareFieldsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogshareFieldsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// LogshareLogsResponseJsonLines response type.
+/// `LogshareLogsResponseJsonLines` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogshareLogsResponseJsonLines {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ObservatoryAvailabilitiesResponse response type.
+/// `ObservatoryAvailabilitiesResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObservatoryAvailabilitiesResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ObservatoryCreateScheduleResponse response type.
+/// `ObservatoryCreateScheduleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObservatoryCreateScheduleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ObservatoryScheduleResponseSingle response type.
+/// `ObservatoryScheduleResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObservatoryScheduleResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// PageShieldGetZoneConnectionResponse response type.
+/// `PageShieldGetZoneConnectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageShieldGetZoneConnectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// PageShieldGetZoneCookieResponse response type.
+/// `PageShieldGetZoneCookieResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageShieldGetZoneCookieResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// PageShieldGetZonePolicyResponse response type.
+/// `PageShieldGetZonePolicyResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageShieldGetZonePolicyResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// PageShieldGetZoneScriptResponse response type.
+/// `PageShieldGetZoneScriptResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageShieldGetZoneScriptResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// PageShieldListZoneConnectionsResponse response type.
+/// `PageShieldListZoneConnectionsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageShieldListZoneConnectionsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// PageShieldListZoneCookiesResponse response type.
+/// `PageShieldListZoneCookiesResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageShieldListZoneCookiesResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// PageShieldListZonePoliciesResponse response type.
+/// `PageShieldListZonePoliciesResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageShieldListZonePoliciesResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// PageShieldListZoneScriptsResponse response type.
+/// `PageShieldListZoneScriptsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageShieldListZoneScriptsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// PayPerCrawlGetConfigResponse response type.
+/// `PayPerCrawlGetConfigResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PayPerCrawlGetConfigResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceTaggingDeleteTagsRequestZoneLevel response type.
+/// `ResourceTaggingDeleteTagsRequestZoneLevel` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingDeleteTagsRequestZoneLevel {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ResourceTaggingSetTagsRequestZoneLevel response type.
+/// `ResourceTaggingSetTagsRequestZoneLevel` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingSetTagsRequestZoneLevel {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RumRumSiteResponseSingle response type.
+/// `RumRumSiteResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumRumSiteResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RumToggleRumRequest response type.
+/// `RumToggleRumRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RumToggleRumRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecondaryDnsDisableTransferResponse response type.
+/// `SecondaryDnsDisableTransferResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecondaryDnsDisableTransferResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecondaryDnsDnsSecondarySecondaryZone response type.
+/// `SecondaryDnsDnsSecondarySecondaryZone` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecondaryDnsDnsSecondarySecondaryZone {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecondaryDnsEnableTransferResponse response type.
+/// `SecondaryDnsEnableTransferResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecondaryDnsEnableTransferResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecondaryDnsForceResponse response type.
+/// `SecondaryDnsForceResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecondaryDnsForceResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecondaryDnsIdResponse response type.
+/// `SecondaryDnsIdResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecondaryDnsIdResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecondaryDnsSchemasForceResponse response type.
+/// `SecondaryDnsSchemasForceResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecondaryDnsSchemasForceResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecondaryDnsSingleRequestOutgoing response type.
+/// `SecondaryDnsSingleRequestOutgoing` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecondaryDnsSingleRequestOutgoing {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecondaryDnsSingleResponseIncoming response type.
+/// `SecondaryDnsSingleResponseIncoming` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecondaryDnsSingleResponseIncoming {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecondaryDnsSingleResponseOutgoing response type.
+/// `SecondaryDnsSingleResponseOutgoing` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecondaryDnsSingleResponseOutgoing {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecurityCenterSecurityTxt response type.
+/// `SecurityCenterSecurityTxt` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityCenterSecurityTxt {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SmartshieldQueryHealthcheck response type.
+/// `SmartshieldQueryHealthcheck` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SmartshieldQueryHealthcheck {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SmartshieldResponseCollection response type.
+/// `SmartshieldResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SmartshieldResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SmartshieldSingleHcIdResponse response type.
+/// `SmartshieldSingleHcIdResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SmartshieldSingleHcIdResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SmartshieldSingleHcResponse response type.
+/// `SmartshieldSingleHcResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SmartshieldSingleHcResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SmartshieldSmartShieldSettingsPatchBody response type.
+/// `SmartshieldSmartShieldSettingsPatchBody` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SmartshieldSmartShieldSettingsPatchBody {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SpectrumAnalyticsQueryResponseSingle response type.
+/// `SpectrumAnalyticsQueryResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpectrumAnalyticsQueryResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SpectrumConfigApiResponseSingleId response type.
+/// `SpectrumConfigApiResponseSingleId` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpectrumConfigApiResponseSingleId {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SpectrumConfigAppConfigCollection response type.
+/// `SpectrumConfigAppConfigCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpectrumConfigAppConfigCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SpectrumConfigAppConfigSingle response type.
+/// `SpectrumConfigAppConfigSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpectrumConfigAppConfigSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SpectrumConfigUpdateAppConfig response type.
+/// `SpectrumConfigUpdateAppConfig` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpectrumConfigUpdateAppConfig {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesDevicesPolicyCertificates response type.
+/// `TeamsDevicesDevicesPolicyCertificates` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesDevicesPolicyCertificates {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesDevicesPolicyCertificatesSingle response type.
+/// `TeamsDevicesDevicesPolicyCertificatesSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesDevicesPolicyCertificatesSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesAdvancedCertificatePackResponseSingle response type.
+/// `TlsCertificatesAndHostnamesAdvancedCertificatePackResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesAdvancedCertificatePackResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCertificateAnalyzeResponse response type.
+/// `TlsCertificatesAndHostnamesCertificateAnalyzeResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCertificateAnalyzeResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCertificatePackQuotaResponse response type.
+/// `TlsCertificatesAndHostnamesCertificatePackQuotaResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCertificatePackQuotaResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCertificatePackResponseCollection response type.
+/// `TlsCertificatesAndHostnamesCertificatePackResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCertificatePackResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCertificatePackResponseSingle response type.
+/// `TlsCertificatesAndHostnamesCertificatePackResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCertificatePackResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCertificateResponseCollection response type.
+/// `TlsCertificatesAndHostnamesCertificateResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCertificateResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCertificateResponseIdOnly response type.
+/// `TlsCertificatesAndHostnamesCertificateResponseIdOnly` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCertificateResponseIdOnly {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCertificateResponseSingle response type.
+/// `TlsCertificatesAndHostnamesCertificateResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCertificateResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesClientCertificateResponseCollection response type.
+/// `TlsCertificatesAndHostnamesClientCertificateResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesClientCertificateResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesClientCertificateResponseSingle response type.
+/// `TlsCertificatesAndHostnamesClientCertificateResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesClientCertificateResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseCollection response type.
+/// `TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseSingle response type.
+/// `TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesComponentsSchemasValidationMethod response type.
+/// `TlsCertificatesAndHostnamesComponentsSchemasValidationMethod` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesComponentsSchemasValidationMethod {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCustomCertAndKey response type.
+/// `TlsCertificatesAndHostnamesCustomCertAndKey` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCustomCertAndKey {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCustomHostnameResponseCollection response type.
+/// `TlsCertificatesAndHostnamesCustomHostnameResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCustomHostnameResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCustomHostnameResponseSingle response type.
+/// `TlsCertificatesAndHostnamesCustomHostnameResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCustomHostnameResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCustomTrustStoreResponseCollection response type.
+/// `TlsCertificatesAndHostnamesCustomTrustStoreResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCustomTrustStoreResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCustomTrustStoreResponseIdOnly response type.
+/// `TlsCertificatesAndHostnamesCustomTrustStoreResponseIdOnly` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCustomTrustStoreResponseIdOnly {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCustomTrustStoreResponseSingle response type.
+/// `TlsCertificatesAndHostnamesCustomTrustStoreResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCustomTrustStoreResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesDcvDelegationResponse response type.
+/// `TlsCertificatesAndHostnamesDcvDelegationResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesDcvDelegationResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesDeleteAdvancedCertificatePackResponseSingle response type.
+/// `TlsCertificatesAndHostnamesDeleteAdvancedCertificatePackResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesDeleteAdvancedCertificatePackResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesEnabledResponse response type.
+/// `TlsCertificatesAndHostnamesEnabledResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesEnabledResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesFallbackOriginResponse response type.
+/// `TlsCertificatesAndHostnamesFallbackOriginResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesFallbackOriginResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesHostnameAopResponseCollection response type.
+/// `TlsCertificatesAndHostnamesHostnameAopResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesHostnameAopResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesHostnameAopSingleResponse response type.
+/// `TlsCertificatesAndHostnamesHostnameAopSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesHostnameAopSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesHostnameAssocResponseCollection response type.
+/// `TlsCertificatesAndHostnamesHostnameAssocResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesHostnameAssocResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesHostnameAssociation response type.
+/// `TlsCertificatesAndHostnamesHostnameAssociation` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesHostnameAssociation {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesHostnameAssociationsResponse response type.
+/// `TlsCertificatesAndHostnamesHostnameAssociationsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesHostnameAssociationsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseCollection response type.
+/// `TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseCollection
 {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseSingle response type.
+/// `TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseSingle
 {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesKeylessResponseCollection response type.
+/// `TlsCertificatesAndHostnamesKeylessResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesKeylessResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesKeylessResponseSingle response type.
+/// `TlsCertificatesAndHostnamesKeylessResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesKeylessResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesKeylessResponseSingleId response type.
+/// `TlsCertificatesAndHostnamesKeylessResponseSingleId` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesKeylessResponseSingleId {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesPerHostnameSettingsResponse response type.
+/// `TlsCertificatesAndHostnamesPerHostnameSettingsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesPerHostnameSettingsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesPerHostnameSettingsResponseCollection response type.
+/// `TlsCertificatesAndHostnamesPerHostnameSettingsResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesPerHostnameSettingsResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesPerHostnameSettingsResponseDelete response type.
+/// `TlsCertificatesAndHostnamesPerHostnameSettingsResponseDelete` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesPerHostnameSettingsResponseDelete {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesSslUniversalSettingsResponse response type.
+/// `TlsCertificatesAndHostnamesSslUniversalSettingsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesSslUniversalSettingsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesSslValidationMethodResponseCollection response type.
+/// `TlsCertificatesAndHostnamesSslValidationMethodResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesSslValidationMethodResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesSslVerificationResponseCollection response type.
+/// `TlsCertificatesAndHostnamesSslVerificationResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesSslVerificationResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesTotalTlsSettingsResponse response type.
+/// `TlsCertificatesAndHostnamesTotalTlsSettingsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesTotalTlsSettingsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesUniversal response type.
+/// `TlsCertificatesAndHostnamesUniversal` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesUniversal {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WafManagedRulesRuleGroupResponseCollection response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WafManagedRulesRuleGroupResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// WafManagedRulesRuleGroupResponseSingle response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WafManagedRulesRuleGroupResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// WafManagedRulesRuleResponseCollection response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WafManagedRulesRuleResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// WafManagedRulesRuleResponseSingle response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WafManagedRulesRuleResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// WafProductApiBundleApiResponseCommon response type.
+/// `WafProductApiBundleApiResponseCommon` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleApiResponseCommon {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WafProductApiBundleCustomDetection response type.
+/// `WafProductApiBundleCustomDetection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleCustomDetection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WafProductApiBundleCustomTopics response type.
+/// `WafProductApiBundleCustomTopics` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleCustomTopics {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WafProductApiBundleResponseCustomDetection response type.
+/// `WafProductApiBundleResponseCustomDetection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleResponseCustomDetection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WafProductApiBundleResponseCustomDetectionCollection response type.
+/// `WafProductApiBundleResponseCustomDetectionCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleResponseCustomDetectionCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WafProductApiBundleResponseCustomScanCollection response type.
+/// `WafProductApiBundleResponseCustomScanCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleResponseCustomScanCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WafProductApiBundleResponseCustomTopics response type.
+/// `WafProductApiBundleResponseCustomTopics` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleResponseCustomTopics {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WafProductApiBundleResponseSettings response type.
+/// `WafProductApiBundleResponseSettings` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleResponseSettings {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WafProductApiBundleResponseStatus response type.
+/// `WafProductApiBundleResponseStatus` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleResponseStatus {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WafProductApiBundleSchemasApiResponseCommon response type.
+/// `WafProductApiBundleSchemasApiResponseCommon` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleSchemasApiResponseCommon {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WafProductApiBundleSchemasResponseStatus response type.
+/// `WafProductApiBundleSchemasResponseStatus` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleSchemasResponseStatus {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WafProductApiBundleSettings response type.
+/// `WafProductApiBundleSettings` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleSettings {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WafProductApiBundleStatus response type.
+/// `WafProductApiBundleStatus` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafProductApiBundleStatus {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomCreateRule response type.
+/// `WaitingroomCreateRule` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomCreateRule {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomEventDetailsResponse response type.
+/// `WaitingroomEventDetailsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomEventDetailsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomEventIdResponse response type.
+/// `WaitingroomEventIdResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomEventIdResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomEventResponse response type.
+/// `WaitingroomEventResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomEventResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomEventResponseCollection response type.
+/// `WaitingroomEventResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomEventResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomPatchRule response type.
+/// `WaitingroomPatchRule` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomPatchRule {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomPreviewResponse response type.
+/// `WaitingroomPreviewResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomPreviewResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomQueryEvent response type.
+/// `WaitingroomQueryEvent` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomQueryEvent {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomQueryPreview response type.
+/// `WaitingroomQueryPreview` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomQueryPreview {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomQueryWaitingroom response type.
+/// `WaitingroomQueryWaitingroom` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomQueryWaitingroom {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomRulesResponseCollection response type.
+/// `WaitingroomRulesResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomRulesResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomSingleResponse response type.
+/// `WaitingroomSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomStatusResponse response type.
+/// `WaitingroomStatusResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomStatusResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomWaitingRoomIdResponse response type.
+/// `WaitingroomWaitingRoomIdResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomWaitingRoomIdResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomZoneSettings response type.
+/// `WaitingroomZoneSettings` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomZoneSettings {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// WaitingroomZoneSettingsResponse response type.
+/// `WaitingroomZoneSettingsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitingroomZoneSettingsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// Web3ApiResponseSingleId response type.
+/// `Web3ApiResponseSingleId` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Web3ApiResponseSingleId {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// Web3CollectionResponse response type.
+/// `Web3CollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Web3CollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// Web3ContentListDetailsResponse response type.
+/// `Web3ContentListDetailsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Web3ContentListDetailsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// Web3ContentListEntryCollectionResponse response type.
+/// `Web3ContentListEntryCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Web3ContentListEntryCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// Web3ContentListEntryCreateRequest response type.
+/// `Web3ContentListEntryCreateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Web3ContentListEntryCreateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// Web3ContentListEntrySingleResponse response type.
+/// `Web3ContentListEntrySingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Web3ContentListEntrySingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// Web3ContentListUpdateRequest response type.
+/// `Web3ContentListUpdateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Web3ContentListUpdateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// Web3CreateRequest response type.
+/// `Web3CreateRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Web3CreateRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// Web3ModifyRequest response type.
+/// `Web3ModifyRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Web3ModifyRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// Web3SingleResponse response type.
+/// `Web3SingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Web3SingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZarazZarazConfigBody response type.
+/// `ZarazZarazConfigBody` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZarazZarazConfigBody {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZarazZarazConfigHistoryResponse response type.
+/// `ZarazZarazConfigHistoryResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZarazZarazConfigHistoryResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZarazZarazConfigResponse response type.
+/// `ZarazZarazConfigResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZarazZarazConfigResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZarazZarazConfigReturn response type.
+/// `ZarazZarazConfigReturn` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZarazZarazConfigReturn {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZarazZarazHistoryResponse response type.
+/// `ZarazZarazHistoryResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZarazZarazHistoryResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZarazZarazWorkflowResponse response type.
+/// `ZarazZarazWorkflowResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZarazZarazWorkflowResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZoneAnalyticsApiColoResponse response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ZoneAnalyticsApiColoResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// ZoneAnalyticsApiDashboardResponse response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ZoneAnalyticsApiDashboardResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// ZonesApiResponseSingleId response type.
+/// `ZonesApiResponseSingleId` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZonesApiResponseSingleId {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZonesSchemasApiResponseSingleId response type.
+/// `ZonesSchemasApiResponseSingleId` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZonesSchemasApiResponseSingleId {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// ZonesZoneSettingsResponseCollection response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ZonesZoneSettingsResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// ZonesZoneSettingsSingleRequest response type.
+/// `ZonesZoneSettingsSingleRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZonesZoneSettingsSingleRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -2202,106 +1944,80 @@ pub struct ZonesZoneSettingsSingleRequest {
 /// Arguments for [`ip-address-management-address-maps-add-a-zone-membership-to-an-address-map_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementAddressMapsAddAZoneMembershipToAnAddressMapArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: address_map_id
+    /// Path parameter: `address_map_id`.
     pub address_map_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-address-management-address-maps-remove-a-zone-membership-from-an-address-map_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAddressManagementAddressMapsRemoveAZoneMembershipFromAnAddressMapArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: address_map_id
+    /// Path parameter: `address_map_id`.
     pub address_map_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zones-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZonesGetArgs {
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: account.id
+    /// Query parameter: `account.id`.
     pub account_id: Option<String>,
-    /// Query parameter: account.name
+    /// Query parameter: `account.name`.
     pub account_name: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: match
+    /// Query parameter: `match`.
     pub r#match: Option<String>,
-}
-
-/// Arguments for [`zone-analytics-(-deprecated)-get-analytics-by-co-locations_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ZoneAnalyticsDeprecatedGetAnalyticsByCoLocationsArgs {
-    /// Path parameter: zone_identifier
-    pub zone_identifier: String,
-    /// Query parameter: until
-    pub until: Option<String>,
-    /// Query parameter: since
-    pub since: Option<String>,
-    /// Query parameter: continuous
-    pub continuous: Option<String>,
-}
-
-/// Arguments for [`zone-analytics-(-deprecated)-get-dashboard_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ZoneAnalyticsDeprecatedGetDashboardArgs {
-    /// Path parameter: zone_identifier
-    pub zone_identifier: String,
-    /// Query parameter: until
-    pub until: Option<String>,
-    /// Query parameter: since
-    pub since: Option<String>,
-    /// Query parameter: continuous
-    pub continuous: Option<String>,
 }
 
 /// Arguments for [`zones-0-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Zones0GetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zones-0-patch_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Zones0PatchArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zones-0-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Zones0DeleteArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-applications-list-access-applications_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessApplicationsListAccessApplicationsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-applications-add-a-bookmark-application_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessApplicationsAddABookmarkApplicationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: AccessApps,
@@ -2310,25 +2026,25 @@ pub struct ZoneLevelAccessApplicationsAddABookmarkApplicationArgs {
 /// Arguments for [`zone-level-access-short-lived-certificate-c-as-list-short-lived-certificate-c-as_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessShortLivedCertificateCAsListShortLivedCertificateCAsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-applications-get-an-access-application_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessApplicationsGetAnAccessApplicationArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-applications-update-a-bookmark-application_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessApplicationsUpdateABookmarkApplicationArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: AccessApps,
@@ -2337,105 +2053,105 @@ pub struct ZoneLevelAccessApplicationsUpdateABookmarkApplicationArgs {
 /// Arguments for [`zone-level-access-applications-delete-an-access-application_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessApplicationsDeleteAnAccessApplicationArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-short-lived-certificate-c-as-get-a-short-lived-certificate-ca_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessShortLivedCertificateCAsGetAShortLivedCertificateCaArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-short-lived-certificate-c-as-create-a-short-lived-certificate-ca_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessShortLivedCertificateCAsCreateAShortLivedCertificateCaArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-short-lived-certificate-c-as-delete-a-short-lived-certificate-ca_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessShortLivedCertificateCAsDeleteAShortLivedCertificateCaArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-policies-list-access-policies_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessPoliciesListAccessPoliciesArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-policies-create-an-access-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessPoliciesCreateAnAccessPolicyArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-policies-get-an-access-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessPoliciesGetAnAccessPolicyArgs {
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-policies-update-an-access-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessPoliciesUpdateAnAccessPolicyArgs {
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-policies-delete-an-access-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessPoliciesDeleteAnAccessPolicyArgs {
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-applications-revoke-service-tokens_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessApplicationsRevokeServiceTokensArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-applications-put-update-access-application-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessApplicationsPutUpdateAccessApplicationSettingsArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: AccessAppSettingsRequest,
@@ -2444,9 +2160,9 @@ pub struct ZoneLevelAccessApplicationsPutUpdateAccessApplicationSettingsArgs {
 /// Arguments for [`zone-level-access-applications-patch-update-access-application-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessApplicationsPatchUpdateAccessApplicationSettingsArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: AccessAppSettingsRequest,
@@ -2455,119 +2171,119 @@ pub struct ZoneLevelAccessApplicationsPatchUpdateAccessApplicationSettingsArgs {
 /// Arguments for [`zone-level-access-applications-test-access-policies_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessApplicationsTestAccessPoliciesArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-mtls-authentication-list-mtls-certificates_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessMtlsAuthenticationListMtlsCertificatesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-mtls-authentication-add-an-mtls-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessMtlsAuthenticationAddAnMtlsCertificateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-mtls-authentication-list-mtls-certificates-hostname-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessMtlsAuthenticationListMtlsCertificatesHostnameSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-mtls-authentication-update-an-mtls-certificate-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessMtlsAuthenticationUpdateAnMtlsCertificateSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-mtls-authentication-get-an-mtls-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessMtlsAuthenticationGetAnMtlsCertificateArgs {
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-mtls-authentication-update-an-mtls-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessMtlsAuthenticationUpdateAnMtlsCertificateArgs {
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-mtls-authentication-delete-an-mtls-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessMtlsAuthenticationDeleteAnMtlsCertificateArgs {
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-groups-list-access-groups_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessGroupsListAccessGroupsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-groups-create-an-access-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessGroupsCreateAnAccessGroupArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-groups-get-an-access-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessGroupsGetAnAccessGroupArgs {
-    /// Path parameter: group_id
+    /// Path parameter: `group_id`.
     pub group_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-groups-update-an-access-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessGroupsUpdateAnAccessGroupArgs {
-    /// Path parameter: group_id
+    /// Path parameter: `group_id`.
     pub group_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-groups-delete-an-access-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessGroupsDeleteAnAccessGroupArgs {
-    /// Path parameter: group_id
+    /// Path parameter: `group_id`.
     pub group_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-identity-providers-list-access-identity-providers_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessIdentityProvidersListAccessIdentityProvidersArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-identity-providers-add-an-access-identity-provider_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessIdentityProvidersAddAnAccessIdentityProviderArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: AccessSchemasIdentityProviders,
@@ -2576,18 +2292,18 @@ pub struct ZoneLevelAccessIdentityProvidersAddAnAccessIdentityProviderArgs {
 /// Arguments for [`zone-level-access-identity-providers-get-an-access-identity-provider_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessIdentityProvidersGetAnAccessIdentityProviderArgs {
-    /// Path parameter: identity_provider_id
+    /// Path parameter: `identity_provider_id`.
     pub identity_provider_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-identity-providers-update-an-access-identity-provider_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessIdentityProvidersUpdateAnAccessIdentityProviderArgs {
-    /// Path parameter: identity_provider_id
+    /// Path parameter: `identity_provider_id`.
     pub identity_provider_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: AccessSchemasIdentityProviders,
@@ -2596,231 +2312,231 @@ pub struct ZoneLevelAccessIdentityProvidersUpdateAnAccessIdentityProviderArgs {
 /// Arguments for [`zone-level-access-identity-providers-delete-an-access-identity-provider_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessIdentityProvidersDeleteAnAccessIdentityProviderArgs {
-    /// Path parameter: identity_provider_id
+    /// Path parameter: `identity_provider_id`.
     pub identity_provider_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-zero-trust-organization-get-your-zero-trust-organization_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelZeroTrustOrganizationGetYourZeroTrustOrganizationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-zero-trust-organization-create-your-zero-trust-organization_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelZeroTrustOrganizationCreateYourZeroTrustOrganizationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-zero-trust-organization-update-your-zero-trust-organization_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelZeroTrustOrganizationUpdateYourZeroTrustOrganizationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-zero-trust-organization-revoke-all-access-tokens-for-a-user_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelZeroTrustOrganizationRevokeAllAccessTokensForAUserArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-service-tokens-list-service-tokens_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessServiceTokensListServiceTokensArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-service-tokens-create-a-service-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessServiceTokensCreateAServiceTokenArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-service-tokens-get-a-service-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessServiceTokensGetAServiceTokenArgs {
-    /// Path parameter: service_token_id
+    /// Path parameter: `service_token_id`.
     pub service_token_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-service-tokens-update-a-service-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessServiceTokensUpdateAServiceTokenArgs {
-    /// Path parameter: service_token_id
+    /// Path parameter: `service_token_id`.
     pub service_token_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-access-service-tokens-delete-a-service-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAccessServiceTokensDeleteAServiceTokenArgs {
-    /// Path parameter: service_token_id
+    /// Path parameter: `service_token_id`.
     pub service_token_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-origin-trust-store-list-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomOriginTrustStoreListDetailsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
 }
 
 /// Arguments for [`custom-origin-trust-store-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomOriginTrustStoreCreateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-origin-trust-store-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomOriginTrustStoreDetailsArgs {
-    /// Path parameter: custom_origin_trust_store_id
+    /// Path parameter: `custom_origin_trust_store_id`.
     pub custom_origin_trust_store_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-origin-trust-store-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomOriginTrustStoreDeleteArgs {
-    /// Path parameter: custom_origin_trust_store_id
+    /// Path parameter: `custom_origin_trust_store_id`.
     pub custom_origin_trust_store_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`total-tls-total-tls-settings-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TotalTlsTotalTlsSettingsDetailsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`total-tls-enable-or-disable-total-tls_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TotalTlsEnableOrDisableTotalTlsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`put-zones-zone_id-activation_check_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PutZonesZoneIdActivationCheckArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`dls-account-regional-hostnames-account-list-hostnames_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlsAccountRegionalHostnamesAccountListHostnamesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`dls-account-regional-hostnames-account-create-hostname_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlsAccountRegionalHostnamesAccountCreateHostnameArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`dls-account-regional-hostnames-account-fetch-hostname_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlsAccountRegionalHostnamesAccountFetchHostnameArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: hostname
+    /// Path parameter: `hostname`.
     pub hostname: String,
 }
 
 /// Arguments for [`dls-account-regional-hostnames-account-patch-hostname_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlsAccountRegionalHostnamesAccountPatchHostnameArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: hostname
+    /// Path parameter: `hostname`.
     pub hostname: String,
 }
 
 /// Arguments for [`dls-account-regional-hostnames-account-delete-hostname_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlsAccountRegionalHostnamesAccountDeleteHostnameArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: hostname
+    /// Path parameter: `hostname`.
     pub hostname: String,
 }
 
 /// Arguments for [`argo-analytics-for-zone-argo-analytics-for-a-zone_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ArgoAnalyticsForZoneArgoAnalyticsForAZoneArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: bins
+    /// Query parameter: `bins`.
     pub bins: Option<String>,
 }
 
 /// Arguments for [`argo-analytics-for-geolocation-argo-analytics-for-a-zone-at-different-po-ps_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ArgoAnalyticsForGeolocationArgoAnalyticsForAZoneAtDifferentPoPsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`api-shield-settings-retrieve-information-about-specific-configuration-properties_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldSettingsRetrieveInformationAboutSpecificConfigurationPropertiesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`api-shield-settings-set-configuration-properties_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldSettingsSetConfigurationPropertiesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`api-shield-api-discovery-retrieve-discovered-operations-on-a-zone-as-openapi_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldApiDiscoveryRetrieveDiscoveredOperationsOnAZoneAsOpenapiArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`api-shield-api-discovery-retrieve-discovered-operations-on-a-zone_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldApiDiscoveryRetrieveDiscoveredOperationsOnAZoneArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`api-shield-api-patch-discovered-operations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldApiPatchDiscoveredOperationsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: ApiShieldApiDiscoveryPatchMultipleRequest,
@@ -2829,16 +2545,16 @@ pub struct ApiShieldApiPatchDiscoveredOperationsArgs {
 /// Arguments for [`api-shield-api-patch-discovered-operation_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldApiPatchDiscoveredOperationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: operation_id
+    /// Path parameter: `operation_id`.
     pub operation_id: String,
 }
 
 /// Arguments for [`api-shield-expression-templates-fallthrough_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldExpressionTemplatesFallthroughArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: ApiShieldRequestExpressionTemplatesFallthrough,
@@ -2847,25 +2563,25 @@ pub struct ApiShieldExpressionTemplatesFallthroughArgs {
 /// Arguments for [`api-shield-labels-get-labels_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldLabelsGetLabelsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`api-shield-labels-get-managed-label_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldLabelsGetManagedLabelArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: name
+    /// Path parameter: `name`.
     pub name: String,
 }
 
 /// Arguments for [`api-shield-labels-replace-operations-attached-to-managed-label_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldLabelsReplaceOperationsAttachedToManagedLabelArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: name
+    /// Path parameter: `name`.
     pub name: String,
     /// Request body.
     pub body: ApiShieldReplaceOperationsAttachedToLabelRequest,
@@ -2874,7 +2590,7 @@ pub struct ApiShieldLabelsReplaceOperationsAttachedToManagedLabelArgs {
 /// Arguments for [`api-shield-labels-create-user-labels_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldLabelsCreateUserLabelsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: Vec<ApiShieldLabelRequest>,
@@ -2883,25 +2599,25 @@ pub struct ApiShieldLabelsCreateUserLabelsArgs {
 /// Arguments for [`api-shield-labels-delete-user-labels_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldLabelsDeleteUserLabelsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`api-shield-labels-get-user-label_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldLabelsGetUserLabelArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: name
+    /// Path parameter: `name`.
     pub name: String,
 }
 
 /// Arguments for [`api-shield-put-user-label_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldPutUserLabelArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: name
+    /// Path parameter: `name`.
     pub name: String,
     /// Request body.
     pub body: ApiShieldPutLabelRequest,
@@ -2910,9 +2626,9 @@ pub struct ApiShieldPutUserLabelArgs {
 /// Arguments for [`api-shield-patch-user-label_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldPatchUserLabelArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: name
+    /// Path parameter: `name`.
     pub name: String,
     /// Request body.
     pub body: ApiShieldPatchLabelRequest,
@@ -2921,18 +2637,18 @@ pub struct ApiShieldPatchUserLabelArgs {
 /// Arguments for [`api-shield-delete-user-label_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldDeleteUserLabelArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: name
+    /// Path parameter: `name`.
     pub name: String,
 }
 
 /// Arguments for [`api-shield-labels-replace-operations-attached-to-user-label_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldLabelsReplaceOperationsAttachedToUserLabelArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: name
+    /// Path parameter: `name`.
     pub name: String,
     /// Request body.
     pub body: ApiShieldReplaceOperationsAttachedToLabelRequest,
@@ -2941,16 +2657,16 @@ pub struct ApiShieldLabelsReplaceOperationsAttachedToUserLabelArgs {
 /// Arguments for [`api-shield-endpoint-management-retrieve-information-about-all-operations-on-a-zone_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldEndpointManagementRetrieveInformationAboutAllOperationsOnAZoneArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
 }
 
 /// Arguments for [`api-shield-endpoint-management-add-operations-to-a-zone_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldEndpointManagementAddOperationsToAZoneArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: Vec<ApiShieldBasicOperation>,
@@ -2959,7 +2675,7 @@ pub struct ApiShieldEndpointManagementAddOperationsToAZoneArgs {
 /// Arguments for [`api-shield-endpoint-management-delete-multiple-operations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldEndpointManagementDeleteMultipleOperationsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: Vec<ApiShieldObjectWithOperationId>,
@@ -2968,7 +2684,7 @@ pub struct ApiShieldEndpointManagementDeleteMultipleOperationsArgs {
 /// Arguments for [`api-shield-endpoint-management-add-operation-to-a-zone_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldEndpointManagementAddOperationToAZoneArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: ApiShieldBasicOperation,
@@ -2977,7 +2693,7 @@ pub struct ApiShieldEndpointManagementAddOperationToAZoneArgs {
 /// Arguments for [`api-shield-operations-bulk-post-labels-to-operations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldOperationsBulkPostLabelsToOperationsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: ApiShieldBulkPostLabelsOnOperationRequest,
@@ -2986,7 +2702,7 @@ pub struct ApiShieldOperationsBulkPostLabelsToOperationsArgs {
 /// Arguments for [`api-shield-operations-bulk-put-labels-to-operations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldOperationsBulkPutLabelsToOperationsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: ApiShieldBulkPutLabelsOnOperationRequest,
@@ -2995,45 +2711,36 @@ pub struct ApiShieldOperationsBulkPutLabelsToOperationsArgs {
 /// Arguments for [`api-shield-operations-bulk-delete-labels-to-operations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldOperationsBulkDeleteLabelsToOperationsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: ApiShieldBulkDeleteLabelsOnOperationRequest,
 }
 
-/// Arguments for [`api-shield-schema-validation-update-multiple-operation-level-settings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ApiShieldSchemaValidationUpdateMultipleOperationLevelSettingsArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Request body.
-    pub body: ApiShieldOldOperationSchemaValidationSettingsMultipleRequest,
-}
-
 /// Arguments for [`api-shield-endpoint-management-retrieve-information-about-an-operation_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldEndpointManagementRetrieveInformationAboutAnOperationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: operation_id
+    /// Path parameter: `operation_id`.
     pub operation_id: String,
 }
 
 /// Arguments for [`api-shield-endpoint-management-delete-an-operation_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldEndpointManagementDeleteAnOperationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: operation_id
+    /// Path parameter: `operation_id`.
     pub operation_id: String,
 }
 
 /// Arguments for [`api-shield-operations-post-labels-to-operation_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldOperationsPostLabelsToOperationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: operation_id
+    /// Path parameter: `operation_id`.
     pub operation_id: String,
     /// Request body.
     pub body: ApiShieldPostLabelsOnOperationRequest,
@@ -3042,9 +2749,9 @@ pub struct ApiShieldOperationsPostLabelsToOperationArgs {
 /// Arguments for [`api-shield-operations-put-labels-to-operation_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldOperationsPutLabelsToOperationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: operation_id
+    /// Path parameter: `operation_id`.
     pub operation_id: String,
     /// Request body.
     pub body: ApiShieldPutLabelsOnOperationRequest,
@@ -3053,140 +2760,34 @@ pub struct ApiShieldOperationsPutLabelsToOperationArgs {
 /// Arguments for [`api-shield-operations-delete-labels-from-operation_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldOperationsDeleteLabelsFromOperationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: operation_id
+    /// Path parameter: `operation_id`.
     pub operation_id: String,
     /// Request body.
     pub body: ApiShieldDeleteLabelsOnOperationRequest,
 }
 
-/// Arguments for [`api-shield-schema-validation-retrieve-operation-level-settings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ApiShieldSchemaValidationRetrieveOperationLevelSettingsArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Path parameter: operation_id
-    pub operation_id: String,
-}
-
-/// Arguments for [`api-shield-schema-validation-update-operation-level-settings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ApiShieldSchemaValidationUpdateOperationLevelSettingsArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Path parameter: operation_id
-    pub operation_id: String,
-    /// Request body.
-    pub body: ApiShieldOldOperationSchemaValidationSettingsModifyRequest,
-}
-
 /// Arguments for [`api-shield-endpoint-management-retrieve-operations-and-features-as-open-api-schemas_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ApiShieldEndpointManagementRetrieveOperationsAndFeaturesAsOpenApiSchemasArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: host
+    /// Query parameter: `host`.
     pub host: Option<String>,
-}
-
-/// Arguments for [`api-shield-schema-validation-retrieve-zone-level-settings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ApiShieldSchemaValidationRetrieveZoneLevelSettingsArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`api-shield-schema-validation-update-zone-level-settings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ApiShieldSchemaValidationUpdateZoneLevelSettingsArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Request body.
-    pub body: ApiShieldOldZoneSchemaValidationSettingsPut,
-}
-
-/// Arguments for [`api-shield-schema-validation-patch-zone-level-settings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ApiShieldSchemaValidationPatchZoneLevelSettingsArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Request body.
-    pub body: ApiShieldOldZoneSchemaValidationSettingsPatch,
-}
-
-/// Arguments for [`api-shield-schema-validation-retrieve-information-about-all-schemas_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ApiShieldSchemaValidationRetrieveInformationAboutAllSchemasArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Query parameter: validation_enabled
-    pub validation_enabled: Option<String>,
-}
-
-/// Arguments for [`api-shield-schema-validation-post-schema_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ApiShieldSchemaValidationPostSchemaArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`api-shield-schema-validation-retrieve-user-schema-hosts_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ApiShieldSchemaValidationRetrieveUserSchemaHostsArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`api-shield-schema-validation-retrieve-information-about-specific-schema_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ApiShieldSchemaValidationRetrieveInformationAboutSpecificSchemaArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Path parameter: schema_id
-    pub schema_id: String,
-}
-
-/// Arguments for [`api-shield-schema-validation-enable-validation-for-a-schema_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ApiShieldSchemaValidationEnableValidationForASchemaArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Path parameter: schema_id
-    pub schema_id: String,
-}
-
-/// Arguments for [`api-shield-schema-delete-a-schema_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ApiShieldSchemaDeleteASchemaArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Path parameter: schema_id
-    pub schema_id: String,
-}
-
-/// Arguments for [`api-shield-schema-validation-extract-operations-from-schema_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ApiShieldSchemaValidationExtractOperationsFromSchemaArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Path parameter: schema_id
-    pub schema_id: String,
-    /// Query parameter: operation_status
-    pub operation_status: Option<String>,
 }
 
 /// Arguments for [`argo-smart-routing-get-argo-smart-routing-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ArgoSmartRoutingGetArgoSmartRoutingSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`argo-smart-routing-patch-argo-smart-routing-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ArgoSmartRoutingPatchArgoSmartRoutingSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: ArgoConfigPatch,
@@ -3195,14 +2796,14 @@ pub struct ArgoSmartRoutingPatchArgoSmartRoutingSettingArgs {
 /// Arguments for [`tiered-caching-get-tiered-caching-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TieredCachingGetTieredCachingSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`tiered-caching-patch-tiered-caching-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TieredCachingPatchTieredCachingSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: CacheRulesPatch,
@@ -3211,37 +2812,37 @@ pub struct TieredCachingPatchTieredCachingSettingArgs {
 /// Arguments for [`zone-rate-plan-list-available-plans_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneRatePlanListAvailablePlansArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-rate-plan-available-plan-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneRatePlanAvailablePlanDetailsArgs {
-    /// Path parameter: plan_identifier
+    /// Path parameter: `plan_identifier`.
     pub plan_identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-rate-plan-list-available-rate-plans_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneRatePlanListAvailableRatePlansArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`bot-management-for-a-zone-get-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BotManagementForAZoneGetConfigArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`bot-management-for-a-zone-update-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BotManagementForAZoneUpdateConfigArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: BotManagementConfigSingle,
@@ -3250,14 +2851,14 @@ pub struct BotManagementForAZoneUpdateConfigArgs {
 /// Arguments for [`bot-management-zone-feedback-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BotManagementZoneFeedbackListArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`bot-management-zone-feedback-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BotManagementZoneFeedbackCreateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: BotManagementFeedbackReport,
@@ -3266,70 +2867,70 @@ pub struct BotManagementZoneFeedbackCreateArgs {
 /// Arguments for [`zone-cache-settings-get-cache-reserve-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsGetCacheReserveSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-change-cache-reserve-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsChangeCacheReserveSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-get-cache-reserve-clear_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsGetCacheReserveClearArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-start-cache-reserve-clear_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsStartCacheReserveClearArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-get-origin-post-quantum-encryption-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsGetOriginPostQuantumEncryptionSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-change-origin-post-quantum-encryption-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsChangeOriginPostQuantumEncryptionSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-get-regional-tiered-cache-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsGetRegionalTieredCacheSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-change-regional-tiered-cache-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsChangeRegionalTieredCacheSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`smart-tiered-cache-get-smart-tiered-cache-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SmartTieredCacheGetSmartTieredCacheSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`smart-tiered-cache-patch-smart-tiered-cache-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SmartTieredCachePatchSmartTieredCacheSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: CacheRulesSmartTieredCachePatch,
@@ -3338,44 +2939,44 @@ pub struct SmartTieredCachePatchSmartTieredCacheSettingArgs {
 /// Arguments for [`smart-tiered-cache-delete-smart-tiered-cache-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SmartTieredCacheDeleteSmartTieredCacheSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-get-variants-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsGetVariantsSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-change-variants-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsChangeVariantsSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-delete-variants-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsDeleteVariantsSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`client-certificate-for-a-zone-list-hostname-associations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ClientCertificateForAZoneListHostnameAssociationsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: mtls_certificate_id
+    /// Query parameter: `mtls_certificate_id`.
     pub mtls_certificate_id: Option<String>,
 }
 
 /// Arguments for [`client-certificate-for-a-zone-put-hostname-associations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ClientCertificateForAZonePutHostnameAssociationsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: TlsCertificatesAndHostnamesHostnameAssociation,
@@ -3384,65 +2985,65 @@ pub struct ClientCertificateForAZonePutHostnameAssociationsArgs {
 /// Arguments for [`client-certificate-for-a-zone-list-client-certificates_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ClientCertificateForAZoneListClientCertificatesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
 }
 
 /// Arguments for [`client-certificate-for-a-zone-create-client-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ClientCertificateForAZoneCreateClientCertificateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`client-certificate-for-a-zone-client-certificate-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ClientCertificateForAZoneClientCertificateDetailsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: client_certificate_id
+    /// Path parameter: `client_certificate_id`.
     pub client_certificate_id: String,
 }
 
 /// Arguments for [`client-certificate-for-a-zone-edit-client-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ClientCertificateForAZoneEditClientCertificateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: client_certificate_id
+    /// Path parameter: `client_certificate_id`.
     pub client_certificate_id: String,
 }
 
 /// Arguments for [`client-certificate-for-a-zone-delete-client-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ClientCertificateForAZoneDeleteClientCertificateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: client_certificate_id
+    /// Path parameter: `client_certificate_id`.
     pub client_certificate_id: String,
 }
 
 /// Arguments for [`zone-cloud-connector-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCloudConnectorRulesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cloud-conenctor-rules-put_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCloudConenctorRulesPutArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: Vec<CloudConnectorRule>,
@@ -3451,28 +3052,28 @@ pub struct ZoneCloudConenctorRulesPutArgs {
 /// Arguments for [`waf-content-scanning-disable_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafContentScanningDisableArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waf-content-scanning-enable_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafContentScanningEnableArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waf-content-scanning-list-custom-scan-expressions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafContentScanningListCustomScanExpressionsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waf-content-scanning-add-custom-scan-expressions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafContentScanningAddCustomScanExpressionsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: Vec<serde_json::Value>,
@@ -3481,180 +3082,180 @@ pub struct WafContentScanningAddCustomScanExpressionsArgs {
 /// Arguments for [`waf-content-scanning-delete-custom-scan-expressions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafContentScanningDeleteCustomScanExpressionsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: expression_id
+    /// Path parameter: `expression_id`.
     pub expression_id: String,
 }
 
 /// Arguments for [`waf-content-scanning-get-status_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafContentScanningGetStatusArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waf-content-scanning-update-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafContentScanningUpdateSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-ssl-for-a-zone-list-ssl-configurations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomSslForAZoneListSslConfigurationsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: match
+    /// Query parameter: `match`.
     pub r#match: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
 }
 
 /// Arguments for [`custom-ssl-for-a-zone-create-ssl-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomSslForAZoneCreateSslConfigurationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-ssl-for-a-zone-re-prioritize-ssl-certificates_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomSslForAZoneRePrioritizeSslCertificatesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-ssl-for-a-zone-ssl-configuration-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomSslForAZoneSslConfigurationDetailsArgs {
-    /// Path parameter: custom_certificate_id
+    /// Path parameter: `custom_certificate_id`.
     pub custom_certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-ssl-for-a-zone-edit-ssl-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomSslForAZoneEditSslConfigurationArgs {
-    /// Path parameter: custom_certificate_id
+    /// Path parameter: `custom_certificate_id`.
     pub custom_certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-ssl-for-a-zone-delete-ssl-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomSslForAZoneDeleteSslConfigurationArgs {
-    /// Path parameter: custom_certificate_id
+    /// Path parameter: `custom_certificate_id`.
     pub custom_certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-hostname-for-a-zone-list-custom-hostnames_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomHostnameForAZoneListCustomHostnamesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: hostname
+    /// Query parameter: `hostname`.
     pub hostname: Option<String>,
-    /// Query parameter: hostname.contain
+    /// Query parameter: `hostname.contain`.
     pub hostname_contain: Option<String>,
-    /// Query parameter: id
+    /// Query parameter: `id`.
     pub id: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: ssl_status
+    /// Query parameter: `ssl_status`.
     pub ssl_status: Option<String>,
-    /// Query parameter: hostname_status
+    /// Query parameter: `hostname_status`.
     pub hostname_status: Option<String>,
-    /// Query parameter: certificate_authority
+    /// Query parameter: `certificate_authority`.
     pub certificate_authority: Option<String>,
-    /// Query parameter: wildcard
+    /// Query parameter: `wildcard`.
     pub wildcard: Option<String>,
-    /// Query parameter: custom_origin_server
+    /// Query parameter: `custom_origin_server`.
     pub custom_origin_server: Option<String>,
-    /// Query parameter: ssl
+    /// Query parameter: `ssl`.
     pub ssl: Option<String>,
 }
 
 /// Arguments for [`custom-hostname-for-a-zone-create-custom-hostname_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomHostnameForAZoneCreateCustomHostnameArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-hostname-fallback-origin-for-a-zone-get-fallback-origin-for-custom-hostnames_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomHostnameFallbackOriginForAZoneGetFallbackOriginForCustomHostnamesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-hostname-fallback-origin-for-a-zone-update-fallback-origin-for-custom-hostnames_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomHostnameFallbackOriginForAZoneUpdateFallbackOriginForCustomHostnamesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-hostname-fallback-origin-for-a-zone-delete-fallback-origin-for-custom-hostnames_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomHostnameFallbackOriginForAZoneDeleteFallbackOriginForCustomHostnamesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-hostname-for-a-zone-custom-hostname-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomHostnameForAZoneCustomHostnameDetailsArgs {
-    /// Path parameter: custom_hostname_id
+    /// Path parameter: `custom_hostname_id`.
     pub custom_hostname_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-hostname-for-a-zone-edit-custom-hostname_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomHostnameForAZoneEditCustomHostnameArgs {
-    /// Path parameter: custom_hostname_id
+    /// Path parameter: `custom_hostname_id`.
     pub custom_hostname_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-hostname-for-a-zone-delete-custom-hostname-(-and-any-issued-ssl-certificates)_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomHostnameForAZoneDeleteCustomHostnameAndAnyIssuedSslCertificatesArgs {
-    /// Path parameter: custom_hostname_id
+    /// Path parameter: `custom_hostname_id`.
     pub custom_hostname_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`custom-hostname-for-a-zone-edit-custom-certificate-custom-hostname_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomHostnameForAZoneEditCustomCertificateCustomHostnameArgs {
-    /// Path parameter: custom_hostname_id
+    /// Path parameter: `custom_hostname_id`.
     pub custom_hostname_id: String,
-    /// Path parameter: certificate_pack_id
+    /// Path parameter: `certificate_pack_id`.
     pub certificate_pack_id: String,
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: TlsCertificatesAndHostnamesCustomCertAndKey,
@@ -3663,52 +3264,34 @@ pub struct CustomHostnameForAZoneEditCustomCertificateCustomHostnameArgs {
 /// Arguments for [`custom-hostname-for-a-zone-delete_single_certificate_and_key_in_a_custom_hostname_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomHostnameForAZoneDeleteSingleCertificateAndKeyInACustomHostnameArgs {
-    /// Path parameter: custom_hostname_id
+    /// Path parameter: `custom_hostname_id`.
     pub custom_hostname_id: String,
-    /// Path parameter: certificate_pack_id
+    /// Path parameter: `certificate_pack_id`.
     pub certificate_pack_id: String,
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-}
-
-/// Arguments for [`account-level-custom-nameservers-usage-for-a-zone-get-account-custom-nameserver-related-zone-metadata_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccountLevelCustomNameserversUsageForAZoneGetAccountCustomNameserverRelatedZoneMetadataArgs
-{
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`account-level-custom-nameservers-usage-for-a-zone-set-account-custom-nameserver-related-zone-metadata_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccountLevelCustomNameserversUsageForAZoneSetAccountCustomNameserverRelatedZoneMetadataArgs
-{
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Request body.
-    pub body: DnsCustomNameserversZoneMetadata,
 }
 
 /// Arguments for [`dcv-delegation-uuid-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DcvDelegationUuidGetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`devices-get-policy-certificates_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesGetPolicyCertificatesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`devices-update-policy-certificates_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesUpdatePolicyCertificatesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: TeamsDevicesDevicesPolicyCertificates,
@@ -3717,124 +3300,124 @@ pub struct DevicesUpdatePolicyCertificatesArgs {
 /// Arguments for [`dns-analytics-table_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsAnalyticsTableArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: metrics
+    /// Query parameter: `metrics`.
     pub metrics: Option<String>,
-    /// Query parameter: dimensions
+    /// Query parameter: `dimensions`.
     pub dimensions: Option<String>,
-    /// Query parameter: since
+    /// Query parameter: `since`.
     pub since: Option<String>,
-    /// Query parameter: until
+    /// Query parameter: `until`.
     pub until: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: sort
+    /// Query parameter: `sort`.
     pub sort: Option<String>,
-    /// Query parameter: filters
+    /// Query parameter: `filters`.
     pub filters: Option<String>,
 }
 
 /// Arguments for [`dns-analytics-by-time_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsAnalyticsByTimeArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: metrics
+    /// Query parameter: `metrics`.
     pub metrics: Option<String>,
-    /// Query parameter: dimensions
+    /// Query parameter: `dimensions`.
     pub dimensions: Option<String>,
-    /// Query parameter: since
+    /// Query parameter: `since`.
     pub since: Option<String>,
-    /// Query parameter: until
+    /// Query parameter: `until`.
     pub until: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: sort
+    /// Query parameter: `sort`.
     pub sort: Option<String>,
-    /// Query parameter: filters
+    /// Query parameter: `filters`.
     pub filters: Option<String>,
-    /// Query parameter: time_delta
+    /// Query parameter: `time_delta`.
     pub time_delta: Option<String>,
 }
 
 /// Arguments for [`dns-records-for-a-zone-list-dns-records_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsRecordsForAZoneListDnsRecordsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: name.exact
+    /// Query parameter: `name.exact`.
     pub name_exact: Option<String>,
-    /// Query parameter: name.contains
+    /// Query parameter: `name.contains`.
     pub name_contains: Option<String>,
-    /// Query parameter: name.startswith
+    /// Query parameter: `name.startswith`.
     pub name_startswith: Option<String>,
-    /// Query parameter: name.endswith
+    /// Query parameter: `name.endswith`.
     pub name_endswith: Option<String>,
-    /// Query parameter: type
+    /// Query parameter: `type`.
     pub r#type: Option<String>,
-    /// Query parameter: content
+    /// Query parameter: `content`.
     pub content: Option<String>,
-    /// Query parameter: content.exact
+    /// Query parameter: `content.exact`.
     pub content_exact: Option<String>,
-    /// Query parameter: content.contains
+    /// Query parameter: `content.contains`.
     pub content_contains: Option<String>,
-    /// Query parameter: content.startswith
+    /// Query parameter: `content.startswith`.
     pub content_startswith: Option<String>,
-    /// Query parameter: content.endswith
+    /// Query parameter: `content.endswith`.
     pub content_endswith: Option<String>,
-    /// Query parameter: proxied
+    /// Query parameter: `proxied`.
     pub proxied: Option<String>,
-    /// Query parameter: match
+    /// Query parameter: `match`.
     pub r#match: Option<String>,
-    /// Query parameter: comment
+    /// Query parameter: `comment`.
     pub comment: Option<String>,
-    /// Query parameter: comment.present
+    /// Query parameter: `comment.present`.
     pub comment_present: Option<String>,
-    /// Query parameter: comment.absent
+    /// Query parameter: `comment.absent`.
     pub comment_absent: Option<String>,
-    /// Query parameter: comment.exact
+    /// Query parameter: `comment.exact`.
     pub comment_exact: Option<String>,
-    /// Query parameter: comment.contains
+    /// Query parameter: `comment.contains`.
     pub comment_contains: Option<String>,
-    /// Query parameter: comment.startswith
+    /// Query parameter: `comment.startswith`.
     pub comment_startswith: Option<String>,
-    /// Query parameter: comment.endswith
+    /// Query parameter: `comment.endswith`.
     pub comment_endswith: Option<String>,
-    /// Query parameter: tag
+    /// Query parameter: `tag`.
     pub tag: Option<String>,
-    /// Query parameter: tag.present
+    /// Query parameter: `tag.present`.
     pub tag_present: Option<String>,
-    /// Query parameter: tag.absent
+    /// Query parameter: `tag.absent`.
     pub tag_absent: Option<String>,
-    /// Query parameter: tag.exact
+    /// Query parameter: `tag.exact`.
     pub tag_exact: Option<String>,
-    /// Query parameter: tag.contains
+    /// Query parameter: `tag.contains`.
     pub tag_contains: Option<String>,
-    /// Query parameter: tag.startswith
+    /// Query parameter: `tag.startswith`.
     pub tag_startswith: Option<String>,
-    /// Query parameter: tag.endswith
+    /// Query parameter: `tag.endswith`.
     pub tag_endswith: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: tag_match
+    /// Query parameter: `tag_match`.
     pub tag_match: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`dns-records-for-a-zone-create-dns-record_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsRecordsForAZoneCreateDnsRecordArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: DnsRecordsDnsRecordPost,
@@ -3843,7 +3426,7 @@ pub struct DnsRecordsForAZoneCreateDnsRecordArgs {
 /// Arguments for [`dns-records-for-a-zone-batch-dns-records_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsRecordsForAZoneBatchDnsRecordsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: DnsRecordsDnsRequestBatchObject,
@@ -3852,35 +3435,28 @@ pub struct DnsRecordsForAZoneBatchDnsRecordsArgs {
 /// Arguments for [`dns-records-for-a-zone-export-dns-records_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsRecordsForAZoneExportDnsRecordsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`dns-records-for-a-zone-import-dns-records_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsRecordsForAZoneImportDnsRecordsArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`dns-records-for-a-zone-scan-dns-records_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DnsRecordsForAZoneScanDnsRecordsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`dns-records-for-a-zone-review-dns-scan_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsRecordsForAZoneReviewDnsScanArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`dns-records-for-a-zone-apply-dns-scan-results_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsRecordsForAZoneApplyDnsScanResultsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: DnsRecordsDnsRequestReviewScanObject,
@@ -3889,32 +3465,32 @@ pub struct DnsRecordsForAZoneApplyDnsScanResultsArgs {
 /// Arguments for [`dns-records-for-a-zone-trigger-dns-scan_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsRecordsForAZoneTriggerDnsScanArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`dns-records-for-a-zone-get-usage_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsRecordsForAZoneGetUsageArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`dns-records-for-a-zone-dns-record-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsRecordsForAZoneDnsRecordDetailsArgs {
-    /// Path parameter: dns_record_id
+    /// Path parameter: `dns_record_id`.
     pub dns_record_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`dns-records-for-a-zone-update-dns-record_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsRecordsForAZoneUpdateDnsRecordArgs {
-    /// Path parameter: dns_record_id
+    /// Path parameter: `dns_record_id`.
     pub dns_record_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: DnsRecordsDnsRecordPost,
@@ -3923,9 +3499,9 @@ pub struct DnsRecordsForAZoneUpdateDnsRecordArgs {
 /// Arguments for [`dns-records-for-a-zone-patch-dns-record_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsRecordsForAZonePatchDnsRecordArgs {
-    /// Path parameter: dns_record_id
+    /// Path parameter: `dns_record_id`.
     pub dns_record_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: DnsRecordsDnsRecordPatch,
@@ -3934,23 +3510,23 @@ pub struct DnsRecordsForAZonePatchDnsRecordArgs {
 /// Arguments for [`dns-records-for-a-zone-delete-dns-record_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsRecordsForAZoneDeleteDnsRecordArgs {
-    /// Path parameter: dns_record_id
+    /// Path parameter: `dns_record_id`.
     pub dns_record_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`dns-settings-for-a-zone-list-dns-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsSettingsForAZoneListDnsSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`dns-settings-for-a-zone-update-dns-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnsSettingsForAZoneUpdateDnsSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: DnsSettingsDnsSettingsZonePatch,
@@ -3959,51 +3535,44 @@ pub struct DnsSettingsForAZoneUpdateDnsSettingsArgs {
 /// Arguments for [`dnssec-dnssec-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnssecDnssecDetailsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`dnssec-edit-dnssec-status_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnssecEditDnssecStatusArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`dnssec-delete-dnssec-records_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DnssecDeleteDnssecRecordsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`email-routing-settings-get-email-routing-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingSettingsGetEmailRoutingSettingsArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`email-routing-settings-disable-email-routing_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EmailRoutingSettingsDisableEmailRoutingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`email-routing-settings-email-routing-dns-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingSettingsEmailRoutingDnsSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: subdomain
+    /// Query parameter: `subdomain`.
     pub subdomain: Option<String>,
 }
 
 /// Arguments for [`email-routing-settings-enable-email-routing-dns_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingSettingsEnableEmailRoutingDnsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: EmailEmailSettingDnsRequestBody,
@@ -4012,7 +3581,7 @@ pub struct EmailRoutingSettingsEnableEmailRoutingDnsArgs {
 /// Arguments for [`email-routing-settings-unlock-email-routing-dns_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingSettingsUnlockEmailRoutingDnsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: EmailEmailSettingDnsRequestBody,
@@ -4021,36 +3590,29 @@ pub struct EmailRoutingSettingsUnlockEmailRoutingDnsArgs {
 /// Arguments for [`email-routing-settings-disable-email-routing-dns_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingSettingsDisableEmailRoutingDnsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: EmailEmailSettingDnsRequestBody,
 }
 
-/// Arguments for [`email-routing-settings-enable-email-routing_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EmailRoutingSettingsEnableEmailRoutingArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
 /// Arguments for [`email-routing-routing-rules-list-routing-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingRoutingRulesListRoutingRulesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: enabled
+    /// Query parameter: `enabled`.
     pub enabled: Option<String>,
 }
 
 /// Arguments for [`email-routing-routing-rules-create-routing-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingRoutingRulesCreateRoutingRuleArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: EmailCreateRuleProperties,
@@ -4059,14 +3621,14 @@ pub struct EmailRoutingRoutingRulesCreateRoutingRuleArgs {
 /// Arguments for [`email-routing-routing-rules-get-catch-all-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingRoutingRulesGetCatchAllRuleArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`email-routing-routing-rules-update-catch-all-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingRoutingRulesUpdateCatchAllRuleArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: EmailUpdateCatchAllRuleProperties,
@@ -4075,18 +3637,18 @@ pub struct EmailRoutingRoutingRulesUpdateCatchAllRuleArgs {
 /// Arguments for [`email-routing-routing-rules-get-routing-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingRoutingRulesGetRoutingRuleArgs {
-    /// Path parameter: rule_identifier
+    /// Path parameter: `rule_identifier`.
     pub rule_identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`email-routing-routing-rules-update-routing-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingRoutingRulesUpdateRoutingRuleArgs {
-    /// Path parameter: rule_identifier
+    /// Path parameter: `rule_identifier`.
     pub rule_identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: EmailUpdateRuleProperties,
@@ -4095,23 +3657,23 @@ pub struct EmailRoutingRoutingRulesUpdateRoutingRuleArgs {
 /// Arguments for [`email-routing-routing-rules-delete-routing-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailRoutingRoutingRulesDeleteRoutingRuleArgs {
-    /// Path parameter: rule_identifier
+    /// Path parameter: `rule_identifier`.
     pub rule_identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`email-sending-subdomains-list-sending-subdomains_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSendingSubdomainsListSendingSubdomainsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`email-sending-subdomains-create-sending-subdomain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSendingSubdomainsCreateSendingSubdomainArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: EmailCreateSendingSubdomainProperties,
@@ -4120,7 +3682,7 @@ pub struct EmailSendingSubdomainsCreateSendingSubdomainArgs {
 /// Arguments for [`email-sending-subdomains-preview-sending-subdomain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSendingSubdomainsPreviewSendingSubdomainArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: EmailCreateSendingSubdomainProperties,
@@ -4129,41 +3691,41 @@ pub struct EmailSendingSubdomainsPreviewSendingSubdomainArgs {
 /// Arguments for [`email-sending-subdomains-get-sending-subdomain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSendingSubdomainsGetSendingSubdomainArgs {
-    /// Path parameter: subdomain_id
+    /// Path parameter: `subdomain_id`.
     pub subdomain_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`email-sending-subdomains-delete-sending-subdomain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSendingSubdomainsDeleteSendingSubdomainArgs {
-    /// Path parameter: subdomain_id
+    /// Path parameter: `subdomain_id`.
     pub subdomain_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`email-sending-subdomains-get-sending-subdomain-dns_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSendingSubdomainsGetSendingSubdomainDnsArgs {
-    /// Path parameter: subdomain_id
+    /// Path parameter: `subdomain_id`.
     pub subdomain_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zonesEnvironmentsList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZonesEnvironmentsListArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zonesEnvironmentsCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZonesEnvironmentsCreateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: KaminoEnvironmentsRequest,
@@ -4172,7 +3734,7 @@ pub struct ZonesEnvironmentsCreateArgs {
 /// Arguments for [`zonesEnvironmentsUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZonesEnvironmentsUpdateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: KaminoEnvironmentsRequest,
@@ -4181,7 +3743,7 @@ pub struct ZonesEnvironmentsUpdateArgs {
 /// Arguments for [`zonesEnvironmentsEdit_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZonesEnvironmentsEditArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: KaminoEnvironmentsRequest,
@@ -4190,109 +3752,32 @@ pub struct ZonesEnvironmentsEditArgs {
 /// Arguments for [`zonesEnvironmentsDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZonesEnvironmentsDeleteArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: environment_id
+    /// Path parameter: `environment_id`.
     pub environment_id: String,
 }
 
 /// Arguments for [`zonesEnvironmentsRollback_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZonesEnvironmentsRollbackArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: environment_id
+    /// Path parameter: `environment_id`.
     pub environment_id: String,
-}
-
-/// Arguments for [`filters-list-filters_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FiltersListFiltersArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Query parameter: paused
-    pub paused: Option<String>,
-    /// Query parameter: expression
-    pub expression: Option<String>,
-    /// Query parameter: description
-    pub description: Option<String>,
-    /// Query parameter: ref
-    pub r#ref: Option<String>,
-    /// Query parameter: page
-    pub page: Option<String>,
-    /// Query parameter: per_page
-    pub per_page: Option<String>,
-    /// Query parameter: id
-    pub id: Option<String>,
-}
-
-/// Arguments for [`filters-create-filters_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FiltersCreateFiltersArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Request body.
-    pub body: Vec<FirewallFilter>,
-}
-
-/// Arguments for [`filters-update-filters_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FiltersUpdateFiltersArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Request body.
-    pub body: Vec<FirewallFilterRuleUpdateRequest>,
-}
-
-/// Arguments for [`filters-delete-filters_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FiltersDeleteFiltersArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Query parameter: id
-    pub id: Option<String>,
-}
-
-/// Arguments for [`filters-get-a-filter_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FiltersGetAFilterArgs {
-    /// Path parameter: filter_id
-    pub filter_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`filters-update-a-filter_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FiltersUpdateAFilterArgs {
-    /// Path parameter: filter_id
-    pub filter_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Request body.
-    pub body: FirewallFilter,
-}
-
-/// Arguments for [`filters-delete-a-filter_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FiltersDeleteAFilterArgs {
-    /// Path parameter: filter_id
-    pub filter_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
 }
 
 /// Arguments for [`firewall-for-ai-custom-topics-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FirewallForAiCustomTopicsGetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`firewall-for-ai-custom-topics-put_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FirewallForAiCustomTopicsPutArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WafProductApiBundleCustomTopics,
@@ -4301,14 +3786,14 @@ pub struct FirewallForAiCustomTopicsPutArgs {
 /// Arguments for [`firewall-for-ai-settings-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FirewallForAiSettingsGetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`firewall-for-ai-settings-put_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FirewallForAiSettingsPutArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WafProductApiBundleSettings,
@@ -4317,441 +3802,178 @@ pub struct FirewallForAiSettingsPutArgs {
 /// Arguments for [`ip-access-rules-for-a-zone-list-ip-access-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAccessRulesForAZoneListIpAccessRulesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: mode
+    /// Query parameter: `mode`.
     pub mode: Option<String>,
-    /// Query parameter: configuration.target
+    /// Query parameter: `configuration.target`.
     pub configuration_target: Option<String>,
-    /// Query parameter: configuration.value
+    /// Query parameter: `configuration.value`.
     pub configuration_value: Option<String>,
-    /// Query parameter: notes
+    /// Query parameter: `notes`.
     pub notes: Option<String>,
-    /// Query parameter: match
+    /// Query parameter: `match`.
     pub r#match: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`ip-access-rules-for-a-zone-create-an-ip-access-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAccessRulesForAZoneCreateAnIpAccessRuleArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`ip-access-rules-for-a-zone-update-an-ip-access-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAccessRulesForAZoneUpdateAnIpAccessRuleArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`ip-access-rules-for-a-zone-delete-an-ip-access-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAccessRulesForAZoneDeleteAnIpAccessRuleArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`zone-lockdown-list-zone-lockdown-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLockdownListZoneLockdownRulesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: description
+    /// Query parameter: `description`.
     pub description: Option<String>,
-    /// Query parameter: modified_on
+    /// Query parameter: `modified_on`.
     pub modified_on: Option<String>,
-    /// Query parameter: ip
+    /// Query parameter: `ip`.
     pub ip: Option<String>,
-    /// Query parameter: priority
+    /// Query parameter: `priority`.
     pub priority: Option<String>,
-    /// Query parameter: uri_search
+    /// Query parameter: `uri_search`.
     pub uri_search: Option<String>,
-    /// Query parameter: ip_range_search
+    /// Query parameter: `ip_range_search`.
     pub ip_range_search: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: created_on
+    /// Query parameter: `created_on`.
     pub created_on: Option<String>,
-    /// Query parameter: description_search
+    /// Query parameter: `description_search`.
     pub description_search: Option<String>,
-    /// Query parameter: ip_search
+    /// Query parameter: `ip_search`.
     pub ip_search: Option<String>,
 }
 
 /// Arguments for [`zone-lockdown-create-a-zone-lockdown-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLockdownCreateAZoneLockdownRuleArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-lockdown-get-a-zone-lockdown-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLockdownGetAZoneLockdownRuleArgs {
-    /// Path parameter: lock_downs_id
+    /// Path parameter: `lock_downs_id`.
     pub lock_downs_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-lockdown-update-a-zone-lockdown-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLockdownUpdateAZoneLockdownRuleArgs {
-    /// Path parameter: lock_downs_id
+    /// Path parameter: `lock_downs_id`.
     pub lock_downs_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-lockdown-delete-a-zone-lockdown-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLockdownDeleteAZoneLockdownRuleArgs {
-    /// Path parameter: lock_downs_id
+    /// Path parameter: `lock_downs_id`.
     pub lock_downs_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`firewall-rules-list-firewall-rules_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirewallRulesListFirewallRulesArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Query parameter: description
-    pub description: Option<String>,
-    /// Query parameter: action
-    pub action: Option<String>,
-    /// Query parameter: page
-    pub page: Option<String>,
-    /// Query parameter: per_page
-    pub per_page: Option<String>,
-    /// Query parameter: id
-    pub id: Option<String>,
-    /// Query parameter: paused
-    pub paused: Option<String>,
-}
-
-/// Arguments for [`firewall-rules-create-firewall-rules_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirewallRulesCreateFirewallRulesArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`firewall-rules-update-firewall-rules_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirewallRulesUpdateFirewallRulesArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`firewall-rules-update-priority-of-firewall-rules_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirewallRulesUpdatePriorityOfFirewallRulesArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`firewall-rules-delete-firewall-rules_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirewallRulesDeleteFirewallRulesArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`firewall-rules-get-a-firewall-rule_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirewallRulesGetAFirewallRuleArgs {
-    /// Path parameter: rule_id
-    pub rule_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Query parameter: id
-    pub id: Option<String>,
-}
-
-/// Arguments for [`firewall-rules-update-a-firewall-rule_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirewallRulesUpdateAFirewallRuleArgs {
-    /// Path parameter: rule_id
-    pub rule_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`firewall-rules-update-priority-of-a-firewall-rule_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirewallRulesUpdatePriorityOfAFirewallRuleArgs {
-    /// Path parameter: rule_id
-    pub rule_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`firewall-rules-delete-a-firewall-rule_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirewallRulesDeleteAFirewallRuleArgs {
-    /// Path parameter: rule_id
-    pub rule_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`user-agent-blocking-rules-list-user-agent-blocking-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UserAgentBlockingRulesListUserAgentBlockingRulesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: description
+    /// Query parameter: `description`.
     pub description: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: user_agent
+    /// Query parameter: `user_agent`.
     pub user_agent: Option<String>,
-    /// Query parameter: paused
+    /// Query parameter: `paused`.
     pub paused: Option<String>,
 }
 
 /// Arguments for [`user-agent-blocking-rules-create-a-user-agent-blocking-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UserAgentBlockingRulesCreateAUserAgentBlockingRuleArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`user-agent-blocking-rules-get-a-user-agent-blocking-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UserAgentBlockingRulesGetAUserAgentBlockingRuleArgs {
-    /// Path parameter: ua_rule_id
+    /// Path parameter: `ua_rule_id`.
     pub ua_rule_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`user-agent-blocking-rules-update-a-user-agent-blocking-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UserAgentBlockingRulesUpdateAUserAgentBlockingRuleArgs {
-    /// Path parameter: ua_rule_id
+    /// Path parameter: `ua_rule_id`.
     pub ua_rule_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`user-agent-blocking-rules-delete-a-user-agent-blocking-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UserAgentBlockingRulesDeleteAUserAgentBlockingRuleArgs {
-    /// Path parameter: ua_rule_id
+    /// Path parameter: `ua_rule_id`.
     pub ua_rule_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`waf-overrides-list-waf-overrides_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafOverridesListWafOverridesArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Query parameter: page
-    pub page: Option<String>,
-    /// Query parameter: per_page
-    pub per_page: Option<String>,
-}
-
-/// Arguments for [`waf-overrides-create-a-waf-override_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafOverridesCreateAWafOverrideArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`waf-overrides-get-a-waf-override_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafOverridesGetAWafOverrideArgs {
-    /// Path parameter: overrides_id
-    pub overrides_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`waf-overrides-update-waf-override_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafOverridesUpdateWafOverrideArgs {
-    /// Path parameter: overrides_id
-    pub overrides_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`waf-overrides-delete-a-waf-override_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafOverridesDeleteAWafOverrideArgs {
-    /// Path parameter: overrides_id
-    pub overrides_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`waf-packages-list-waf-packages_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafPackagesListWafPackagesArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Query parameter: page
-    pub page: Option<String>,
-    /// Query parameter: per_page
-    pub per_page: Option<String>,
-    /// Query parameter: order
-    pub order: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: match
-    pub r#match: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-}
-
-/// Arguments for [`waf-packages-get-a-waf-package_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafPackagesGetAWafPackageArgs {
-    /// Path parameter: package_id
-    pub package_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`waf-packages-update-a-waf-package_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafPackagesUpdateAWafPackageArgs {
-    /// Path parameter: package_id
-    pub package_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`waf-rule-groups-list-waf-rule-groups_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafRuleGroupsListWafRuleGroupsArgs {
-    /// Path parameter: package_id
-    pub package_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Query parameter: mode
-    pub mode: Option<String>,
-    /// Query parameter: page
-    pub page: Option<String>,
-    /// Query parameter: per_page
-    pub per_page: Option<String>,
-    /// Query parameter: order
-    pub order: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: match
-    pub r#match: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: rules_count
-    pub rules_count: Option<String>,
-}
-
-/// Arguments for [`waf-rule-groups-get-a-waf-rule-group_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafRuleGroupsGetAWafRuleGroupArgs {
-    /// Path parameter: group_id
-    pub group_id: String,
-    /// Path parameter: package_id
-    pub package_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`waf-rule-groups-update-a-waf-rule-group_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafRuleGroupsUpdateAWafRuleGroupArgs {
-    /// Path parameter: group_id
-    pub group_id: String,
-    /// Path parameter: package_id
-    pub package_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`waf-rules-list-waf-rules_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafRulesListWafRulesArgs {
-    /// Path parameter: package_id
-    pub package_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Query parameter: mode
-    pub mode: Option<String>,
-    /// Query parameter: group_id
-    pub group_id: Option<String>,
-    /// Query parameter: page
-    pub page: Option<String>,
-    /// Query parameter: per_page
-    pub per_page: Option<String>,
-    /// Query parameter: order
-    pub order: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: match
-    pub r#match: Option<String>,
-    /// Query parameter: description
-    pub description: Option<String>,
-    /// Query parameter: priority
-    pub priority: Option<String>,
-}
-
-/// Arguments for [`waf-rules-get-a-waf-rule_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafRulesGetAWafRuleArgs {
-    /// Path parameter: rule_id
-    pub rule_id: String,
-    /// Path parameter: package_id
-    pub package_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`waf-rules-update-a-waf-rule_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WafRulesUpdateAWafRuleArgs {
-    /// Path parameter: rule_id
-    pub rule_id: String,
-    /// Path parameter: package_id
-    pub package_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`fraud-detection-zone-get-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FraudDetectionZoneGetSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`fraud-detection-zone-update-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct FraudDetectionZoneUpdateSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: FraudFraudSettings,
@@ -4760,14 +3982,14 @@ pub struct FraudDetectionZoneUpdateSettingsArgs {
 /// Arguments for [`health-checks-list-health-checks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthChecksListHealthChecksArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`health-checks-create-health-check_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthChecksCreateHealthCheckArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: HealthchecksQueryHealthcheck,
@@ -4776,7 +3998,7 @@ pub struct HealthChecksCreateHealthCheckArgs {
 /// Arguments for [`health-checks-create-preview-health-check_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthChecksCreatePreviewHealthCheckArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: HealthchecksQueryHealthcheck,
@@ -4785,36 +4007,36 @@ pub struct HealthChecksCreatePreviewHealthCheckArgs {
 /// Arguments for [`health-checks-health-check-preview-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthChecksHealthCheckPreviewDetailsArgs {
-    /// Path parameter: healthcheck_id
+    /// Path parameter: `healthcheck_id`.
     pub healthcheck_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`health-checks-delete-preview-health-check_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthChecksDeletePreviewHealthCheckArgs {
-    /// Path parameter: healthcheck_id
+    /// Path parameter: `healthcheck_id`.
     pub healthcheck_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`health-checks-health-check-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthChecksHealthCheckDetailsArgs {
-    /// Path parameter: healthcheck_id
+    /// Path parameter: `healthcheck_id`.
     pub healthcheck_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`health-checks-update-health-check_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthChecksUpdateHealthCheckArgs {
-    /// Path parameter: healthcheck_id
+    /// Path parameter: `healthcheck_id`.
     pub healthcheck_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: HealthchecksQueryHealthcheck,
@@ -4823,9 +4045,9 @@ pub struct HealthChecksUpdateHealthCheckArgs {
 /// Arguments for [`health-checks-patch-health-check_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthChecksPatchHealthCheckArgs {
-    /// Path parameter: healthcheck_id
+    /// Path parameter: `healthcheck_id`.
     pub healthcheck_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: HealthchecksQueryHealthcheck,
@@ -4834,138 +4056,138 @@ pub struct HealthChecksPatchHealthCheckArgs {
 /// Arguments for [`health-checks-delete-health-check_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct HealthChecksDeleteHealthCheckArgs {
-    /// Path parameter: healthcheck_id
+    /// Path parameter: `healthcheck_id`.
     pub healthcheck_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zones-0-hold-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Zones0HoldGetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zones-0-hold-post_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Zones0HoldPostArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: include_subdomains
+    /// Query parameter: `include_subdomains`.
     pub include_subdomains: Option<String>,
 }
 
 /// Arguments for [`zones-0-hold-patch_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Zones0HoldPatchArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zones-0-hold-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Zones0HoldDeleteArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: hold_after
+    /// Query parameter: `hold_after`.
     pub hold_after: Option<String>,
 }
 
 /// Arguments for [`per-hostname-tls-settings-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PerHostnameTlsSettingsListArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: setting_id
+    /// Path parameter: `setting_id`.
     pub setting_id: String,
 }
 
 /// Arguments for [`per-hostname-tls-settings-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PerHostnameTlsSettingsGetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: setting_id
+    /// Path parameter: `setting_id`.
     pub setting_id: String,
-    /// Path parameter: hostname
+    /// Path parameter: `hostname`.
     pub hostname: String,
 }
 
 /// Arguments for [`per-hostname-tls-settings-put_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PerHostnameTlsSettingsPutArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: setting_id
+    /// Path parameter: `setting_id`.
     pub setting_id: String,
-    /// Path parameter: hostname
+    /// Path parameter: `hostname`.
     pub hostname: String,
 }
 
 /// Arguments for [`per-hostname-tls-settings-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PerHostnameTlsSettingsDeleteArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: setting_id
+    /// Path parameter: `setting_id`.
     pub setting_id: String,
-    /// Path parameter: hostname
+    /// Path parameter: `hostname`.
     pub hostname: String,
 }
 
 /// Arguments for [`keyless-ssl-for-a-zone-list-keyless-ssl-configurations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct KeylessSslForAZoneListKeylessSslConfigurationsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`keyless-ssl-for-a-zone-create-keyless-ssl-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct KeylessSslForAZoneCreateKeylessSslConfigurationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`keyless-ssl-for-a-zone-get-keyless-ssl-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct KeylessSslForAZoneGetKeylessSslConfigurationArgs {
-    /// Path parameter: keyless_certificate_id
+    /// Path parameter: `keyless_certificate_id`.
     pub keyless_certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`keyless-ssl-for-a-zone-edit-keyless-ssl-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct KeylessSslForAZoneEditKeylessSslConfigurationArgs {
-    /// Path parameter: keyless_certificate_id
+    /// Path parameter: `keyless_certificate_id`.
     pub keyless_certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`keyless-ssl-for-a-zone-delete-keyless-ssl-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct KeylessSslForAZoneDeleteKeylessSslConfigurationArgs {
-    /// Path parameter: keyless_certificate_id
+    /// Path parameter: `keyless_certificate_id`.
     pub keyless_certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waf-product-api-leaked-credentials-get-status_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafProductApiLeakedCredentialsGetStatusArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waf-product-api-leaked-credentials-set-status_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafProductApiLeakedCredentialsSetStatusArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WafProductApiBundleStatus,
@@ -4974,14 +4196,14 @@ pub struct WafProductApiLeakedCredentialsSetStatusArgs {
 /// Arguments for [`waf-product-api-leaked-credentials-list-detections_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafProductApiLeakedCredentialsListDetectionsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waf-product-api-leaked-credentials-create-detection_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafProductApiLeakedCredentialsCreateDetectionArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WafProductApiBundleCustomDetection,
@@ -4990,18 +4212,18 @@ pub struct WafProductApiLeakedCredentialsCreateDetectionArgs {
 /// Arguments for [`waf-product-api-leaked-credentials-get-detection_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafProductApiLeakedCredentialsGetDetectionArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: detection_id
+    /// Path parameter: `detection_id`.
     pub detection_id: String,
 }
 
 /// Arguments for [`waf-product-api-leaked-credentials-update-detection_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafProductApiLeakedCredentialsUpdateDetectionArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: detection_id
+    /// Path parameter: `detection_id`.
     pub detection_id: String,
     /// Request body.
     pub body: WafProductApiBundleCustomDetection,
@@ -5010,181 +4232,181 @@ pub struct WafProductApiLeakedCredentialsUpdateDetectionArgs {
 /// Arguments for [`waf-product-api-leaked-credentials-delete-detection_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WafProductApiLeakedCredentialsDeleteDetectionArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: detection_id
+    /// Path parameter: `detection_id`.
     pub detection_id: String,
 }
 
 /// Arguments for [`load-balancers-list-load-balancers_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct LoadBalancersListLoadBalancersArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`load-balancers-create-load-balancer_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct LoadBalancersCreateLoadBalancerArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`load-balancers-load-balancer-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct LoadBalancersLoadBalancerDetailsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: load_balancer_id
+    /// Path parameter: `load_balancer_id`.
     pub load_balancer_id: String,
 }
 
 /// Arguments for [`load-balancers-update-load-balancer_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct LoadBalancersUpdateLoadBalancerArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: load_balancer_id
+    /// Path parameter: `load_balancer_id`.
     pub load_balancer_id: String,
 }
 
 /// Arguments for [`load-balancers-patch-load-balancer_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct LoadBalancersPatchLoadBalancerArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: load_balancer_id
+    /// Path parameter: `load_balancer_id`.
     pub load_balancer_id: String,
 }
 
 /// Arguments for [`load-balancers-delete-load-balancer_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct LoadBalancersDeleteLoadBalancerArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: load_balancer_id
+    /// Path parameter: `load_balancer_id`.
     pub load_balancer_id: String,
 }
 
 /// Arguments for [`get-zones-zone_id-logpush-datasets-dataset_id-fields_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdLogpushDatasetsDatasetIdFieldsArgs {
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`get-zones-zone_id-logpush-datasets-dataset_id-jobs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdLogpushDatasetsDatasetIdJobsArgs {
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`get-zones-zone_id-logpush-edge-jobs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdLogpushEdgeJobsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`post-zones-zone_id-logpush-edge-jobs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostZonesZoneIdLogpushEdgeJobsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`get-zones-zone_id-logpush-jobs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdLogpushJobsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`post-zones-zone_id-logpush-jobs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostZonesZoneIdLogpushJobsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`get-zones-zone_id-logpush-jobs-job_id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdLogpushJobsJobIdArgs {
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`put-zones-zone_id-logpush-jobs-job_id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PutZonesZoneIdLogpushJobsJobIdArgs {
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`delete-zones-zone_id-logpush-jobs-job_id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteZonesZoneIdLogpushJobsJobIdArgs {
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`post-zones-zone_id-logpush-ownership_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostZonesZoneIdLogpushOwnershipArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`post-zones-zone_id-logpush-ownership-validate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostZonesZoneIdLogpushOwnershipValidateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`post-zones-zone_id-logpush-validate-destination_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostZonesZoneIdLogpushValidateDestinationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`post-zones-zone_id-logpush-validate-destination-exists_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostZonesZoneIdLogpushValidateDestinationExistsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`post-zones-zone_id-logpush-validate-origin_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostZonesZoneIdLogpushValidateOriginArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`get-zones-zone_id-logs-control-retention-flag_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdLogsControlRetentionFlagArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`post-zones-zone_id-logs-control-retention-flag_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostZonesZoneIdLogsControlRetentionFlagArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: LogcontrolRetentionFlag,
@@ -5193,788 +4415,736 @@ pub struct PostZonesZoneIdLogsControlRetentionFlagArgs {
 /// Arguments for [`get-zones-zone_id-logs-rayids-ray_id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdLogsRayidsRayIdArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: ray_id
+    /// Path parameter: `ray_id`.
     pub ray_id: String,
-    /// Query parameter: fields
+    /// Query parameter: `fields`.
     pub fields: Option<String>,
-    /// Query parameter: timestamps
+    /// Query parameter: `timestamps`.
     pub timestamps: Option<String>,
 }
 
 /// Arguments for [`get-zones-zone_id-logs-received_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdLogsReceivedArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: start
+    /// Query parameter: `start`.
     pub start: Option<String>,
-    /// Query parameter: end
+    /// Query parameter: `end`.
     pub end: Option<String>,
-    /// Query parameter: fields
+    /// Query parameter: `fields`.
     pub fields: Option<String>,
-    /// Query parameter: sample
+    /// Query parameter: `sample`.
     pub sample: Option<String>,
-    /// Query parameter: count
+    /// Query parameter: `count`.
     pub count: Option<String>,
-    /// Query parameter: timestamps
+    /// Query parameter: `timestamps`.
     pub timestamps: Option<String>,
 }
 
 /// Arguments for [`get-zones-zone_id-logs-received-fields_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdLogsReceivedFieldsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`listManagedTransforms_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListManagedTransformsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`updateManagedTransforms_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateManagedTransformsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`deleteManagedTransforms_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteManagedTransformsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-authenticated-origin-pulls-list-certificates_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAuthenticatedOriginPullsListCertificatesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-authenticated-origin-pulls-upload-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAuthenticatedOriginPullsUploadCertificateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`per-hostname-authenticated-origin-pull-list-hostname-associations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PerHostnameAuthenticatedOriginPullListHostnameAssociationsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
 }
 
 /// Arguments for [`per-hostname-authenticated-origin-pull-enable-or-disable-a-hostname-for-client-authentication_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PerHostnameAuthenticatedOriginPullEnableOrDisableAHostnameForClientAuthenticationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`per-hostname-authenticated-origin-pull-list-certificates_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PerHostnameAuthenticatedOriginPullListCertificatesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`per-hostname-authenticated-origin-pull-upload-a-hostname-client-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PerHostnameAuthenticatedOriginPullUploadAHostnameClientCertificateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`per-hostname-authenticated-origin-pull-get-the-hostname-client-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PerHostnameAuthenticatedOriginPullGetTheHostnameClientCertificateArgs {
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`per-hostname-authenticated-origin-pull-delete-hostname-client-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PerHostnameAuthenticatedOriginPullDeleteHostnameClientCertificateArgs {
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`per-hostname-authenticated-origin-pull-get-the-hostname-status-for-client-authentication_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PerHostnameAuthenticatedOriginPullGetTheHostnameStatusForClientAuthenticationArgs {
-    /// Path parameter: hostname
+    /// Path parameter: `hostname`.
     pub hostname: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-authenticated-origin-pulls-get-enablement-setting-for-zone_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAuthenticatedOriginPullsGetEnablementSettingForZoneArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-authenticated-origin-pulls-set-enablement-for-zone_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAuthenticatedOriginPullsSetEnablementForZoneArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-authenticated-origin-pulls-get-certificate-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAuthenticatedOriginPullsGetCertificateDetailsArgs {
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-level-authenticated-origin-pulls-delete-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneLevelAuthenticatedOriginPullsDeleteCertificateArgs {
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`page-shield-get-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageShieldGetSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`page-shield-update-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageShieldUpdateSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`page-shield-list-connections_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageShieldListConnectionsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: exclude_urls
+    /// Query parameter: `exclude_urls`.
     pub exclude_urls: Option<String>,
-    /// Query parameter: urls
+    /// Query parameter: `urls`.
     pub urls: Option<String>,
-    /// Query parameter: hosts
+    /// Query parameter: `hosts`.
     pub hosts: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order_by
+    /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: prioritize_malicious
+    /// Query parameter: `prioritize_malicious`.
     pub prioritize_malicious: Option<String>,
-    /// Query parameter: exclude_cdn_cgi
+    /// Query parameter: `exclude_cdn_cgi`.
     pub exclude_cdn_cgi: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: page_url
+    /// Query parameter: `page_url`.
     pub page_url: Option<String>,
-    /// Query parameter: export
+    /// Query parameter: `export`.
     pub export: Option<String>,
 }
 
 /// Arguments for [`page-shield-get-connection_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageShieldGetConnectionArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: connection_id
+    /// Path parameter: `connection_id`.
     pub connection_id: String,
 }
 
 /// Arguments for [`page-shield-list-cookies_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageShieldListCookiesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: hosts
+    /// Query parameter: `hosts`.
     pub hosts: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order_by
+    /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: page_url
+    /// Query parameter: `page_url`.
     pub page_url: Option<String>,
-    /// Query parameter: export
+    /// Query parameter: `export`.
     pub export: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: secure
+    /// Query parameter: `secure`.
     pub secure: Option<String>,
-    /// Query parameter: http_only
+    /// Query parameter: `http_only`.
     pub http_only: Option<String>,
-    /// Query parameter: same_site
+    /// Query parameter: `same_site`.
     pub same_site: Option<String>,
-    /// Query parameter: type
+    /// Query parameter: `type`.
     pub r#type: Option<String>,
-    /// Query parameter: path
+    /// Query parameter: `path`.
     pub path: Option<String>,
-    /// Query parameter: domain
+    /// Query parameter: `domain`.
     pub domain: Option<String>,
 }
 
 /// Arguments for [`page-shield-get-cookie_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageShieldGetCookieArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: cookie_id
+    /// Path parameter: `cookie_id`.
     pub cookie_id: String,
 }
 
 /// Arguments for [`page-shield-list-policies_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageShieldListPoliciesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`page-shield-create-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageShieldCreatePolicyArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`page-shield-get-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageShieldGetPolicyArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
 }
 
 /// Arguments for [`page-shield-update-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageShieldUpdatePolicyArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
 }
 
 /// Arguments for [`page-shield-delete-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageShieldDeletePolicyArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
 }
 
 /// Arguments for [`page-shield-list-scripts_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageShieldListScriptsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: exclude_urls
+    /// Query parameter: `exclude_urls`.
     pub exclude_urls: Option<String>,
-    /// Query parameter: urls
+    /// Query parameter: `urls`.
     pub urls: Option<String>,
-    /// Query parameter: hosts
+    /// Query parameter: `hosts`.
     pub hosts: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order_by
+    /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: prioritize_malicious
+    /// Query parameter: `prioritize_malicious`.
     pub prioritize_malicious: Option<String>,
-    /// Query parameter: exclude_cdn_cgi
+    /// Query parameter: `exclude_cdn_cgi`.
     pub exclude_cdn_cgi: Option<String>,
-    /// Query parameter: exclude_duplicates
+    /// Query parameter: `exclude_duplicates`.
     pub exclude_duplicates: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: page_url
+    /// Query parameter: `page_url`.
     pub page_url: Option<String>,
-    /// Query parameter: export
+    /// Query parameter: `export`.
     pub export: Option<String>,
 }
 
 /// Arguments for [`page-shield-get-script_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageShieldGetScriptArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: script_id
+    /// Path parameter: `script_id`.
     pub script_id: String,
 }
 
 /// Arguments for [`page-rules-list-page-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageRulesListPageRulesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: match
+    /// Query parameter: `match`.
     pub r#match: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
 }
 
 /// Arguments for [`page-rules-create-a-page-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageRulesCreateAPageRuleArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`available-page-rules-settings-list-available-page-rules-settings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AvailablePageRulesSettingsListAvailablePageRulesSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`page-rules-get-a-page-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageRulesGetAPageRuleArgs {
-    /// Path parameter: pagerule_id
+    /// Path parameter: `pagerule_id`.
     pub pagerule_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`page-rules-update-a-page-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageRulesUpdateAPageRuleArgs {
-    /// Path parameter: pagerule_id
+    /// Path parameter: `pagerule_id`.
     pub pagerule_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`page-rules-edit-a-page-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageRulesEditAPageRuleArgs {
-    /// Path parameter: pagerule_id
+    /// Path parameter: `pagerule_id`.
     pub pagerule_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`page-rules-delete-a-page-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PageRulesDeleteAPageRuleArgs {
-    /// Path parameter: pagerule_id
+    /// Path parameter: `pagerule_id`.
     pub pagerule_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`pay-per-crawl.getConfig_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PayPerCrawlGetConfigArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`pay-per-crawl.createConfig_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PayPerCrawlCreateConfigArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`pay-per-crawl.patchConfig_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PayPerCrawlPatchConfigArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-purge_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZonePurgeArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`rate-limits-for-a-zone-list-rate-limits_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RateLimitsForAZoneListRateLimitsArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Query parameter: page
-    pub page: Option<String>,
-    /// Query parameter: per_page
-    pub per_page: Option<String>,
-}
-
-/// Arguments for [`rate-limits-for-a-zone-create-a-rate-limit_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RateLimitsForAZoneCreateARateLimitArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`rate-limits-for-a-zone-get-a-rate-limit_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RateLimitsForAZoneGetARateLimitArgs {
-    /// Path parameter: rate_limit_id
-    pub rate_limit_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`rate-limits-for-a-zone-update-a-rate-limit_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RateLimitsForAZoneUpdateARateLimitArgs {
-    /// Path parameter: rate_limit_id
-    pub rate_limit_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`rate-limits-for-a-zone-delete-a-rate-limit_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RateLimitsForAZoneDeleteARateLimitArgs {
-    /// Path parameter: rate_limit_id
-    pub rate_limit_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`listZoneRulesets_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListZoneRulesetsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`createZoneRuleset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateZoneRulesetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`getZoneEntrypointRuleset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZoneEntrypointRulesetArgs {
-    /// Path parameter: ruleset_phase
+    /// Path parameter: `ruleset_phase`.
     pub ruleset_phase: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`updateZoneEntrypointRuleset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateZoneEntrypointRulesetArgs {
-    /// Path parameter: ruleset_phase
+    /// Path parameter: `ruleset_phase`.
     pub ruleset_phase: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`listZoneEntrypointRulesetVersions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListZoneEntrypointRulesetVersionsArgs {
-    /// Path parameter: ruleset_phase
+    /// Path parameter: `ruleset_phase`.
     pub ruleset_phase: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`getZoneEntrypointRulesetVersion_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZoneEntrypointRulesetVersionArgs {
-    /// Path parameter: ruleset_version
+    /// Path parameter: `ruleset_version`.
     pub ruleset_version: String,
-    /// Path parameter: ruleset_phase
+    /// Path parameter: `ruleset_phase`.
     pub ruleset_phase: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`getZoneRuleset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZoneRulesetArgs {
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`updateZoneRuleset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateZoneRulesetArgs {
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`deleteZoneRuleset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteZoneRulesetArgs {
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`createZoneRulesetRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CreateZoneRulesetRuleArgs {
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`updateZoneRulesetRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateZoneRulesetRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`deleteZoneRulesetRule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteZoneRulesetRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`listZoneRulesetVersions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListZoneRulesetVersionsArgs {
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`getZoneRulesetVersion_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZoneRulesetVersionArgs {
-    /// Path parameter: ruleset_version
+    /// Path parameter: `ruleset_version`.
     pub ruleset_version: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`deleteZoneRulesetVersion_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteZoneRulesetVersionArgs {
-    /// Path parameter: ruleset_version
+    /// Path parameter: `ruleset_version`.
     pub ruleset_version: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`listZoneRulesetVersionRulesByTag_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListZoneRulesetVersionRulesByTagArgs {
-    /// Path parameter: rule_tag
+    /// Path parameter: `rule_tag`.
     pub rule_tag: String,
-    /// Path parameter: ruleset_version
+    /// Path parameter: `ruleset_version`.
     pub ruleset_version: String,
-    /// Path parameter: ruleset_id
+    /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`schema-validation-list-schemas-paginated_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationListSchemasPaginatedArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: validation_enabled
+    /// Query parameter: `validation_enabled`.
     pub validation_enabled: Option<String>,
 }
 
 /// Arguments for [`schema-validation-create-schema_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationCreateSchemaArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`schema-validation-list-schema-hosts_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationListSchemaHostsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`schema-validation-get-schema_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationGetSchemaArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: schema_id
+    /// Path parameter: `schema_id`.
     pub schema_id: String,
 }
 
 /// Arguments for [`schema-validation-edit-schema_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationEditSchemaArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: schema_id
+    /// Path parameter: `schema_id`.
     pub schema_id: String,
 }
 
 /// Arguments for [`schema-validation-delete-schema_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationDeleteSchemaArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: schema_id
+    /// Path parameter: `schema_id`.
     pub schema_id: String,
 }
 
 /// Arguments for [`schema-validation-extract-operations-from-schema_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationExtractOperationsFromSchemaArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: schema_id
+    /// Path parameter: `schema_id`.
     pub schema_id: String,
-    /// Query parameter: operation_status
+    /// Query parameter: `operation_status`.
     pub operation_status: Option<String>,
 }
 
 /// Arguments for [`schema-validation-get-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationGetSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`schema-validation-update-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationUpdateSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`schema-validation-edit-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationEditSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`schema-validation-list-per-operation-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationListPerOperationSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`schema-validation-bulk-edit-per-operation-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationBulkEditPerOperationSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`schema-validation-get-per-operation-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationGetPerOperationSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: operation_id
+    /// Path parameter: `operation_id`.
     pub operation_id: String,
 }
 
 /// Arguments for [`schema-validation-update-per-operation-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationUpdatePerOperationSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: operation_id
+    /// Path parameter: `operation_id`.
     pub operation_id: String,
 }
 
 /// Arguments for [`schema-validation-delete-per-operation-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SchemaValidationDeletePerOperationSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: operation_id
+    /// Path parameter: `operation_id`.
     pub operation_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-secondary-zone)-force-axfr_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecondaryDnsSecondaryZoneForceAxfrArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-secondary-zone)-secondary-zone-configuration-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecondaryDnsSecondaryZoneSecondaryZoneConfigurationDetailsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-secondary-zone)-create-secondary-zone-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecondaryDnsSecondaryZoneCreateSecondaryZoneConfigurationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: SecondaryDnsDnsSecondarySecondaryZone,
@@ -5983,7 +5153,7 @@ pub struct SecondaryDnsSecondaryZoneCreateSecondaryZoneConfigurationArgs {
 /// Arguments for [`secondary-dns-(-secondary-zone)-update-secondary-zone-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecondaryDnsSecondaryZoneUpdateSecondaryZoneConfigurationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: SecondaryDnsDnsSecondarySecondaryZone,
@@ -5992,21 +5162,21 @@ pub struct SecondaryDnsSecondaryZoneUpdateSecondaryZoneConfigurationArgs {
 /// Arguments for [`secondary-dns-(-secondary-zone)-delete-secondary-zone-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecondaryDnsSecondaryZoneDeleteSecondaryZoneConfigurationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-primary-zone)-primary-zone-configuration-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecondaryDnsPrimaryZonePrimaryZoneConfigurationDetailsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-primary-zone)-create-primary-zone-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecondaryDnsPrimaryZoneCreatePrimaryZoneConfigurationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: SecondaryDnsSingleRequestOutgoing,
@@ -6015,7 +5185,7 @@ pub struct SecondaryDnsPrimaryZoneCreatePrimaryZoneConfigurationArgs {
 /// Arguments for [`secondary-dns-(-primary-zone)-update-primary-zone-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecondaryDnsPrimaryZoneUpdatePrimaryZoneConfigurationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: SecondaryDnsSingleRequestOutgoing,
@@ -6024,178 +5194,178 @@ pub struct SecondaryDnsPrimaryZoneUpdatePrimaryZoneConfigurationArgs {
 /// Arguments for [`secondary-dns-(-primary-zone)-delete-primary-zone-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecondaryDnsPrimaryZoneDeletePrimaryZoneConfigurationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-primary-zone)-disable-outgoing-zone-transfers_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecondaryDnsPrimaryZoneDisableOutgoingZoneTransfersArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-primary-zone)-enable-outgoing-zone-transfers_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecondaryDnsPrimaryZoneEnableOutgoingZoneTransfersArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-primary-zone)-force-dns-notify_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecondaryDnsPrimaryZoneForceDnsNotifyArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-primary-zone)-get-outgoing-zone-transfer-status_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecondaryDnsPrimaryZoneGetOutgoingZoneTransferStatusArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`get-zone-security-center-insights_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZoneSecurityCenterInsightsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: dismissed
+    /// Query parameter: `dismissed`.
     pub dismissed: Option<String>,
-    /// Query parameter: issue_class
+    /// Query parameter: `issue_class`.
     pub issue_class: Option<String>,
-    /// Query parameter: issue_type
+    /// Query parameter: `issue_type`.
     pub issue_type: Option<String>,
-    /// Query parameter: product
+    /// Query parameter: `product`.
     pub product: Option<String>,
-    /// Query parameter: severity
+    /// Query parameter: `severity`.
     pub severity: Option<String>,
-    /// Query parameter: subject
+    /// Query parameter: `subject`.
     pub subject: Option<String>,
-    /// Query parameter: issue_class~neq
+    /// Query parameter: `issue_class~neq`.
     pub issue_class_neq: Option<String>,
-    /// Query parameter: issue_type~neq
+    /// Query parameter: `issue_type~neq`.
     pub issue_type_neq: Option<String>,
-    /// Query parameter: product~neq
+    /// Query parameter: `product~neq`.
     pub product_neq: Option<String>,
-    /// Query parameter: severity~neq
+    /// Query parameter: `severity~neq`.
     pub severity_neq: Option<String>,
-    /// Query parameter: subject~neq
+    /// Query parameter: `subject~neq`.
     pub subject_neq: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`get-zone-security-center-insight-counts-by-class_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZoneSecurityCenterInsightCountsByClassArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: dismissed
+    /// Query parameter: `dismissed`.
     pub dismissed: Option<String>,
-    /// Query parameter: issue_class
+    /// Query parameter: `issue_class`.
     pub issue_class: Option<String>,
-    /// Query parameter: issue_type
+    /// Query parameter: `issue_type`.
     pub issue_type: Option<String>,
-    /// Query parameter: product
+    /// Query parameter: `product`.
     pub product: Option<String>,
-    /// Query parameter: severity
+    /// Query parameter: `severity`.
     pub severity: Option<String>,
-    /// Query parameter: subject
+    /// Query parameter: `subject`.
     pub subject: Option<String>,
-    /// Query parameter: issue_class~neq
+    /// Query parameter: `issue_class~neq`.
     pub issue_class_neq: Option<String>,
-    /// Query parameter: issue_type~neq
+    /// Query parameter: `issue_type~neq`.
     pub issue_type_neq: Option<String>,
-    /// Query parameter: product~neq
+    /// Query parameter: `product~neq`.
     pub product_neq: Option<String>,
-    /// Query parameter: severity~neq
+    /// Query parameter: `severity~neq`.
     pub severity_neq: Option<String>,
-    /// Query parameter: subject~neq
+    /// Query parameter: `subject~neq`.
     pub subject_neq: Option<String>,
 }
 
 /// Arguments for [`get-zone-security-center-insight-counts-by-severity_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZoneSecurityCenterInsightCountsBySeverityArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: dismissed
+    /// Query parameter: `dismissed`.
     pub dismissed: Option<String>,
-    /// Query parameter: issue_class
+    /// Query parameter: `issue_class`.
     pub issue_class: Option<String>,
-    /// Query parameter: issue_type
+    /// Query parameter: `issue_type`.
     pub issue_type: Option<String>,
-    /// Query parameter: product
+    /// Query parameter: `product`.
     pub product: Option<String>,
-    /// Query parameter: severity
+    /// Query parameter: `severity`.
     pub severity: Option<String>,
-    /// Query parameter: subject
+    /// Query parameter: `subject`.
     pub subject: Option<String>,
-    /// Query parameter: issue_class~neq
+    /// Query parameter: `issue_class~neq`.
     pub issue_class_neq: Option<String>,
-    /// Query parameter: issue_type~neq
+    /// Query parameter: `issue_type~neq`.
     pub issue_type_neq: Option<String>,
-    /// Query parameter: product~neq
+    /// Query parameter: `product~neq`.
     pub product_neq: Option<String>,
-    /// Query parameter: severity~neq
+    /// Query parameter: `severity~neq`.
     pub severity_neq: Option<String>,
-    /// Query parameter: subject~neq
+    /// Query parameter: `subject~neq`.
     pub subject_neq: Option<String>,
 }
 
 /// Arguments for [`get-zone-security-center-insight-counts-by-type_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZoneSecurityCenterInsightCountsByTypeArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: dismissed
+    /// Query parameter: `dismissed`.
     pub dismissed: Option<String>,
-    /// Query parameter: issue_class
+    /// Query parameter: `issue_class`.
     pub issue_class: Option<String>,
-    /// Query parameter: issue_type
+    /// Query parameter: `issue_type`.
     pub issue_type: Option<String>,
-    /// Query parameter: product
+    /// Query parameter: `product`.
     pub product: Option<String>,
-    /// Query parameter: severity
+    /// Query parameter: `severity`.
     pub severity: Option<String>,
-    /// Query parameter: subject
+    /// Query parameter: `subject`.
     pub subject: Option<String>,
-    /// Query parameter: issue_class~neq
+    /// Query parameter: `issue_class~neq`.
     pub issue_class_neq: Option<String>,
-    /// Query parameter: issue_type~neq
+    /// Query parameter: `issue_type~neq`.
     pub issue_type_neq: Option<String>,
-    /// Query parameter: product~neq
+    /// Query parameter: `product~neq`.
     pub product_neq: Option<String>,
-    /// Query parameter: severity~neq
+    /// Query parameter: `severity~neq`.
     pub severity_neq: Option<String>,
-    /// Query parameter: subject~neq
+    /// Query parameter: `subject~neq`.
     pub subject_neq: Option<String>,
 }
 
 /// Arguments for [`archive-zone-security-center-insight_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ArchiveZoneSecurityCenterInsightArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: issue_id
+    /// Path parameter: `issue_id`.
     pub issue_id: String,
 }
 
 /// Arguments for [`get-security-txt_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSecurityTxtArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`update-security-txt_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateSecurityTxtArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: SecurityCenterSecurityTxt,
@@ -6204,65 +5374,49 @@ pub struct UpdateSecurityTxtArgs {
 /// Arguments for [`delete-security-txt_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteSecurityTxtArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-}
-
-/// Arguments for [`zone-settings-get-all-zone-settings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ZoneSettingsGetAllZoneSettingsArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`zone-settings-edit-zone-settings-info_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ZoneSettingsEditZoneSettingsInfoArgs {
-    /// Path parameter: zone_id
-    pub zone_id: String,
-    /// Request body.
-    pub body: Vec<serde_json::Value>,
 }
 
 /// Arguments for [`zone-cache-settings-get-aegis-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsGetAegisSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-change-aegis-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsChangeAegisSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-settings-get-fonts-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneSettingsGetFontsSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-settings-change-fonts-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneSettingsChangeFontsSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-settings-get-google-tag-gateway-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneSettingsGetGoogleTagGatewayConfigArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-settings-change-google-tag-gateway-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneSettingsChangeGoogleTagGatewayConfigArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: GoogleTagGatewayGoogleTagGatewayConfig,
@@ -6271,42 +5425,42 @@ pub struct ZoneSettingsChangeGoogleTagGatewayConfigArgs {
 /// Arguments for [`zone-cache-settings-get-origin-h2-max-streams-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsGetOriginH2MaxStreamsSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-change-origin-h2-max-streams-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsChangeOriginH2MaxStreamsSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-get-origin-max-http-version-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsGetOriginMaxHttpVersionSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-cache-settings-change-origin-max-http-version-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneCacheSettingsChangeOriginMaxHttpVersionSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`web-analytics-get-rum-status_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebAnalyticsGetRumStatusArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`web-analytics-toggle-rum_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WebAnalyticsToggleRumArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: RumToggleRumRequest,
@@ -6315,28 +5469,28 @@ pub struct WebAnalyticsToggleRumArgs {
 /// Arguments for [`zone-settings-get-speed-brain-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneSettingsGetSpeedBrainSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-settings-change-speed-brain-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneSettingsChangeSpeedBrainSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`ssl-detector-automatic-mode-get-enrollment_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SslDetectorAutomaticModeGetEnrollmentArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`ssl-detector-automatic-mode-patch-enrollment_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SslDetectorAutomaticModePatchEnrollmentArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: CacheSchemasPatch,
@@ -6345,14 +5499,14 @@ pub struct SslDetectorAutomaticModePatchEnrollmentArgs {
 /// Arguments for [`get-zones-zone_identifier-zaraz-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdentifierZarazConfigArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`put-zones-zone_identifier-zaraz-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PutZonesZoneIdentifierZarazConfigArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: ZarazZarazConfigBody,
@@ -6361,84 +5515,84 @@ pub struct PutZonesZoneIdentifierZarazConfigArgs {
 /// Arguments for [`get-zones-zone_identifier-zaraz-default_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdentifierZarazDefaultArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`get-zones-zone_identifier-zaraz-export_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdentifierZarazExportArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`get-zones-zone_identifier-zaraz-history_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdentifierZarazHistoryArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: sortField
-    pub sortField: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
+    /// Query parameter: `sortField`.
+    pub sort_field: Option<String>,
+    /// Query parameter: `sortOrder`.
+    pub sort_order: Option<String>,
 }
 
 /// Arguments for [`put-zones-zone_identifier-zaraz-history_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PutZonesZoneIdentifierZarazHistoryArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`get-zones-zone_identifier-zaraz-config-history_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdentifierZarazConfigHistoryArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: ids
+    /// Query parameter: `ids`.
     pub ids: Option<String>,
 }
 
 /// Arguments for [`post-zones-zone_identifier-zaraz-publish_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostZonesZoneIdentifierZarazPublishArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`get-zones-zone_identifier-zaraz-workflow_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZonesZoneIdentifierZarazWorkflowArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`put-zones-zone_identifier-zaraz-workflow_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PutZonesZoneIdentifierZarazWorkflowArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-settings-get-single-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneSettingsGetSingleSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: setting_id
+    /// Path parameter: `setting_id`.
     pub setting_id: String,
 }
 
 /// Arguments for [`zone-settings-edit-single-setting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneSettingsEditSingleSettingArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: setting_id
+    /// Path parameter: `setting_id`.
     pub setting_id: String,
     /// Request body.
     pub body: ZonesZoneSettingsSingleRequest,
@@ -6447,14 +5601,14 @@ pub struct ZoneSettingsEditSingleSettingArgs {
 /// Arguments for [`smart-shield-get-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SmartShieldGetSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`smart-shield-patch-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SmartShieldPatchSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: SmartshieldSmartShieldSettingsPatchBody,
@@ -6463,28 +5617,28 @@ pub struct SmartShieldPatchSettingsArgs {
 /// Arguments for [`smart-shield-settings-get-cache-reserve-clear_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SmartShieldSettingsGetCacheReserveClearArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`smart-shield-settings-start-cache-reserve-clear_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SmartShieldSettingsStartCacheReserveClearArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`smart-shield-list-health-checks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SmartShieldListHealthChecksArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`smart-shield-create-health-check_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SmartShieldCreateHealthCheckArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: SmartshieldQueryHealthcheck,
@@ -6493,18 +5647,18 @@ pub struct SmartShieldCreateHealthCheckArgs {
 /// Arguments for [`smart-shield-health-check-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SmartShieldHealthCheckDetailsArgs {
-    /// Path parameter: healthcheck_id
+    /// Path parameter: `healthcheck_id`.
     pub healthcheck_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`smart-shield-update-health-check_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SmartShieldUpdateHealthCheckArgs {
-    /// Path parameter: healthcheck_id
+    /// Path parameter: `healthcheck_id`.
     pub healthcheck_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: SmartshieldSingleHcResponse,
@@ -6513,9 +5667,9 @@ pub struct SmartShieldUpdateHealthCheckArgs {
 /// Arguments for [`smart-shield-patch-health-check_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SmartShieldPatchHealthCheckArgs {
-    /// Path parameter: healthcheck_id
+    /// Path parameter: `healthcheck_id`.
     pub healthcheck_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: SmartshieldQueryHealthcheck,
@@ -6524,139 +5678,139 @@ pub struct SmartShieldPatchHealthCheckArgs {
 /// Arguments for [`smart-shield-delete-health-check_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SmartShieldDeleteHealthCheckArgs {
-    /// Path parameter: healthcheck_id
+    /// Path parameter: `healthcheck_id`.
     pub healthcheck_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`listZoneSnippets_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListZoneSnippetsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`listZoneSnippetRules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListZoneSnippetRulesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`updateZoneSnippetRules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateZoneSnippetRulesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`deleteZoneSnippetRules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteZoneSnippetRulesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`getZoneSnippet_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZoneSnippetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: snippet_name
+    /// Path parameter: `snippet_name`.
     pub snippet_name: String,
 }
 
 /// Arguments for [`updateZoneSnippet_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateZoneSnippetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: snippet_name
+    /// Path parameter: `snippet_name`.
     pub snippet_name: String,
 }
 
 /// Arguments for [`deleteZoneSnippet_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteZoneSnippetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: snippet_name
+    /// Path parameter: `snippet_name`.
     pub snippet_name: String,
 }
 
 /// Arguments for [`getZoneSnippetContent_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetZoneSnippetContentArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: snippet_name
+    /// Path parameter: `snippet_name`.
     pub snippet_name: String,
 }
 
 /// Arguments for [`spectrum-analytics-(-by-time)-get-analytics-by-time_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpectrumAnalyticsByTimeGetAnalyticsByTimeArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: dimensions
+    /// Query parameter: `dimensions`.
     pub dimensions: Option<String>,
-    /// Query parameter: sort
+    /// Query parameter: `sort`.
     pub sort: Option<String>,
-    /// Query parameter: until
+    /// Query parameter: `until`.
     pub until: Option<String>,
-    /// Query parameter: metrics
+    /// Query parameter: `metrics`.
     pub metrics: Option<String>,
-    /// Query parameter: filters
+    /// Query parameter: `filters`.
     pub filters: Option<String>,
-    /// Query parameter: since
+    /// Query parameter: `since`.
     pub since: Option<String>,
-    /// Query parameter: time_delta
+    /// Query parameter: `time_delta`.
     pub time_delta: Option<String>,
 }
 
 /// Arguments for [`spectrum-analytics-(-summary)-get-analytics-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpectrumAnalyticsSummaryGetAnalyticsSummaryArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: dimensions
+    /// Query parameter: `dimensions`.
     pub dimensions: Option<String>,
-    /// Query parameter: sort
+    /// Query parameter: `sort`.
     pub sort: Option<String>,
-    /// Query parameter: until
+    /// Query parameter: `until`.
     pub until: Option<String>,
-    /// Query parameter: metrics
+    /// Query parameter: `metrics`.
     pub metrics: Option<String>,
-    /// Query parameter: filters
+    /// Query parameter: `filters`.
     pub filters: Option<String>,
-    /// Query parameter: since
+    /// Query parameter: `since`.
     pub since: Option<String>,
 }
 
 /// Arguments for [`spectrum-applications-list-spectrum-applications_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpectrumApplicationsListSpectrumApplicationsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
 }
 
 /// Arguments for [`spectrum-applications-create-spectrum-application-using-a-name-for-the-origin_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpectrumApplicationsCreateSpectrumApplicationUsingANameForTheOriginArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: SpectrumConfigUpdateAppConfig,
@@ -6665,18 +5819,18 @@ pub struct SpectrumApplicationsCreateSpectrumApplicationUsingANameForTheOriginAr
 /// Arguments for [`spectrum-applications-get-spectrum-application-configuration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpectrumApplicationsGetSpectrumApplicationConfigurationArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`spectrum-applications-update-spectrum-application-configuration-using-a-name-for-the-origin_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpectrumApplicationsUpdateSpectrumApplicationConfigurationUsingANameForTheOriginArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: SpectrumConfigUpdateAppConfig,
@@ -6685,135 +5839,128 @@ pub struct SpectrumApplicationsUpdateSpectrumApplicationConfigurationUsingANameF
 /// Arguments for [`spectrum-applications-delete-spectrum-application_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpectrumApplicationsDeleteSpectrumApplicationArgs {
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`speed-get-availabilities_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpeedGetAvailabilitiesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`speed-get-scheduled-test_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpeedGetScheduledTestArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: url
+    /// Path parameter: `url`.
     pub url: String,
-    /// Query parameter: region
+    /// Query parameter: `region`.
     pub region: Option<String>,
 }
 
 /// Arguments for [`speed-create-scheduled-test_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpeedCreateScheduledTestArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: url
+    /// Path parameter: `url`.
     pub url: String,
-    /// Query parameter: region
+    /// Query parameter: `region`.
     pub region: Option<String>,
-    /// Query parameter: frequency
+    /// Query parameter: `frequency`.
     pub frequency: Option<String>,
 }
 
 /// Arguments for [`speed-delete-test-schedule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SpeedDeleteTestScheduleArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: url
+    /// Path parameter: `url`.
     pub url: String,
-    /// Query parameter: region
+    /// Query parameter: `region`.
     pub region: Option<String>,
 }
 
 /// Arguments for [`analyze-certificate-analyze-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AnalyzeCertificateAnalyzeCertificateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`certificate-packs-list-certificate-packs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CertificatePacksListCertificatePacksArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: deploy
+    /// Query parameter: `deploy`.
     pub deploy: Option<String>,
 }
 
 /// Arguments for [`certificate-packs-order-advanced-certificate-manager-certificate-pack_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CertificatePacksOrderAdvancedCertificateManagerCertificatePackArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`certificate-packs-get-certificate-pack-quotas_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CertificatePacksGetCertificatePackQuotasArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`certificate-packs-get-certificate-pack_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CertificatePacksGetCertificatePackArgs {
-    /// Path parameter: certificate_pack_id
+    /// Path parameter: `certificate_pack_id`.
     pub certificate_pack_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`certificate-packs-restart-validation-for-advanced-certificate-manager-certificate-pack_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CertificatePacksRestartValidationForAdvancedCertificateManagerCertificatePackArgs {
-    /// Path parameter: certificate_pack_id
+    /// Path parameter: `certificate_pack_id`.
     pub certificate_pack_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`certificate-packs-delete-advanced-certificate-manager-certificate-pack_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CertificatePacksDeleteAdvancedCertificateManagerCertificatePackArgs {
-    /// Path parameter: certificate_pack_id
+    /// Path parameter: `certificate_pack_id`.
     pub certificate_pack_id: String,
-    /// Path parameter: zone_id
-    pub zone_id: String,
-}
-
-/// Arguments for [`ssl/-tls-mode-recommendation-ssl/-tls-recommendation_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SslTlsModeRecommendationSslTlsRecommendationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`universal-ssl-settings-for-a-zone-universal-ssl-settings-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UniversalSslSettingsForAZoneUniversalSslSettingsDetailsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`universal-ssl-settings-for-a-zone-edit-universal-ssl-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UniversalSslSettingsForAZoneEditUniversalSslSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: TlsCertificatesAndHostnamesUniversal,
@@ -6822,18 +5969,18 @@ pub struct UniversalSslSettingsForAZoneEditUniversalSslSettingsArgs {
 /// Arguments for [`ssl-verification-ssl-verification-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SslVerificationSslVerificationDetailsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: retry
+    /// Query parameter: `retry`.
     pub retry: Option<String>,
 }
 
 /// Arguments for [`ssl-verification-edit-ssl-certificate-pack-validation-method_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SslVerificationEditSslCertificatePackValidationMethodArgs {
-    /// Path parameter: certificate_pack_id
+    /// Path parameter: `certificate_pack_id`.
     pub certificate_pack_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: TlsCertificatesAndHostnamesComponentsSchemasValidationMethod,
@@ -6842,14 +5989,14 @@ pub struct SslVerificationEditSslCertificatePackValidationMethodArgs {
 /// Arguments for [`zone-subscription-zone-subscription-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneSubscriptionZoneSubscriptionDetailsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`zone-subscription-create-zone-subscription_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneSubscriptionCreateZoneSubscriptionArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: BillSubsApiSubscriptionV2,
@@ -6858,7 +6005,7 @@ pub struct ZoneSubscriptionCreateZoneSubscriptionArgs {
 /// Arguments for [`zone-subscription-update-zone-subscription_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ZoneSubscriptionUpdateZoneSubscriptionArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: BillSubsApiSubscriptionV2,
@@ -6867,20 +6014,20 @@ pub struct ZoneSubscriptionUpdateZoneSubscriptionArgs {
 /// Arguments for [`tags-zone-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TagsZoneGetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: resource_id
+    /// Query parameter: `resource_id`.
     pub resource_id: Option<String>,
-    /// Query parameter: resource_type
+    /// Query parameter: `resource_type`.
     pub resource_type: Option<String>,
-    /// Query parameter: access_application_id
+    /// Query parameter: `access_application_id`.
     pub access_application_id: Option<String>,
 }
 
 /// Arguments for [`tags-zone-set_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TagsZoneSetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: ResourceTaggingSetTagsRequestZoneLevel,
@@ -6889,7 +6036,7 @@ pub struct TagsZoneSetArgs {
 /// Arguments for [`tags-zone-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TagsZoneDeleteArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: ResourceTaggingDeleteTagsRequestZoneLevel,
@@ -6898,171 +6045,171 @@ pub struct TagsZoneDeleteArgs {
 /// Arguments for [`token-validation-config-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationConfigListArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`token-validation-config-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationConfigCreateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`token-validation-config-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationConfigGetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: config_id
+    /// Path parameter: `config_id`.
     pub config_id: String,
 }
 
 /// Arguments for [`token-validation-config-edit_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationConfigEditArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: config_id
+    /// Path parameter: `config_id`.
     pub config_id: String,
 }
 
 /// Arguments for [`token-validation-config-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationConfigDeleteArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: config_id
+    /// Path parameter: `config_id`.
     pub config_id: String,
 }
 
 /// Arguments for [`token-validation-config-credentials-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationConfigCredentialsUpdateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: config_id
+    /// Path parameter: `config_id`.
     pub config_id: String,
 }
 
 /// Arguments for [`token-validation-rules-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationRulesListArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: token_configuration
+    /// Query parameter: `token_configuration`.
     pub token_configuration: Option<String>,
-    /// Query parameter: action
+    /// Query parameter: `action`.
     pub action: Option<String>,
-    /// Query parameter: enabled
+    /// Query parameter: `enabled`.
     pub enabled: Option<String>,
-    /// Query parameter: id
+    /// Query parameter: `id`.
     pub id: Option<String>,
-    /// Query parameter: rule_id
+    /// Query parameter: `rule_id`.
     pub rule_id: Option<String>,
-    /// Query parameter: host
+    /// Query parameter: `host`.
     pub host: Option<String>,
-    /// Query parameter: hostname
+    /// Query parameter: `hostname`.
     pub hostname: Option<String>,
 }
 
 /// Arguments for [`token-validation-rules-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationRulesCreateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`token-validation-rules-bulk-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationRulesBulkCreateArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`token-validation-rules-bulk-edit_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationRulesBulkEditArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`token-validation-rules-preview_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationRulesPreviewArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Query parameter: state
+    /// Query parameter: `state`.
     pub state: Option<String>,
-    /// Query parameter: host
+    /// Query parameter: `host`.
     pub host: Option<String>,
-    /// Query parameter: hostname
+    /// Query parameter: `hostname`.
     pub hostname: Option<String>,
-    /// Query parameter: method
+    /// Query parameter: `method`.
     pub method: Option<String>,
-    /// Query parameter: endpoint
+    /// Query parameter: `endpoint`.
     pub endpoint: Option<String>,
 }
 
 /// Arguments for [`token-validation-rules-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationRulesGetArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`token-validation-rules-edit_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationRulesEditArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`token-validation-rules-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TokenValidationRulesDeleteArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`getUrlNormalization_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetUrlNormalizationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`updateUrlNormalization_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UpdateUrlNormalizationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`deleteUrlNormalization_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteUrlNormalizationArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waiting-room-list-waiting-rooms_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomListWaitingRoomsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waiting-room-create-waiting-room_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomCreateWaitingRoomArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WaitingroomQueryWaitingroom,
@@ -7071,7 +6218,7 @@ pub struct WaitingRoomCreateWaitingRoomArgs {
 /// Arguments for [`waiting-room-create-a-custom-waiting-room-page-preview_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomCreateACustomWaitingRoomPagePreviewArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WaitingroomQueryPreview,
@@ -7080,14 +6227,14 @@ pub struct WaitingRoomCreateACustomWaitingRoomPagePreviewArgs {
 /// Arguments for [`waiting-room-get-zone-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomGetZoneSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waiting-room-update-zone-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomUpdateZoneSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WaitingroomZoneSettings,
@@ -7096,7 +6243,7 @@ pub struct WaitingRoomUpdateZoneSettingsArgs {
 /// Arguments for [`waiting-room-patch-zone-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomPatchZoneSettingsArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WaitingroomZoneSettings,
@@ -7105,18 +6252,18 @@ pub struct WaitingRoomPatchZoneSettingsArgs {
 /// Arguments for [`waiting-room-waiting-room-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomWaitingRoomDetailsArgs {
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waiting-room-update-waiting-room_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomUpdateWaitingRoomArgs {
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WaitingroomQueryWaitingroom,
@@ -7125,9 +6272,9 @@ pub struct WaitingRoomUpdateWaitingRoomArgs {
 /// Arguments for [`waiting-room-patch-waiting-room_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomPatchWaitingRoomArgs {
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WaitingroomQueryWaitingroom,
@@ -7136,27 +6283,27 @@ pub struct WaitingRoomPatchWaitingRoomArgs {
 /// Arguments for [`waiting-room-delete-waiting-room_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomDeleteWaitingRoomArgs {
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waiting-room-list-events_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomListEventsArgs {
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waiting-room-create-event_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomCreateEventArgs {
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WaitingroomQueryEvent,
@@ -7165,22 +6312,22 @@ pub struct WaitingRoomCreateEventArgs {
 /// Arguments for [`waiting-room-event-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomEventDetailsArgs {
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waiting-room-update-event_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomUpdateEventArgs {
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WaitingroomQueryEvent,
@@ -7189,11 +6336,11 @@ pub struct WaitingRoomUpdateEventArgs {
 /// Arguments for [`waiting-room-patch-event_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomPatchEventArgs {
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WaitingroomQueryEvent,
@@ -7202,40 +6349,40 @@ pub struct WaitingRoomPatchEventArgs {
 /// Arguments for [`waiting-room-delete-event_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomDeleteEventArgs {
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waiting-room-preview-active-event-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomPreviewActiveEventDetailsArgs {
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waiting-room-list-waiting-room-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomListWaitingRoomRulesArgs {
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waiting-room-create-waiting-room-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomCreateWaitingRoomRuleArgs {
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WaitingroomCreateRule,
@@ -7244,9 +6391,9 @@ pub struct WaitingRoomCreateWaitingRoomRuleArgs {
 /// Arguments for [`waiting-room-replace-waiting-room-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomReplaceWaitingRoomRulesArgs {
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: Vec<WaitingroomCreateRule>,
@@ -7255,11 +6402,11 @@ pub struct WaitingRoomReplaceWaitingRoomRulesArgs {
 /// Arguments for [`waiting-room-patch-waiting-room-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomPatchWaitingRoomRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: WaitingroomPatchRule,
@@ -7268,34 +6415,34 @@ pub struct WaitingRoomPatchWaitingRoomRuleArgs {
 /// Arguments for [`waiting-room-delete-waiting-room-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomDeleteWaitingRoomRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`waiting-room-get-waiting-room-status_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomGetWaitingRoomStatusArgs {
-    /// Path parameter: waiting_room_id
+    /// Path parameter: `waiting_room_id`.
     pub waiting_room_id: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`web3-hostname-list-web3-hostnames_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Web3HostnameListWeb3HostnamesArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`web3-hostname-create-web3-hostname_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Web3HostnameCreateWeb3HostnameArgs {
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: Web3CreateRequest,
@@ -7304,18 +6451,18 @@ pub struct Web3HostnameCreateWeb3HostnameArgs {
 /// Arguments for [`web3-hostname-web3-hostname-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Web3HostnameWeb3HostnameDetailsArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`web3-hostname-edit-web3-hostname_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Web3HostnameEditWeb3HostnameArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: Web3ModifyRequest,
@@ -7324,27 +6471,27 @@ pub struct Web3HostnameEditWeb3HostnameArgs {
 /// Arguments for [`web3-hostname-delete-web3-hostname_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Web3HostnameDeleteWeb3HostnameArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`web3-hostname-ipfs-universal-path-gateway-content-list-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Web3HostnameIpfsUniversalPathGatewayContentListDetailsArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`web3-hostname-update-ipfs-universal-path-gateway-content-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Web3HostnameUpdateIpfsUniversalPathGatewayContentListArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: Web3ContentListUpdateRequest,
@@ -7353,18 +6500,18 @@ pub struct Web3HostnameUpdateIpfsUniversalPathGatewayContentListArgs {
 /// Arguments for [`web3-hostname-list-ipfs-universal-path-gateway-content-list-entries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Web3HostnameListIpfsUniversalPathGatewayContentListEntriesArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`web3-hostname-create-ipfs-universal-path-gateway-content-list-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Web3HostnameCreateIpfsUniversalPathGatewayContentListEntryArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: Web3ContentListEntryCreateRequest,
@@ -7373,22 +6520,22 @@ pub struct Web3HostnameCreateIpfsUniversalPathGatewayContentListEntryArgs {
 /// Arguments for [`web3-hostname-ipfs-universal-path-gateway-content-list-entry-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Web3HostnameIpfsUniversalPathGatewayContentListEntryDetailsArgs {
-    /// Path parameter: content_list_entry_identifier
+    /// Path parameter: `content_list_entry_identifier`.
     pub content_list_entry_identifier: String,
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
 /// Arguments for [`web3-hostname-edit-ipfs-universal-path-gateway-content-list-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Web3HostnameEditIpfsUniversalPathGatewayContentListEntryArgs {
-    /// Path parameter: content_list_entry_identifier
+    /// Path parameter: `content_list_entry_identifier`.
     pub content_list_entry_identifier: String,
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
     /// Request body.
     pub body: Web3ContentListEntryCreateRequest,
@@ -7397,11 +6544,11 @@ pub struct Web3HostnameEditIpfsUniversalPathGatewayContentListEntryArgs {
 /// Arguments for [`web3-hostname-delete-ipfs-universal-path-gateway-content-list-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct Web3HostnameDeleteIpfsUniversalPathGatewayContentListEntryArgs {
-    /// Path parameter: content_list_entry_identifier
+    /// Path parameter: `content_list_entry_identifier`.
     pub content_list_entry_identifier: String,
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: zone_id
+    /// Path parameter: `zone_id`.
     pub zone_id: String,
 }
 
@@ -7431,7 +6578,6 @@ pub struct Web3HostnameDeleteIpfsUniversalPathGatewayContentListEntryArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_address_maps_add_a_zone_membership_to_an_address_map_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7520,7 +6666,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_address_management_address_maps_remove_a_zone_membership_from_an_address_map_request<
     R,
@@ -7602,7 +6747,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -7612,11 +6756,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_get_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &ZonesGetArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -7646,7 +6788,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7693,7 +6835,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_post_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7726,7 +6867,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7743,184 +6884,6 @@ where
                     status: status as u16,
                     headers: headers.clone(),
                     body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_identifier}/analytics/colos
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_identifier}/analytics/colos.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = zone_analytics_deprecated_get_analytics_by_co_locations_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn zone_analytics_deprecated_get_analytics_by_co_locations_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ZoneAnalyticsDeprecatedGetAnalyticsByCoLocationsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<ZoneAnalyticsApiColoResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/analytics/colos",
-        args.zone_identifier,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ZoneAnalyticsApiColoResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_identifier}/analytics/dashboard
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_identifier}/analytics/dashboard.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = zone_analytics_deprecated_get_dashboard_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn zone_analytics_deprecated_get_dashboard_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ZoneAnalyticsDeprecatedGetDashboardArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<ZoneAnalyticsApiDashboardResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/analytics/dashboard",
-        args.zone_identifier,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ZoneAnalyticsApiDashboardResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
                 })
             }
             super::shared::RequestIntro::Failed(e) => {
@@ -7952,7 +6915,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_0_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7989,7 +6951,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8037,7 +6999,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_0_patch_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8074,7 +7035,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8122,7 +7083,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_0_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8211,7 +7171,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_applications_list_access_applications_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8304,7 +7263,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_applications_add_a_bookmark_application_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8345,7 +7303,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8393,7 +7351,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_short_lived_certificate_c_as_list_short_lived_certificate_c_as_request<
     R,
@@ -8489,7 +7446,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_applications_get_an_access_application_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8582,7 +7538,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_applications_update_a_bookmark_application_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8623,7 +7578,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8671,7 +7626,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_applications_delete_an_access_application_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8760,7 +7714,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_short_lived_certificate_c_as_get_a_short_lived_certificate_ca_request<
     R,
@@ -8855,7 +7808,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_short_lived_certificate_c_as_create_a_short_lived_certificate_ca_request<
     R,
@@ -8950,7 +7902,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_short_lived_certificate_c_as_delete_a_short_lived_certificate_ca_request<
     R,
@@ -9045,7 +7996,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_policies_list_access_policies_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9138,7 +8088,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_policies_create_an_access_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9231,7 +8180,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_policies_get_an_access_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9324,7 +8272,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_policies_update_an_access_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9417,7 +8364,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_policies_delete_an_access_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9506,7 +8452,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_applications_revoke_service_tokens_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9595,7 +8540,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_applications_put_update_access_application_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9636,7 +8580,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9684,7 +8628,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_applications_patch_update_access_application_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9725,7 +8668,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9773,7 +8716,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_applications_test_access_policies_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9862,7 +8804,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_mtls_authentication_list_mtls_certificates_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9955,7 +8896,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_mtls_authentication_add_an_mtls_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10048,7 +8988,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_mtls_authentication_list_mtls_certificates_hostname_settings_request<
     R,
@@ -10143,7 +9082,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_mtls_authentication_update_an_mtls_certificate_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10235,7 +9173,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_mtls_authentication_get_an_mtls_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10328,7 +9265,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_mtls_authentication_update_an_mtls_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10421,7 +9357,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_mtls_authentication_delete_an_mtls_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10510,7 +9445,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_groups_list_access_groups_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10603,7 +9537,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_groups_create_an_access_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10696,7 +9629,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_groups_get_an_access_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10789,7 +9721,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_groups_update_an_access_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10882,7 +9813,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_groups_delete_an_access_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10971,7 +9901,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_identity_providers_list_access_identity_providers_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11064,7 +9993,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_identity_providers_add_an_access_identity_provider_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11161,7 +10089,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_identity_providers_get_an_access_identity_provider_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11254,7 +10181,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_identity_providers_update_an_access_identity_provider_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11351,7 +10277,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_identity_providers_delete_an_access_identity_provider_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11440,7 +10365,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_zero_trust_organization_get_your_zero_trust_organization_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11533,7 +10457,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_zero_trust_organization_create_your_zero_trust_organization_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11626,7 +10549,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_zero_trust_organization_update_your_zero_trust_organization_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11719,7 +10641,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_zero_trust_organization_revoke_all_access_tokens_for_a_user_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11808,7 +10729,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_service_tokens_list_service_tokens_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11901,7 +10821,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_service_tokens_create_a_service_token_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11990,7 +10909,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_service_tokens_get_a_service_token_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12083,7 +11001,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_service_tokens_update_a_service_token_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12176,7 +11093,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_access_service_tokens_delete_a_service_token_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12269,7 +11185,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_origin_trust_store_list_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12362,7 +11277,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_origin_trust_store_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12455,7 +11369,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_origin_trust_store_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12548,7 +11461,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_origin_trust_store_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12641,7 +11553,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn total_tls_total_tls_settings_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12734,7 +11645,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn total_tls_enable_or_disable_total_tls_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12827,7 +11737,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn put_zones_zone_id_activation_check_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12864,7 +11773,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -12912,7 +11821,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dls_account_regional_hostnames_account_list_hostnames_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12949,7 +11857,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -12997,7 +11905,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dls_account_regional_hostnames_account_create_hostname_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13034,7 +11941,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13082,7 +11989,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dls_account_regional_hostnames_account_fetch_hostname_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13119,7 +12025,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13167,7 +12073,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dls_account_regional_hostnames_account_patch_hostname_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13204,7 +12109,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13252,7 +12157,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dls_account_regional_hostnames_account_delete_hostname_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13289,7 +12193,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13337,7 +12241,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn argo_analytics_for_zone_argo_analytics_for_a_zone_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13426,7 +12329,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn argo_analytics_for_geolocation_argo_analytics_for_a_zone_at_different_po_ps_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13515,7 +12417,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_settings_retrieve_information_about_specific_configuration_properties_request<
     R,
@@ -13555,7 +12456,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13603,7 +12504,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_settings_set_configuration_properties_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13640,7 +12540,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13688,7 +12588,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_api_discovery_retrieve_discovered_operations_on_a_zone_as_openapi_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13777,7 +12676,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_api_discovery_retrieve_discovered_operations_on_a_zone_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13814,7 +12712,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13862,7 +12760,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_api_patch_discovered_operations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13955,7 +12852,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_api_patch_discovered_operation_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14044,7 +12940,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_expression_templates_fallthrough_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14085,7 +12980,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14133,7 +13028,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_labels_get_labels_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14170,7 +13064,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14218,7 +13112,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_labels_get_managed_label_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14255,7 +13148,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14303,7 +13196,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_labels_replace_operations_attached_to_managed_label_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14345,7 +13237,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14393,7 +13285,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_labels_create_user_labels_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14434,7 +13325,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14482,7 +13373,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_labels_delete_user_labels_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14519,7 +13409,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14567,7 +13457,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_labels_get_user_label_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14604,7 +13493,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14652,7 +13541,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_put_user_label_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14693,7 +13581,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14741,7 +13629,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_patch_user_label_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14782,7 +13669,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14830,7 +13717,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_delete_user_label_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14867,7 +13753,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14915,7 +13801,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_labels_replace_operations_attached_to_user_label_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14957,7 +13842,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -15005,7 +13890,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_endpoint_management_retrieve_information_about_all_operations_on_a_zone_request<
     R,
@@ -15101,7 +13985,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_endpoint_management_add_operations_to_a_zone_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15197,7 +14080,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_endpoint_management_delete_multiple_operations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15290,7 +14172,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_endpoint_management_add_operation_to_a_zone_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15383,7 +14264,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_operations_bulk_post_labels_to_operations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15424,7 +14304,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -15472,7 +14352,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_operations_bulk_put_labels_to_operations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15513,7 +14392,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -15561,7 +14440,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_operations_bulk_delete_labels_to_operations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15602,96 +14480,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PATCH /zones/{zone_id}/api_gateway/operations/schema_validation
-// -----------------------------------------------------------------------------
-
-/// PATCH /zones/{zone_id}/api_gateway/operations/schema_validation.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = api_shield_schema_validation_update_multiple_operation_level_settings_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn api_shield_schema_validation_update_multiple_operation_level_settings_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ApiShieldSchemaValidationUpdateMultipleOperationLevelSettingsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/api_gateway/operations/schema_validation",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .patch(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -15739,7 +14528,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_endpoint_management_retrieve_information_about_an_operation_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15828,7 +14616,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_endpoint_management_delete_an_operation_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15917,7 +14704,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_operations_post_labels_to_operation_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15958,7 +14744,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16006,7 +14792,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_operations_put_labels_to_operation_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16047,7 +14832,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16095,7 +14880,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_operations_delete_labels_from_operation_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16136,7 +14920,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16153,196 +14937,6 @@ where
                     status: status as u16,
                     headers: headers.clone(),
                     body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/api_gateway/operations/{operation_id}/schema_validation
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/api_gateway/operations/{operation_id}/schema_validation.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = api_shield_schema_validation_retrieve_operation_level_settings_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn api_shield_schema_validation_retrieve_operation_level_settings_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ApiShieldSchemaValidationRetrieveOperationLevelSettingsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<ApiShieldOldOperationSchemaValidationSettings>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/api_gateway/operations/{}/schema_validation",
-        args.zone_id, args.operation_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ApiShieldOldOperationSchemaValidationSettings =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PUT /zones/{zone_id}/api_gateway/operations/{operation_id}/schema_validation
-// -----------------------------------------------------------------------------
-
-/// PUT /zones/{zone_id}/api_gateway/operations/{operation_id}/schema_validation.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = api_shield_schema_validation_update_operation_level_settings_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn api_shield_schema_validation_update_operation_level_settings_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ApiShieldSchemaValidationUpdateOperationLevelSettingsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<ApiShieldOldOperationSchemaValidationSettings>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/api_gateway/operations/{}/schema_validation",
-        args.zone_id, args.operation_id,
-    );
-
-    let mut builder = client
-        .put(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ApiShieldOldOperationSchemaValidationSettings =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
                 })
             }
             super::shared::RequestIntro::Failed(e) => {
@@ -16374,7 +14968,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn api_shield_endpoint_management_retrieve_operations_and_features_as_open_api_schemas_request<
     R,
@@ -16448,889 +15041,6 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/api_gateway/settings/schema_validation
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/api_gateway/settings/schema_validation.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = api_shield_schema_validation_retrieve_zone_level_settings_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn api_shield_schema_validation_retrieve_zone_level_settings_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ApiShieldSchemaValidationRetrieveZoneLevelSettingsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<ApiShieldOldZoneSchemaValidationSettings>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/api_gateway/settings/schema_validation",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ApiShieldOldZoneSchemaValidationSettings = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PUT /zones/{zone_id}/api_gateway/settings/schema_validation
-// -----------------------------------------------------------------------------
-
-/// PUT /zones/{zone_id}/api_gateway/settings/schema_validation.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = api_shield_schema_validation_update_zone_level_settings_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn api_shield_schema_validation_update_zone_level_settings_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ApiShieldSchemaValidationUpdateZoneLevelSettingsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<ApiShieldOldZoneSchemaValidationSettings>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/api_gateway/settings/schema_validation",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .put(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ApiShieldOldZoneSchemaValidationSettings = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PATCH /zones/{zone_id}/api_gateway/settings/schema_validation
-// -----------------------------------------------------------------------------
-
-/// PATCH /zones/{zone_id}/api_gateway/settings/schema_validation.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = api_shield_schema_validation_patch_zone_level_settings_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn api_shield_schema_validation_patch_zone_level_settings_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ApiShieldSchemaValidationPatchZoneLevelSettingsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<ApiShieldOldZoneSchemaValidationSettings>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/api_gateway/settings/schema_validation",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .patch(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ApiShieldOldZoneSchemaValidationSettings = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/api_gateway/user_schemas
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/api_gateway/user_schemas.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = api_shield_schema_validation_retrieve_information_about_all_schemas_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn api_shield_schema_validation_retrieve_information_about_all_schemas_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ApiShieldSchemaValidationRetrieveInformationAboutAllSchemasArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/api_gateway/user_schemas",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /zones/{zone_id}/api_gateway/user_schemas
-// -----------------------------------------------------------------------------
-
-/// POST /zones/{zone_id}/api_gateway/user_schemas.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = api_shield_schema_validation_post_schema_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn api_shield_schema_validation_post_schema_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ApiShieldSchemaValidationPostSchemaArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/api_gateway/user_schemas",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/api_gateway/user_schemas/hosts
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/api_gateway/user_schemas/hosts.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = api_shield_schema_validation_retrieve_user_schema_hosts_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn api_shield_schema_validation_retrieve_user_schema_hosts_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ApiShieldSchemaValidationRetrieveUserSchemaHostsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/api_gateway/user_schemas/hosts",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/api_gateway/user_schemas/{schema_id}
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/api_gateway/user_schemas/{schema_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = api_shield_schema_validation_retrieve_information_about_specific_schema_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn api_shield_schema_validation_retrieve_information_about_specific_schema_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ApiShieldSchemaValidationRetrieveInformationAboutSpecificSchemaArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/api_gateway/user_schemas/{}",
-        args.zone_id, args.schema_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PATCH /zones/{zone_id}/api_gateway/user_schemas/{schema_id}
-// -----------------------------------------------------------------------------
-
-/// PATCH /zones/{zone_id}/api_gateway/user_schemas/{schema_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = api_shield_schema_validation_enable_validation_for_a_schema_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn api_shield_schema_validation_enable_validation_for_a_schema_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ApiShieldSchemaValidationEnableValidationForASchemaArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/api_gateway/user_schemas/{}",
-        args.zone_id, args.schema_id,
-    );
-
-    let mut builder = client
-        .patch(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// DELETE /zones/{zone_id}/api_gateway/user_schemas/{schema_id}
-// -----------------------------------------------------------------------------
-
-/// DELETE /zones/{zone_id}/api_gateway/user_schemas/{schema_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = api_shield_schema_delete_a_schema_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn api_shield_schema_delete_a_schema_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ApiShieldSchemaDeleteASchemaArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<ApiShieldApiResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/api_gateway/user_schemas/{}",
-        args.zone_id, args.schema_id,
-    );
-
-    let mut builder = client
-        .delete(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ApiShieldApiResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/api_gateway/user_schemas/{schema_id}/operations
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/api_gateway/user_schemas/{schema_id}/operations.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = api_shield_schema_validation_extract_operations_from_schema_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn api_shield_schema_validation_extract_operations_from_schema_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ApiShieldSchemaValidationExtractOperationsFromSchemaArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/api_gateway/user_schemas/{}/operations",
-        args.zone_id, args.schema_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
 // GET /zones/{zone_id}/argo/smart_routing
 // -----------------------------------------------------------------------------
 
@@ -17352,7 +15062,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn argo_smart_routing_get_argo_smart_routing_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17441,7 +15150,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn argo_smart_routing_patch_argo_smart_routing_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17534,7 +15242,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tiered_caching_get_tiered_caching_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17571,7 +15278,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -17619,7 +15326,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tiered_caching_patch_tiered_caching_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17660,7 +15366,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -17708,7 +15414,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_rate_plan_list_available_plans_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17745,7 +15450,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -17793,7 +15498,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_rate_plan_available_plan_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17830,7 +15534,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -17878,7 +15582,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_rate_plan_list_available_rate_plans_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17967,7 +15670,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn bot_management_for_a_zone_get_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18059,7 +15761,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn bot_management_for_a_zone_update_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18155,7 +15856,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn bot_management_zone_feedback_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18244,7 +15944,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn bot_management_zone_feedback_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18285,7 +15984,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18333,7 +16032,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_get_cache_reserve_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18370,7 +16068,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18418,7 +16116,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_change_cache_reserve_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18455,7 +16152,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18503,7 +16200,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_get_cache_reserve_clear_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18540,7 +16236,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18588,7 +16284,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_start_cache_reserve_clear_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18625,7 +16320,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18673,7 +16368,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_get_origin_post_quantum_encryption_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18710,7 +16404,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18758,7 +16452,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_change_origin_post_quantum_encryption_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18795,7 +16488,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18843,7 +16536,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_get_regional_tiered_cache_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18880,7 +16572,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18928,7 +16620,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_change_regional_tiered_cache_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18965,7 +16656,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -19013,7 +16704,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn smart_tiered_cache_get_smart_tiered_cache_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19050,7 +16740,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -19098,7 +16788,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn smart_tiered_cache_patch_smart_tiered_cache_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19139,7 +16828,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -19187,7 +16876,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn smart_tiered_cache_delete_smart_tiered_cache_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19224,7 +16912,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -19272,7 +16960,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_get_variants_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19309,7 +16996,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -19357,7 +17044,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_change_variants_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19394,7 +17080,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -19442,7 +17128,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_delete_variants_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19479,7 +17164,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -19527,7 +17212,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn client_certificate_for_a_zone_list_hostname_associations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19620,7 +17304,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn client_certificate_for_a_zone_put_hostname_associations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19717,7 +17400,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn client_certificate_for_a_zone_list_client_certificates_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19810,7 +17492,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn client_certificate_for_a_zone_create_client_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19903,7 +17584,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn client_certificate_for_a_zone_client_certificate_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19996,7 +17676,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn client_certificate_for_a_zone_edit_client_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20089,7 +17768,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn client_certificate_for_a_zone_delete_client_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20182,7 +17860,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cloud_connector_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20219,7 +17896,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20267,7 +17944,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cloud_conenctor_rules_put_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20308,7 +17984,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20356,7 +18032,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_content_scanning_disable_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20449,7 +18124,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_content_scanning_enable_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20542,7 +18216,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_content_scanning_list_custom_scan_expressions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20635,7 +18308,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_content_scanning_add_custom_scan_expressions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20732,7 +18404,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_content_scanning_delete_custom_scan_expressions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20825,7 +18496,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_content_scanning_get_status_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20917,7 +18587,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_content_scanning_update_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21009,7 +18678,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_ssl_for_a_zone_list_ssl_configurations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21102,7 +18770,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_ssl_for_a_zone_create_ssl_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21195,7 +18862,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_ssl_for_a_zone_re_prioritize_ssl_certificates_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21288,7 +18954,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_ssl_for_a_zone_ssl_configuration_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21381,7 +19046,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_ssl_for_a_zone_edit_ssl_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21474,7 +19138,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_ssl_for_a_zone_delete_ssl_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21567,7 +19230,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_hostname_for_a_zone_list_custom_hostnames_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21660,7 +19322,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_hostname_for_a_zone_create_custom_hostname_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21753,7 +19414,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_hostname_fallback_origin_for_a_zone_get_fallback_origin_for_custom_hostnames_request<
     R,
@@ -21849,7 +19509,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_hostname_fallback_origin_for_a_zone_update_fallback_origin_for_custom_hostnames_request<
     R,
@@ -21945,7 +19604,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_hostname_fallback_origin_for_a_zone_delete_fallback_origin_for_custom_hostnames_request<
     R,
@@ -22041,7 +19699,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_hostname_for_a_zone_custom_hostname_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -22134,7 +19791,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_hostname_for_a_zone_edit_custom_hostname_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -22227,7 +19883,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_hostname_for_a_zone_delete_custom_hostname_and_any_issued_ssl_certificates_request<
     R,
@@ -22267,7 +19922,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -22315,7 +19970,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_hostname_for_a_zone_edit_custom_certificate_custom_hostname_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -22415,7 +20069,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_hostname_for_a_zone_delete_single_certificate_and_key_in_a_custom_hostname_request<
     R,
@@ -22458,7 +20111,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -22475,197 +20128,6 @@ where
                     status: status as u16,
                     headers: headers.clone(),
                     body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/custom_ns
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/custom_ns.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = account_level_custom_nameservers_usage_for_a_zone_get_account_custom_nameserver_related_zone_metadata_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn account_level_custom_nameservers_usage_for_a_zone_get_account_custom_nameserver_related_zone_metadata_request<
-    R,
-    F,
->(
-    client: &SimpleHttpClient<R>,
-    args: &AccountLevelCustomNameserversUsageForAZoneGetAccountCustomNameserverRelatedZoneMetadataArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<DnsCustomNameserversGetResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/custom_ns",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: DnsCustomNameserversGetResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PUT /zones/{zone_id}/custom_ns
-// -----------------------------------------------------------------------------
-
-/// PUT /zones/{zone_id}/custom_ns.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = account_level_custom_nameservers_usage_for_a_zone_set_account_custom_nameserver_related_zone_metadata_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn account_level_custom_nameservers_usage_for_a_zone_set_account_custom_nameserver_related_zone_metadata_request<
-    R,
-    F,
->(
-    client: &SimpleHttpClient<R>,
-    args: &AccountLevelCustomNameserversUsageForAZoneSetAccountCustomNameserverRelatedZoneMetadataArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<DnsCustomNameserversSchemasEmptyResponse>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/custom_ns",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .put(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: DnsCustomNameserversSchemasEmptyResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
                 })
             }
             super::shared::RequestIntro::Failed(e) => {
@@ -22697,7 +20159,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dcv_delegation_uuid_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -22790,7 +20251,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_get_policy_certificates_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -22883,7 +20343,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_update_policy_certificates_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -22980,7 +20439,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_analytics_table_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -23017,7 +20475,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -23065,7 +20523,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_analytics_by_time_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -23102,7 +20559,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -23150,7 +20607,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_records_for_a_zone_list_dns_records_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -23239,7 +20695,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_records_for_a_zone_create_dns_record_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -23332,7 +20787,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_records_for_a_zone_batch_dns_records_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -23425,7 +20879,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_records_for_a_zone_export_dns_records_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -23462,7 +20915,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -23510,7 +20963,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_records_for_a_zone_import_dns_records_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -23531,95 +20983,6 @@ where
 {
     let endpoint_url = format!(
         "https://api.cloudflare.com/client/v4/zones/{}/dns_records/import",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: DnsRecordsDnsResponseImportScan = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /zones/{zone_id}/dns_records/scan
-// -----------------------------------------------------------------------------
-
-/// POST /zones/{zone_id}/dns_records/scan.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = dns_records_for_a_zone_scan_dns_records_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn dns_records_for_a_zone_scan_dns_records_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &DnsRecordsForAZoneScanDnsRecordsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<DnsRecordsDnsResponseImportScan>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/dns_records/scan",
         args.zone_id,
     );
 
@@ -23688,7 +21051,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_records_for_a_zone_review_dns_scan_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -23777,7 +21139,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_records_for_a_zone_apply_dns_scan_results_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -23870,7 +21231,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_records_for_a_zone_trigger_dns_scan_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -23959,7 +21319,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_records_for_a_zone_get_usage_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24048,7 +21407,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_records_for_a_zone_dns_record_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24137,7 +21495,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_records_for_a_zone_update_dns_record_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24230,7 +21587,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_records_for_a_zone_patch_dns_record_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24323,7 +21679,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_records_for_a_zone_delete_dns_record_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24360,7 +21715,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -24408,7 +21763,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_settings_for_a_zone_list_dns_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24500,7 +21854,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dns_settings_for_a_zone_update_dns_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24596,7 +21949,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dnssec_dnssec_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24685,7 +22037,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dnssec_edit_dnssec_status_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24774,7 +22125,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dnssec_delete_dnssec_records_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24863,7 +22213,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_settings_get_email_routing_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24931,95 +22280,6 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST /zones/{zone_id}/email/routing/disable
-// -----------------------------------------------------------------------------
-
-/// POST /zones/{zone_id}/email/routing/disable.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = email_routing_settings_disable_email_routing_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn email_routing_settings_disable_email_routing_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &EmailRoutingSettingsDisableEmailRoutingArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<EmailEmailSettingsResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/email/routing/disable",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: EmailEmailSettingsResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
 // GET /zones/{zone_id}/email/routing/dns
 // -----------------------------------------------------------------------------
 
@@ -25041,7 +22301,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_settings_email_routing_dns_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -25130,7 +22389,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_settings_enable_email_routing_dns_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -25223,7 +22481,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_settings_unlock_email_routing_dns_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -25316,7 +22573,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_settings_disable_email_routing_dns_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -25388,95 +22644,6 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// POST /zones/{zone_id}/email/routing/enable
-// -----------------------------------------------------------------------------
-
-/// POST /zones/{zone_id}/email/routing/enable.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = email_routing_settings_enable_email_routing_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn email_routing_settings_enable_email_routing_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &EmailRoutingSettingsEnableEmailRoutingArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<EmailEmailSettingsResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/email/routing/enable",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: EmailEmailSettingsResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
 // GET /zones/{zone_id}/email/routing/rules
 // -----------------------------------------------------------------------------
 
@@ -25498,7 +22665,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_routing_rules_list_routing_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -25587,7 +22753,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_routing_rules_create_routing_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -25680,7 +22845,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_routing_rules_get_catch_all_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -25769,7 +22933,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_routing_rules_update_catch_all_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -25862,7 +23025,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_routing_rules_get_routing_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -25951,7 +23113,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_routing_rules_update_routing_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -26044,7 +23205,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_routing_routing_rules_delete_routing_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -26133,7 +23293,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_sending_subdomains_list_sending_subdomains_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -26225,7 +23384,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_sending_subdomains_create_sending_subdomain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -26321,7 +23479,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_sending_subdomains_preview_sending_subdomain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -26417,7 +23574,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_sending_subdomains_get_sending_subdomain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -26509,7 +23665,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_sending_subdomains_delete_sending_subdomain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -26598,7 +23753,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_sending_subdomains_get_sending_subdomain_dns_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -26690,7 +23844,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_environments_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -26779,7 +23932,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_environments_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -26872,7 +24024,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_environments_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -26965,7 +24116,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_environments_edit_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -27058,7 +24208,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_environments_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -27147,7 +24296,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_environments_rollback_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -27215,643 +24363,6 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/filters
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/filters.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = filters_list_filters_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn filters_list_filters_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FiltersListFiltersArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallFilterResponseCollection>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/filters",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /zones/{zone_id}/filters
-// -----------------------------------------------------------------------------
-
-/// POST /zones/{zone_id}/filters.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = filters_create_filters_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn filters_create_filters_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FiltersCreateFiltersArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/filters",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PUT /zones/{zone_id}/filters
-// -----------------------------------------------------------------------------
-
-/// PUT /zones/{zone_id}/filters.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = filters_update_filters_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn filters_update_filters_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FiltersUpdateFiltersArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallFilterResponseCollection>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/filters",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .put(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// DELETE /zones/{zone_id}/filters
-// -----------------------------------------------------------------------------
-
-/// DELETE /zones/{zone_id}/filters.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = filters_delete_filters_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn filters_delete_filters_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FiltersDeleteFiltersArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<FirewallFilterDeleteResponseCollection>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/filters",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .delete(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterDeleteResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/filters/{filter_id}
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/filters/{filter_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = filters_get_a_filter_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn filters_get_a_filter_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FiltersGetAFilterArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallFilterResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/filters/{}",
-        args.zone_id, args.filter_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PUT /zones/{zone_id}/filters/{filter_id}
-// -----------------------------------------------------------------------------
-
-/// PUT /zones/{zone_id}/filters/{filter_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = filters_update_a_filter_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn filters_update_a_filter_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FiltersUpdateAFilterArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallFilterResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/filters/{}",
-        args.zone_id, args.filter_id,
-    );
-
-    let mut builder = client
-        .put(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// DELETE /zones/{zone_id}/filters/{filter_id}
-// -----------------------------------------------------------------------------
-
-/// DELETE /zones/{zone_id}/filters/{filter_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = filters_delete_a_filter_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn filters_delete_a_filter_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FiltersDeleteAFilterArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<FirewallFilterDeleteResponseSingle>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/filters/{}",
-        args.zone_id, args.filter_id,
-    );
-
-    let mut builder = client
-        .delete(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterDeleteResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
 // GET /zones/{zone_id}/firewall-for-ai/custom-topics
 // -----------------------------------------------------------------------------
 
@@ -27873,7 +24384,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn firewall_for_ai_custom_topics_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -27966,7 +24476,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn firewall_for_ai_custom_topics_put_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -28063,7 +24572,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn firewall_for_ai_settings_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -28155,7 +24663,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn firewall_for_ai_settings_put_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -28251,7 +24758,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_access_rules_for_a_zone_list_ip_access_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -28340,7 +24846,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_access_rules_for_a_zone_create_an_ip_access_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -28429,7 +24934,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_access_rules_for_a_zone_update_an_ip_access_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -28518,7 +25022,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_access_rules_for_a_zone_delete_an_ip_access_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -28607,7 +25110,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_lockdown_list_zone_lockdown_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -28699,7 +25201,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_lockdown_create_a_zone_lockdown_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -28791,7 +25292,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_lockdown_get_a_zone_lockdown_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -28883,7 +25383,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_lockdown_update_a_zone_lockdown_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -28975,7 +25474,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_lockdown_delete_a_zone_lockdown_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -29012,7 +25510,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -29029,830 +25527,6 @@ where
                     status: status as u16,
                     headers: headers.clone(),
                     body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/firewall/rules
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/firewall/rules.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = firewall_rules_list_firewall_rules_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn firewall_rules_list_firewall_rules_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FirewallRulesListFirewallRulesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<FirewallFilterRulesResponseCollection>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/rules",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterRulesResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /zones/{zone_id}/firewall/rules
-// -----------------------------------------------------------------------------
-
-/// POST /zones/{zone_id}/firewall/rules.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = firewall_rules_create_firewall_rules_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn firewall_rules_create_firewall_rules_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FirewallRulesCreateFirewallRulesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<FirewallFilterRulesResponseCollection>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/rules",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterRulesResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PUT /zones/{zone_id}/firewall/rules
-// -----------------------------------------------------------------------------
-
-/// PUT /zones/{zone_id}/firewall/rules.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = firewall_rules_update_firewall_rules_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn firewall_rules_update_firewall_rules_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FirewallRulesUpdateFirewallRulesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<FirewallFilterRulesResponseCollection>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/rules",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .put(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterRulesResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PATCH /zones/{zone_id}/firewall/rules
-// -----------------------------------------------------------------------------
-
-/// PATCH /zones/{zone_id}/firewall/rules.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = firewall_rules_update_priority_of_firewall_rules_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn firewall_rules_update_priority_of_firewall_rules_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FirewallRulesUpdatePriorityOfFirewallRulesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<FirewallFilterRulesResponseCollection>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/rules",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .patch(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterRulesResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// DELETE /zones/{zone_id}/firewall/rules
-// -----------------------------------------------------------------------------
-
-/// DELETE /zones/{zone_id}/firewall/rules.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = firewall_rules_delete_firewall_rules_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn firewall_rules_delete_firewall_rules_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FirewallRulesDeleteFirewallRulesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<FirewallFilterRulesResponseCollectionDelete>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/rules",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .delete(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterRulesResponseCollectionDelete =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/firewall/rules/{rule_id}
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/firewall/rules/{rule_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = firewall_rules_get_a_firewall_rule_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn firewall_rules_get_a_firewall_rule_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FirewallRulesGetAFirewallRuleArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallFilterRulesSingleResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/rules/{}",
-        args.zone_id, args.rule_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterRulesSingleResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PUT /zones/{zone_id}/firewall/rules/{rule_id}
-// -----------------------------------------------------------------------------
-
-/// PUT /zones/{zone_id}/firewall/rules/{rule_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = firewall_rules_update_a_firewall_rule_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn firewall_rules_update_a_firewall_rule_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FirewallRulesUpdateAFirewallRuleArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallFilterRulesSingleResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/rules/{}",
-        args.zone_id, args.rule_id,
-    );
-
-    let mut builder = client
-        .put(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterRulesSingleResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PATCH /zones/{zone_id}/firewall/rules/{rule_id}
-// -----------------------------------------------------------------------------
-
-/// PATCH /zones/{zone_id}/firewall/rules/{rule_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = firewall_rules_update_priority_of_a_firewall_rule_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn firewall_rules_update_priority_of_a_firewall_rule_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FirewallRulesUpdatePriorityOfAFirewallRuleArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<FirewallFilterRulesResponseCollection>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/rules/{}",
-        args.zone_id, args.rule_id,
-    );
-
-    let mut builder = client
-        .patch(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterRulesResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// DELETE /zones/{zone_id}/firewall/rules/{rule_id}
-// -----------------------------------------------------------------------------
-
-/// DELETE /zones/{zone_id}/firewall/rules/{rule_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = firewall_rules_delete_a_firewall_rule_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn firewall_rules_delete_a_firewall_rule_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &FirewallRulesDeleteAFirewallRuleArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<FirewallFilterRulesSingleResponseDelete>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/rules/{}",
-        args.zone_id, args.rule_id,
-    );
-
-    let mut builder = client
-        .delete(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallFilterRulesSingleResponseDelete =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
                 })
             }
             super::shared::RequestIntro::Failed(e) => {
@@ -29884,7 +25558,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn user_agent_blocking_rules_list_user_agent_blocking_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -29976,7 +25649,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn user_agent_blocking_rules_create_a_user_agent_blocking_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -30068,7 +25740,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn user_agent_blocking_rules_get_a_user_agent_blocking_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -30160,7 +25831,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn user_agent_blocking_rules_update_a_user_agent_blocking_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -30252,7 +25922,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn user_agent_blocking_rules_delete_a_user_agent_blocking_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -30289,1257 +25958,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/firewall/waf/overrides
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/firewall/waf/overrides.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_overrides_list_waf_overrides_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_overrides_list_waf_overrides_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafOverridesListWafOverridesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<FirewallOverrideResponseCollection>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/overrides",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallOverrideResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /zones/{zone_id}/firewall/waf/overrides
-// -----------------------------------------------------------------------------
-
-/// POST /zones/{zone_id}/firewall/waf/overrides.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_overrides_create_a_waf_override_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_overrides_create_a_waf_override_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafOverridesCreateAWafOverrideArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallOverrideResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/overrides",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallOverrideResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/firewall/waf/overrides/{overrides_id}
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/firewall/waf/overrides/{overrides_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_overrides_get_a_waf_override_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_overrides_get_a_waf_override_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafOverridesGetAWafOverrideArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallOverrideResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/overrides/{}",
-        args.zone_id, args.overrides_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallOverrideResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PUT /zones/{zone_id}/firewall/waf/overrides/{overrides_id}
-// -----------------------------------------------------------------------------
-
-/// PUT /zones/{zone_id}/firewall/waf/overrides/{overrides_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_overrides_update_waf_override_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_overrides_update_waf_override_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafOverridesUpdateWafOverrideArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallOverrideResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/overrides/{}",
-        args.zone_id, args.overrides_id,
-    );
-
-    let mut builder = client
-        .put(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallOverrideResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// DELETE /zones/{zone_id}/firewall/waf/overrides/{overrides_id}
-// -----------------------------------------------------------------------------
-
-/// DELETE /zones/{zone_id}/firewall/waf/overrides/{overrides_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_overrides_delete_a_waf_override_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_overrides_delete_a_waf_override_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafOverridesDeleteAWafOverrideArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/overrides/{}",
-        args.zone_id, args.overrides_id,
-    );
-
-    let mut builder = client
-        .delete(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/firewall/waf/packages
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/firewall/waf/packages.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_packages_list_waf_packages_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_packages_list_waf_packages_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafPackagesListWafPackagesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallPackageResponseCollection>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/packages",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallPackageResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/firewall/waf/packages/{package_id}
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/firewall/waf/packages/{package_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_packages_get_a_waf_package_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_packages_get_a_waf_package_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafPackagesGetAWafPackageArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallPackageResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/packages/{}",
-        args.zone_id, args.package_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallPackageResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PATCH /zones/{zone_id}/firewall/waf/packages/{package_id}
-// -----------------------------------------------------------------------------
-
-/// PATCH /zones/{zone_id}/firewall/waf/packages/{package_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_packages_update_a_waf_package_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_packages_update_a_waf_package_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafPackagesUpdateAWafPackageArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/packages/{}",
-        args.zone_id, args.package_id,
-    );
-
-    let mut builder = client
-        .patch(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/firewall/waf/packages/{package_id}/groups
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/firewall/waf/packages/{package_id}/groups.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_rule_groups_list_waf_rule_groups_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_rule_groups_list_waf_rule_groups_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafRuleGroupsListWafRuleGroupsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<WafManagedRulesRuleGroupResponseCollection>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/packages/{}/groups",
-        args.zone_id, args.package_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: WafManagedRulesRuleGroupResponseCollection =
-                    serde_json::from_str(&body)
-                        .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/firewall/waf/packages/{package_id}/groups/{group_id}
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/firewall/waf/packages/{package_id}/groups/{group_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_rule_groups_get_a_waf_rule_group_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_rule_groups_get_a_waf_rule_group_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafRuleGroupsGetAWafRuleGroupArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<WafManagedRulesRuleGroupResponseSingle>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/packages/{}/groups/{}",
-        args.zone_id, args.package_id, args.group_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: WafManagedRulesRuleGroupResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PATCH /zones/{zone_id}/firewall/waf/packages/{package_id}/groups/{group_id}
-// -----------------------------------------------------------------------------
-
-/// PATCH /zones/{zone_id}/firewall/waf/packages/{package_id}/groups/{group_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_rule_groups_update_a_waf_rule_group_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_rule_groups_update_a_waf_rule_group_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafRuleGroupsUpdateAWafRuleGroupArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<WafManagedRulesRuleGroupResponseSingle>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/packages/{}/groups/{}",
-        args.zone_id, args.package_id, args.group_id,
-    );
-
-    let mut builder = client
-        .patch(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: WafManagedRulesRuleGroupResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/firewall/waf/packages/{package_id}/rules
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/firewall/waf/packages/{package_id}/rules.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_rules_list_waf_rules_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_rules_list_waf_rules_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafRulesListWafRulesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<WafManagedRulesRuleResponseCollection>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/packages/{}/rules",
-        args.zone_id, args.package_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: WafManagedRulesRuleResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/firewall/waf/packages/{package_id}/rules/{rule_id}
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/firewall/waf/packages/{package_id}/rules/{rule_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_rules_get_a_waf_rule_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_rules_get_a_waf_rule_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafRulesGetAWafRuleArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<WafManagedRulesRuleResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/packages/{}/rules/{}",
-        args.zone_id, args.package_id, args.rule_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: WafManagedRulesRuleResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PATCH /zones/{zone_id}/firewall/waf/packages/{package_id}/rules/{rule_id}
-// -----------------------------------------------------------------------------
-
-/// PATCH /zones/{zone_id}/firewall/waf/packages/{package_id}/rules/{rule_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = waf_rules_update_a_waf_rule_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn waf_rules_update_a_waf_rule_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &WafRulesUpdateAWafRuleArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/firewall/waf/packages/{}/rules/{}",
-        args.zone_id, args.package_id, args.rule_id,
-    );
-
-    let mut builder = client
-        .patch(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -31587,7 +26006,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn fraud_detection_zone_get_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -31676,7 +26094,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn fraud_detection_zone_update_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -31769,7 +26186,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn health_checks_list_health_checks_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -31858,7 +26274,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn health_checks_create_health_check_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -31951,7 +26366,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn health_checks_create_preview_health_check_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -32044,7 +26458,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn health_checks_health_check_preview_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -32133,7 +26546,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn health_checks_delete_preview_health_check_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -32222,7 +26634,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn health_checks_health_check_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -32311,7 +26722,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn health_checks_update_health_check_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -32404,7 +26814,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn health_checks_patch_health_check_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -32497,7 +26906,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn health_checks_delete_health_check_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -32586,7 +26994,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_0_hold_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -32623,7 +27030,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -32671,7 +27078,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_0_hold_post_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -32708,7 +27114,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -32756,7 +27162,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_0_hold_patch_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -32793,7 +27198,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -32841,7 +27246,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zones_0_hold_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -32878,7 +27282,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -32926,7 +27330,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn per_hostname_tls_settings_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -33019,7 +27422,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn per_hostname_tls_settings_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -33112,7 +27514,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn per_hostname_tls_settings_put_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -33205,7 +27606,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn per_hostname_tls_settings_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -33298,7 +27698,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn keyless_ssl_for_a_zone_list_keyless_ssl_configurations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -33391,7 +27790,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn keyless_ssl_for_a_zone_create_keyless_ssl_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -33484,7 +27882,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn keyless_ssl_for_a_zone_get_keyless_ssl_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -33577,7 +27974,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn keyless_ssl_for_a_zone_edit_keyless_ssl_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -33670,7 +28066,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn keyless_ssl_for_a_zone_delete_keyless_ssl_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -33763,7 +28158,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_product_api_leaked_credentials_get_status_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -33852,7 +28246,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_product_api_leaked_credentials_set_status_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -33945,7 +28338,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_product_api_leaked_credentials_list_detections_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -34038,7 +28430,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_product_api_leaked_credentials_create_detection_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -34135,7 +28526,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_product_api_leaked_credentials_get_detection_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -34228,7 +28618,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_product_api_leaked_credentials_update_detection_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -34325,7 +28714,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waf_product_api_leaked_credentials_delete_detection_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -34417,7 +28805,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn load_balancers_list_load_balancers_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -34510,7 +28897,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn load_balancers_create_load_balancer_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -34603,7 +28989,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn load_balancers_load_balancer_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -34696,7 +29081,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn load_balancers_update_load_balancer_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -34789,7 +29173,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn load_balancers_patch_load_balancer_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -34882,7 +29265,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn load_balancers_delete_load_balancer_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -34974,7 +29356,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_id_logpush_datasets_dataset_id_fields_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -35066,7 +29447,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_id_logpush_datasets_dataset_id_jobs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -35158,7 +29538,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_id_logpush_edge_jobs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -35251,7 +29630,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_zones_zone_id_logpush_edge_jobs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -35343,7 +29721,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_id_logpush_jobs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -35435,7 +29812,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_zones_zone_id_logpush_jobs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -35524,7 +29900,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_id_logpush_jobs_job_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -35613,7 +29988,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn put_zones_zone_id_logpush_jobs_job_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -35702,7 +30076,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_zones_zone_id_logpush_jobs_job_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -35739,7 +30112,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -35787,7 +30160,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_zones_zone_id_logpush_ownership_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -35876,7 +30248,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_zones_zone_id_logpush_ownership_validate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -35965,7 +30336,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_zones_zone_id_logpush_validate_destination_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -36054,7 +30424,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_zones_zone_id_logpush_validate_destination_exists_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -36143,7 +30512,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_zones_zone_id_logpush_validate_origin_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -36232,7 +30600,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_id_logs_control_retention_flag_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -36324,7 +30691,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_zones_zone_id_logs_control_retention_flag_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -36420,7 +30786,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_id_logs_rayids_ray_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -36509,7 +30874,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_id_logs_received_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -36598,7 +30962,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_id_logs_received_fields_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -36687,7 +31050,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_managed_transforms_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -36724,7 +31086,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -36772,7 +31134,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_managed_transforms_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -36809,7 +31170,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -36857,7 +31218,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_managed_transforms_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -36894,7 +31254,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -36942,7 +31302,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_authenticated_origin_pulls_list_certificates_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -37021,7 +31380,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_authenticated_origin_pulls_upload_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -37114,7 +31472,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn per_hostname_authenticated_origin_pull_list_hostname_associations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -37207,7 +31564,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn per_hostname_authenticated_origin_pull_enable_or_disable_a_hostname_for_client_authentication_request<
     R,
@@ -37303,7 +31659,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn per_hostname_authenticated_origin_pull_list_certificates_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -37369,7 +31724,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn per_hostname_authenticated_origin_pull_upload_a_hostname_client_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -37435,7 +31789,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn per_hostname_authenticated_origin_pull_get_the_hostname_client_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -37502,7 +31855,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn per_hostname_authenticated_origin_pull_delete_hostname_client_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -37569,7 +31921,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn per_hostname_authenticated_origin_pull_get_the_hostname_status_for_client_authentication_request<
     R,
@@ -37665,7 +32016,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_authenticated_origin_pulls_get_enablement_setting_for_zone_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -37758,7 +32108,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_authenticated_origin_pulls_set_enablement_for_zone_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -37851,7 +32200,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_authenticated_origin_pulls_get_certificate_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -37944,7 +32292,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_level_authenticated_origin_pulls_delete_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -38037,7 +32384,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_shield_get_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -38074,7 +32420,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -38122,7 +32468,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_shield_update_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -38159,7 +32504,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -38207,7 +32552,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_shield_list_connections_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -38299,7 +32643,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_shield_get_connection_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -38391,7 +32734,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_shield_list_cookies_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -38480,7 +32822,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_shield_get_cookie_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -38569,7 +32910,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_shield_list_policies_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -38661,7 +33001,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_shield_create_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -38750,7 +33089,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_shield_get_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -38839,7 +33177,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_shield_update_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -38928,7 +33265,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_shield_delete_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -38965,7 +33301,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -39013,7 +33349,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_shield_list_scripts_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -39102,7 +33437,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_shield_get_script_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -39191,7 +33525,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_rules_list_page_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -39228,7 +33561,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -39276,7 +33609,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_rules_create_a_page_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -39313,92 +33645,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/pagerules/settings
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/pagerules/settings.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = available_page_rules_settings_list_available_page_rules_settings_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn available_page_rules_settings_list_available_page_rules_settings_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &AvailablePageRulesSettingsListAvailablePageRulesSettingsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/pagerules/settings",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -39446,7 +33693,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_rules_get_a_page_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -39483,7 +33729,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -39531,7 +33777,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_rules_update_a_page_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -39568,7 +33813,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -39616,7 +33861,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_rules_edit_a_page_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -39653,7 +33897,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -39701,7 +33945,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn page_rules_delete_a_page_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -39790,7 +34033,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn pay_per_crawl_get_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -39879,7 +34121,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn pay_per_crawl_create_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -39968,7 +34209,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn pay_per_crawl_patch_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -40057,7 +34297,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_purge_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -40125,450 +34364,6 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/rate_limits
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/rate_limits.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = rate_limits_for_a_zone_list_rate_limits_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn rate_limits_for_a_zone_list_rate_limits_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RateLimitsForAZoneListRateLimitsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<FirewallRatelimitResponseCollection>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/rate_limits",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallRatelimitResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /zones/{zone_id}/rate_limits
-// -----------------------------------------------------------------------------
-
-/// POST /zones/{zone_id}/rate_limits.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = rate_limits_for_a_zone_create_a_rate_limit_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn rate_limits_for_a_zone_create_a_rate_limit_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RateLimitsForAZoneCreateARateLimitArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallRatelimitResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/rate_limits",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallRatelimitResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/rate_limits/{rate_limit_id}
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/rate_limits/{rate_limit_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = rate_limits_for_a_zone_get_a_rate_limit_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn rate_limits_for_a_zone_get_a_rate_limit_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RateLimitsForAZoneGetARateLimitArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallRatelimitResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/rate_limits/{}",
-        args.zone_id, args.rate_limit_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallRatelimitResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PUT /zones/{zone_id}/rate_limits/{rate_limit_id}
-// -----------------------------------------------------------------------------
-
-/// PUT /zones/{zone_id}/rate_limits/{rate_limit_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = rate_limits_for_a_zone_update_a_rate_limit_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn rate_limits_for_a_zone_update_a_rate_limit_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RateLimitsForAZoneUpdateARateLimitArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<FirewallRatelimitResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/rate_limits/{}",
-        args.zone_id, args.rate_limit_id,
-    );
-
-    let mut builder = client
-        .put(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: FirewallRatelimitResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// DELETE /zones/{zone_id}/rate_limits/{rate_limit_id}
-// -----------------------------------------------------------------------------
-
-/// DELETE /zones/{zone_id}/rate_limits/{rate_limit_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = rate_limits_for_a_zone_delete_a_rate_limit_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn rate_limits_for_a_zone_delete_a_rate_limit_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RateLimitsForAZoneDeleteARateLimitArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/rate_limits/{}",
-        args.zone_id, args.rate_limit_id,
-    );
-
-    let mut builder = client
-        .delete(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
 // GET /zones/{zone_id}/rulesets
 // -----------------------------------------------------------------------------
 
@@ -40590,7 +34385,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_zone_rulesets_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -40627,7 +34421,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -40675,7 +34469,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_zone_ruleset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -40712,7 +34505,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -40760,7 +34553,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zone_entrypoint_ruleset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -40797,7 +34589,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -40845,7 +34637,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_zone_entrypoint_ruleset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -40882,7 +34673,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -40930,7 +34721,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_zone_entrypoint_ruleset_versions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -40967,7 +34757,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -41015,7 +34805,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zone_entrypoint_ruleset_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -41052,7 +34841,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -41100,7 +34889,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zone_ruleset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -41137,7 +34925,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -41185,7 +34973,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_zone_ruleset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -41222,7 +35009,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -41270,7 +35057,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_zone_ruleset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -41307,7 +35093,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -41355,7 +35141,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn create_zone_ruleset_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -41392,7 +35177,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -41440,7 +35225,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_zone_ruleset_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -41477,7 +35261,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -41525,7 +35309,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_zone_ruleset_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -41562,7 +35345,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -41610,7 +35393,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_zone_ruleset_versions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -41647,7 +35429,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -41695,7 +35477,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zone_ruleset_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -41732,7 +35513,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -41780,7 +35561,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_zone_ruleset_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -41817,7 +35597,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -41865,7 +35645,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_zone_ruleset_version_rules_by_tag_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -41902,7 +35681,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -41950,7 +35729,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_list_schemas_paginated_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -41987,7 +35765,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -42035,7 +35813,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_create_schema_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -42072,7 +35849,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -42120,7 +35897,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_list_schema_hosts_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -42157,7 +35933,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -42205,7 +35981,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_get_schema_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -42242,7 +36017,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -42290,7 +36065,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_edit_schema_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -42327,7 +36101,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -42375,7 +36149,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_delete_schema_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -42412,7 +36185,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -42460,7 +36233,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_extract_operations_from_schema_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -42497,7 +36269,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -42545,7 +36317,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_get_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -42582,7 +36353,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -42630,7 +36401,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_update_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -42667,7 +36437,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -42715,7 +36485,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_edit_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -42752,7 +36521,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -42800,7 +36569,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_list_per_operation_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -42837,7 +36605,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -42885,7 +36653,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_bulk_edit_per_operation_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -42922,7 +36689,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -42970,7 +36737,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_get_per_operation_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -43007,7 +36773,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -43055,7 +36821,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_update_per_operation_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -43092,7 +36857,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -43140,7 +36905,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn schema_validation_delete_per_operation_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -43177,7 +36941,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -43225,7 +36989,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secondary_dns_secondary_zone_force_axfr_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -43314,7 +37077,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secondary_dns_secondary_zone_secondary_zone_configuration_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -43406,7 +37168,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secondary_dns_secondary_zone_create_secondary_zone_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -43502,7 +37263,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secondary_dns_secondary_zone_update_secondary_zone_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -43598,7 +37358,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secondary_dns_secondary_zone_delete_secondary_zone_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -43687,7 +37446,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secondary_dns_primary_zone_primary_zone_configuration_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -43779,7 +37537,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secondary_dns_primary_zone_create_primary_zone_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -43875,7 +37632,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secondary_dns_primary_zone_update_primary_zone_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -43971,7 +37727,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secondary_dns_primary_zone_delete_primary_zone_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -44060,7 +37815,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secondary_dns_primary_zone_disable_outgoing_zone_transfers_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -44152,7 +37906,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secondary_dns_primary_zone_enable_outgoing_zone_transfers_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -44244,7 +37997,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secondary_dns_primary_zone_force_dns_notify_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -44333,7 +38085,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secondary_dns_primary_zone_get_outgoing_zone_transfer_status_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -44425,7 +38176,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zone_security_center_insights_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -44462,7 +38212,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -44510,7 +38260,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zone_security_center_insight_counts_by_class_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -44599,7 +38348,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zone_security_center_insight_counts_by_severity_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -44688,7 +38436,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zone_security_center_insight_counts_by_type_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -44777,7 +38524,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn archive_zone_security_center_insight_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -44814,7 +38560,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -44862,7 +38608,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_security_txt_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -44899,7 +38644,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -44947,7 +38692,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_security_txt_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -44988,7 +38732,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -45036,7 +38780,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_security_txt_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -45073,7 +38816,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -45090,194 +38833,6 @@ where
                     status: status as u16,
                     headers: headers.clone(),
                     body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/settings
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/settings.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = zone_settings_get_all_zone_settings_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn zone_settings_get_all_zone_settings_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ZoneSettingsGetAllZoneSettingsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<ZonesZoneSettingsResponseCollection>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/settings",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ZonesZoneSettingsResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PATCH /zones/{zone_id}/settings
-// -----------------------------------------------------------------------------
-
-/// PATCH /zones/{zone_id}/settings.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = zone_settings_edit_zone_settings_info_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn zone_settings_edit_zone_settings_info_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ZoneSettingsEditZoneSettingsInfoArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<
-                ApiResponse<ZonesZoneSettingsResponseCollection>,
-                super::shared::ApiError,
-            >,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/settings",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .patch(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ZonesZoneSettingsResponseCollection = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
                 })
             }
             super::shared::RequestIntro::Failed(e) => {
@@ -45309,7 +38864,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_get_aegis_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -45346,7 +38900,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -45394,7 +38948,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_change_aegis_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -45431,7 +38984,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -45479,7 +39032,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_settings_get_fonts_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -45516,7 +39068,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -45564,7 +39116,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_settings_change_fonts_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -45601,7 +39152,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -45649,7 +39200,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_settings_get_google_tag_gateway_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -45686,7 +39236,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -45734,7 +39284,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_settings_change_google_tag_gateway_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -45775,7 +39324,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -45823,7 +39372,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_get_origin_h2_max_streams_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -45915,7 +39463,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_change_origin_h2_max_streams_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -46007,7 +39554,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_get_origin_max_http_version_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -46044,7 +39590,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -46092,7 +39638,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_cache_settings_change_origin_max_http_version_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -46129,7 +39674,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -46177,7 +39722,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web_analytics_get_rum_status_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -46266,7 +39810,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web_analytics_toggle_rum_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -46359,7 +39902,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_settings_get_speed_brain_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -46396,7 +39938,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -46444,7 +39986,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_settings_change_speed_brain_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -46481,7 +40022,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -46529,7 +40070,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ssl_detector_automatic_mode_get_enrollment_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -46618,7 +40158,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ssl_detector_automatic_mode_patch_enrollment_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -46711,7 +40250,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_identifier_zaraz_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -46800,7 +40338,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn put_zones_zone_identifier_zaraz_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -46893,7 +40430,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_identifier_zaraz_default_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -46982,7 +40518,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_identifier_zaraz_export_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -47071,7 +40606,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_identifier_zaraz_history_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -47160,7 +40694,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn put_zones_zone_identifier_zaraz_history_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -47249,7 +40782,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_identifier_zaraz_config_history_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -47338,7 +40870,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_zones_zone_identifier_zaraz_publish_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -47375,7 +40906,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -47423,7 +40954,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zones_zone_identifier_zaraz_workflow_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -47512,7 +41042,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn put_zones_zone_identifier_zaraz_workflow_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -47601,7 +41130,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_settings_get_single_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -47638,7 +41166,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -47686,7 +41214,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_settings_edit_single_setting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -47727,7 +41254,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -47775,7 +41302,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn smart_shield_get_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -47812,7 +41338,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -47860,7 +41386,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn smart_shield_patch_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -47901,7 +41426,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -47949,7 +41474,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn smart_shield_settings_get_cache_reserve_clear_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -47986,7 +41510,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -48034,7 +41558,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn smart_shield_settings_start_cache_reserve_clear_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -48071,7 +41594,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -48119,7 +41642,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn smart_shield_list_health_checks_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -48208,7 +41730,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn smart_shield_create_health_check_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -48301,7 +41822,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn smart_shield_health_check_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -48390,7 +41910,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn smart_shield_update_health_check_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -48483,7 +42002,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn smart_shield_patch_health_check_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -48576,7 +42094,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn smart_shield_delete_health_check_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -48665,7 +42182,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_zone_snippets_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -48702,7 +42218,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -48750,7 +42266,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_zone_snippet_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -48787,7 +42302,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -48835,7 +42350,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_zone_snippet_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -48872,7 +42386,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -48920,7 +42434,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_zone_snippet_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -48957,7 +42470,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -49005,7 +42518,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zone_snippet_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -49042,7 +42554,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -49090,7 +42602,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_zone_snippet_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -49127,7 +42638,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -49175,7 +42686,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_zone_snippet_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -49212,7 +42722,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -49260,7 +42770,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_zone_snippet_content_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -49297,7 +42806,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -49345,7 +42854,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn spectrum_analytics_by_time_get_analytics_by_time_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -49437,7 +42945,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn spectrum_analytics_summary_get_analytics_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -49529,7 +43036,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn spectrum_applications_list_spectrum_applications_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -49618,7 +43124,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn spectrum_applications_create_spectrum_application_using_a_name_for_the_origin_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -49711,7 +43216,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn spectrum_applications_get_spectrum_application_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -49800,7 +43304,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn spectrum_applications_update_spectrum_application_configuration_using_a_name_for_the_origin_request<
     R,
@@ -49896,7 +43399,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn spectrum_applications_delete_spectrum_application_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -49985,7 +43487,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn speed_get_availabilities_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -50074,7 +43575,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn speed_get_scheduled_test_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -50163,7 +43663,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn speed_create_scheduled_test_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -50252,7 +43751,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn speed_delete_test_schedule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -50341,7 +43839,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn analyze_certificate_analyze_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -50434,7 +43931,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn certificate_packs_list_certificate_packs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -50527,7 +44023,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn certificate_packs_order_advanced_certificate_manager_certificate_pack_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -50620,7 +44115,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn certificate_packs_get_certificate_pack_quotas_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -50713,7 +44207,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn certificate_packs_get_certificate_pack_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -50806,7 +44299,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn certificate_packs_restart_validation_for_advanced_certificate_manager_certificate_pack_request<
     R,
@@ -50902,7 +44394,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn certificate_packs_delete_advanced_certificate_manager_certificate_pack_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -50974,95 +44465,6 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET /zones/{zone_id}/ssl/recommendation
-// -----------------------------------------------------------------------------
-
-/// GET /zones/{zone_id}/ssl/recommendation.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = ssl_tls_mode_recommendation_ssl_tls_recommendation_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn ssl_tls_mode_recommendation_ssl_tls_recommendation_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &SslTlsModeRecommendationSslTlsRecommendationArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<CacheApiResponseSingleId>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/zones/{}/ssl/recommendation",
-        args.zone_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CacheApiResponseSingleId = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
 // GET /zones/{zone_id}/ssl/universal/settings
 // -----------------------------------------------------------------------------
 
@@ -51084,7 +44486,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn universal_ssl_settings_for_a_zone_universal_ssl_settings_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -51177,7 +44578,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn universal_ssl_settings_for_a_zone_edit_universal_ssl_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -51274,7 +44674,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ssl_verification_ssl_verification_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -51367,7 +44766,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ssl_verification_edit_ssl_certificate_pack_validation_method_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -51464,7 +44862,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_subscription_zone_subscription_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -51556,7 +44953,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_subscription_create_zone_subscription_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -51652,7 +45048,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn zone_subscription_update_zone_subscription_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -51748,7 +45143,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tags_zone_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -51841,7 +45235,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tags_zone_set_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -51938,7 +45331,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn tags_zone_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -51979,7 +45371,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -52027,7 +45419,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_config_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -52064,7 +45455,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -52112,7 +45503,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_config_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -52149,7 +45539,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -52197,7 +45587,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_config_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -52234,7 +45623,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -52282,7 +45671,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_config_edit_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -52319,7 +45707,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -52367,7 +45755,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_config_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -52404,7 +45791,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -52452,7 +45839,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_config_credentials_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -52489,7 +45875,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -52537,7 +45923,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_rules_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -52574,7 +45959,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -52622,7 +46007,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_rules_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -52659,7 +46043,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -52707,7 +46091,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_rules_bulk_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -52744,7 +46127,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -52792,7 +46175,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_rules_bulk_edit_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -52829,7 +46211,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -52877,7 +46259,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_rules_preview_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -52914,7 +46295,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -52962,7 +46343,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_rules_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -52999,7 +46379,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -53047,7 +46427,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_rules_edit_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -53084,7 +46463,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -53132,7 +46511,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn token_validation_rules_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -53169,7 +46547,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -53217,7 +46595,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_url_normalization_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -53254,7 +46631,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -53302,7 +46679,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn update_url_normalization_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -53339,7 +46715,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -53387,7 +46763,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_url_normalization_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -53424,7 +46799,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -53472,7 +46847,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_list_waiting_rooms_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -53561,7 +46935,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_create_waiting_room_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -53654,7 +47027,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_create_a_custom_waiting_room_page_preview_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -53747,7 +47119,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_get_zone_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -53836,7 +47207,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_update_zone_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -53929,7 +47299,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_patch_zone_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -54022,7 +47391,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_waiting_room_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -54111,7 +47479,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_update_waiting_room_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -54204,7 +47571,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_patch_waiting_room_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -54297,7 +47663,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_delete_waiting_room_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -54386,7 +47751,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_list_events_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -54478,7 +47842,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_create_event_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -54571,7 +47934,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_event_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -54660,7 +48022,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_update_event_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -54753,7 +48114,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_patch_event_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -54846,7 +48206,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_delete_event_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -54935,7 +48294,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_preview_active_event_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -55024,7 +48382,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_list_waiting_room_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -55116,7 +48473,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_create_waiting_room_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -55212,7 +48568,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_replace_waiting_room_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -55308,7 +48663,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_patch_waiting_room_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -55404,7 +48758,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_delete_waiting_room_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -55496,7 +48849,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_get_waiting_room_status_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -55585,7 +48937,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web3_hostname_list_web3_hostnames_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -55674,7 +49025,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web3_hostname_create_web3_hostname_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -55767,7 +49117,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web3_hostname_web3_hostname_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -55856,7 +49205,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web3_hostname_edit_web3_hostname_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -55949,7 +49297,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web3_hostname_delete_web3_hostname_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -56038,7 +49385,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web3_hostname_ipfs_universal_path_gateway_content_list_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -56128,7 +49474,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web3_hostname_update_ipfs_universal_path_gateway_content_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -56222,7 +49567,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web3_hostname_list_ipfs_universal_path_gateway_content_list_entries_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -56315,7 +49659,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web3_hostname_create_ipfs_universal_path_gateway_content_list_entry_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -56412,7 +49755,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web3_hostname_ipfs_universal_path_gateway_content_list_entry_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -56506,7 +49848,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web3_hostname_edit_ipfs_universal_path_gateway_content_list_entry_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -56604,7 +49945,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn web3_hostname_delete_ipfs_universal_path_gateway_content_list_entry_request<R, F>(
     client: &SimpleHttpClient<R>,

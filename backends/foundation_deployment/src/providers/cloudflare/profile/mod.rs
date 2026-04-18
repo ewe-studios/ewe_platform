@@ -6,16 +6,22 @@
 //! Feature flag: `cloudflare_profile `
 
 #![cfg(feature = "cloudflare_profile")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 // Import shared types used by this module
 use super::shared::OrganizationsApiProfile;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -28,14 +34,14 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// Arguments for [`Accounts_getAccountProfile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountsGetAccountProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`Accounts_modifyAccountProfile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountsModifyAccountProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: OrganizationsApiProfile,
@@ -67,7 +73,6 @@ pub struct AccountsModifyAccountProfileArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn accounts_get_account_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -104,7 +109,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -152,7 +157,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn accounts_modify_account_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -193,7 +197,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

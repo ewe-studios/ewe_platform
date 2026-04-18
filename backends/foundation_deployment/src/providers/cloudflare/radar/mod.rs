@@ -6,13 +6,19 @@
 //! Feature flag: `cloudflare_radar `
 
 #![cfg(feature = "cloudflare_radar")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -25,3009 +31,1942 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// Arguments for [`radar-get-annotations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAnnotationsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: dataSource
-    pub dataSource: Option<String>,
-    /// Query parameter: eventType
-    pub eventType: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `dataSource`.
+    pub data_source: Option<String>,
+    /// Query parameter: `eventType`.
+    pub event_type: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: origin
+    /// Query parameter: `origin`.
     pub origin: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-annotations-outages_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAnnotationsOutagesArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: origin
+    /// Query parameter: `origin`.
     pub origin: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-annotations-outages-top_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAnnotationsOutagesTopArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-dns-as112-timeseries-by-dnssec_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetDnsAs112TimeseriesByDnssecArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: queryType
-    pub queryType: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: responseCode
-    pub responseCode: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-dns-as112-timeseries-by-edns_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetDnsAs112TimeseriesByEdnsArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: queryType
-    pub queryType: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: responseCode
-    pub responseCode: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-dns-as112-timeseries-by-ip-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetDnsAs112TimeseriesByIpVersionArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: queryType
-    pub queryType: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: responseCode
-    pub responseCode: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-dns-as112-timeseries-by-protocol_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetDnsAs112TimeseriesByProtocolArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: queryType
-    pub queryType: Option<String>,
-    /// Query parameter: responseCode
-    pub responseCode: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-dns-as112-timeseries-by-query-type_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetDnsAs112TimeseriesByQueryTypeArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: responseCode
-    pub responseCode: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-dns-as112-timeseries-by-response-codes_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetDnsAs112TimeseriesByResponseCodesArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: queryType
-    pub queryType: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-dns-as112-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112SummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: queryType
-    pub queryType: Option<String>,
-    /// Query parameter: protocol
+    /// Query parameter: `queryType`.
+    pub query_type: Option<String>,
+    /// Query parameter: `protocol`.
     pub protocol: Option<String>,
-    /// Query parameter: responseCode
-    pub responseCode: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `responseCode`.
+    pub response_code: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-dns-as112-timeseries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112TimeseriesArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: queryType
-    pub queryType: Option<String>,
-    /// Query parameter: protocol
+    /// Query parameter: `queryType`.
+    pub query_type: Option<String>,
+    /// Query parameter: `protocol`.
     pub protocol: Option<String>,
-    /// Query parameter: responseCode
-    pub responseCode: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-dns-as112-timeseries-group-by-dnssec_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetDnsAs112TimeseriesGroupByDnssecArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: queryType
-    pub queryType: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: responseCode
-    pub responseCode: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-dns-as112-timeseries-group-by-edns_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetDnsAs112TimeseriesGroupByEdnsArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: queryType
-    pub queryType: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: responseCode
-    pub responseCode: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-dns-as112-timeseries-group-by-ip-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetDnsAs112TimeseriesGroupByIpVersionArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: queryType
-    pub queryType: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: responseCode
-    pub responseCode: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-dns-as112-timeseries-group-by-protocol_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetDnsAs112TimeseriesGroupByProtocolArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: queryType
-    pub queryType: Option<String>,
-    /// Query parameter: responseCode
-    pub responseCode: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-dns-as112-timeseries-group-by-query-type_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetDnsAs112TimeseriesGroupByQueryTypeArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: responseCode
-    pub responseCode: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-dns-as112-timeseries-group-by-response-codes_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetDnsAs112TimeseriesGroupByResponseCodesArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: queryType
-    pub queryType: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `responseCode`.
+    pub response_code: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-dns-as112-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112TimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: queryType
-    pub queryType: Option<String>,
-    /// Query parameter: protocol
+    /// Query parameter: `queryType`.
+    pub query_type: Option<String>,
+    /// Query parameter: `protocol`.
     pub protocol: Option<String>,
-    /// Query parameter: responseCode
-    pub responseCode: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `responseCode`.
+    pub response_code: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-dns-as112-top-locations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112TopLocationsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-dns-as112-top-locations-by-dnssec_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112TopLocationsByDnssecArgs {
-    /// Path parameter: dnssec
+    /// Path parameter: `dnssec`.
     pub dnssec: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-dns-as112-top-locations-by-edns_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112TopLocationsByEdnsArgs {
-    /// Path parameter: edns
+    /// Path parameter: `edns`.
     pub edns: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-dns-as112-top-locations-by-ip-version_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112TopLocationsByIpVersionArgs {
-    /// Path parameter: ip_version
+    /// Path parameter: `ip_version`.
     pub ip_version: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-certificate-authorities_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetCertificateAuthoritiesArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-certificate-authority-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetCertificateAuthorityDetailsArgs {
-    /// Path parameter: ca_slug
+    /// Path parameter: `ca_slug`.
     pub ca_slug: String,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-certificate-logs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetCertificateLogsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-certificate-log-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetCertificateLogDetailsArgs {
-    /// Path parameter: log_slug
+    /// Path parameter: `log_slug`.
     pub log_slug: String,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ct-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetCtSummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: ca
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `ca`.
     pub ca: Option<String>,
-    /// Query parameter: caOwner
-    pub caOwner: Option<String>,
-    /// Query parameter: duration
+    /// Query parameter: `caOwner`.
+    pub ca_owner: Option<String>,
+    /// Query parameter: `duration`.
     pub duration: Option<String>,
-    /// Query parameter: entryType
-    pub entryType: Option<String>,
-    /// Query parameter: expirationStatus
-    pub expirationStatus: Option<String>,
-    /// Query parameter: hasIps
-    pub hasIps: Option<String>,
-    /// Query parameter: hasWildcards
-    pub hasWildcards: Option<String>,
-    /// Query parameter: log
+    /// Query parameter: `entryType`.
+    pub entry_type: Option<String>,
+    /// Query parameter: `expirationStatus`.
+    pub expiration_status: Option<String>,
+    /// Query parameter: `hasIps`.
+    pub has_ips: Option<String>,
+    /// Query parameter: `hasWildcards`.
+    pub has_wildcards: Option<String>,
+    /// Query parameter: `log`.
     pub log: Option<String>,
-    /// Query parameter: logApi
-    pub logApi: Option<String>,
-    /// Query parameter: logOperator
-    pub logOperator: Option<String>,
-    /// Query parameter: publicKeyAlgorithm
-    pub publicKeyAlgorithm: Option<String>,
-    /// Query parameter: signatureAlgorithm
-    pub signatureAlgorithm: Option<String>,
-    /// Query parameter: tld
+    /// Query parameter: `logApi`.
+    pub log_api: Option<String>,
+    /// Query parameter: `logOperator`.
+    pub log_operator: Option<String>,
+    /// Query parameter: `publicKeyAlgorithm`.
+    pub public_key_algorithm: Option<String>,
+    /// Query parameter: `signatureAlgorithm`.
+    pub signature_algorithm: Option<String>,
+    /// Query parameter: `tld`.
     pub tld: Option<String>,
-    /// Query parameter: validationLevel
-    pub validationLevel: Option<String>,
-    /// Query parameter: uniqueEntries
-    pub uniqueEntries: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `validationLevel`.
+    pub validation_level: Option<String>,
+    /// Query parameter: `uniqueEntries`.
+    pub unique_entries: Option<String>,
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ct-timeseries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetCtTimeseriesArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: ca
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `ca`.
     pub ca: Option<String>,
-    /// Query parameter: caOwner
-    pub caOwner: Option<String>,
-    /// Query parameter: duration
+    /// Query parameter: `caOwner`.
+    pub ca_owner: Option<String>,
+    /// Query parameter: `duration`.
     pub duration: Option<String>,
-    /// Query parameter: entryType
-    pub entryType: Option<String>,
-    /// Query parameter: expirationStatus
-    pub expirationStatus: Option<String>,
-    /// Query parameter: hasIps
-    pub hasIps: Option<String>,
-    /// Query parameter: hasWildcards
-    pub hasWildcards: Option<String>,
-    /// Query parameter: log
+    /// Query parameter: `entryType`.
+    pub entry_type: Option<String>,
+    /// Query parameter: `expirationStatus`.
+    pub expiration_status: Option<String>,
+    /// Query parameter: `hasIps`.
+    pub has_ips: Option<String>,
+    /// Query parameter: `hasWildcards`.
+    pub has_wildcards: Option<String>,
+    /// Query parameter: `log`.
     pub log: Option<String>,
-    /// Query parameter: logApi
-    pub logApi: Option<String>,
-    /// Query parameter: logOperator
-    pub logOperator: Option<String>,
-    /// Query parameter: publicKeyAlgorithm
-    pub publicKeyAlgorithm: Option<String>,
-    /// Query parameter: signatureAlgorithm
-    pub signatureAlgorithm: Option<String>,
-    /// Query parameter: tld
+    /// Query parameter: `logApi`.
+    pub log_api: Option<String>,
+    /// Query parameter: `logOperator`.
+    pub log_operator: Option<String>,
+    /// Query parameter: `publicKeyAlgorithm`.
+    pub public_key_algorithm: Option<String>,
+    /// Query parameter: `signatureAlgorithm`.
+    pub signature_algorithm: Option<String>,
+    /// Query parameter: `tld`.
     pub tld: Option<String>,
-    /// Query parameter: validationLevel
-    pub validationLevel: Option<String>,
-    /// Query parameter: uniqueEntries
-    pub uniqueEntries: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `validationLevel`.
+    pub validation_level: Option<String>,
+    /// Query parameter: `uniqueEntries`.
+    pub unique_entries: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ct-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetCtTimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: ca
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `ca`.
     pub ca: Option<String>,
-    /// Query parameter: caOwner
-    pub caOwner: Option<String>,
-    /// Query parameter: duration
+    /// Query parameter: `caOwner`.
+    pub ca_owner: Option<String>,
+    /// Query parameter: `duration`.
     pub duration: Option<String>,
-    /// Query parameter: entryType
-    pub entryType: Option<String>,
-    /// Query parameter: expirationStatus
-    pub expirationStatus: Option<String>,
-    /// Query parameter: hasIps
-    pub hasIps: Option<String>,
-    /// Query parameter: hasWildcards
-    pub hasWildcards: Option<String>,
-    /// Query parameter: log
+    /// Query parameter: `entryType`.
+    pub entry_type: Option<String>,
+    /// Query parameter: `expirationStatus`.
+    pub expiration_status: Option<String>,
+    /// Query parameter: `hasIps`.
+    pub has_ips: Option<String>,
+    /// Query parameter: `hasWildcards`.
+    pub has_wildcards: Option<String>,
+    /// Query parameter: `log`.
     pub log: Option<String>,
-    /// Query parameter: logApi
-    pub logApi: Option<String>,
-    /// Query parameter: logOperator
-    pub logOperator: Option<String>,
-    /// Query parameter: publicKeyAlgorithm
-    pub publicKeyAlgorithm: Option<String>,
-    /// Query parameter: signatureAlgorithm
-    pub signatureAlgorithm: Option<String>,
-    /// Query parameter: validationLevel
-    pub validationLevel: Option<String>,
-    /// Query parameter: tld
+    /// Query parameter: `logApi`.
+    pub log_api: Option<String>,
+    /// Query parameter: `logOperator`.
+    pub log_operator: Option<String>,
+    /// Query parameter: `publicKeyAlgorithm`.
+    pub public_key_algorithm: Option<String>,
+    /// Query parameter: `signatureAlgorithm`.
+    pub signature_algorithm: Option<String>,
+    /// Query parameter: `validationLevel`.
+    pub validation_level: Option<String>,
+    /// Query parameter: `tld`.
     pub tld: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: uniqueEntries
-    pub uniqueEntries: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `uniqueEntries`.
+    pub unique_entries: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-reports-datasets_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetReportsDatasetsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: datasetType
-    pub datasetType: Option<String>,
-    /// Query parameter: date
+    /// Query parameter: `datasetType`.
+    pub dataset_type: Option<String>,
+    /// Query parameter: `date`.
     pub date: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-post-reports-dataset-download-url_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarPostReportsDatasetDownloadUrlArgs {
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-reports-dataset-download_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetReportsDatasetDownloadArgs {
-    /// Path parameter: alias
+    /// Path parameter: `alias`.
     pub alias: String,
 }
 
 /// Arguments for [`radar-get-entities-asn-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEntitiesAsnListArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-entities-asn-by-ip_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEntitiesAsnByIpArgs {
-    /// Query parameter: ip
+    /// Query parameter: `ip`.
     pub ip: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-entities-asn-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEntitiesAsnByIdArgs {
-    /// Path parameter: asn
+    /// Path parameter: `asn`.
     pub asn: String,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-asns-as-set_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAsnsAsSetArgs {
-    /// Path parameter: asn
+    /// Path parameter: `asn`.
     pub asn: String,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-asns-rel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAsnsRelArgs {
-    /// Path parameter: asn
+    /// Path parameter: `asn`.
     pub asn: String,
-    /// Query parameter: asn2
+    /// Query parameter: `asn2`.
     pub asn2: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-entities-ip_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEntitiesIpArgs {
-    /// Query parameter: ip
+    /// Query parameter: `ip`.
     pub ip: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-entities-locations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEntitiesLocationsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: region
+    /// Query parameter: `region`.
     pub region: Option<String>,
-    /// Query parameter: subregion
+    /// Query parameter: `subregion`.
     pub subregion: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-entities-location-by-alpha2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEntitiesLocationByAlpha2Args {
-    /// Path parameter: location
+    /// Path parameter: `location`.
     pub location: String,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-geolocations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetGeolocationsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-geolocation-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetGeolocationDetailsArgs {
-    /// Path parameter: geo_id
+    /// Path parameter: `geo_id`.
     pub geo_id: String,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-summary-by-device-type_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpSummaryByDeviceTypeArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-summary-by-http-protocol_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpSummaryByHttpProtocolArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-summary-by-http-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpSummaryByHttpVersionArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-summary-by-ip-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpSummaryByIpVersionArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-summary-by-operating-system_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpSummaryByOperatingSystemArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-summary-by-post-quantum_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpSummaryByPostQuantumArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-summary-by-tls-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpSummaryByTlsVersionArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpSummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-timeseries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTimeseriesArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-timeseries-group-by-browsers_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpTimeseriesGroupByBrowsersArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-timeseries-group-by-browser-families_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpTimeseriesGroupByBrowserFamiliesArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-timeseries-group-by-device-type_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpTimeseriesGroupByDeviceTypeArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-timeseries-group-by-http-protocol_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpTimeseriesGroupByHttpProtocolArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-timeseries-group-by-http-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpTimeseriesGroupByHttpVersionArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-timeseries-group-by-ip-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpTimeseriesGroupByIpVersionArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-timeseries-group-by-operating-system_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpTimeseriesGroupByOperatingSystemArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-timeseries-group-by-post-quantum_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpTimeseriesGroupByPostQuantumArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-timeseries-group-by-tls-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpTimeseriesGroupByTlsVersionArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-http-requests_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByHttpRequestsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-browser-family_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByBrowserFamilyArgs {
-    /// Path parameter: browser_family
+    /// Path parameter: `browser_family`.
     pub browser_family: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-device-type_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByDeviceTypeArgs {
-    /// Path parameter: device_type
+    /// Path parameter: `device_type`.
     pub device_type: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-http-protocol_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByHttpProtocolArgs {
-    /// Path parameter: http_protocol
+    /// Path parameter: `http_protocol`.
     pub http_protocol: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-http-version_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByHttpVersionArgs {
-    /// Path parameter: http_version
+    /// Path parameter: `http_version`.
     pub http_version: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-ip-version_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByIpVersionArgs {
-    /// Path parameter: ip_version
+    /// Path parameter: `ip_version`.
     pub ip_version: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-operating-system_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByOperatingSystemArgs {
-    /// Path parameter: os
+    /// Path parameter: `os`.
     pub os: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-tls-version_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByTlsVersionArgs {
-    /// Path parameter: tls_version
+    /// Path parameter: `tls_version`.
     pub tls_version: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-top-browsers_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpTopBrowsersArgs {
-    /// Query parameter: limit
-    pub limit: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-top-browser-families_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpTopBrowserFamiliesArgs {
-    /// Query parameter: limit
-    pub limit: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-http-requests_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByHttpRequestsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-browser-family_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByBrowserFamilyArgs {
-    /// Path parameter: browser_family
+    /// Path parameter: `browser_family`.
     pub browser_family: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-device-type_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByDeviceTypeArgs {
-    /// Path parameter: device_type
+    /// Path parameter: `device_type`.
     pub device_type: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-http-protocol_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByHttpProtocolArgs {
-    /// Path parameter: http_protocol
+    /// Path parameter: `http_protocol`.
     pub http_protocol: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-http-version_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByHttpVersionArgs {
-    /// Path parameter: http_version
+    /// Path parameter: `http_version`.
     pub http_version: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-ip-version_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByIpVersionArgs {
-    /// Path parameter: ip_version
+    /// Path parameter: `ip_version`.
     pub ip_version: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-operating-system_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByOperatingSystemArgs {
-    /// Path parameter: os
+    /// Path parameter: `os`.
     pub os: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-tls-version_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByTlsVersionArgs {
-    /// Path parameter: tls_version
+    /// Path parameter: `tls_version`.
     pub tls_version: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-leaked-credential-checks-summary-by-compromised_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetLeakedCredentialChecksSummaryByCompromisedArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-leaked-credential-checks-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetLeakedCredentialChecksSummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: compromised
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `compromised`.
     pub compromised: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-leaked-credential-checks-timeseries-group-by-compromised_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetLeakedCredentialChecksTimeseriesGroupByCompromisedArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-leaked-credential-checks-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetLeakedCredentialChecksTimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: botClass
-    pub botClass: Option<String>,
-    /// Query parameter: compromised
+    /// Query parameter: `botClass`.
+    pub bot_class: Option<String>,
+    /// Query parameter: `compromised`.
     pub compromised: Option<String>,
-    /// Query parameter: checkResult
-    pub checkResult: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `checkResult`.
+    pub check_result: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-netflows-summary-deprecated_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetNetflowsSummaryDeprecatedArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-netflows-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetNetflowsSummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: product
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `product`.
     pub product: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-netflows-timeseries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetNetflowsTimeseriesArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: product
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `product`.
     pub product: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-netflows-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetNetflowsTimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: product
+    /// Query parameter: `product`.
     pub product: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-netflows-top-ases_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetNetflowsTopAsesArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-netflows-top-locations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetNetflowsTopLocationsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-origins_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetOriginsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-origins-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetOriginsSummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: origin
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `origin`.
     pub origin: Option<String>,
-    /// Query parameter: metric
+    /// Query parameter: `metric`.
     pub metric: Option<String>,
-    /// Query parameter: region
+    /// Query parameter: `region`.
     pub region: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-origins-timeseries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetOriginsTimeseriesArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: origin
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `origin`.
     pub origin: Option<String>,
-    /// Query parameter: metric
+    /// Query parameter: `metric`.
     pub metric: Option<String>,
-    /// Query parameter: region
+    /// Query parameter: `region`.
     pub region: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-origins-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetOriginsTimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: origin
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `origin`.
     pub origin: Option<String>,
-    /// Query parameter: metric
+    /// Query parameter: `metric`.
     pub metric: Option<String>,
-    /// Query parameter: region
+    /// Query parameter: `region`.
     pub region: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-origin-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetOriginDetailsArgs {
-    /// Path parameter: slug
+    /// Path parameter: `slug`.
     pub slug: String,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-origin-post-quantum-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetOriginPostQuantumSummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-origin-post-quantum-timeseries-groups_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetOriginPostQuantumTimeseriesGroupsArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-post-quantum-tls-support_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetPostQuantumTlsSupportArgs {
-    /// Query parameter: host
+    /// Query parameter: `host`.
     pub host: Option<String>,
 }
 
 /// Arguments for [`radar-get-quality-speed-histogram_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetQualitySpeedHistogramArgs {
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: bucketSize
-    pub bucketSize: Option<String>,
-    /// Query parameter: metricGroup
-    pub metricGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `bucketSize`.
+    pub bucket_size: Option<String>,
+    /// Query parameter: `metricGroup`.
+    pub metric_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-quality-speed-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetQualitySpeedSummaryArgs {
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-quality-speed-top-ases_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetQualitySpeedTopAsesArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: reverse
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `reverse`.
     pub reverse: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-quality-speed-top-locations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetQualitySpeedTopLocationsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: reverse
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `reverse`.
     pub reverse: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ranking-internet-services-categories_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetRankingInternetServicesCategoriesArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: date
+    /// Query parameter: `date`.
     pub date: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ranking-internet-services-timeseries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetRankingInternetServicesTimeseriesArgs {
-    /// Query parameter: serviceCategory
-    pub serviceCategory: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `serviceCategory`.
+    pub service_category: Option<String>,
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ranking-top-internet-services_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetRankingTopInternetServicesArgs {
-    /// Query parameter: serviceCategory
-    pub serviceCategory: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `serviceCategory`.
+    pub service_category: Option<String>,
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: date
+    /// Query parameter: `date`.
     pub date: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-search-global_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetSearchGlobalArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: query
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `query`.
     pub query: Option<String>,
-    /// Query parameter: include
+    /// Query parameter: `include`.
     pub include: Option<String>,
-    /// Query parameter: exclude
+    /// Query parameter: `exclude`.
     pub exclude: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-tcp-resets-timeouts-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetTcpResetsTimeoutsSummaryArgs {
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-tcp-resets-timeouts-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetTcpResetsTimeoutsTimeseriesGroupArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-traffic-anomalies_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetTrafficAnomaliesArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: type
+    /// Query parameter: `type`.
     pub r#type: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: origin
+    /// Query parameter: `origin`.
     pub origin: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-traffic-anomalies-top_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetTrafficAnomaliesTopArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
@@ -3047,7 +1986,6 @@ pub struct RadarGetTrafficAnomaliesTopArgs {
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3057,11 +1995,9 @@ pub struct RadarGetTrafficAnomaliesTopArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_annotations_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAnnotationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3091,7 +2027,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3129,7 +2065,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3139,11 +2074,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_annotations_outages_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAnnotationsOutagesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3173,7 +2106,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3211,7 +2144,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3221,11 +2153,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_annotations_outages_top_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAnnotationsOutagesTopArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3256,503 +2186,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/as112/summary/dnssec
-// -----------------------------------------------------------------------------
-
-/// GET /radar/as112/summary/dnssec.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_dns_as112_timeseries_by_dnssec_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_dns_as112_timeseries_by_dnssec_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TimeseriesByDnssecArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/as112/summary/dnssec",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/as112/summary/edns
-// -----------------------------------------------------------------------------
-
-/// GET /radar/as112/summary/edns.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_dns_as112_timeseries_by_edns_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_dns_as112_timeseries_by_edns_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TimeseriesByEdnsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/as112/summary/edns",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/as112/summary/ip_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/as112/summary/ip_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_dns_as112_timeseries_by_ip_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_dns_as112_timeseries_by_ip_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TimeseriesByIpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/as112/summary/ip_version",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/as112/summary/protocol
-// -----------------------------------------------------------------------------
-
-/// GET /radar/as112/summary/protocol.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_dns_as112_timeseries_by_protocol_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_dns_as112_timeseries_by_protocol_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TimeseriesByProtocolArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/as112/summary/protocol",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/as112/summary/query_type
-// -----------------------------------------------------------------------------
-
-/// GET /radar/as112/summary/query_type.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_dns_as112_timeseries_by_query_type_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_dns_as112_timeseries_by_query_type_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TimeseriesByQueryTypeArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/as112/summary/query_type",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/as112/summary/response_codes
-// -----------------------------------------------------------------------------
-
-/// GET /radar/as112/summary/response_codes.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_dns_as112_timeseries_by_response_codes_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_dns_as112_timeseries_by_response_codes_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TimeseriesByResponseCodesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/as112/summary/response_codes",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3800,7 +2234,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_dns_as112_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3837,7 +2270,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3875,7 +2308,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3885,11 +2317,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_dns_as112_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3919,506 +2349,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/as112/timeseries_groups/dnssec
-// -----------------------------------------------------------------------------
-
-/// GET /radar/as112/timeseries_groups/dnssec.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_dns_as112_timeseries_group_by_dnssec_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_dns_as112_timeseries_group_by_dnssec_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TimeseriesGroupByDnssecArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/as112/timeseries_groups/dnssec",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/as112/timeseries_groups/edns
-// -----------------------------------------------------------------------------
-
-/// GET /radar/as112/timeseries_groups/edns.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_dns_as112_timeseries_group_by_edns_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_dns_as112_timeseries_group_by_edns_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TimeseriesGroupByEdnsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/as112/timeseries_groups/edns",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/as112/timeseries_groups/ip_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/as112/timeseries_groups/ip_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_dns_as112_timeseries_group_by_ip_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_dns_as112_timeseries_group_by_ip_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TimeseriesGroupByIpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/as112/timeseries_groups/ip_version",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/as112/timeseries_groups/protocol
-// -----------------------------------------------------------------------------
-
-/// GET /radar/as112/timeseries_groups/protocol.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_dns_as112_timeseries_group_by_protocol_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_dns_as112_timeseries_group_by_protocol_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TimeseriesGroupByProtocolArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/as112/timeseries_groups/protocol",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/as112/timeseries_groups/query_type
-// -----------------------------------------------------------------------------
-
-/// GET /radar/as112/timeseries_groups/query_type.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_dns_as112_timeseries_group_by_query_type_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_dns_as112_timeseries_group_by_query_type_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TimeseriesGroupByQueryTypeArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/as112/timeseries_groups/query_type",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/as112/timeseries_groups/response_codes
-// -----------------------------------------------------------------------------
-
-/// GET /radar/as112/timeseries_groups/response_codes.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_dns_as112_timeseries_group_by_response_codes_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_dns_as112_timeseries_group_by_response_codes_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TimeseriesGroupByResponseCodesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/as112/timeseries_groups/response_codes",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4466,7 +2397,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_dns_as112_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4503,7 +2433,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4541,7 +2471,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -4551,11 +2480,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_dns_as112_top_locations_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetDnsAs112TopLocationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -4585,7 +2512,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4633,7 +2560,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_dns_as112_top_locations_by_dnssec_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4670,7 +2596,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4718,7 +2644,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_dns_as112_top_locations_by_edns_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4755,7 +2680,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4803,7 +2728,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_dns_as112_top_locations_by_ip_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4840,7 +2764,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4878,7 +2802,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -4888,11 +2811,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_certificate_authorities_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetCertificateAuthoritiesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -4922,7 +2843,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4970,7 +2891,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_certificate_authority_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5007,7 +2927,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5045,7 +2965,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -5055,11 +2974,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_certificate_logs_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetCertificateLogsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -5089,7 +3006,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5137,7 +3054,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_certificate_log_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5174,7 +3090,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5222,7 +3138,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ct_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5259,7 +3174,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5297,7 +3212,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -5307,11 +3221,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ct_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetCtTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -5341,7 +3253,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5389,7 +3301,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ct_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5426,7 +3337,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5464,7 +3375,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -5474,11 +3384,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_reports_datasets_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetReportsDatasetsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -5508,7 +3416,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5546,7 +3454,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -5556,11 +3463,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_post_reports_dataset_download_url_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarPostReportsDatasetDownloadUrlArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -5590,7 +3495,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5638,7 +3543,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_reports_dataset_download_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5675,7 +3579,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5713,7 +3617,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -5723,11 +3626,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_entities_asn_list_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetEntitiesAsnListArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -5757,7 +3658,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5795,7 +3696,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -5805,11 +3705,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_entities_asn_by_ip_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetEntitiesAsnByIpArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -5839,7 +3737,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5887,7 +3785,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_entities_asn_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5924,7 +3821,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5972,7 +3869,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_asns_as_set_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6009,7 +3905,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6057,7 +3953,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_asns_rel_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6094,7 +3989,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6132,7 +4027,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -6142,11 +4036,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_entities_ip_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetEntitiesIpArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -6176,7 +4068,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6214,7 +4106,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -6224,11 +4115,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_entities_locations_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetEntitiesLocationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -6258,7 +4147,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6306,7 +4195,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_entities_location_by_alpha2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6343,7 +4231,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6381,7 +4269,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -6391,11 +4278,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_geolocations_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetGeolocationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -6425,7 +4310,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6473,7 +4358,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_geolocation_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6510,587 +4394,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/summary/device_type
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/summary/device_type.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_summary_by_device_type_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_summary_by_device_type_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpSummaryByDeviceTypeArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/summary/device_type",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/summary/http_protocol
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/summary/http_protocol.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_summary_by_http_protocol_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_summary_by_http_protocol_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpSummaryByHttpProtocolArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/summary/http_protocol",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/summary/http_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/summary/http_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_summary_by_http_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_summary_by_http_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpSummaryByHttpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/summary/http_version",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/summary/ip_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/summary/ip_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_summary_by_ip_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_summary_by_ip_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpSummaryByIpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/summary/ip_version",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/summary/os
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/summary/os.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_summary_by_operating_system_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_summary_by_operating_system_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpSummaryByOperatingSystemArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/http/summary/os",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/summary/post_quantum
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/summary/post_quantum.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_summary_by_post_quantum_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_summary_by_post_quantum_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpSummaryByPostQuantumArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/summary/post_quantum",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/summary/tls_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/summary/tls_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_summary_by_tls_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_summary_by_tls_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpSummaryByTlsVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/summary/tls_version",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7138,7 +4442,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7175,7 +4478,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7213,7 +4516,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -7223,11 +4525,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -7257,755 +4557,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/timeseries_groups/browser
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/timeseries_groups/browser.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_timeseries_group_by_browsers_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_timeseries_group_by_browsers_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTimeseriesGroupByBrowsersArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/timeseries_groups/browser",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/timeseries_groups/browser_family
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/timeseries_groups/browser_family.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_timeseries_group_by_browser_families_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_timeseries_group_by_browser_families_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTimeseriesGroupByBrowserFamiliesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/http/timeseries_groups/browser_family",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/timeseries_groups/device_type
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/timeseries_groups/device_type.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_timeseries_group_by_device_type_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_timeseries_group_by_device_type_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTimeseriesGroupByDeviceTypeArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/timeseries_groups/device_type",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/timeseries_groups/http_protocol
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/timeseries_groups/http_protocol.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_timeseries_group_by_http_protocol_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_timeseries_group_by_http_protocol_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTimeseriesGroupByHttpProtocolArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/timeseries_groups/http_protocol",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/timeseries_groups/http_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/timeseries_groups/http_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_timeseries_group_by_http_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_timeseries_group_by_http_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTimeseriesGroupByHttpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/timeseries_groups/http_version",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/timeseries_groups/ip_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/timeseries_groups/ip_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_timeseries_group_by_ip_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_timeseries_group_by_ip_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTimeseriesGroupByIpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/timeseries_groups/ip_version",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/timeseries_groups/os
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/timeseries_groups/os.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_timeseries_group_by_operating_system_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_timeseries_group_by_operating_system_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTimeseriesGroupByOperatingSystemArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/timeseries_groups/os",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/timeseries_groups/post_quantum
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/timeseries_groups/post_quantum.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_timeseries_group_by_post_quantum_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_timeseries_group_by_post_quantum_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTimeseriesGroupByPostQuantumArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/timeseries_groups/post_quantum",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/timeseries_groups/tls_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/timeseries_groups/tls_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_timeseries_group_by_tls_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_timeseries_group_by_tls_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTimeseriesGroupByTlsVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/timeseries_groups/tls_version",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8053,7 +4605,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8090,7 +4641,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8128,7 +4679,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -8138,11 +4688,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_ases_by_http_requests_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTopAsesByHttpRequestsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -8172,7 +4720,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8220,7 +4768,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_ases_by_browser_family_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8257,7 +4804,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8305,7 +4852,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_ases_by_device_type_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8342,7 +4888,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8390,7 +4936,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_ases_by_http_protocol_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8427,7 +4972,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8475,7 +5020,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_ases_by_http_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8512,7 +5056,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8560,7 +5104,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_ases_by_ip_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8597,7 +5140,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8645,7 +5188,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_ases_by_operating_system_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8682,7 +5224,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8730,7 +5272,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_ases_by_tls_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8767,172 +5308,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/top/browser
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/top/browser.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_top_browsers_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_top_browsers_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTopBrowsersArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/http/top/browser",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/top/browser_family
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/top/browser_family.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_top_browser_families_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_top_browser_families_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTopBrowserFamiliesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/top/browser_family",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8970,7 +5346,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -8980,11 +5355,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_locations_by_http_requests_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTopLocationsByHttpRequestsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -9014,7 +5387,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9062,7 +5435,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_locations_by_browser_family_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9099,7 +5471,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9147,7 +5519,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_locations_by_device_type_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9184,7 +5555,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9232,7 +5603,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_locations_by_http_protocol_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9269,7 +5639,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9317,7 +5687,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_locations_by_http_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9354,7 +5723,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9402,7 +5771,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_locations_by_ip_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9439,7 +5807,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9487,7 +5855,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_locations_by_operating_system_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9524,7 +5891,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9572,7 +5939,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_locations_by_tls_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9609,91 +5975,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/leaked_credential_checks/summary/compromised
-// -----------------------------------------------------------------------------
-
-/// GET /radar/leaked_credential_checks/summary/compromised.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_leaked_credential_checks_summary_by_compromised_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_leaked_credential_checks_summary_by_compromised_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetLeakedCredentialChecksSummaryByCompromisedArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/leaked_credential_checks/summary/compromised",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9741,7 +6023,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_leaked_credential_checks_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9778,91 +6059,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/leaked_credential_checks/timeseries_groups/compromised
-// -----------------------------------------------------------------------------
-
-/// GET /radar/leaked_credential_checks/timeseries_groups/compromised.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_leaked_credential_checks_timeseries_group_by_compromised_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_leaked_credential_checks_timeseries_group_by_compromised_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetLeakedCredentialChecksTimeseriesGroupByCompromisedArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/leaked_credential_checks/timeseries_groups/compromised",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9910,7 +6107,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_leaked_credential_checks_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9947,89 +6143,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/netflows/summary
-// -----------------------------------------------------------------------------
-
-/// GET /radar/netflows/summary.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_netflows_summary_deprecated_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_netflows_summary_deprecated_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetNetflowsSummaryDeprecatedArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/netflows/summary",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10077,7 +6191,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_netflows_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10114,7 +6227,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10152,7 +6265,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -10162,11 +6274,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_netflows_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetNetflowsTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -10196,7 +6306,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10244,7 +6354,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_netflows_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10281,7 +6390,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10319,7 +6428,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -10329,11 +6437,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_netflows_top_ases_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetNetflowsTopAsesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -10363,7 +6469,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10401,7 +6507,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -10411,11 +6516,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_netflows_top_locations_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetNetflowsTopLocationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -10446,7 +6549,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10484,7 +6587,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -10494,11 +6596,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_origins_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetOriginsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -10528,7 +6628,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10576,7 +6676,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_origins_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10613,7 +6712,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10651,7 +6750,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -10661,11 +6759,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_origins_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetOriginsTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -10695,7 +6791,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10743,7 +6839,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_origins_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10780,7 +6875,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10828,7 +6923,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_origin_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10865,7 +6959,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10913,7 +7007,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_origin_post_quantum_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10950,7 +7043,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10998,7 +7091,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_origin_post_quantum_timeseries_groups_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11035,7 +7127,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11073,7 +7165,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11083,11 +7174,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_post_quantum_tls_support_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetPostQuantumTlsSupportArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -11118,7 +7207,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11156,7 +7245,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11166,11 +7254,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_quality_speed_histogram_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetQualitySpeedHistogramArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -11201,7 +7287,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11239,7 +7325,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11249,11 +7334,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_quality_speed_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetQualitySpeedSummaryArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -11283,7 +7366,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11321,7 +7404,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11331,11 +7413,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_quality_speed_top_ases_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetQualitySpeedTopAsesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -11366,7 +7446,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11404,7 +7484,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11414,11 +7493,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_quality_speed_top_locations_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetQualitySpeedTopLocationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -11449,7 +7526,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11487,7 +7564,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11497,11 +7573,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ranking_internet_services_categories_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetRankingInternetServicesCategoriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -11532,7 +7606,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11570,7 +7644,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11580,11 +7653,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ranking_internet_services_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetRankingInternetServicesTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -11616,7 +7687,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11654,7 +7725,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11664,11 +7734,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ranking_top_internet_services_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetRankingTopInternetServicesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -11699,7 +7767,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11737,7 +7805,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11747,11 +7814,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_search_global_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetSearchGlobalArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -11781,7 +7846,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11819,7 +7884,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11829,11 +7893,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_tcp_resets_timeouts_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetTcpResetsTimeoutsSummaryArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -11864,7 +7926,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11902,7 +7964,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11912,11 +7973,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_tcp_resets_timeouts_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetTcpResetsTimeoutsTimeseriesGroupArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -11948,7 +8007,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11986,7 +8045,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -11996,11 +8054,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_traffic_anomalies_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetTrafficAnomaliesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -12030,7 +8086,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -12068,7 +8124,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -12078,11 +8133,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_traffic_anomalies_top_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetTrafficAnomaliesTopArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -12113,7 +8166,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
