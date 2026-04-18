@@ -20,12 +20,12 @@ use crate::providers::gcp::clients::searchads360::{
     searchads360_search_ads360_fields_search_builder, searchads360_search_ads360_fields_search_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
-use crate::providers::gcp::clients::searchads360::GoogleAdsSearchads360V0ResourcesCustomColumn;
-use crate::providers::gcp::clients::searchads360::GoogleAdsSearchads360V0ResourcesSearchAds360Field;
-use crate::providers::gcp::clients::searchads360::GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse;
-use crate::providers::gcp::clients::searchads360::GoogleAdsSearchads360V0ServicesListCustomColumnsResponse;
-use crate::providers::gcp::clients::searchads360::GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse;
-use crate::providers::gcp::clients::searchads360::GoogleAdsSearchads360V0ServicesSearchSearchAds360Response;
+use crate::providers::gcp::clients::searchads360::GoogleAdsSearchads360v0ResourcesCustomColumn;
+use crate::providers::gcp::clients::searchads360::GoogleAdsSearchads360v0ResourcesSearchAds360Field;
+use crate::providers::gcp::clients::searchads360::GoogleAdsSearchads360v0ServicesListAccessibleCustomersResponse;
+use crate::providers::gcp::clients::searchads360::GoogleAdsSearchads360v0ServicesListCustomColumnsResponse;
+use crate::providers::gcp::clients::searchads360::GoogleAdsSearchads360v0ServicesSearchSearchAds360FieldsResponse;
+use crate::providers::gcp::clients::searchads360::GoogleAdsSearchads360v0ServicesSearchSearchAds360Response;
 use crate::providers::gcp::clients::searchads360::Searchads360CustomersCustomColumnsGetArgs;
 use crate::providers::gcp::clients::searchads360::Searchads360CustomersCustomColumnsListArgs;
 use crate::providers::gcp::clients::searchads360::Searchads360CustomersSearchAds360SearchArgs;

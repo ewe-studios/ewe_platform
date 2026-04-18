@@ -391,6 +391,7 @@ impl ClientGenerator {
         // Generate code
         let mut out = String::new();
         let feature_name = Self::label_to_feature_name(label);
+        let provider_module = label.split('/').next().unwrap_or(label).replace('-', "_");
 
         // File header
         writeln!(out, "//! Auto-generated API clients for {}.", label)?;
@@ -402,63 +403,185 @@ impl ClientGenerator {
         writeln!(out)?;
         writeln!(out, "#![cfg(feature = \"{}\")]", feature_name)?;
         writeln!(out)?;
-        writeln!(out, "pub mod types;")?;
-        writeln!(out)?;
 
-        // Imports
-        let provider_module = label.split('/').next().unwrap_or(label).replace('-', "_");
+        // =============================================================================
+        // DEDUPLICATION PHASE: Collect unique items to generate
+        // =============================================================================
+
+        // Track unique endpoint signatures (path + method) to identify true duplicates
+        let mut seen_signatures = std::collections::HashSet::new();
+        // Track unique function names (builder, task, execute, convenience) - for final validation
+        let mut seen_func_names = std::collections::HashSet::new();
+        // Track function names -> list of endpoints that share this base name
+        // Key: base fn_name, Value: Vec of (endpoint, suffix_count)
+        let mut fn_name_to_endpoints: std::collections::HashMap<String, Vec<(&ApiEndpoint, Option<usize>)>> = std::collections::HashMap::new();
+        // Track unique Args structs by name - map struct name -> endpoint that defines it
+        let mut args_struct_map: std::collections::HashMap<String, &ApiEndpoint> = std::collections::HashMap::new();
+        // Track which endpoints can use convenience fn (Args doesn't conflict)
+        let mut endpoints_with_valid_convenience = std::collections::HashSet::new();
+        // Map of final fn_name -> endpoint for code generation
+        let mut final_endpoints: Vec<(&ApiEndpoint, String)> = Vec::new();
+
+        for endpoint in &endpoints {
+            let base_fn_name = self.endpoint_to_fn_name(endpoint);
+            let signature = format!("{}:{}", endpoint.path, endpoint.method);
+
+            // Check if this is an exact duplicate (same path + method)
+            if seen_signatures.contains(&signature) {
+                tracing::debug!("    Skipping exact duplicate endpoint {}:{} (already processed)",
+                    endpoint.method, endpoint.path);
+                continue;
+            }
+            seen_signatures.insert(signature);
+
+            // Check for function name collision with different endpoints
+            let final_fn_name = if let Some(existing) = fn_name_to_endpoints.get_mut(&base_fn_name) {
+                // Collision detected - check if it's same or different endpoint
+                // Since we already filtered exact duplicates above, this is a different endpoint
+                // Add a numeric suffix to differentiate
+                let suffix = existing.len() + 1;
+                let new_fn_name = format!("{}_{}", base_fn_name, suffix);
+                existing.push((endpoint, Some(suffix)));
+                tracing::debug!("    Endpoint {}: function name '{}' collides - using '{}'",
+                    endpoint.path, base_fn_name, new_fn_name);
+                new_fn_name
+            } else {
+                // No collision - first endpoint with this base name
+                fn_name_to_endpoints.insert(base_fn_name.clone(), vec![(endpoint, None)]);
+                base_fn_name
+            };
+
+            // Register function names with the final name (may include suffix)
+            let func_names = vec![
+                format!("{}_builder", final_fn_name),
+                format!("{}_task", final_fn_name),
+                format!("{}_execute", final_fn_name),
+                final_fn_name.clone(),
+            ];
+
+            for name in func_names {
+                // These should be unique now since we added suffix
+                if seen_func_names.contains(&name) {
+                    tracing::warn!("    Unexpected duplicate function name: {}", name);
+                }
+                seen_func_names.insert(name);
+            }
+
+            // Check Args struct - if same struct name, reuse existing definition
+            let has_params = !endpoint.path_params.is_empty()
+                || !endpoint.query_params.is_empty()
+                || endpoint.request_body_type.is_some();
+
+            if has_params {
+                // Use the final fn_name (with suffix if needed) for Args struct
+                let args_struct_name = format!("{}Args", to_pascal_case(&final_fn_name));
+
+                // Check if this Args struct conflicts with a response/request type
+                let conflicts_with_type = endpoint.response_type.as_ref().is_some_and(|t| t == &args_struct_name)
+                    || endpoint.request_body_type.as_ref().is_some_and(|t| t == &args_struct_name);
+
+                if conflicts_with_type {
+                    tracing::warn!("    Endpoint {}: Args struct '{}' conflicts with existing type - skipping convenience function",
+                        endpoint.path, args_struct_name);
+                } else if args_struct_map.contains_key(&args_struct_name) {
+                    // Same Args struct already defined by another endpoint - that's fine, reuse it
+                    tracing::debug!("    Endpoint {}: reusing Args struct '{}' from another endpoint",
+                        endpoint.path, args_struct_name);
+                    endpoints_with_valid_convenience.insert(final_fn_name.clone());
+                } else {
+                    // New unique Args struct
+                    args_struct_map.insert(args_struct_name, endpoint);
+                    endpoints_with_valid_convenience.insert(final_fn_name.clone());
+                }
+            } else {
+                // No params = no Args struct needed
+                endpoints_with_valid_convenience.insert(final_fn_name.clone());
+            }
+
+            final_endpoints.push((endpoint, final_fn_name));
+        }
+
+        tracing::info!("    Validated {} unique endpoints ({} with name suffixes), {} unique Args structs",
+            final_endpoints.len(),
+            final_endpoints.iter().filter(|(_, n)| n.contains('_') && !n.ends_with("_execute") && !n.ends_with("_builder") && !n.ends_with("_task")).count(),
+            args_struct_map.len());
+
+        // =============================================================================
+        // CODE GENERATION PHASE
+        // =============================================================================
+
+        // Imports - write each import only once
+        writeln!(out, "use crate::providers::{}::clients::types::*;", provider_module)?;
         writeln!(out, "use foundation_core::valtron::{{execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt}};")?;
         writeln!(out, "use foundation_core::wire::simple_http::client::{{")?;
         writeln!(out, "    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient, SystemDnsResolver,")?;
         writeln!(out, "}};")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
         writeln!(out, "use serde::Serialize;")?;
-        writeln!(out, "use crate::providers::{}::clients::types::*;", provider_module)?;
-        writeln!(out, "use crate::providers::{}::resources::*;", provider_module)?;
+        // Only import resources if we have response types that need them
+        let used_types: std::collections::HashSet<String> = final_endpoints
+            .iter()
+            .filter_map(|(ep, _)| ep.response_type.clone())
+            .collect();
+        if !used_types.is_empty() {
+            writeln!(out, "use crate::providers::{}::resources::*;", provider_module)?;
+        }
         writeln!(out, "use foundation_db::state::resource_identifier::ResourceIdentifier;")?;
         writeln!(out)?;
 
-        // Deduplicate endpoints by all generated function names to avoid collisions.
-        // Each endpoint generates 4 functions: {fn_name}_builder, {fn_name}_task, {fn_name}_execute, {fn_name}
-        // We need to check all of these for potential collisions.
-        let mut seen_names = std::collections::HashSet::new();
-        let mut unique_endpoints = Vec::new();
-        for endpoint in &endpoints {
-            let fn_name = self.endpoint_to_fn_name(endpoint);
-
-            // Generate all function names this endpoint would create
-            let func_names = vec![
-                format!("{}_builder", fn_name),
-                format!("{}_task", fn_name),
-                format!("{}_execute", fn_name),
-                fn_name.clone(),
-            ];
-
-            // Check if any of these names would collide
-            let would_collide = func_names.iter().any(|name| seen_names.contains(name));
-
-            if !would_collide {
-                // Add all function names to the seen set
-                for name in func_names {
-                    seen_names.insert(name);
-                }
-                unique_endpoints.push(endpoint);
-            }
-        }
+        // Track generated Args structs for convenience functions
+        let mut generated_args_structs: std::collections::HashSet<String> = std::collections::HashSet::new();
 
         // Generate functions for each unique endpoint
-        for endpoint in &unique_endpoints {
-            self.generate_builder_fn(&mut out, endpoint)?;
-            self.generate_task_fn(&mut out, endpoint)?;
-            self.generate_execute_fn(&mut out, endpoint)?;
-            self.generate_convenience_fn(&mut out, endpoint)?;
+        // Endpoints with Args struct conflicts skip the convenience function only
+        for (endpoint, fn_name) in &final_endpoints {
+            let skip_convenience = !endpoints_with_valid_convenience.contains(fn_name);
+
+            self.generate_builder_fn(&mut out, endpoint, fn_name)?;
+            self.generate_task_fn(&mut out, endpoint, fn_name)?;
+            self.generate_execute_fn(&mut out, endpoint, fn_name)?;
+
+            if !skip_convenience {
+                self.generate_convenience_fn(&mut out, endpoint, fn_name, &mut generated_args_structs)?;
+            } else {
+                tracing::debug!("    Skipping convenience function for {} (Args conflict)", fn_name);
+            }
         }
 
         // Generate ResourceIdentifier implementations for each endpoint
-        for endpoint in &unique_endpoints {
+        for (endpoint, fn_name) in &final_endpoints {
             if let Some(response_type) = &endpoint.response_type {
-                self.generate_resource_identifier_impl(&mut out, endpoint, response_type, label)?;
+                self.generate_resource_identifier_impl(&mut out, endpoint, response_type, fn_name, label)?;
             }
+        }
+
+        // =============================================================================
+        // POST-GENERATION VALIDATION SUMMARY
+        // =============================================================================
+
+        // Count generated items for logging
+        let convenience_count = endpoints_with_valid_convenience.len();
+        let total_funcs = (final_endpoints.len() * 3) + convenience_count; // builder, task, execute + optional convenience
+        let total_args = generated_args_structs.len();
+
+        tracing::info!("    Generated: {} endpoints, {} functions ({} builder, {} task, {} execute, {} convenience), {} Args structs",
+            final_endpoints.len(),
+            total_funcs,
+            final_endpoints.len(),  // builder functions
+            final_endpoints.len(),  // task functions
+            final_endpoints.len(),  // execute functions
+            convenience_count,       // convenience functions
+            total_args);
+
+        let skipped_convenience = final_endpoints.len() - endpoints_with_valid_convenience.len();
+        if skipped_convenience > 0 {
+            tracing::warn!("    Skipped {} convenience functions due to Args struct conflicts",
+                skipped_convenience);
+        }
+
+        tracing::info!("    Types used: {} types", used_types.len());
+        if !generated_args_structs.is_empty() {
+            tracing::info!("    Args structs: {} generated", generated_args_structs.len());
         }
 
         // Write output
@@ -468,8 +591,7 @@ impl ClientGenerator {
         Ok(())
     }
 
-    fn generate_builder_fn(&self, out: &mut String, endpoint: &ApiEndpoint) -> Result<(), GenClientError> {
-        let fn_name = self.endpoint_to_fn_name(endpoint);
+    fn generate_builder_fn(&self, out: &mut String, endpoint: &ApiEndpoint, fn_name: &str) -> Result<(), GenClientError> {
 
         // Doc comment
         writeln!(out, "/// {} {}", endpoint.method, endpoint.path)?;
@@ -654,8 +776,7 @@ impl ClientGenerator {
         Ok(())
     }
 
-    fn generate_task_fn(&self, out: &mut String, endpoint: &ApiEndpoint) -> Result<(), GenClientError> {
-        let fn_name = self.endpoint_to_fn_name(endpoint);
+    fn generate_task_fn(&self, out: &mut String, endpoint: &ApiEndpoint, fn_name: &str) -> Result<(), GenClientError> {
         let return_type = endpoint.response_type.as_deref().unwrap_or("()");
 
         // Doc comment explaining use cases
@@ -748,8 +869,7 @@ impl ClientGenerator {
         Ok(())
     }
 
-    fn generate_execute_fn(&self, out: &mut String, endpoint: &ApiEndpoint) -> Result<(), GenClientError> {
-        let fn_name = self.endpoint_to_fn_name(endpoint);
+    fn generate_execute_fn(&self, out: &mut String, endpoint: &ApiEndpoint, fn_name: &str) -> Result<(), GenClientError> {
         let return_type = endpoint.response_type.as_deref().unwrap_or("()");
 
         // Doc comment - updated to mention task function
@@ -797,17 +917,25 @@ impl ClientGenerator {
         Ok(())
     }
 
-    fn generate_convenience_fn(&self, out: &mut String, endpoint: &ApiEndpoint) -> Result<(), GenClientError> {
-        let fn_name = self.endpoint_to_fn_name(endpoint);
+    fn generate_convenience_fn(
+        &self,
+        out: &mut String,
+        endpoint: &ApiEndpoint,
+        fn_name: &str,
+        generated_args_structs: &mut std::collections::HashSet<String>,
+    ) -> Result<(), GenClientError> {
         let return_type = endpoint.response_type.as_deref().unwrap_or("()");
-        let struct_name = format!("{}Args", to_pascal_case(&fn_name));
+        let struct_name = format!("{}Args", to_pascal_case(fn_name));
 
         // Generate argument struct with JsonHash
         let has_params = !endpoint.path_params.is_empty()
             || !endpoint.query_params.is_empty()
             || endpoint.request_body_type.is_some();
 
-        if has_params {
+        // Only generate Args struct if we haven't already generated it
+        let should_generate_args = has_params && !generated_args_structs.contains(&struct_name);
+
+        if should_generate_args {
             writeln!(out, "/// Arguments for [`{}`].", fn_name)?;
             writeln!(out, "#[derive(Debug, Clone, Serialize, JsonHash)]")?;
             writeln!(out, "pub struct {} {{", struct_name)?;
@@ -829,6 +957,9 @@ impl ClientGenerator {
 
             writeln!(out, "}}")?;
             writeln!(out)?;
+
+            // Track that we generated this Args struct
+            generated_args_structs.insert(struct_name.clone());
         }
 
         // Doc comment
@@ -895,6 +1026,7 @@ impl ClientGenerator {
         out: &mut String,
         endpoint: &ApiEndpoint,
         response_type: &str,
+        fn_name: &str,
         label: &str,
     ) -> Result<(), GenClientError> {
         // Skip endpoints without params - they don't have Args types
@@ -905,8 +1037,7 @@ impl ClientGenerator {
             return Ok(());
         }
 
-        let fn_name = self.endpoint_to_fn_name(endpoint);
-        let args_struct_name = format!("{}Args", to_pascal_case(&fn_name));
+        let args_struct_name = format!("{}Args", to_pascal_case(fn_name));
 
         // Extract provider and kind from the label and response type
         // e.g., "gcp/cloudkms" -> provider="gcp", kind_prefix="gcp::cloudkms"

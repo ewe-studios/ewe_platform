@@ -218,17 +218,17 @@ fn main() {
     let llama_tools_directory = llama_src.join("tools");
     let llama_mtmh_directory = llama_tools_directory.join("mtmd");
 
-    let dawn_directory = std::fs::canonicalize(Path::new(
-        &env::var("DAWN_DIR").expect("get DAWN_DIR environment"),
-    ))
-    .expect("failed to collect DAWN_DIR path");
+    // let dawn_directory = std::fs::canonicalize(Path::new(
+    //     &env::var("DAWN_DIR").expect("get DAWN_DIR environment"),
+    // ))
+    // .expect("failed to collect DAWN_DIR path");
 
     let library_search_tools = [
         llama_src.clone(),
-        dawn_directory.clone(),
+        // dawn_directory.clone(),
         llama_tools_directory.clone(),
         llama_mtmh_directory.clone(),
-        dawn_directory.join("install/Release"),
+        // dawn_directory.join("install/Release"),
         emscripten_sdk.join("upstream/emscripten"),
     ];
 

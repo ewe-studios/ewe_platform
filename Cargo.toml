@@ -26,6 +26,7 @@ exclude = [
   "templates/*",
   "examples/todo",
   "crates/temple/output_directory",
+  # "crates/ewe_deployables",
   "backends/docs",
   "backends/docs/*",
   # tests members
@@ -127,7 +128,7 @@ pedantic = { level = "warn" }
 opt-level = 0
 debug = true
 debug-assertions = true
-incremental = true
+incremental = false
 # codegen-backend = "cranelift"
 
 [profile.dev.package."*"]
