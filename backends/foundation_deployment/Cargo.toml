@@ -1,79 +1,139 @@
-[package]
-name = "foundation_deployment"
-version = "0.0.1"
-description = "Foundation deployment providers for multi-cloud deployments"
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-authors.workspace = true
-repository.workspace = true
-keywords = ["ewe-platform", "deployment", "cloud", "infrastructure"]
-
 [dependencies]
-# -- workspace dependencies
-foundation_core = { workspace = true, features = ["ssl", "multi"] }
-foundation_db = { path = "../foundation_db" }
-foundation_macros = { path = "../foundation_macros" }
-serde = { workspace = true }
-serde_json = { workspace = true }
-derive_more = { workspace = true }
-tracing = { workspace = true }
-chrono = { workspace = true }
-
-# -- http client - use foundation_core's SimpleHttpClient
-# http crate re-exported via foundation_core
-
-# -- config parsing
-toml = "0.8"
-serde_yaml = "0.9"
-
-# -- hashing for config change detection
-sha2 = "0.10"
 base85rs = "0.1"
-
-# -- file system utilities (for spec fetcher)
+dirs = "5.0"
+http = "1.4.0"
+regex = "1.10"
+serde_yaml = "0.9"
+sha2 = "0.10"
+toml = "0.8"
+urlencoding = "2.1"
 walkdir = "2.5"
 
-# -- directories (for cache/token resolution)
-dirs = "5.0"
+[dependencies.chrono]
+workspace = true
 
-# -- URL encoding
-urlencoding = "2.1"
-http = "1.4.0"
+[dependencies.derive_more]
+workspace = true
 
-# -- regex for path template parsing
-regex = "1.10"
+[dependencies.foundation_core]
+features = [
+    "ssl",
+    "multi",
+]
+workspace = true
 
-# -- dev dependencies for testing
+[dependencies.foundation_db]
+path = "../foundation_db"
+
+[dependencies.foundation_macros]
+path = "../foundation_macros"
+
+[dependencies.serde]
+workspace = true
+
+[dependencies.serde_json]
+workspace = true
+
+[dependencies.tracing]
+workspace = true
+
 [dev-dependencies]
-tracing-test = "0.2"
 tracing-subscriber = "0.3"
+tracing-test = "0.2"
 
 [features]
-default = []
-
-# =============================================================================
-# Provider-Level Feature Flags
-# =============================================================================
-# Enable entire provider modules. Users can enable just the providers they need.
-gcp = []
-cloudflare = []
-mongodb = []
-neon = []
-supabase = []
-planetscale = []
-fly_io = []
-stripe = []
 aws = []
-standard = []
-prisma_postgres = []
-huggingface = []
-
-# =============================================================================
-# GCP API-Level Feature Flags
-# =============================================================================
-# Fine-grained control over which GCP APIs to include.
-# Format: gcp_{api_name}
+cloudflare = [
+    "cloudflare_access",
+    "cloudflare_accounts",
+    "cloudflare_ai",
+    "cloudflare_analytics",
+    "cloudflare_apps",
+    "cloudflare_billing",
+    "cloudflare_cache",
+    "cloudflare_certificates",
+    "cloudflare_data",
+    "cloudflare_devices",
+    "cloudflare_dns",
+    "cloudflare_domains",
+    "cloudflare_email",
+    "cloudflare_entitlements",
+    "cloudflare_events",
+    "cloudflare_ips",
+    "cloudflare_load_balancers",
+    "cloudflare_logs",
+    "cloudflare_magic_wan",
+    "cloudflare_media",
+    "cloudflare_migration",
+    "cloudflare_network",
+    "cloudflare_profile",
+    "cloudflare_queues",
+    "cloudflare_radar",
+    "cloudflare_reports",
+    "cloudflare_resources",
+    "cloudflare_routes",
+    "cloudflare_rules",
+    "cloudflare_secrets",
+    "cloudflare_security",
+    "cloudflare_security_center",
+    "cloudflare_shares",
+    "cloudflare_storage",
+    "cloudflare_stream",
+    "cloudflare_targets",
+    "cloudflare_tasks",
+    "cloudflare_tenants",
+    "cloudflare_tokens",
+    "cloudflare_tracer",
+    "cloudflare_waiting_rooms",
+    "cloudflare_workers",
+    "cloudflare_zones",
+]
+cloudflare_access = []
+cloudflare_accounts = []
+cloudflare_ai = []
+cloudflare_analytics = []
+cloudflare_apps = []
+cloudflare_billing = []
+cloudflare_cache = []
+cloudflare_certificates = []
+cloudflare_data = []
+cloudflare_devices = []
+cloudflare_dns = []
+cloudflare_domains = []
+cloudflare_email = []
+cloudflare_entitlements = []
+cloudflare_events = []
+cloudflare_ips = []
+cloudflare_load_balancers = []
+cloudflare_logs = []
+cloudflare_magic_wan = []
+cloudflare_media = []
+cloudflare_migration = []
+cloudflare_network = []
+cloudflare_profile = []
+cloudflare_queues = []
+cloudflare_radar = []
+cloudflare_reports = []
+cloudflare_resources = []
+cloudflare_routes = []
+cloudflare_rules = []
+cloudflare_secrets = []
+cloudflare_security = []
+cloudflare_security_center = []
+cloudflare_shares = []
+cloudflare_storage = []
+cloudflare_stream = []
+cloudflare_targets = []
+cloudflare_tasks = []
+cloudflare_tenants = []
+cloudflare_tokens = []
+cloudflare_tracer = []
+cloudflare_waiting_rooms = []
+cloudflare_workers = []
+cloudflare_zones = []
+default = []
+fly_io = []
+gcp = []
 gcp_abusiveexperiencereport = []
 gcp_acceleratedmobilepageurl = []
 gcp_accessapproval = []
@@ -377,6 +437,41 @@ gcp_workstations = []
 gcp_youtube = []
 gcp_youtube_analytics = []
 gcp_youtubereporting = []
+huggingface = []
+mongodb = []
+neon = []
+planetscale = []
+prisma_postgres = []
+standard = []
+stripe = []
+supabase = []
 
 [lints]
 workspace = true
+
+[package]
+description = "Foundation deployment providers for multi-cloud deployments"
+keywords = [
+    "ewe-platform",
+    "deployment",
+    "cloud",
+    "infrastructure",
+]
+name = "foundation_deployment"
+version = "0.0.1"
+
+[package.authors]
+workspace = true
+
+[package.edition]
+workspace = true
+
+[package.license]
+workspace = true
+
+[package.repository]
+workspace = true
+
+[package.rust-version]
+workspace = true
+

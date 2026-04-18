@@ -13,6 +13,7 @@ keywords = ["openapi", "swagger", "api", "schema"]
 # -- workspace dependencies
 serde = { workspace = true }
 serde_json = { workspace = true }
+toml = { workspace = true }
 derive_more = { workspace = true, features = ["display"] }
 tracing = { workspace = true }
 
