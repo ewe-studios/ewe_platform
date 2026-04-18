@@ -6,70 +6,76 @@
 //! Feature flag: `cloudflare_certificates `
 
 #![cfg(feature = "cloudflare_certificates")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// TlsCertificatesAndHostnamesAssociationResponseCollection response type.
+/// `TlsCertificatesAndHostnamesAssociationResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesAssociationResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCertificateResponseSinglePost response type.
+/// `TlsCertificatesAndHostnamesCertificateResponseSinglePost` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCertificateResponseSinglePost {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesCertificateRevokeResponse response type.
+/// `TlsCertificatesAndHostnamesCertificateRevokeResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesCertificateRevokeResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection response type.
+/// `TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle response type.
+/// `TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesSchemasCertificateResponseCollection response type.
+/// `TlsCertificatesAndHostnamesSchemasCertificateResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesSchemasCertificateResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TlsCertificatesAndHostnamesSchemasCertificateResponseSingle response type.
+/// `TlsCertificatesAndHostnamesSchemasCertificateResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsCertificatesAndHostnamesSchemasCertificateResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -81,70 +87,70 @@ pub struct TlsCertificatesAndHostnamesSchemasCertificateResponseSingle {
 /// Arguments for [`m-tls-certificate-management-list-m-tls-certificates_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MTlsCertificateManagementListMTlsCertificatesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`m-tls-certificate-management-upload-m-tls-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MTlsCertificateManagementUploadMTlsCertificateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`m-tls-certificate-management-get-m-tls-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MTlsCertificateManagementGetMTlsCertificateArgs {
-    /// Path parameter: mtls_certificate_id
+    /// Path parameter: `mtls_certificate_id`.
     pub mtls_certificate_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`m-tls-certificate-management-delete-m-tls-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MTlsCertificateManagementDeleteMTlsCertificateArgs {
-    /// Path parameter: mtls_certificate_id
+    /// Path parameter: `mtls_certificate_id`.
     pub mtls_certificate_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`m-tls-certificate-management-list-m-tls-certificate-associations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MTlsCertificateManagementListMTlsCertificateAssociationsArgs {
-    /// Path parameter: mtls_certificate_id
+    /// Path parameter: `mtls_certificate_id`.
     pub mtls_certificate_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`origin-ca-list-certificates_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OriginCaListCertificatesArgs {
-    /// Query parameter: zone_id
+    /// Query parameter: `zone_id`.
     pub zone_id: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
 }
 
 /// Arguments for [`origin-ca-get-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OriginCaGetCertificateArgs {
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
 }
 
 /// Arguments for [`origin-ca-revoke-certificate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct OriginCaRevokeCertificateArgs {
-    /// Path parameter: certificate_id
+    /// Path parameter: `certificate_id`.
     pub certificate_id: String,
 }
 
@@ -174,7 +180,6 @@ pub struct OriginCaRevokeCertificateArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn m_tls_certificate_management_list_m_tls_certificates_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -240,7 +245,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn m_tls_certificate_management_upload_m_tls_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -333,7 +337,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn m_tls_certificate_management_get_m_tls_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -399,7 +402,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn m_tls_certificate_management_delete_m_tls_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -465,7 +467,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn m_tls_certificate_management_list_m_tls_certificate_associations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -548,7 +549,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -558,11 +558,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn origin_ca_list_certificates_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &OriginCaListCertificatesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -647,7 +645,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn origin_ca_create_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -736,7 +733,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn origin_ca_get_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -829,7 +825,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn origin_ca_revoke_certificate_request<R, F>(
     client: &SimpleHttpClient<R>,

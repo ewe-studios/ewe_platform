@@ -6,13 +6,19 @@
 //! Feature flag: `cloudflare_tracer `
 
 #![cfg(feature = "cloudflare_tracer")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -25,7 +31,7 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// Arguments for [`account-request-tracer-request-trace_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountRequestTracerRequestTraceArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
@@ -55,7 +61,6 @@ pub struct AccountRequestTracerRequestTraceArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_request_tracer_request_trace_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -92,7 +97,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

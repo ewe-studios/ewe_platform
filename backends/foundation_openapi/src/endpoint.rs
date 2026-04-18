@@ -73,6 +73,8 @@ pub struct EndpointInfo {
     pub summary: Option<String>,
     /// Operation type classification
     pub operation_type: OperationType,
+    /// Whether this endpoint is deprecated
+    pub deprecated: bool,
 }
 
 /// Response type discriminator.
@@ -347,6 +349,7 @@ mod tests {
             base_url: None,
             summary: None,
             operation_type: OperationType::Read,
+            deprecated: false,
         };
         assert_eq!(endpoint.args_struct_name(), "GetV1ProjectsArgs");
     }
@@ -366,6 +369,7 @@ mod tests {
             base_url: None,
             summary: None,
             operation_type: OperationType::Read,
+            deprecated: false,
         };
         assert_eq!(endpoint.fn_name(), "get_v1_projects");
     }

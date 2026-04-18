@@ -36,7 +36,7 @@ pub struct WorkerDeployment {
 }
 
 impl WorkerDeployment {
-    /// Create a new WorkerDeployment.
+    /// Create a new [`WorkerDeployment`].
     ///
     /// # Arguments
     ///
@@ -87,7 +87,7 @@ pub struct CloudRunDeployment {
 }
 
 impl CloudRunDeployment {
-    /// Create a new CloudRunDeployment.
+    /// Create a new [`CloudRunDeployment`].
     ///
     /// # Arguments
     ///
@@ -140,7 +140,7 @@ pub struct CloudRunJobDeployment {
 }
 
 impl CloudRunJobDeployment {
-    /// Create a new CloudRunJobDeployment.
+    /// Create a new [`CloudRunJobDeployment`].
     ///
     /// # Arguments
     ///
@@ -187,7 +187,7 @@ pub struct DeploymentOutput {
 }
 
 impl DeploymentOutput {
-    /// Create a new DeploymentOutput.
+    /// Create a new [`DeploymentOutput`].
     ///
     /// # Arguments
     ///

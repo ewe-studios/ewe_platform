@@ -6,54 +6,60 @@
 //! Feature flag: `cloudflare_queues `
 
 #![cfg(feature = "cloudflare_queues")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// MqApiV4Success response type.
+/// `MqApiV4Success` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MqApiV4Success {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MqConsumerRequest response type.
+/// `MqConsumerRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MqConsumerRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MqQueue response type.
+/// `MqQueue` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MqQueue {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MqQueueBatch response type.
+/// `MqQueueBatch` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MqQueueBatch {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// MqQueueMessage response type.
+/// `MqQueueMessage` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MqQueueMessage {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -65,32 +71,32 @@ pub struct MqQueueMessage {
 /// Arguments for [`queues-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`queues-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`queues-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesGetArgs {
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`queues-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesUpdateArgs {
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MqQueue,
@@ -99,9 +105,9 @@ pub struct QueuesUpdateArgs {
 /// Arguments for [`queues-update-partial_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesUpdatePartialArgs {
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MqQueue,
@@ -110,27 +116,27 @@ pub struct QueuesUpdatePartialArgs {
 /// Arguments for [`queues-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesDeleteArgs {
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`queues-list-consumers_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesListConsumersArgs {
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`queues-create-consumer_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesCreateConsumerArgs {
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MqConsumerRequest,
@@ -139,22 +145,22 @@ pub struct QueuesCreateConsumerArgs {
 /// Arguments for [`queues-get-consumer_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesGetConsumerArgs {
-    /// Path parameter: consumer_id
+    /// Path parameter: `consumer_id`.
     pub consumer_id: String,
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`queues-update-consumer_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesUpdateConsumerArgs {
-    /// Path parameter: consumer_id
+    /// Path parameter: `consumer_id`.
     pub consumer_id: String,
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MqConsumerRequest,
@@ -163,20 +169,20 @@ pub struct QueuesUpdateConsumerArgs {
 /// Arguments for [`queues-delete-consumer_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesDeleteConsumerArgs {
-    /// Path parameter: consumer_id
+    /// Path parameter: `consumer_id`.
     pub consumer_id: String,
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`queues-push-message_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesPushMessageArgs {
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MqQueueMessage,
@@ -185,18 +191,18 @@ pub struct QueuesPushMessageArgs {
 /// Arguments for [`queues-ack-messages_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesAckMessagesArgs {
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`queues-push-messages_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesPushMessagesArgs {
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: MqQueueBatch,
@@ -205,9 +211,9 @@ pub struct QueuesPushMessagesArgs {
 /// Arguments for [`queues-pull-messages_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct QueuesPullMessagesArgs {
-    /// Path parameter: queue_id
+    /// Path parameter: `queue_id`.
     pub queue_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
@@ -237,7 +243,6 @@ pub struct QueuesPullMessagesArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -274,7 +279,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -322,7 +327,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -359,7 +363,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -407,7 +411,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -444,7 +447,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -492,7 +495,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -533,7 +535,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -581,7 +583,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_update_partial_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -622,7 +623,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -670,7 +671,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -759,7 +759,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_list_consumers_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -796,7 +795,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -844,7 +843,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_create_consumer_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -885,7 +883,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -933,7 +931,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_get_consumer_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -970,7 +967,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1018,7 +1015,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_update_consumer_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1059,7 +1055,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1107,7 +1103,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_delete_consumer_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1196,7 +1191,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_push_message_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1289,7 +1283,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_ack_messages_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1326,7 +1319,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1374,7 +1367,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_push_messages_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1467,7 +1459,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn queues_pull_messages_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1504,7 +1495,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

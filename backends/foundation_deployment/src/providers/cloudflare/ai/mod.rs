@@ -6,78 +6,68 @@
 //! Feature flag: `cloudflare_ai `
 
 #![cfg(feature = "cloudflare_ai")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// VectorizeCreateIndexRequest response type.
+/// `VectorizeCreateIndexRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VectorizeCreateIndexRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// VectorizeCreateMetadataIndexRequest response type.
+/// `VectorizeCreateMetadataIndexRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VectorizeCreateMetadataIndexRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// VectorizeDeleteMetadataIndexRequest response type.
+/// `VectorizeDeleteMetadataIndexRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VectorizeDeleteMetadataIndexRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// VectorizeIndexDeleteVectorsByIdRequest response type.
+/// `VectorizeIndexDeleteVectorsByIdRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VectorizeIndexDeleteVectorsByIdRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// VectorizeIndexGetVectorsByIdRequest response type.
+/// `VectorizeIndexGetVectorsByIdRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VectorizeIndexGetVectorsByIdRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// VectorizeIndexQueryRequest response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VectorizeIndexQueryRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// VectorizeIndexQueryV2Request response type.
+/// `VectorizeIndexQueryV2Request` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VectorizeIndexQueryV2Request {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// VectorizeUpdateIndexRequest response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VectorizeUpdateIndexRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -89,2133 +79,2037 @@ pub struct VectorizeUpdateIndexRequest {
 /// Arguments for [`aig-config-list-evaluators_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigListEvaluatorsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order_by
+    /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: order_by_direction
+    /// Query parameter: `order_by_direction`.
     pub order_by_direction: Option<String>,
 }
 
 /// Arguments for [`aig-config-list-gateway_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigListGatewayArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
 }
 
 /// Arguments for [`aig-config-create-gateway_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigCreateGatewayArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`aig-config-list-dataset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigListDatasetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: enable
+    /// Query parameter: `enable`.
     pub enable: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
 }
 
 /// Arguments for [`aig-config-create-dataset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigCreateDatasetArgs {
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`aig-config-fetch-dataset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigFetchDatasetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-update-dataset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigUpdateDatasetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-delete-dataset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigDeleteDatasetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-list-evaluations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigListEvaluationsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: processed
+    /// Query parameter: `processed`.
     pub processed: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
 }
 
 /// Arguments for [`aig-config-create-evaluations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigCreateEvaluationsArgs {
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`aig-config-fetch-evaluations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigFetchEvaluationsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-delete-evaluations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigDeleteEvaluationsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-list-gateway-logs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigListGatewayLogsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order_by
+    /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: order_by_direction
+    /// Query parameter: `order_by_direction`.
     pub order_by_direction: Option<String>,
-    /// Query parameter: filters
+    /// Query parameter: `filters`.
     pub filters: Option<String>,
-    /// Query parameter: meta_info
+    /// Query parameter: `meta_info`.
     pub meta_info: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: start_date
+    /// Query parameter: `start_date`.
     pub start_date: Option<String>,
-    /// Query parameter: end_date
+    /// Query parameter: `end_date`.
     pub end_date: Option<String>,
-    /// Query parameter: min_cost
+    /// Query parameter: `min_cost`.
     pub min_cost: Option<String>,
-    /// Query parameter: max_cost
+    /// Query parameter: `max_cost`.
     pub max_cost: Option<String>,
-    /// Query parameter: min_tokens_in
+    /// Query parameter: `min_tokens_in`.
     pub min_tokens_in: Option<String>,
-    /// Query parameter: max_tokens_in
+    /// Query parameter: `max_tokens_in`.
     pub max_tokens_in: Option<String>,
-    /// Query parameter: min_tokens_out
+    /// Query parameter: `min_tokens_out`.
     pub min_tokens_out: Option<String>,
-    /// Query parameter: max_tokens_out
+    /// Query parameter: `max_tokens_out`.
     pub max_tokens_out: Option<String>,
-    /// Query parameter: min_total_tokens
+    /// Query parameter: `min_total_tokens`.
     pub min_total_tokens: Option<String>,
-    /// Query parameter: max_total_tokens
+    /// Query parameter: `max_total_tokens`.
     pub max_total_tokens: Option<String>,
-    /// Query parameter: min_duration
+    /// Query parameter: `min_duration`.
     pub min_duration: Option<String>,
-    /// Query parameter: max_duration
+    /// Query parameter: `max_duration`.
     pub max_duration: Option<String>,
-    /// Query parameter: feedback
+    /// Query parameter: `feedback`.
     pub feedback: Option<String>,
-    /// Query parameter: success
+    /// Query parameter: `success`.
     pub success: Option<String>,
-    /// Query parameter: cached
+    /// Query parameter: `cached`.
     pub cached: Option<String>,
-    /// Query parameter: model
+    /// Query parameter: `model`.
     pub model: Option<String>,
-    /// Query parameter: model_type
+    /// Query parameter: `model_type`.
     pub model_type: Option<String>,
-    /// Query parameter: provider
+    /// Query parameter: `provider`.
     pub provider: Option<String>,
-    /// Query parameter: request_content_type
+    /// Query parameter: `request_content_type`.
     pub request_content_type: Option<String>,
-    /// Query parameter: response_content_type
+    /// Query parameter: `response_content_type`.
     pub response_content_type: Option<String>,
 }
 
 /// Arguments for [`aig-config-delete-gateway-logs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigDeleteGatewayLogsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Query parameter: order_by
+    /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: order_by_direction
+    /// Query parameter: `order_by_direction`.
     pub order_by_direction: Option<String>,
-    /// Query parameter: filters
+    /// Query parameter: `filters`.
     pub filters: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
 }
 
 /// Arguments for [`aig-config-get-gateway-log-detail_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigGetGatewayLogDetailArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`aig-config-patch-gateway-log_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigPatchGatewayLogArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`aig-config-get-gateway-log-request_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigGetGatewayLogRequestArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`aig-config-get-gateway-log-response_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigGetGatewayLogResponseArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`aig-config-list-providers_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigListProvidersArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`aig-config-create-providers_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigCreateProvidersArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
 }
 
 /// Arguments for [`aig-config-update-providers_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigUpdateProvidersArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-delete-providers_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigDeleteProvidersArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-list-gateway-dynamic-routes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigListGatewayDynamicRoutesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
 }
 
 /// Arguments for [`aig-config-post-gateway-dynamic-route_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigPostGatewayDynamicRouteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
 }
 
 /// Arguments for [`aig-config-get-gateway-dynamic-route_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigGetGatewayDynamicRouteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-update-gateway-dynamic-route_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigUpdateGatewayDynamicRouteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-delete-gateway-dynamic-route_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigDeleteGatewayDynamicRouteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-list-gateway-dynamic-route-deployments_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigListGatewayDynamicRouteDeploymentsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-post-gateway-dynamic-route-deployment_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigPostGatewayDynamicRouteDeploymentArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-list-gateway-dynamic-route-versions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigListGatewayDynamicRouteVersionsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-post-gateway-dynamic-route-version_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigPostGatewayDynamicRouteVersionArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-get-gateway-dynamic-route-version_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigGetGatewayDynamicRouteVersionArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: version_id
+    /// Path parameter: `version_id`.
     pub version_id: String,
 }
 
 /// Arguments for [`aig-config-get-gateway-url_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigGetGatewayUrlArgs {
-    /// Path parameter: gateway_id
+    /// Path parameter: `gateway_id`.
     pub gateway_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: provider
+    /// Path parameter: `provider`.
     pub provider: String,
 }
 
 /// Arguments for [`aig-config-fetch-gateway_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigFetchGatewayArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-update-gateway_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigUpdateGatewayArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`aig-config-delete-gateway_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AigConfigDeleteGatewayArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`ai-search-list-instances_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchListInstancesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: namespace
+    /// Query parameter: `namespace`.
     pub namespace: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: order_by
+    /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: order_by_direction
+    /// Query parameter: `order_by_direction`.
     pub order_by_direction: Option<String>,
 }
 
 /// Arguments for [`ai-search-create-instances_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchCreateInstancesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ai-search-fetch-instances_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchFetchInstancesArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ai-search-update-instances_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchUpdateInstancesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`ai-search-delete-instances_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchDeleteInstancesArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ai-search-instance-chat-completion_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchInstanceChatCompletionArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ai-search-instance-list-jobs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchInstanceListJobsArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`ai-search-instance-create-job_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchInstanceCreateJobArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ai-search-instance-get-job_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchInstanceGetJobArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ai-search-instance-change-job-status_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchInstanceChangeJobStatusArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ai-search-instance-list-job-logs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchInstanceListJobLogsArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`ai-search-instance-search_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchInstanceSearchArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ai-search-stats_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchStatsArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ai-search-list-tokens_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchListTokensArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order_by
+    /// Query parameter: `order_by`.
     pub order_by: Option<String>,
-    /// Query parameter: order_by_direction
+    /// Query parameter: `order_by_direction`.
     pub order_by_direction: Option<String>,
 }
 
 /// Arguments for [`ai-search-create-tokens_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchCreateTokensArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ai-search-fetch-tokens_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchFetchTokensArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`ai-search-update-tokens_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchUpdateTokensArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`ai-search-delete-tokens_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AiSearchDeleteTokensArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`workers-ai-search-author_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiSearchAuthorArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-list-finetunes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiListFinetunesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-create-finetune_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiCreateFinetuneArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-list-public-finetunes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiListPublicFinetunesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
 }
 
 /// Arguments for [`workers-ai-upload-finetune-asset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiUploadFinetuneAssetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: finetune_id
+    /// Path parameter: `finetune_id`.
     pub finetune_id: String,
 }
 
 /// Arguments for [`workers-ai-get-model-schema_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiGetModelSchemaArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: model
+    /// Query parameter: `model`.
     pub model: Option<String>,
 }
 
 /// Arguments for [`workers-ai-search-model_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiSearchModelArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: task
+    /// Query parameter: `task`.
     pub task: Option<String>,
-    /// Query parameter: author
+    /// Query parameter: `author`.
     pub author: Option<String>,
-    /// Query parameter: source
+    /// Query parameter: `source`.
     pub source: Option<String>,
-    /// Query parameter: hide_experimental
+    /// Query parameter: `hide_experimental`.
     pub hide_experimental: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-ai4bharat-indictrans2-en-indic-1B_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfAi4BharatIndictrans2EnIndic1BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-ai4bharat-nonomni-indictrans2-en-indic-1b_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfAi4BharatNonomniIndictrans2EnIndic1BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-aisingapore-gemma-sea-lion-v4-27b-it_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfAisingaporeGemmaSeaLionV427BItArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-bge-base-en-v1-5_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiBgeBaseEnV15Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-bge-large-en-v1-5_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiBgeLargeEnV15Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-bge-m3_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiBgeM3Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-bge-reranker-base_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiBgeRerankerBaseArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-bge-small-en-v1-5_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiBgeSmallEnV15Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-nonomni-bge-base-en-v1-5_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiNonomniBgeBaseEnV15Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-nonomni-bge-large-en-v1-5_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiNonomniBgeLargeEnV15Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-nonomni-bge-m3_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiNonomniBgeM3Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-nonomni-bge-small-en-v1-5_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiNonomniBgeSmallEnV15Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-black-forest-labs-flux-1-schnell_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBlackForestLabsFlux1SchnellArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-black-forest-labs-flux-2-dev_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBlackForestLabsFlux2DevArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-black-forest-labs-flux-2-klein-4b_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBlackForestLabsFlux2Klein4BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-black-forest-labs-flux-2-klein-9b_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBlackForestLabsFlux2Klein9BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-bytedance-stable-diffusion-xl-lightning_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBytedanceStableDiffusionXlLightningArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-aura_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramAuraArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-aura-1_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramAura1Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepgram-aura-1_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepgramAura1Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-aura-1-internal_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramAura1InternalArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-aura-2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramAura2Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-aura-2-en_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramAura2EnArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepgram-aura-2-en_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepgramAura2EnArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-aura-2-es_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramAura2EsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepgram-aura-2-es_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepgramAura2EsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-flux_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramFluxArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepgram-flux_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepgramFluxArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-nova-3_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramNova3Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepgram-nova-3_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepgramNova3Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-nova-3-internal_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramNova3InternalArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-nova-3-ws_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramNova3WsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepseek-ai-deepseek-math-7b-instruct_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepseekAiDeepseekMath7BInstructArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepseek-ai-deepseek-r1-distill-qwen-32b_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepseekAiDeepseekR1DistillQwen32BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-defog-sqlcoder-7b-2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDefogSqlcoder7B2Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-facebook-bart-large-cnn_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfFacebookBartLargeCnnArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-facebook-nonomni-bart-large-cnn_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfFacebookNonomniBartLargeCnnArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-facebook-nonomni-detr-resnet-50_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfFacebookNonomniDetrResnet50Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-fblgit-una-cybertron-7b-v2-bf16_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfFblgitUnaCybertron7BV2Bf16Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-google-embeddinggemma-300m_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfGoogleEmbeddinggemma300MArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-google-gemma-2b-it-lora_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfGoogleGemma2BItLoraArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-google-gemma-3-12b-it_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfGoogleGemma312BItArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-google-gemma-7b-it-lora_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfGoogleGemma7BItLoraArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-google-nonomni-embeddinggemma-300m_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfGoogleNonomniEmbeddinggemma300MArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-huggingface-distilbert-sst-2-int8_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfHuggingfaceDistilbertSst2Int8Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-huggingface-nonomni-distilbert-sst-2-int8_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfHuggingfaceNonomniDistilbertSst2Int8Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-ibm-granite-granite-4-0-h-micro_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfIbmGraniteGranite40HMicroArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-leonardo-lucid-origin_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfLeonardoLucidOriginArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-leonardo-phoenix-1-0_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfLeonardoPhoenix10Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-lykon-dreamshaper-8-lcm_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfLykonDreamshaper8LcmArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-llama-2-7b-chat-hf-lora_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlamaLlama27BChatHfLoraArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-2-7b-chat-fp16_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama27BChatFp16Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-2-7b-chat-int8_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama27BChatInt8Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-8b-instruct_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama38BInstructArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-8b-instruct-awq_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama38BInstructAwqArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-1-70b-instruct-fp8-fast_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama3170BInstructFp8FastArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-1-8b-instruct-awq_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama318BInstructAwqArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-1-8b-instruct-fp8_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama318BInstructFp8Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-1-8b-instruct-fp8-fast_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama318BInstructFp8FastArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-2-11b-vision-instruct_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama3211BVisionInstructArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-2-1b-instruct_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama321BInstructArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-2-3b-instruct_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama323BInstructArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-3-70b-instruct-fp8-fast_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama3370BInstructFp8FastArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-4-scout-17b-16e-instruct_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama4Scout17B16EInstructArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-guard-3-8b_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlamaGuard38BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-m2m100-1-2b_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaM2M10012BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-microsoft-nonomni-resnet-50_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMicrosoftNonomniResnet50Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-microsoft-phi-2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMicrosoftPhi2Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-microsoft-resnet-50_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMicrosoftResnet50Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-mistral-mistral-7b-instruct-v0-1_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMistralMistral7BInstructV01Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-mistral-mistral-7b-instruct-v0-2-lora_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMistralMistral7BInstructV02LoraArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-mistralai-mistral-small-3-1-24b-instruct_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMistralaiMistralSmall3124BInstructArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-moonshotai-kimi-k2-5_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMoonshotaiKimiK25Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-myshell-ai-melotts_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMyshellAiMelottsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-nvidia-nemotron-3-120b-a12b_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfNvidiaNemotron3120BA12BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-openai-gpt-oss-120b_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfOpenaiGptOss120BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-openai-gpt-oss-20b_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfOpenaiGptOss20BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-openai-whisper_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfOpenaiWhisperArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-openai-whisper-large-v3-turbo_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfOpenaiWhisperLargeV3TurboArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-openai-whisper-tiny-en_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfOpenaiWhisperTinyEnArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-openchat-openchat-3-5-0106_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfOpenchatOpenchat350106Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-pfnet-plamo-embedding-1b_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfPfnetPlamoEmbedding1BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-pipecat-ai-smart-turn-v2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfPipecatAiSmartTurnV2Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-pipecat-ai-smart-turn-v3_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfPipecatAiSmartTurnV3Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen1-5-0-5b-chat_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen1505BChatArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen1-5-1-8b-chat_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen1518BChatArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen1-5-14b-chat-awq_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen1514BChatAwqArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen1-5-7b-chat-awq_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen157BChatAwqArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen2-5-coder-32b-instruct_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen25Coder32BInstructArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen3-30b-a3b-fp8_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen330BA3BFp8Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen3-embedding-0-6b_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen3Embedding06BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwq-32b_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwq32BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-runwayml-stable-diffusion-v1-5-img2img_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfRunwaymlStableDiffusionV15Img2ImgArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-runwayml-stable-diffusion-v1-5-inpainting_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfRunwaymlStableDiffusionV15InpaintingArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-stabilityai-stable-diffusion-xl-base-1-0_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfStabilityaiStableDiffusionXlBase10Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-sven-test-pipe-http_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfSvenTestPipeHttpArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-test-hello-world-cog_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfTestHelloWorldCogArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-thebloke-discolm-german-7b-v1-awq_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfTheblokeDiscolmGerman7BV1AwqArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-tiiuae-falcon-7b-instruct_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfTiiuaeFalcon7BInstructArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-tinyllama-tinyllama-1-1b-chat-v1-0_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfTinyllamaTinyllama11BChatV10Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-zai-org-glm-4-7-flash_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfZaiOrgGlm47FlashArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-hf-google-gemma-7b-it_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfGoogleGemma7BItArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-hf-mistral-mistral-7b-instruct-v0-2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfMistralMistral7BInstructV02Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-hf-nexusflow-starling-lm-7b-beta_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfNexusflowStarlingLm7BBetaArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-hf-nousresearch-hermes-2-pro-mistral-7b_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfNousresearchHermes2ProMistral7BArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-deepseek-coder-6-7b-base-awq_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeDeepseekCoder67BBaseAwqArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-deepseek-coder-6-7b-instruct-awq_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeDeepseekCoder67BInstructAwqArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-llama-2-13b-chat-awq_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeLlama213BChatAwqArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-mistral-7b-instruct-v0-1-awq_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeMistral7BInstructV01AwqArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-neural-chat-7b-v3-1-awq_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeNeuralChat7BV31AwqArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-openhermes-2-5-mistral-7b-awq_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeOpenhermes25Mistral7BAwqArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-zephyr-7b-beta-awq_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeZephyr7BBetaAwqArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: queueRequest
-    pub queueRequest: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `queueRequest`.
+    pub queue_request: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
 }
 
 /// Arguments for [`workers-ai-post-run-model_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostRunModelArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: model_name
+    /// Path parameter: `model_name`.
     pub model_name: String,
 }
 
 /// Arguments for [`workers-ai-search-task_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiSearchTaskArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-to-markdown_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiPostToMarkdownArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-get-to-markdown-supported_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkersAiGetToMarkdownSupportedArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`autorag-config-ai-search_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AutoragConfigAiSearchArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`autorag-config-files_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AutoragConfigFilesArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
 }
 
 /// Arguments for [`autorag-config-list-jobs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AutoragConfigListJobsArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`autorag-config-get-job_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AutoragConfigGetJobArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`autorag-config-list-job-logs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AutoragConfigListJobLogsArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`autorag-config-search_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AutoragConfigSearchArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`autorag-config-sync_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AutoragConfigSyncArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`GetSessionChat_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSessionChatArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: app_id
+    /// Path parameter: `app_id`.
     pub app_id: String,
-    /// Path parameter: session_id
+    /// Path parameter: `session_id`.
     pub session_id: String,
-}
-
-/// Arguments for [`vectorize-(-deprecated)-list-vectorize-indexes_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VectorizeDeprecatedListVectorizeIndexesArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
-/// Arguments for [`vectorize-(-deprecated)-create-vectorize-index_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VectorizeDeprecatedCreateVectorizeIndexArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Request body.
-    pub body: VectorizeCreateIndexRequest,
-}
-
-/// Arguments for [`vectorize-(-deprecated)-get-vectorize-index_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VectorizeDeprecatedGetVectorizeIndexArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Path parameter: index_name
-    pub index_name: String,
-}
-
-/// Arguments for [`vectorize-(-deprecated)-update-vectorize-index_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VectorizeDeprecatedUpdateVectorizeIndexArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Path parameter: index_name
-    pub index_name: String,
-    /// Request body.
-    pub body: VectorizeUpdateIndexRequest,
-}
-
-/// Arguments for [`vectorize-(-deprecated)-delete-vectorize-index_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VectorizeDeprecatedDeleteVectorizeIndexArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Path parameter: index_name
-    pub index_name: String,
-}
-
-/// Arguments for [`vectorize-(-deprecated)-delete-vectors-by-id_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VectorizeDeprecatedDeleteVectorsByIdArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Path parameter: index_name
-    pub index_name: String,
-    /// Request body.
-    pub body: VectorizeIndexDeleteVectorsByIdRequest,
-}
-
-/// Arguments for [`vectorize-(-deprecated)-get-vectors-by-id_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VectorizeDeprecatedGetVectorsByIdArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Path parameter: index_name
-    pub index_name: String,
-    /// Request body.
-    pub body: VectorizeIndexGetVectorsByIdRequest,
-}
-
-/// Arguments for [`vectorize-(-deprecated)-insert-vector_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VectorizeDeprecatedInsertVectorArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Path parameter: index_name
-    pub index_name: String,
-}
-
-/// Arguments for [`vectorize-(-deprecated)-query-vector_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VectorizeDeprecatedQueryVectorArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Path parameter: index_name
-    pub index_name: String,
-    /// Request body.
-    pub body: VectorizeIndexQueryRequest,
-}
-
-/// Arguments for [`vectorize-(-deprecated)-upsert-vector_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VectorizeDeprecatedUpsertVectorArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Path parameter: index_name
-    pub index_name: String,
 }
 
 /// Arguments for [`vectorize-list-vectorize-indexes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeListVectorizeIndexesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`vectorize-create-vectorize-index_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeCreateVectorizeIndexArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: VectorizeCreateIndexRequest,
@@ -2224,27 +2118,27 @@ pub struct VectorizeCreateVectorizeIndexArgs {
 /// Arguments for [`vectorize-get-vectorize-index_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeGetVectorizeIndexArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: index_name
+    /// Path parameter: `index_name`.
     pub index_name: String,
 }
 
 /// Arguments for [`vectorize-delete-vectorize-index_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeDeleteVectorizeIndexArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: index_name
+    /// Path parameter: `index_name`.
     pub index_name: String,
 }
 
 /// Arguments for [`vectorize-delete-vectors-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeDeleteVectorsByIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: index_name
+    /// Path parameter: `index_name`.
     pub index_name: String,
     /// Request body.
     pub body: VectorizeIndexDeleteVectorsByIdRequest,
@@ -2253,9 +2147,9 @@ pub struct VectorizeDeleteVectorsByIdArgs {
 /// Arguments for [`vectorize-get-vectors-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeGetVectorsByIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: index_name
+    /// Path parameter: `index_name`.
     pub index_name: String,
     /// Request body.
     pub body: VectorizeIndexGetVectorsByIdRequest,
@@ -2264,42 +2158,42 @@ pub struct VectorizeGetVectorsByIdArgs {
 /// Arguments for [`vectorize-index-info_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeIndexInfoArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: index_name
+    /// Path parameter: `index_name`.
     pub index_name: String,
 }
 
 /// Arguments for [`vectorize-insert-vector_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeInsertVectorArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: index_name
+    /// Path parameter: `index_name`.
     pub index_name: String,
-    /// Query parameter: unparsable-behavior
+    /// Query parameter: `unparsable-behavior`.
     pub unparsable_behavior: Option<String>,
 }
 
 /// Arguments for [`vectorize-list-vectors_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeListVectorsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: index_name
+    /// Path parameter: `index_name`.
     pub index_name: String,
-    /// Query parameter: count
+    /// Query parameter: `count`.
     pub count: Option<String>,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
 }
 
 /// Arguments for [`vectorize-create-metadata-index_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeCreateMetadataIndexArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: index_name
+    /// Path parameter: `index_name`.
     pub index_name: String,
     /// Request body.
     pub body: VectorizeCreateMetadataIndexRequest,
@@ -2308,9 +2202,9 @@ pub struct VectorizeCreateMetadataIndexArgs {
 /// Arguments for [`vectorize-delete-metadata-index_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeDeleteMetadataIndexArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: index_name
+    /// Path parameter: `index_name`.
     pub index_name: String,
     /// Request body.
     pub body: VectorizeDeleteMetadataIndexRequest,
@@ -2319,18 +2213,18 @@ pub struct VectorizeDeleteMetadataIndexArgs {
 /// Arguments for [`vectorize-list-metadata-indexes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeListMetadataIndexesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: index_name
+    /// Path parameter: `index_name`.
     pub index_name: String,
 }
 
 /// Arguments for [`vectorize-query-vector_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeQueryVectorArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: index_name
+    /// Path parameter: `index_name`.
     pub index_name: String,
     /// Request body.
     pub body: VectorizeIndexQueryV2Request,
@@ -2339,294 +2233,174 @@ pub struct VectorizeQueryVectorArgs {
 /// Arguments for [`vectorize-upsert-vector_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct VectorizeUpsertVectorArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: index_name
+    /// Path parameter: `index_name`.
     pub index_name: String,
-    /// Query parameter: unparsable-behavior
+    /// Query parameter: `unparsable-behavior`.
     pub unparsable_behavior: Option<String>,
-}
-
-/// Arguments for [`radar-get-ai-bots-summary-by-user-agent_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAiBotsSummaryByUserAgentArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ai-bots-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAiBotsSummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: crawlPurpose
-    pub crawlPurpose: Option<String>,
-    /// Query parameter: userAgent
-    pub userAgent: Option<String>,
-    /// Query parameter: vertical
+    /// Query parameter: `crawlPurpose`.
+    pub crawl_purpose: Option<String>,
+    /// Query parameter: `userAgent`.
+    pub user_agent: Option<String>,
+    /// Query parameter: `vertical`.
     pub vertical: Option<String>,
-    /// Query parameter: industry
+    /// Query parameter: `industry`.
     pub industry: Option<String>,
-    /// Query parameter: contentType
-    pub contentType: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `contentType`.
+    pub content_type: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ai-bots-timeseries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAiBotsTimeseriesArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: crawlPurpose
-    pub crawlPurpose: Option<String>,
-    /// Query parameter: userAgent
-    pub userAgent: Option<String>,
-    /// Query parameter: industry
+    /// Query parameter: `crawlPurpose`.
+    pub crawl_purpose: Option<String>,
+    /// Query parameter: `userAgent`.
+    pub user_agent: Option<String>,
+    /// Query parameter: `industry`.
     pub industry: Option<String>,
-    /// Query parameter: vertical
+    /// Query parameter: `vertical`.
     pub vertical: Option<String>,
-    /// Query parameter: contentType
-    pub contentType: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-ai-bots-timeseries-group-by-user-agent_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAiBotsTimeseriesGroupByUserAgentArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `contentType`.
+    pub content_type: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ai-bots-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAiBotsTimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: crawlPurpose
-    pub crawlPurpose: Option<String>,
-    /// Query parameter: userAgent
-    pub userAgent: Option<String>,
-    /// Query parameter: industry
+    /// Query parameter: `crawlPurpose`.
+    pub crawl_purpose: Option<String>,
+    /// Query parameter: `userAgent`.
+    pub user_agent: Option<String>,
+    /// Query parameter: `industry`.
     pub industry: Option<String>,
-    /// Query parameter: vertical
+    /// Query parameter: `vertical`.
     pub vertical: Option<String>,
-    /// Query parameter: contentType
-    pub contentType: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `contentType`.
+    pub content_type: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-ai-inference-summary-by-model_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAiInferenceSummaryByModelArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-ai-inference-summary-by-task_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAiInferenceSummaryByTaskArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ai-inference-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAiInferenceSummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-ai-inference-timeseries-group-by-model_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAiInferenceTimeseriesGroupByModelArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-ai-inference-timeseries-group-by-task_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAiInferenceTimeseriesGroupByTaskArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ai-inference-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAiInferenceTimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
@@ -2656,7 +2430,6 @@ pub struct RadarGetAiInferenceTimeseriesGroupArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_list_evaluators_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2693,7 +2466,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2741,7 +2514,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_list_gateway_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2778,7 +2550,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2826,7 +2598,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_create_gateway_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2863,7 +2634,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2911,7 +2682,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_list_dataset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2948,7 +2718,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2996,7 +2766,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_create_dataset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3033,7 +2802,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3081,7 +2850,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_fetch_dataset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3118,7 +2886,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3166,7 +2934,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_update_dataset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3203,7 +2970,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3251,7 +3018,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_delete_dataset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3288,7 +3054,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3336,7 +3102,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_list_evaluations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3373,7 +3138,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3421,7 +3186,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_create_evaluations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3458,7 +3222,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3506,7 +3270,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_fetch_evaluations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3543,7 +3306,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3591,7 +3354,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_delete_evaluations_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3628,7 +3390,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3676,7 +3438,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_list_gateway_logs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3713,7 +3474,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3761,7 +3522,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_delete_gateway_logs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3798,7 +3558,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3846,7 +3606,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_get_gateway_log_detail_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3883,7 +3642,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3931,7 +3690,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_patch_gateway_log_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3968,7 +3726,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4016,7 +3774,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_get_gateway_log_request_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4105,7 +3862,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_get_gateway_log_response_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4194,7 +3950,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_list_providers_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4231,7 +3986,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4279,7 +4034,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_create_providers_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4316,7 +4070,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4364,7 +4118,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_update_providers_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4403,7 +4156,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4451,7 +4204,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_delete_providers_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4490,7 +4242,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4538,7 +4290,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_list_gateway_dynamic_routes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4575,7 +4326,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4623,7 +4374,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_post_gateway_dynamic_route_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4660,7 +4410,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4708,7 +4458,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_get_gateway_dynamic_route_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4745,7 +4494,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4793,7 +4542,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_update_gateway_dynamic_route_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4830,7 +4578,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4878,7 +4626,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_delete_gateway_dynamic_route_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4915,7 +4662,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4963,7 +4710,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_list_gateway_dynamic_route_deployments_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5002,7 +4748,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5050,7 +4796,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_post_gateway_dynamic_route_deployment_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5089,7 +4834,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5137,7 +4882,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_list_gateway_dynamic_route_versions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5176,7 +4920,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5224,7 +4968,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_post_gateway_dynamic_route_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5263,7 +5006,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5311,7 +5054,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_get_gateway_dynamic_route_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5351,7 +5093,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5399,7 +5141,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_get_gateway_url_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5436,7 +5177,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5484,7 +5225,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_fetch_gateway_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5521,7 +5261,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5569,7 +5309,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_update_gateway_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5606,7 +5345,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5654,7 +5393,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn aig_config_delete_gateway_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5691,7 +5429,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5739,7 +5477,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_list_instances_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5776,7 +5513,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5824,7 +5561,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_create_instances_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5861,7 +5597,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5909,7 +5645,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_fetch_instances_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5946,7 +5681,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5994,7 +5729,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_update_instances_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6031,7 +5765,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6079,7 +5813,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_delete_instances_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6116,7 +5849,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6164,7 +5897,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_instance_chat_completion_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6201,7 +5933,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6249,7 +5981,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_instance_list_jobs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6286,7 +6017,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6334,7 +6065,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_instance_create_job_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6371,7 +6101,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6419,7 +6149,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_instance_get_job_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6456,7 +6185,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6504,7 +6233,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_instance_change_job_status_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6541,7 +6269,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6589,7 +6317,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_instance_list_job_logs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6626,7 +6353,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6674,7 +6401,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_instance_search_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6711,7 +6437,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6759,7 +6485,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_stats_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6796,7 +6521,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6844,7 +6569,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_list_tokens_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6881,7 +6605,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6929,7 +6653,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_create_tokens_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6966,7 +6689,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7014,7 +6737,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_fetch_tokens_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7051,7 +6773,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7099,7 +6821,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_update_tokens_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7136,7 +6857,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7184,7 +6905,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ai_search_delete_tokens_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7221,7 +6941,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7269,7 +6989,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_search_author_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7306,7 +7025,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7354,7 +7073,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_list_finetunes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7391,7 +7109,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7439,7 +7157,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_create_finetune_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7476,7 +7193,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7524,7 +7241,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_list_public_finetunes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7561,7 +7277,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7609,7 +7325,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_upload_finetune_asset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7646,7 +7361,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7694,7 +7409,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_get_model_schema_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7731,7 +7445,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7779,7 +7493,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_search_model_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7816,7 +7529,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7864,7 +7577,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_ai4bharat_indictrans2_en_indic_1_b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7953,7 +7665,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_ai4bharat_nonomni_indictrans2_en_indic_1b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8042,7 +7753,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_aisingapore_gemma_sea_lion_v4_27b_it_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8131,7 +7841,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_baai_bge_base_en_v1_5_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8220,7 +7929,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_baai_bge_large_en_v1_5_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8309,7 +8017,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_baai_bge_m3_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8398,7 +8105,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_baai_bge_reranker_base_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8487,7 +8193,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_baai_bge_small_en_v1_5_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8576,7 +8281,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_baai_nonomni_bge_base_en_v1_5_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8665,7 +8369,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_baai_nonomni_bge_large_en_v1_5_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8754,7 +8457,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_baai_nonomni_bge_m3_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8843,7 +8545,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_baai_nonomni_bge_small_en_v1_5_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8932,7 +8633,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_black_forest_labs_flux_1_schnell_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9021,7 +8721,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_black_forest_labs_flux_2_dev_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9110,7 +8809,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_black_forest_labs_flux_2_klein_4b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9199,7 +8897,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_black_forest_labs_flux_2_klein_9b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9288,7 +8985,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_bytedance_stable_diffusion_xl_lightning_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9377,7 +9073,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_deepgram_aura_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9414,7 +9109,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9462,7 +9157,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_deepgram_aura_1_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9499,7 +9193,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9547,7 +9241,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_deepgram_aura_1_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9636,7 +9329,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_deepgram_aura_1_internal_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9673,7 +9365,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9721,7 +9413,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_deepgram_aura_2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9758,7 +9449,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9806,7 +9497,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_deepgram_aura_2_en_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9843,7 +9533,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9891,7 +9581,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_deepgram_aura_2_en_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9980,7 +9669,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_deepgram_aura_2_es_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10017,7 +9705,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10065,7 +9753,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_deepgram_aura_2_es_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10154,7 +9841,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_deepgram_flux_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10191,7 +9877,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10239,7 +9925,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_deepgram_flux_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10328,7 +10013,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_deepgram_nova_3_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10365,7 +10049,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10413,7 +10097,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_deepgram_nova_3_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10502,7 +10185,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_deepgram_nova_3_internal_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10539,7 +10221,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10587,7 +10269,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_deepgram_nova_3_ws_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10624,7 +10305,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10672,7 +10353,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_deepseek_ai_deepseek_math_7b_instruct_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10761,7 +10441,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_deepseek_ai_deepseek_r1_distill_qwen_32b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10850,7 +10529,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_defog_sqlcoder_7b_2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10939,7 +10617,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_facebook_bart_large_cnn_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11028,7 +10705,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_facebook_nonomni_bart_large_cnn_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11117,7 +10793,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_facebook_nonomni_detr_resnet_50_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11206,7 +10881,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_fblgit_una_cybertron_7b_v2_bf16_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11295,7 +10969,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_google_embeddinggemma_300m_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11384,7 +11057,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_google_gemma_2b_it_lora_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11473,7 +11145,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_google_gemma_3_12b_it_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11562,7 +11233,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_google_gemma_7b_it_lora_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11651,7 +11321,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_google_nonomni_embeddinggemma_300m_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11740,7 +11409,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_huggingface_distilbert_sst_2_int8_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11829,7 +11497,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_huggingface_nonomni_distilbert_sst_2_int8_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11918,7 +11585,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_ibm_granite_granite_4_0_h_micro_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12007,7 +11673,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_leonardo_lucid_origin_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12096,7 +11761,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_leonardo_phoenix_1_0_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12185,7 +11849,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_lykon_dreamshaper_8_lcm_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12274,7 +11937,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_llama_2_7b_chat_hf_lora_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12363,7 +12025,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_2_7b_chat_fp16_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12452,7 +12113,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_2_7b_chat_int8_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12541,7 +12201,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_3_8b_instruct_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12630,7 +12289,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_3_8b_instruct_awq_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12719,7 +12377,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_3_1_70b_instruct_fp8_fast_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12808,7 +12465,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_3_1_8b_instruct_awq_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12897,7 +12553,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_3_1_8b_instruct_fp8_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12986,7 +12641,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_3_1_8b_instruct_fp8_fast_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13075,7 +12729,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_3_2_11b_vision_instruct_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13164,7 +12817,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_3_2_1b_instruct_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13253,7 +12905,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_3_2_3b_instruct_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13342,7 +12993,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_3_3_70b_instruct_fp8_fast_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13431,7 +13081,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_4_scout_17b_16e_instruct_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13520,7 +13169,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_llama_guard_3_8b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13609,7 +13257,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_meta_m2m100_1_2b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13698,7 +13345,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_microsoft_nonomni_resnet_50_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13787,7 +13433,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_microsoft_phi_2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13876,7 +13521,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_microsoft_resnet_50_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13965,7 +13609,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_mistral_mistral_7b_instruct_v0_1_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14054,7 +13697,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_mistral_mistral_7b_instruct_v0_2_lora_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14143,7 +13785,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_mistralai_mistral_small_3_1_24b_instruct_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14232,7 +13873,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_moonshotai_kimi_k2_5_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14321,7 +13961,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_myshell_ai_melotts_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14410,7 +14049,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_nvidia_nemotron_3_120b_a12b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14499,7 +14137,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_openai_gpt_oss_120b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14588,7 +14225,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_openai_gpt_oss_20b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14677,7 +14313,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_openai_whisper_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14766,7 +14401,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_openai_whisper_large_v3_turbo_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14855,7 +14489,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_openai_whisper_tiny_en_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14944,7 +14577,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_openchat_openchat_3_5_0106_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15033,7 +14665,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_pfnet_plamo_embedding_1b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15122,7 +14753,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_pipecat_ai_smart_turn_v2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15159,7 +14789,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -15207,7 +14837,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_pipecat_ai_smart_turn_v3_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15244,7 +14873,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -15292,7 +14921,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_qwen_qwen1_5_0_5b_chat_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15381,7 +15009,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_qwen_qwen1_5_1_8b_chat_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15470,7 +15097,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_qwen_qwen1_5_14b_chat_awq_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15559,7 +15185,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_qwen_qwen1_5_7b_chat_awq_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15648,7 +15273,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_qwen_qwen2_5_coder_32b_instruct_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15737,7 +15361,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_qwen_qwen3_30b_a3b_fp8_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15826,7 +15449,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_qwen_qwen3_embedding_0_6b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15915,7 +15537,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_qwen_qwq_32b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16004,7 +15625,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_runwayml_stable_diffusion_v1_5_img2img_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16093,7 +15713,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_runwayml_stable_diffusion_v1_5_inpainting_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16182,7 +15801,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_stabilityai_stable_diffusion_xl_base_1_0_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16271,7 +15889,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_sven_test_pipe_http_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16308,7 +15925,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16356,7 +15973,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_websocket_run_cf_test_hello_world_cog_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16393,7 +16009,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16441,7 +16057,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_thebloke_discolm_german_7b_v1_awq_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16530,7 +16145,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_tiiuae_falcon_7b_instruct_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16619,7 +16233,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_tinyllama_tinyllama_1_1b_chat_v1_0_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16708,7 +16321,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_cf_zai_org_glm_4_7_flash_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16797,7 +16409,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_hf_google_gemma_7b_it_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16886,7 +16497,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_hf_mistral_mistral_7b_instruct_v0_2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16975,7 +16585,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_hf_nexusflow_starling_lm_7b_beta_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17064,7 +16673,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_hf_nousresearch_hermes_2_pro_mistral_7b_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17153,7 +16761,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_hf_thebloke_deepseek_coder_6_7b_base_awq_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17242,7 +16849,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_hf_thebloke_deepseek_coder_6_7b_instruct_awq_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17331,7 +16937,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_hf_thebloke_llama_2_13b_chat_awq_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17420,7 +17025,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_hf_thebloke_mistral_7b_instruct_v0_1_awq_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17509,7 +17113,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_hf_thebloke_neural_chat_7b_v3_1_awq_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17598,7 +17201,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_hf_thebloke_openhermes_2_5_mistral_7b_awq_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17687,7 +17289,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_hf_thebloke_zephyr_7b_beta_awq_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17776,7 +17377,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_run_model_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17813,7 +17413,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -17861,7 +17461,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_search_task_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17898,7 +17497,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -17946,7 +17545,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_post_to_markdown_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17983,7 +17581,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18031,7 +17629,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn workers_ai_get_to_markdown_supported_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18068,7 +17665,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18116,7 +17713,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn autorag_config_ai_search_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18153,7 +17749,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18201,7 +17797,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn autorag_config_files_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18238,7 +17833,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18286,7 +17881,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn autorag_config_list_jobs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18323,7 +17917,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18371,7 +17965,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn autorag_config_get_job_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18408,7 +18001,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18456,7 +18049,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn autorag_config_list_job_logs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18493,7 +18085,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18541,7 +18133,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn autorag_config_search_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18578,7 +18169,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18626,7 +18217,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn autorag_config_sync_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18663,7 +18253,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18711,7 +18301,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_session_chat_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18748,877 +18337,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/vectorize/indexes
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/vectorize/indexes.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = vectorize_deprecated_list_vectorize_indexes_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn vectorize_deprecated_list_vectorize_indexes_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &VectorizeDeprecatedListVectorizeIndexesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/vectorize/indexes",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /accounts/{account_id}/vectorize/indexes
-// -----------------------------------------------------------------------------
-
-/// POST /accounts/{account_id}/vectorize/indexes.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = vectorize_deprecated_create_vectorize_index_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn vectorize_deprecated_create_vectorize_index_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &VectorizeDeprecatedCreateVectorizeIndexArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/vectorize/indexes",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/vectorize/indexes/{index_name}
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/vectorize/indexes/{index_name}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = vectorize_deprecated_get_vectorize_index_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn vectorize_deprecated_get_vectorize_index_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &VectorizeDeprecatedGetVectorizeIndexArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/vectorize/indexes/{}",
-        args.account_id, args.index_name,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PUT /accounts/{account_id}/vectorize/indexes/{index_name}
-// -----------------------------------------------------------------------------
-
-/// PUT /accounts/{account_id}/vectorize/indexes/{index_name}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = vectorize_deprecated_update_vectorize_index_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn vectorize_deprecated_update_vectorize_index_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &VectorizeDeprecatedUpdateVectorizeIndexArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/vectorize/indexes/{}",
-        args.account_id, args.index_name,
-    );
-
-    let mut builder = client
-        .put(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// DELETE /accounts/{account_id}/vectorize/indexes/{index_name}
-// -----------------------------------------------------------------------------
-
-/// DELETE /accounts/{account_id}/vectorize/indexes/{index_name}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = vectorize_deprecated_delete_vectorize_index_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn vectorize_deprecated_delete_vectorize_index_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &VectorizeDeprecatedDeleteVectorizeIndexArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/vectorize/indexes/{}",
-        args.account_id, args.index_name,
-    );
-
-    let mut builder = client
-        .delete(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /accounts/{account_id}/vectorize/indexes/{index_name}/delete-by-ids
-// -----------------------------------------------------------------------------
-
-/// POST /accounts/{account_id}/vectorize/indexes/{index_name}/delete-by-ids.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = vectorize_deprecated_delete_vectors_by_id_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn vectorize_deprecated_delete_vectors_by_id_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &VectorizeDeprecatedDeleteVectorsByIdArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/vectorize/indexes/{}/delete-by-ids",
-        args.account_id, args.index_name,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /accounts/{account_id}/vectorize/indexes/{index_name}/get-by-ids
-// -----------------------------------------------------------------------------
-
-/// POST /accounts/{account_id}/vectorize/indexes/{index_name}/get-by-ids.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = vectorize_deprecated_get_vectors_by_id_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn vectorize_deprecated_get_vectors_by_id_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &VectorizeDeprecatedGetVectorsByIdArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/vectorize/indexes/{}/get-by-ids",
-        args.account_id, args.index_name,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /accounts/{account_id}/vectorize/indexes/{index_name}/insert
-// -----------------------------------------------------------------------------
-
-/// POST /accounts/{account_id}/vectorize/indexes/{index_name}/insert.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = vectorize_deprecated_insert_vector_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn vectorize_deprecated_insert_vector_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &VectorizeDeprecatedInsertVectorArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/vectorize/indexes/{}/insert",
-        args.account_id, args.index_name,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /accounts/{account_id}/vectorize/indexes/{index_name}/query
-// -----------------------------------------------------------------------------
-
-/// POST /accounts/{account_id}/vectorize/indexes/{index_name}/query.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = vectorize_deprecated_query_vector_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn vectorize_deprecated_query_vector_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &VectorizeDeprecatedQueryVectorArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/vectorize/indexes/{}/query",
-        args.account_id, args.index_name,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /accounts/{account_id}/vectorize/indexes/{index_name}/upsert
-// -----------------------------------------------------------------------------
-
-/// POST /accounts/{account_id}/vectorize/indexes/{index_name}/upsert.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = vectorize_deprecated_upsert_vector_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn vectorize_deprecated_upsert_vector_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &VectorizeDeprecatedUpsertVectorArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/vectorize/indexes/{}/upsert",
-        args.account_id, args.index_name,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -19666,7 +18385,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_list_vectorize_indexes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19703,7 +18421,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -19751,7 +18469,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_create_vectorize_index_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19792,7 +18509,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -19840,7 +18557,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_get_vectorize_index_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19877,7 +18593,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -19925,7 +18641,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_delete_vectorize_index_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19962,7 +18677,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20010,7 +18725,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_delete_vectors_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20051,7 +18765,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20099,7 +18813,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_get_vectors_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20140,7 +18853,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20188,7 +18901,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_index_info_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20225,7 +18937,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20273,7 +18985,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_insert_vector_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20310,7 +19021,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20358,7 +19069,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_list_vectors_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20395,7 +19105,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20443,7 +19153,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_create_metadata_index_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20485,7 +19194,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20533,7 +19242,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_delete_metadata_index_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20575,7 +19283,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20623,7 +19331,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_list_metadata_indexes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20661,7 +19368,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20709,7 +19416,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_query_vector_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20750,7 +19456,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20798,7 +19504,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn vectorize_upsert_vector_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20835,90 +19540,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/ai/bots/summary/user_agent
-// -----------------------------------------------------------------------------
-
-/// GET /radar/ai/bots/summary/user_agent.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_ai_bots_summary_by_user_agent_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_ai_bots_summary_by_user_agent_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAiBotsSummaryByUserAgentArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/ai/bots/summary/user_agent",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20966,7 +19588,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ai_bots_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21003,7 +19624,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -21041,7 +19662,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -21051,11 +19671,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ai_bots_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAiBotsTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -21085,90 +19703,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/ai/bots/timeseries_groups/user_agent
-// -----------------------------------------------------------------------------
-
-/// GET /radar/ai/bots/timeseries_groups/user_agent.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_ai_bots_timeseries_group_by_user_agent_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_ai_bots_timeseries_group_by_user_agent_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAiBotsTimeseriesGroupByUserAgentArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/ai/bots/timeseries_groups/user_agent",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -21216,7 +19751,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ai_bots_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21253,173 +19787,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/ai/inference/summary/model
-// -----------------------------------------------------------------------------
-
-/// GET /radar/ai/inference/summary/model.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_ai_inference_summary_by_model_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_ai_inference_summary_by_model_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAiInferenceSummaryByModelArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/ai/inference/summary/model",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/ai/inference/summary/task
-// -----------------------------------------------------------------------------
-
-/// GET /radar/ai/inference/summary/task.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_ai_inference_summary_by_task_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_ai_inference_summary_by_task_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAiInferenceSummaryByTaskArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/ai/inference/summary/task",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -21467,7 +19835,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ai_inference_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21504,173 +19871,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/ai/inference/timeseries_groups/model
-// -----------------------------------------------------------------------------
-
-/// GET /radar/ai/inference/timeseries_groups/model.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_ai_inference_timeseries_group_by_model_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_ai_inference_timeseries_group_by_model_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAiInferenceTimeseriesGroupByModelArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/ai/inference/timeseries_groups/model",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/ai/inference/timeseries_groups/task
-// -----------------------------------------------------------------------------
-
-/// GET /radar/ai/inference/timeseries_groups/task.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_ai_inference_timeseries_group_by_task_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_ai_inference_timeseries_group_by_task_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAiInferenceTimeseriesGroupByTaskArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/ai/inference/timeseries_groups/task",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -21718,7 +19919,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ai_inference_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21755,7 +19955,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

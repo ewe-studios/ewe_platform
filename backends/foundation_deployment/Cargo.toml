@@ -132,7 +132,24 @@ cloudflare_waiting_rooms = []
 cloudflare_workers = []
 cloudflare_zones = []
 default = []
-fly_io = []
+fly_io = [
+    "fly_io_apps",
+    "fly_io_current",
+    "fly_io_kms",
+    "fly_io_machines",
+    "fly_io_oidc",
+    "fly_io_placements",
+    "fly_io_regions",
+    "fly_io_volumes",
+]
+fly_io_apps = []
+fly_io_current = []
+fly_io_kms = []
+fly_io_machines = []
+fly_io_oidc = []
+fly_io_placements = []
+fly_io_regions = []
+fly_io_volumes = []
 gcp = []
 gcp_abusiveexperiencereport = []
 gcp_acceleratedmobilepageurl = []
@@ -439,12 +456,433 @@ gcp_youtube_analytics = []
 gcp_youtubereporting = []
 huggingface = []
 mongodb = []
-neon = []
-planetscale = []
-prisma_postgres = []
+neon = [
+    "neon_keys",
+    "neon_auth",
+    "neon_compute",
+    "neon_invitations",
+    "neon_me",
+    "neon_members",
+    "neon_organizations",
+    "neon_projects",
+    "neon_regions",
+]
+neon_auth = []
+neon_compute = []
+neon_invitations = []
+neon_keys = []
+neon_me = []
+neon_members = []
+neon_organizations = []
+neon_projects = []
+neon_regions = []
+planetscale = [
+    "planetscale_apply_deploy",
+    "planetscale_audit_log",
+    "planetscale_auto_apply",
+    "planetscale_auto_delete_branch",
+    "planetscale_backup_policies",
+    "planetscale_backups",
+    "planetscale_bouncer_resizes",
+    "planetscale_bouncers",
+    "planetscale_branches",
+    "planetscale_budgets",
+    "planetscale_cancel",
+    "planetscale_changes",
+    "planetscale_cidrs",
+    "planetscale_cluster",
+    "planetscale_cluster_size_skus",
+    "planetscale_complete",
+    "planetscale_complete_deploy",
+    "planetscale_cutover",
+    "planetscale_databases",
+    "planetscale_default",
+    "planetscale_demote",
+    "planetscale_deploy",
+    "planetscale_deploy_queue",
+    "planetscale_deploy_requests",
+    "planetscale_deployment",
+    "planetscale_dismiss",
+    "planetscale_download",
+    "planetscale_extensions",
+    "planetscale_invoices",
+    "planetscale_keyspaces",
+    "planetscale_line_items",
+    "planetscale_lint",
+    "planetscale_maintenance_schedules",
+    "planetscale_members",
+    "planetscale_oauth_applications",
+    "planetscale_operations",
+    "planetscale_organizations",
+    "planetscale_parameters",
+    "planetscale_passwords",
+    "planetscale_promote",
+    "planetscale_query_patterns",
+    "planetscale_read_only_regions",
+    "planetscale_reassign",
+    "planetscale_regions",
+    "planetscale_renew",
+    "planetscale_reset",
+    "planetscale_reset_default",
+    "planetscale_resizes",
+    "planetscale_retry",
+    "planetscale_reverse_cutover",
+    "planetscale_reverse_traffic",
+    "planetscale_revert",
+    "planetscale_reviews",
+    "planetscale_roles",
+    "planetscale_rollout_status",
+    "planetscale_rules",
+    "planetscale_safe_migrations",
+    "planetscale_schema",
+    "planetscale_schema_recommendations",
+    "planetscale_service_tokens",
+    "planetscale_skip_revert",
+    "planetscale_storage_check",
+    "planetscale_switch_primaries",
+    "planetscale_switch_replicas",
+    "planetscale_teams",
+    "planetscale_test",
+    "planetscale_throttler",
+    "planetscale_token",
+    "planetscale_tokens",
+    "planetscale_user",
+    "planetscale_verify_data",
+    "planetscale_vschema",
+    "planetscale_webhooks",
+    "planetscale_windows",
+    "planetscale_workflows",
+]
+planetscale_apply_deploy = []
+planetscale_audit_log = []
+planetscale_auto_apply = []
+planetscale_auto_delete_branch = []
+planetscale_backup_policies = []
+planetscale_backups = []
+planetscale_bouncer_resizes = []
+planetscale_bouncers = []
+planetscale_branches = []
+planetscale_budgets = []
+planetscale_cancel = []
+planetscale_changes = []
+planetscale_cidrs = []
+planetscale_cluster = []
+planetscale_cluster_size_skus = []
+planetscale_complete = []
+planetscale_complete_deploy = []
+planetscale_cutover = []
+planetscale_databases = []
+planetscale_default = []
+planetscale_demote = []
+planetscale_deploy = []
+planetscale_deploy_queue = []
+planetscale_deploy_requests = []
+planetscale_deployment = []
+planetscale_dismiss = []
+planetscale_download = []
+planetscale_extensions = []
+planetscale_invoices = []
+planetscale_keyspaces = []
+planetscale_line_items = []
+planetscale_lint = []
+planetscale_maintenance_schedules = []
+planetscale_members = []
+planetscale_oauth_applications = []
+planetscale_operations = []
+planetscale_organizations = []
+planetscale_parameters = []
+planetscale_passwords = []
+planetscale_promote = []
+planetscale_query_patterns = []
+planetscale_read_only_regions = []
+planetscale_reassign = []
+planetscale_regions = []
+planetscale_renew = []
+planetscale_reset = []
+planetscale_reset_default = []
+planetscale_resizes = []
+planetscale_retry = []
+planetscale_reverse_cutover = []
+planetscale_reverse_traffic = []
+planetscale_revert = []
+planetscale_reviews = []
+planetscale_roles = []
+planetscale_rollout_status = []
+planetscale_rules = []
+planetscale_safe_migrations = []
+planetscale_schema = []
+planetscale_schema_recommendations = []
+planetscale_service_tokens = []
+planetscale_skip_revert = []
+planetscale_storage_check = []
+planetscale_switch_primaries = []
+planetscale_switch_replicas = []
+planetscale_teams = []
+planetscale_test = []
+planetscale_throttler = []
+planetscale_token = []
+planetscale_tokens = []
+planetscale_user = []
+planetscale_verify_data = []
+planetscale_vschema = []
+planetscale_webhooks = []
+planetscale_windows = []
+planetscale_workflows = []
+prisma_postgres = [
+    "prisma_postgres_accelerate",
+    "prisma_postgres_backups",
+    "prisma_postgres_compute_services",
+    "prisma_postgres_connections",
+    "prisma_postgres_databases",
+    "prisma_postgres_integrations",
+    "prisma_postgres_postgres",
+    "prisma_postgres_projects",
+    "prisma_postgres_promote",
+    "prisma_postgres_regions",
+    "prisma_postgres_restore",
+    "prisma_postgres_rotate",
+    "prisma_postgres_start",
+    "prisma_postgres_stop",
+    "prisma_postgres_transfer",
+    "prisma_postgres_usage",
+    "prisma_postgres_versions",
+    "prisma_postgres_workspaces",
+]
+prisma_postgres_accelerate = []
+prisma_postgres_backups = []
+prisma_postgres_compute_services = []
+prisma_postgres_connections = []
+prisma_postgres_databases = []
+prisma_postgres_integrations = []
+prisma_postgres_postgres = []
+prisma_postgres_projects = []
+prisma_postgres_promote = []
+prisma_postgres_regions = []
+prisma_postgres_restore = []
+prisma_postgres_rotate = []
+prisma_postgres_start = []
+prisma_postgres_stop = []
+prisma_postgres_transfer = []
+prisma_postgres_usage = []
+prisma_postgres_versions = []
+prisma_postgres_workspaces = []
 standard = []
-stripe = []
-supabase = []
+stripe = [
+    "stripe_accept",
+    "stripe_activate",
+    "stripe_active_entitlements",
+    "stripe_advance",
+    "stripe_alerts",
+    "stripe_application_fees",
+    "stripe_archive",
+    "stripe_authorizations",
+    "stripe_balance",
+    "stripe_balance_settings",
+    "stripe_balance_transactions",
+    "stripe_calculations",
+    "stripe_cancel",
+    "stripe_checkout",
+    "stripe_complete",
+    "stripe_computed_upfront_line_items",
+    "stripe_configurations",
+    "stripe_confirm",
+    "stripe_confirmation_tokens",
+    "stripe_connect",
+    "stripe_country_specs",
+    "stripe_coupons",
+    "stripe_create_from_calculation",
+    "stripe_create_reversal",
+    "stripe_credit_balance_summary",
+    "stripe_credit_balance_transactions",
+    "stripe_credit_grants",
+    "stripe_credit_notes",
+    "stripe_credit_reversals",
+    "stripe_customers",
+    "stripe_deactivate",
+    "stripe_debit_reversals",
+    "stripe_delete",
+    "stripe_disputes",
+    "stripe_domains",
+    "stripe_ephemeral_keys",
+    "stripe_events",
+    "stripe_exchange_rates",
+    "stripe_expire",
+    "stripe_features",
+    "stripe_file_links",
+    "stripe_files",
+    "stripe_finalize",
+    "stripe_finalize_amount",
+    "stripe_find",
+    "stripe_history",
+    "stripe_increment",
+    "stripe_invoicing",
+    "stripe_line_items",
+    "stripe_lines",
+    "stripe_mandates",
+    "stripe_meters",
+    "stripe_orders",
+    "stripe_payment_methods",
+    "stripe_payments",
+    "stripe_pdf",
+    "stripe_personalization_designs",
+    "stripe_physical_bundles",
+    "stripe_plans",
+    "stripe_products",
+    "stripe_promotion_codes",
+    "stripe_quotes",
+    "stripe_radar",
+    "stripe_reactivate",
+    "stripe_received_credits",
+    "stripe_received_debits",
+    "stripe_registrations",
+    "stripe_reject",
+    "stripe_reporting",
+    "stripe_requests",
+    "stripe_reverse",
+    "stripe_saved_queries",
+    "stripe_scheduled_query_runs",
+    "stripe_secrets",
+    "stripe_settings",
+    "stripe_settlements",
+    "stripe_setup_attempts",
+    "stripe_setup_intents",
+    "stripe_shipping_rates",
+    "stripe_subscriptions",
+    "stripe_suppliers",
+    "stripe_tax_codes",
+    "stripe_tax_ids",
+    "stripe_tax_rates",
+    "stripe_terminal",
+    "stripe_test_clocks",
+    "stripe_tokens",
+    "stripe_topups",
+    "stripe_transaction_entries",
+    "stripe_transactions",
+    "stripe_verify_microdeposits",
+    "stripe_void",
+    "stripe_webhooks",
+]
+stripe_accept = []
+stripe_activate = []
+stripe_active_entitlements = []
+stripe_advance = []
+stripe_alerts = []
+stripe_application_fees = []
+stripe_archive = []
+stripe_authorizations = []
+stripe_balance = []
+stripe_balance_settings = []
+stripe_balance_transactions = []
+stripe_calculations = []
+stripe_cancel = []
+stripe_checkout = []
+stripe_complete = []
+stripe_computed_upfront_line_items = []
+stripe_configurations = []
+stripe_confirm = []
+stripe_confirmation_tokens = []
+stripe_connect = []
+stripe_country_specs = []
+stripe_coupons = []
+stripe_create_from_calculation = []
+stripe_create_reversal = []
+stripe_credit_balance_summary = []
+stripe_credit_balance_transactions = []
+stripe_credit_grants = []
+stripe_credit_notes = []
+stripe_credit_reversals = []
+stripe_customers = []
+stripe_deactivate = []
+stripe_debit_reversals = []
+stripe_delete = []
+stripe_disputes = []
+stripe_domains = []
+stripe_ephemeral_keys = []
+stripe_events = []
+stripe_exchange_rates = []
+stripe_expire = []
+stripe_features = []
+stripe_file_links = []
+stripe_files = []
+stripe_finalize = []
+stripe_finalize_amount = []
+stripe_find = []
+stripe_history = []
+stripe_increment = []
+stripe_invoicing = []
+stripe_line_items = []
+stripe_lines = []
+stripe_mandates = []
+stripe_meters = []
+stripe_orders = []
+stripe_payment_methods = []
+stripe_payments = []
+stripe_pdf = []
+stripe_personalization_designs = []
+stripe_physical_bundles = []
+stripe_plans = []
+stripe_products = []
+stripe_promotion_codes = []
+stripe_quotes = []
+stripe_radar = []
+stripe_reactivate = []
+stripe_received_credits = []
+stripe_received_debits = []
+stripe_registrations = []
+stripe_reject = []
+stripe_reporting = []
+stripe_requests = []
+stripe_reverse = []
+stripe_saved_queries = []
+stripe_scheduled_query_runs = []
+stripe_secrets = []
+stripe_settings = []
+stripe_settlements = []
+stripe_setup_attempts = []
+stripe_setup_intents = []
+stripe_shipping_rates = []
+stripe_subscriptions = []
+stripe_suppliers = []
+stripe_tax_codes = []
+stripe_tax_ids = []
+stripe_tax_rates = []
+stripe_terminal = []
+stripe_test_clocks = []
+stripe_tokens = []
+stripe_topups = []
+stripe_transaction_entries = []
+stripe_transactions = []
+stripe_verify_microdeposits = []
+stripe_void = []
+stripe_webhooks = []
+supabase = [
+    "supabase_auth",
+    "supabase_backups",
+    "supabase_branches",
+    "supabase_database",
+    "supabase_diff",
+    "supabase_functions",
+    "supabase_merge",
+    "supabase_projects",
+    "supabase_push",
+    "supabase_realtime",
+    "supabase_reset",
+    "supabase_snippets",
+    "supabase_storage",
+]
+supabase_auth = []
+supabase_backups = []
+supabase_branches = []
+supabase_database = []
+supabase_diff = []
+supabase_functions = []
+supabase_merge = []
+supabase_projects = []
+supabase_push = []
+supabase_realtime = []
+supabase_reset = []
+supabase_snippets = []
+supabase_storage = []
 
 [lints]
 workspace = true

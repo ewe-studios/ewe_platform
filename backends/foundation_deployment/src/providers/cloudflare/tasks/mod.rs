@@ -6,22 +6,28 @@
 //! Feature flag: `cloudflare_tasks `
 
 #![cfg(feature = "cloudflare_tasks")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// R2SlurperCreateJobRequest response type.
+/// `R2SlurperCreateJobRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2SlurperCreateJobRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -33,18 +39,18 @@ pub struct R2SlurperCreateJobRequest {
 /// Arguments for [`slurper-list-jobs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SlurperListJobsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
 }
 
 /// Arguments for [`slurper-create-job_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SlurperCreateJobArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: R2SlurperCreateJobRequest,
@@ -53,43 +59,43 @@ pub struct SlurperCreateJobArgs {
 /// Arguments for [`slurper-abort-all-jobs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SlurperAbortAllJobsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`slurper-get-job_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SlurperGetJobArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
 }
 
 /// Arguments for [`slurper-abort-job_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SlurperAbortJobArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
 }
 
 /// Arguments for [`slurper-pause-job_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SlurperPauseJobArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
 }
 
 /// Arguments for [`slurper-resume-job_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SlurperResumeJobArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: job_id
+    /// Path parameter: `job_id`.
     pub job_id: String,
 }
 
@@ -119,7 +125,6 @@ pub struct SlurperResumeJobArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn slurper_list_jobs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -156,7 +161,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -204,7 +209,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn slurper_create_job_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -245,7 +249,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -293,7 +297,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn slurper_abort_all_jobs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -330,7 +333,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -378,7 +381,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn slurper_get_job_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -415,7 +417,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -463,7 +465,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn slurper_abort_job_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -500,7 +501,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -548,7 +549,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn slurper_pause_job_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -585,7 +585,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -633,7 +633,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn slurper_resume_job_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -670,7 +669,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

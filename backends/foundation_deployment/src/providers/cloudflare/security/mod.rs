@@ -6,8 +6,14 @@
 //! Feature flag: `cloudflare_security `
 
 #![cfg(feature = "cloudflare_security")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
@@ -16,330 +22,329 @@ use serde::{Deserialize, Serialize};
 use super::shared::FirewallRuleCollectionResponse;
 use super::shared::FirewallRuleSingleIdResponse;
 use super::shared::FirewallRuleSingleResponse;
-use super::shared::SecurityCenterValueCountsResponse;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// CloudforceOneCreateRule response type.
+/// `CloudforceOneCreateRule` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneCreateRule {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneDeleteAllResponse response type.
+/// `CloudforceOneDeleteAllResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneDeleteAllResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneRequestsApiResponseCommon response type.
+/// `CloudforceOneRequestsApiResponseCommon` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneRequestsApiResponseCommon {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneRequestsPriorityEdit response type.
+/// `CloudforceOneRequestsPriorityEdit` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneRequestsPriorityEdit {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneRequestsPriorityList response type.
+/// `CloudforceOneRequestsPriorityList` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneRequestsPriorityList {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneRequestsRequestAssetEdit response type.
+/// `CloudforceOneRequestsRequestAssetEdit` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneRequestsRequestAssetEdit {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneRequestsRequestAssetList response type.
+/// `CloudforceOneRequestsRequestAssetList` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneRequestsRequestAssetList {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneRequestsRequestEdit response type.
+/// `CloudforceOneRequestsRequestEdit` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneRequestsRequestEdit {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneRequestsRequestList response type.
+/// `CloudforceOneRequestsRequestList` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneRequestsRequestList {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneRequestsRequestMessageEdit response type.
+/// `CloudforceOneRequestsRequestMessageEdit` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneRequestsRequestMessageEdit {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneRequestsRequestMessageList response type.
+/// `CloudforceOneRequestsRequestMessageList` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneRequestsRequestMessageList {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneRule response type.
+/// `CloudforceOneRule` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneRule {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneRulesListResponse response type.
+/// `CloudforceOneRulesListResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneRulesListResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneStatsResponse response type.
+/// `CloudforceOneStatsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneStatsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneSuccessResponse response type.
+/// `CloudforceOneSuccessResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneSuccessResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneTreeResponse response type.
+/// `CloudforceOneTreeResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneTreeResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneUpdateRule response type.
+/// `CloudforceOneUpdateRule` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneUpdateRule {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneValidationResponse response type.
+/// `CloudforceOneValidationResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneValidationResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CloudforceOneWhoisSchemasSingleResponse response type.
+/// `CloudforceOneWhoisSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudforceOneWhoisSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CustomIndicatorFeedsCreateFeedResponse response type.
+/// `CustomIndicatorFeedsCreateFeedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomIndicatorFeedsCreateFeedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CustomIndicatorFeedsIndicatorFeedMetadataResponse response type.
+/// `CustomIndicatorFeedsIndicatorFeedMetadataResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomIndicatorFeedsIndicatorFeedMetadataResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CustomIndicatorFeedsIndicatorFeedResponse response type.
+/// `CustomIndicatorFeedsIndicatorFeedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomIndicatorFeedsIndicatorFeedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CustomIndicatorFeedsPermissionListItemResponse response type.
+/// `CustomIndicatorFeedsPermissionListItemResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomIndicatorFeedsPermissionListItemResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CustomIndicatorFeedsPermissionsRequest response type.
+/// `CustomIndicatorFeedsPermissionsRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomIndicatorFeedsPermissionsRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CustomIndicatorFeedsPermissionsResponse response type.
+/// `CustomIndicatorFeedsPermissionsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomIndicatorFeedsPermissionsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CustomIndicatorFeedsUpdateFeedResponse response type.
+/// `CustomIndicatorFeedsUpdateFeedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomIndicatorFeedsUpdateFeedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CustomIndicatorFeedsUpdatePublicFieldRequest response type.
+/// `CustomIndicatorFeedsUpdatePublicFieldRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomIndicatorFeedsUpdatePublicFieldRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// CustomIndicatorFeedsUpdatePublicFieldResponse response type.
+/// `CustomIndicatorFeedsUpdatePublicFieldResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomIndicatorFeedsUpdatePublicFieldResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpUpdateDocumentFingerprint response type.
+/// `DlpUpdateDocumentFingerprint` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpUpdateDocumentFingerprint {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// FirewallApiResponseSingleId response type.
+/// `FirewallApiResponseSingleId` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallApiResponseSingleId {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// FirewallResponseCollection response type.
+/// `FirewallResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// FirewallResponseSingle response type.
+/// `FirewallResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// FirewallSchemasRule response type.
+/// `FirewallSchemasRule` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallSchemasRule {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// IntelApiResponseSingle response type.
+/// `IntelApiResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntelApiResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// IntelAsnComponentsSchemasResponse response type.
+/// `IntelAsnComponentsSchemasResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntelAsnComponentsSchemasResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// IntelComponentsSchemasResponse response type.
+/// `IntelComponentsSchemasResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntelComponentsSchemasResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// IntelComponentsSchemasSingleResponse response type.
+/// `IntelComponentsSchemasSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntelComponentsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// IntelMiscategorization response type.
+/// `IntelMiscategorization` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntelMiscategorization {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// IntelSchemasResponse response type.
+/// `IntelSchemasResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntelSchemasResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// IntelSinkholesGetSinkholesResponse response type.
+/// `IntelSinkholesGetSinkholesResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntelSinkholesGetSinkholesResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -351,960 +356,918 @@ pub struct IntelSinkholesGetSinkholesResponse {
 /// Arguments for [`botnet-threat-feed-get-day-report_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BotnetThreatFeedGetDayReportArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: asn_id
+    /// Path parameter: `asn_id`.
     pub asn_id: String,
-    /// Query parameter: date
+    /// Query parameter: `date`.
     pub date: Option<String>,
 }
 
 /// Arguments for [`botnet-threat-feed-get-full-report_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BotnetThreatFeedGetFullReportArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: asn_id
+    /// Path parameter: `asn_id`.
     pub asn_id: String,
 }
 
 /// Arguments for [`botnet-threat-feed-list-asn_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BotnetThreatFeedListAsnArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`botnet-threat-feed-delete-asn_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BotnetThreatFeedDeleteAsnArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: asn_id
+    /// Path parameter: `asn_id`.
     pub asn_id: String,
 }
 
 /// Arguments for [`accounts-turnstile-widgets-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountsTurnstileWidgetsListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`accounts-turnstile-widget-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountsTurnstileWidgetCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`accounts-turnstile-widget-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountsTurnstileWidgetGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: sitekey
+    /// Path parameter: `sitekey`.
     pub sitekey: String,
 }
 
 /// Arguments for [`accounts-turnstile-widget-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountsTurnstileWidgetUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: sitekey
+    /// Path parameter: `sitekey`.
     pub sitekey: String,
 }
 
 /// Arguments for [`accounts-turnstile-widget-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountsTurnstileWidgetDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: sitekey
+    /// Path parameter: `sitekey`.
     pub sitekey: String,
 }
 
 /// Arguments for [`accounts-turnstile-widget-rotate-secret_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountsTurnstileWidgetRotateSecretArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: sitekey
+    /// Path parameter: `sitekey`.
     pub sitekey: String,
 }
 
 /// Arguments for [`post_BinDBPost_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostBinDBPostArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_BinDBGetBinary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetBinDBGetBinaryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: hash
+    /// Path parameter: `hash`.
     pub hash: String,
 }
 
 /// Arguments for [`get_EventListGet_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEventListGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: cursor
+    /// Query parameter: `cursor`.
     pub cursor: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: datasetId
-    pub datasetId: Option<String>,
-    /// Query parameter: forceRefresh
-    pub forceRefresh: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `datasetId`.
+    pub dataset_id: Option<String>,
+    /// Query parameter: `forceRefresh`.
+    pub force_refresh: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`get_AttackerList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetAttackerListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: datasetIds
-    pub datasetIds: Option<String>,
+    /// Query parameter: `datasetIds`.
+    pub dataset_ids: Option<String>,
 }
 
 /// Arguments for [`get_CategoryList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCategoryListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: datasetIds
-    pub datasetIds: Option<String>,
+    /// Query parameter: `datasetIds`.
+    pub dataset_ids: Option<String>,
 }
 
 /// Arguments for [`get_CategoryListComplete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCategoryListCompleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`post_CategoryCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostCategoryCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_CategoryRead_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCategoryReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: category_id
+    /// Path parameter: `category_id`.
     pub category_id: String,
 }
 
 /// Arguments for [`post_CategoryUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostCategoryUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: category_id
+    /// Path parameter: `category_id`.
     pub category_id: String,
 }
 
 /// Arguments for [`patch_CategoryUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PatchCategoryUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: category_id
+    /// Path parameter: `category_id`.
     pub category_id: String,
 }
 
 /// Arguments for [`delete_CategoryDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteCategoryDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: category_id
+    /// Path parameter: `category_id`.
     pub category_id: String,
 }
 
 /// Arguments for [`get_CountryRead_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetCountryReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`post_EventCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`post_EventCreateBulk_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventCreateBulkArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
-/// Arguments for [`post_DOSEventCreateBulkWithRelationships_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostDOSEventCreateBulkWithRelationshipsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_DatasetList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetDatasetListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_GroupList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetGroupListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`post_GroupCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostGroupCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_GroupRead_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetGroupReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: group_id
+    /// Path parameter: `group_id`.
     pub group_id: String,
 }
 
 /// Arguments for [`put_GroupUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PutGroupUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: group_id
+    /// Path parameter: `group_id`.
     pub group_id: String,
 }
 
 /// Arguments for [`delete_GroupDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteGroupDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: group_id
+    /// Path parameter: `group_id`.
     pub group_id: String,
 }
 
 /// Arguments for [`get_GroupMemberList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetGroupMemberListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: group_id
+    /// Path parameter: `group_id`.
     pub group_id: String,
 }
 
 /// Arguments for [`post_GroupMemberCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostGroupMemberCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: group_id
+    /// Path parameter: `group_id`.
     pub group_id: String,
 }
 
 /// Arguments for [`delete_GroupMemberDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteGroupMemberDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: group_id
+    /// Path parameter: `group_id`.
     pub group_id: String,
-    /// Path parameter: member_id
+    /// Path parameter: `member_id`.
     pub member_id: String,
 }
 
 /// Arguments for [`post_DatasetCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostDatasetCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_DatasetRead_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetDatasetReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`post_DatasetUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostDatasetUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`patch_DatasetUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PatchDatasetUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`delete_DatasetDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteDatasetDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`post_EventCopyToNewDS_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventCopyToNewDSArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Query parameter: keepRawData
-    pub keepRawData: Option<String>,
+    /// Query parameter: `keepRawData`.
+    pub keep_raw_data: Option<String>,
 }
 
 /// Arguments for [`get_EventRead_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEventReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
 }
 
 /// Arguments for [`post_IndicatorTypeCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostIndicatorTypeCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-}
-
-/// Arguments for [`get_IndicatorListLegacy_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetIndicatorListLegacyArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Path parameter: dataset_id
-    pub dataset_id: String,
-    /// Query parameter: page
-    pub page: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: indicatorType
-    pub indicatorType: Option<String>,
-    /// Query parameter: relatedEvent
-    pub relatedEvent: Option<String>,
 }
 
 /// Arguments for [`post_IndicatorCreateBulk_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostIndicatorCreateBulkArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`post_IndicatorCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostIndicatorCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`get_IndicatorTagsList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIndicatorTagsListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`get_IndicatorRead_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIndicatorReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Path parameter: indicator_id
+    /// Path parameter: `indicator_id`.
     pub indicator_id: String,
 }
 
 /// Arguments for [`patch_IndicatorUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PatchIndicatorUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Path parameter: indicator_id
+    /// Path parameter: `indicator_id`.
     pub indicator_id: String,
 }
 
 /// Arguments for [`delete_IndicatorDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteIndicatorDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Path parameter: indicator_id
+    /// Path parameter: `indicator_id`.
     pub indicator_id: String,
 }
 
 /// Arguments for [`post_EventMoveToNewDS_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventMoveToNewDSArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Query parameter: keepRawData
-    pub keepRawData: Option<String>,
+    /// Query parameter: `keepRawData`.
+    pub keep_raw_data: Option<String>,
 }
 
 /// Arguments for [`get_PermissionList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetPermissionListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`post_PermissionCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostPermissionCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`put_PermissionUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PutPermissionUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Path parameter: grant_id
+    /// Path parameter: `grant_id`.
     pub grant_id: String,
 }
 
 /// Arguments for [`delete_PermissionDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeletePermissionDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Path parameter: grant_id
+    /// Path parameter: `grant_id`.
     pub grant_id: String,
 }
 
 /// Arguments for [`get_TagIndicatorsList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTagIndicatorsListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tag_uuid
+    /// Path parameter: `tag_uuid`.
     pub tag_uuid: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<String>,
-    /// Query parameter: indicatorType
-    pub indicatorType: Option<String>,
-    /// Query parameter: relatedEvent
-    pub relatedEvent: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `indicatorType`.
+    pub indicator_type: Option<String>,
+    /// Query parameter: `relatedEvent`.
+    pub related_event: Option<String>,
 }
 
 /// Arguments for [`get_TargetIndustryListByDataset_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTargetIndustryListByDatasetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`post_DatasetPopulate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostDatasetPopulateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`delete_EventTagDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteEventTagDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
 }
 
 /// Arguments for [`post_EventTagCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventTagCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
 }
 
 /// Arguments for [`post_EventGraphQL_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventGraphQLArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_IndicatorTypesList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIndicatorTypesListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: datasetIds
-    pub datasetIds: Option<String>,
-}
-
-/// Arguments for [`get_LegacyIndicatorTypesList_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetLegacyIndicatorTypesListArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
+    /// Query parameter: `datasetIds`.
+    pub dataset_ids: Option<String>,
 }
 
 /// Arguments for [`get_IndicatorList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetIndicatorListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: datasetIds
-    pub datasetIds: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `datasetIds`.
+    pub dataset_ids: Option<String>,
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: indicatorType
-    pub indicatorType: Option<String>,
-    /// Query parameter: relatedEvents
-    pub relatedEvents: Option<String>,
-    /// Query parameter: tags
+    /// Query parameter: `indicatorType`.
+    pub indicator_type: Option<String>,
+    /// Query parameter: `relatedEvents`.
+    pub related_events: Option<String>,
+    /// Query parameter: `tags`.
     pub tags: Option<String>,
-    /// Query parameter: createdAfter
-    pub createdAfter: Option<String>,
-    /// Query parameter: createdBefore
-    pub createdBefore: Option<String>,
-    /// Query parameter: relatedEventsLimit
-    pub relatedEventsLimit: Option<String>,
-    /// Query parameter: includeTags
-    pub includeTags: Option<String>,
-    /// Query parameter: includeTotalCount
-    pub includeTotalCount: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `createdAfter`.
+    pub created_after: Option<String>,
+    /// Query parameter: `createdBefore`.
+    pub created_before: Option<String>,
+    /// Query parameter: `relatedEventsLimit`.
+    pub related_events_limit: Option<String>,
+    /// Query parameter: `includeTags`.
+    pub include_tags: Option<String>,
+    /// Query parameter: `includeTotalCount`.
+    pub include_total_count: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`get_EventQueryList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEventQueryListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_EventQueryAlertList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEventQueryAlertListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`post_EventQueryAlertCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventQueryAlertCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_EventQueryAlertRead_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEventQueryAlertReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: alert_id
+    /// Path parameter: `alert_id`.
     pub alert_id: String,
 }
 
 /// Arguments for [`post_EventQueryAlertUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventQueryAlertUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: alert_id
+    /// Path parameter: `alert_id`.
     pub alert_id: String,
 }
 
 /// Arguments for [`patch_EventQueryAlertUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PatchEventQueryAlertUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: alert_id
+    /// Path parameter: `alert_id`.
     pub alert_id: String,
 }
 
 /// Arguments for [`delete_EventQueryAlertDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteEventQueryAlertDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: alert_id
+    /// Path parameter: `alert_id`.
     pub alert_id: String,
 }
 
 /// Arguments for [`post_EventQueryCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventQueryCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_EventQueryRead_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEventQueryReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: query_id
+    /// Path parameter: `query_id`.
     pub query_id: String,
 }
 
 /// Arguments for [`post_EventQueryUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventQueryUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: query_id
+    /// Path parameter: `query_id`.
     pub query_id: String,
 }
 
 /// Arguments for [`patch_EventQueryUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PatchEventQueryUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: query_id
+    /// Path parameter: `query_id`.
     pub query_id: String,
 }
 
 /// Arguments for [`delete_EventQueryDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteEventQueryDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: query_id
+    /// Path parameter: `query_id`.
     pub query_id: String,
 }
 
 /// Arguments for [`get_EventRawReadDS_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEventRawReadDSArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`delete_EventReferenceDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteEventReferenceDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
 }
 
 /// Arguments for [`post_EventReferenceCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventReferenceCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
 }
 
 /// Arguments for [`post_CreateEventRelationship_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostCreateEventRelationshipArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get_TagList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTagListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: categoryUuid
-    pub categoryUuid: Option<String>,
+    /// Query parameter: `categoryUuid`.
+    pub category_uuid: Option<String>,
 }
 
 /// Arguments for [`get_TagCategoryList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTagCategoryListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
 }
 
 /// Arguments for [`post_TagCategoryCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostTagCategoryCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`patch_TagCategoryUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PatchTagCategoryUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: category_uuid
+    /// Path parameter: `category_uuid`.
     pub category_uuid: String,
 }
 
 /// Arguments for [`delete_TagCategoryDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteTagCategoryDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: category_uuid
+    /// Path parameter: `category_uuid`.
     pub category_uuid: String,
 }
 
 /// Arguments for [`post_TagCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostTagCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`patch_TagUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PatchTagUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tag_uuid
+    /// Path parameter: `tag_uuid`.
     pub tag_uuid: String,
 }
 
 /// Arguments for [`delete_TagDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteTagDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: tag_uuid
+    /// Path parameter: `tag_uuid`.
     pub tag_uuid: String,
 }
 
 /// Arguments for [`get_TargetIndustryList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTargetIndustryListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: datasetIds
-    pub datasetIds: Option<String>,
+    /// Query parameter: `datasetIds`.
+    pub dataset_ids: Option<String>,
 }
 
 /// Arguments for [`get_TargetIndustryListComplete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTargetIndustryListCompleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`patch_EventUpdateBulk_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PatchEventUpdateBulkArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`delete_EventDelete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteEventDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Query parameter: eventIds
-    pub eventIds: Option<String>,
+    /// Query parameter: `eventIds`.
+    pub event_ids: Option<String>,
 }
 
 /// Arguments for [`post_EventDoRevert_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventDoRevertArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-}
-
-/// Arguments for [`get_EventReadDeprecated_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetEventReadDeprecatedArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Path parameter: event_id
-    pub event_id: String,
 }
 
 /// Arguments for [`post_EventUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
 }
 
 /// Arguments for [`patch_EventUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PatchEventUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
 }
 
 /// Arguments for [`get_EventRawRead_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEventRawReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
-    /// Path parameter: raw_id
+    /// Path parameter: `raw_id`.
     pub raw_id: String,
 }
 
 /// Arguments for [`post_EventRawUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventRawUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
-    /// Path parameter: raw_id
+    /// Path parameter: `raw_id`.
     pub raw_id: String,
 }
 
 /// Arguments for [`patch_EventRawUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PatchEventRawUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
-    /// Path parameter: raw_id
+    /// Path parameter: `raw_id`.
     pub raw_id: String,
 }
 
 /// Arguments for [`get_EventRelationships_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEventRelationshipsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: event_id
+    /// Path parameter: `event_id`.
     pub event_id: String,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: maxDepth
-    pub maxDepth: Option<String>,
-    /// Query parameter: relationshipTypes
-    pub relationshipTypes: Option<String>,
-    /// Query parameter: indicatorTypeIds
-    pub indicatorTypeIds: Option<String>,
-    /// Query parameter: datasetId
-    pub datasetId: Option<String>,
-    /// Query parameter: includeParent
-    pub includeParent: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `maxDepth`.
+    pub max_depth: Option<String>,
+    /// Query parameter: `relationshipTypes`.
+    pub relationship_types: Option<String>,
+    /// Query parameter: `indicatorTypeIds`.
+    pub indicator_type_ids: Option<String>,
+    /// Query parameter: `datasetId`.
+    pub dataset_id: Option<String>,
+    /// Query parameter: `includeParent`.
+    pub include_parent: Option<String>,
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<String>,
+    /// Query parameter: `pageSize`.
+    pub page_size: Option<String>,
 }
 
 /// Arguments for [`cloudforce-one-request-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: CloudforceOneRequestsRequestList,
@@ -1313,14 +1276,14 @@ pub struct CloudforceOneRequestListArgs {
 /// Arguments for [`cloudforce-one-request-constants_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestConstantsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudforce-one-request-new_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestNewArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: CloudforceOneRequestsRequestEdit,
@@ -1329,7 +1292,7 @@ pub struct CloudforceOneRequestNewArgs {
 /// Arguments for [`cloudforce-one-priority-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOnePriorityListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: CloudforceOneRequestsPriorityList,
@@ -1338,7 +1301,7 @@ pub struct CloudforceOnePriorityListArgs {
 /// Arguments for [`cloudforce-one-priority-new_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOnePriorityNewArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: CloudforceOneRequestsPriorityEdit,
@@ -1347,25 +1310,25 @@ pub struct CloudforceOnePriorityNewArgs {
 /// Arguments for [`cloudforce-one-priority-quota_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOnePriorityQuotaArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudforce-one-priority-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOnePriorityGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: priority_id
+    /// Path parameter: `priority_id`.
     pub priority_id: String,
 }
 
 /// Arguments for [`cloudforce-one-priority-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOnePriorityUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: priority_id
+    /// Path parameter: `priority_id`.
     pub priority_id: String,
     /// Request body.
     pub body: CloudforceOneRequestsPriorityEdit,
@@ -1374,41 +1337,41 @@ pub struct CloudforceOnePriorityUpdateArgs {
 /// Arguments for [`cloudforce-one-priority-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOnePriorityDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: priority_id
+    /// Path parameter: `priority_id`.
     pub priority_id: String,
 }
 
 /// Arguments for [`cloudforce-one-request-quota_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestQuotaArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudforce-one-request-types_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestTypesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudforce-one-request-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: request_id
+    /// Path parameter: `request_id`.
     pub request_id: String,
 }
 
 /// Arguments for [`cloudforce-one-request-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: request_id
+    /// Path parameter: `request_id`.
     pub request_id: String,
     /// Request body.
     pub body: CloudforceOneRequestsRequestEdit,
@@ -1417,18 +1380,18 @@ pub struct CloudforceOneRequestUpdateArgs {
 /// Arguments for [`cloudforce-one-request-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: request_id
+    /// Path parameter: `request_id`.
     pub request_id: String,
 }
 
 /// Arguments for [`cloudforce-one-request-asset-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestAssetListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: request_id
+    /// Path parameter: `request_id`.
     pub request_id: String,
     /// Request body.
     pub body: CloudforceOneRequestsRequestAssetList,
@@ -1437,31 +1400,31 @@ pub struct CloudforceOneRequestAssetListArgs {
 /// Arguments for [`cloudforce-one-request-asset-new_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestAssetNewArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: request_id
+    /// Path parameter: `request_id`.
     pub request_id: String,
 }
 
 /// Arguments for [`cloudforce-one-request-asset-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestAssetGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: request_id
+    /// Path parameter: `request_id`.
     pub request_id: String,
-    /// Path parameter: asset_id
+    /// Path parameter: `asset_id`.
     pub asset_id: String,
 }
 
 /// Arguments for [`cloudforce-one-request-asset-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestAssetUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: request_id
+    /// Path parameter: `request_id`.
     pub request_id: String,
-    /// Path parameter: asset_id
+    /// Path parameter: `asset_id`.
     pub asset_id: String,
     /// Request body.
     pub body: CloudforceOneRequestsRequestAssetEdit,
@@ -1470,20 +1433,20 @@ pub struct CloudforceOneRequestAssetUpdateArgs {
 /// Arguments for [`cloudforce-one-request-asset-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestAssetDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: request_id
+    /// Path parameter: `request_id`.
     pub request_id: String,
-    /// Path parameter: asset_id
+    /// Path parameter: `asset_id`.
     pub asset_id: String,
 }
 
 /// Arguments for [`cloudforce-one-request-message-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestMessageListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: request_id
+    /// Path parameter: `request_id`.
     pub request_id: String,
     /// Request body.
     pub body: CloudforceOneRequestsRequestMessageList,
@@ -1492,9 +1455,9 @@ pub struct CloudforceOneRequestMessageListArgs {
 /// Arguments for [`cloudforce-one-request-message-new_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestMessageNewArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: request_id
+    /// Path parameter: `request_id`.
     pub request_id: String,
     /// Request body.
     pub body: CloudforceOneRequestsRequestMessageEdit,
@@ -1503,11 +1466,11 @@ pub struct CloudforceOneRequestMessageNewArgs {
 /// Arguments for [`cloudforce-one-request-message-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestMessageUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: request_id
+    /// Path parameter: `request_id`.
     pub request_id: String,
-    /// Path parameter: message_id
+    /// Path parameter: `message_id`.
     pub message_id: String,
     /// Request body.
     pub body: CloudforceOneRequestsRequestMessageEdit,
@@ -1516,37 +1479,37 @@ pub struct CloudforceOneRequestMessageUpdateArgs {
 /// Arguments for [`cloudforce-one-request-message-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneRequestMessageDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: request_id
+    /// Path parameter: `request_id`.
     pub request_id: String,
-    /// Path parameter: message_id
+    /// Path parameter: `message_id`.
     pub message_id: String,
 }
 
 /// Arguments for [`cloudforce-one-list-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneListRulesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: namespace
+    /// Query parameter: `namespace`.
     pub namespace: Option<String>,
-    /// Query parameter: recursive
+    /// Query parameter: `recursive`.
     pub recursive: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: is_public
+    /// Query parameter: `is_public`.
     pub is_public: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
 }
 
 /// Arguments for [`cloudforce-one-create-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneCreateRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: CloudforceOneCreateRule,
@@ -1555,42 +1518,42 @@ pub struct CloudforceOneCreateRuleArgs {
 /// Arguments for [`cloudforce-one-delete-all-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneDeleteAllRulesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudforce-one-get-rule-stats_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneGetRuleStatsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudforce-one-get-rule-tree_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneGetRuleTreeArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudforce-one-validate-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneValidateRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`cloudforce-one-get-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneGetRuleArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`cloudforce-one-update-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneUpdateRuleArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
     /// Request body.
     pub body: CloudforceOneUpdateRule,
@@ -1599,151 +1562,151 @@ pub struct CloudforceOneUpdateRuleArgs {
 /// Arguments for [`cloudforce-one-delete-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudforceOneDeleteRuleArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
 }
 
 /// Arguments for [`get_ConfigFetch_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetConfigFetchArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`post_ConfigCreate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostConfigCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`post_ConfigUpdate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostConfigUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: config_id
+    /// Path parameter: `config_id`.
     pub config_id: String,
 }
 
 /// Arguments for [`delete_DeleteScans_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteDeleteScansArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: config_id
+    /// Path parameter: `config_id`.
     pub config_id: String,
 }
 
 /// Arguments for [`get_GetOpenPorts_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetGetOpenPortsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: config_id
+    /// Path parameter: `config_id`.
     pub config_id: String,
 }
 
 /// Arguments for [`get_LogoMatchList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetLogoMatchListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: query_id
+    /// Query parameter: `query_id`.
     pub query_id: Option<String>,
-    /// Query parameter: download
+    /// Query parameter: `download`.
     pub download: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `order`.
     pub order: Option<String>,
 }
 
 /// Arguments for [`get_GetLogoQueries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetGetLogoQueriesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: id
+    /// Query parameter: `id`.
     pub id: Option<String>,
-    /// Query parameter: download
+    /// Query parameter: `download`.
     pub download: Option<String>,
 }
 
 /// Arguments for [`post_InsertLogoQuery_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostInsertLogoQueryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`delete_DeleteLogoQuery_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteDeleteLogoQueryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: query_id
+    /// Path parameter: `query_id`.
     pub query_id: String,
 }
 
 /// Arguments for [`post_SearchLogoSimilarity_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostSearchLogoSimilarityArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: showHistoric
-    pub showHistoric: Option<String>,
-    /// Query parameter: download
+    /// Query parameter: `showHistoric`.
+    pub show_historic: Option<String>,
+    /// Query parameter: `download`.
     pub download: Option<String>,
 }
 
 /// Arguments for [`get_TotalQueries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetTotalQueriesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`post_EventGraphQLV2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEventGraphQLV2Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dlp-document-fingerprints-read-all_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDocumentFingerprintsReadAllArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dlp-document-fingerprints-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDocumentFingerprintsCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dlp-document-fingerprints-read_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDocumentFingerprintsReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: document_fingerprint_id
+    /// Path parameter: `document_fingerprint_id`.
     pub document_fingerprint_id: String,
 }
 
 /// Arguments for [`dlp-document-fingerprints-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDocumentFingerprintsUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: document_fingerprint_id
+    /// Path parameter: `document_fingerprint_id`.
     pub document_fingerprint_id: String,
     /// Request body.
     pub body: DlpUpdateDocumentFingerprint,
@@ -1752,68 +1715,68 @@ pub struct DlpDocumentFingerprintsUpdateArgs {
 /// Arguments for [`dlp-document-fingerprints-upload_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDocumentFingerprintsUploadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: document_fingerprint_id
+    /// Path parameter: `document_fingerprint_id`.
     pub document_fingerprint_id: String,
 }
 
 /// Arguments for [`dlp-document-fingerprints-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDocumentFingerprintsDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: document_fingerprint_id
+    /// Path parameter: `document_fingerprint_id`.
     pub document_fingerprint_id: String,
 }
 
 /// Arguments for [`ip-access-rules-for-an-account-list-ip-access-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAccessRulesForAnAccountListIpAccessRulesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: mode
+    /// Query parameter: `mode`.
     pub mode: Option<String>,
-    /// Query parameter: configuration.target
+    /// Query parameter: `configuration.target`.
     pub configuration_target: Option<String>,
-    /// Query parameter: configuration.value
+    /// Query parameter: `configuration.value`.
     pub configuration_value: Option<String>,
-    /// Query parameter: notes
+    /// Query parameter: `notes`.
     pub notes: Option<String>,
-    /// Query parameter: match
+    /// Query parameter: `match`.
     pub r#match: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`ip-access-rules-for-an-account-create-an-ip-access-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAccessRulesForAnAccountCreateAnIpAccessRuleArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-access-rules-for-an-account-get-an-ip-access-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAccessRulesForAnAccountGetAnIpAccessRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ip-access-rules-for-an-account-update-an-ip-access-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAccessRulesForAnAccountUpdateAnIpAccessRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: FirewallSchemasRule,
@@ -1822,199 +1785,70 @@ pub struct IpAccessRulesForAnAccountUpdateAnIpAccessRuleArgs {
 /// Arguments for [`ip-access-rules-for-an-account-delete-an-ip-access-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAccessRulesForAnAccountDeleteAnIpAccessRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`asn-intelligence-get-asn-overview_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AsnIntelligenceGetAsnOverviewArgs {
-    /// Path parameter: asn
+    /// Path parameter: `asn`.
     pub asn: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`asn-intelligence-get-asn-subnets_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AsnIntelligenceGetAsnSubnetsArgs {
-    /// Path parameter: asn
+    /// Path parameter: `asn`.
     pub asn: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`get-security-center-issue-types_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSecurityCenterIssueTypesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-}
-
-/// Arguments for [`get-security-center-issues_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetSecurityCenterIssuesArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Query parameter: dismissed
-    pub dismissed: Option<String>,
-    /// Query parameter: issue_class
-    pub issue_class: Option<String>,
-    /// Query parameter: issue_type
-    pub issue_type: Option<String>,
-    /// Query parameter: product
-    pub product: Option<String>,
-    /// Query parameter: severity
-    pub severity: Option<String>,
-    /// Query parameter: subject
-    pub subject: Option<String>,
-    /// Query parameter: issue_class~neq
-    pub issue_class_neq: Option<String>,
-    /// Query parameter: issue_type~neq
-    pub issue_type_neq: Option<String>,
-    /// Query parameter: product~neq
-    pub product_neq: Option<String>,
-    /// Query parameter: severity~neq
-    pub severity_neq: Option<String>,
-    /// Query parameter: subject~neq
-    pub subject_neq: Option<String>,
-    /// Query parameter: page
-    pub page: Option<String>,
-    /// Query parameter: per_page
-    pub per_page: Option<String>,
-}
-
-/// Arguments for [`get-security-center-issue-counts-by-class_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetSecurityCenterIssueCountsByClassArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Query parameter: dismissed
-    pub dismissed: Option<String>,
-    /// Query parameter: issue_class
-    pub issue_class: Option<String>,
-    /// Query parameter: issue_type
-    pub issue_type: Option<String>,
-    /// Query parameter: product
-    pub product: Option<String>,
-    /// Query parameter: severity
-    pub severity: Option<String>,
-    /// Query parameter: subject
-    pub subject: Option<String>,
-    /// Query parameter: issue_class~neq
-    pub issue_class_neq: Option<String>,
-    /// Query parameter: issue_type~neq
-    pub issue_type_neq: Option<String>,
-    /// Query parameter: product~neq
-    pub product_neq: Option<String>,
-    /// Query parameter: severity~neq
-    pub severity_neq: Option<String>,
-    /// Query parameter: subject~neq
-    pub subject_neq: Option<String>,
-}
-
-/// Arguments for [`get-security-center-issue-counts-by-severity_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetSecurityCenterIssueCountsBySeverityArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Query parameter: dismissed
-    pub dismissed: Option<String>,
-    /// Query parameter: issue_class
-    pub issue_class: Option<String>,
-    /// Query parameter: issue_type
-    pub issue_type: Option<String>,
-    /// Query parameter: product
-    pub product: Option<String>,
-    /// Query parameter: severity
-    pub severity: Option<String>,
-    /// Query parameter: subject
-    pub subject: Option<String>,
-    /// Query parameter: issue_class~neq
-    pub issue_class_neq: Option<String>,
-    /// Query parameter: issue_type~neq
-    pub issue_type_neq: Option<String>,
-    /// Query parameter: product~neq
-    pub product_neq: Option<String>,
-    /// Query parameter: severity~neq
-    pub severity_neq: Option<String>,
-    /// Query parameter: subject~neq
-    pub subject_neq: Option<String>,
-}
-
-/// Arguments for [`get-security-center-issue-counts-by-type_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetSecurityCenterIssueCountsByTypeArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Query parameter: dismissed
-    pub dismissed: Option<String>,
-    /// Query parameter: issue_class
-    pub issue_class: Option<String>,
-    /// Query parameter: issue_type
-    pub issue_type: Option<String>,
-    /// Query parameter: product
-    pub product: Option<String>,
-    /// Query parameter: severity
-    pub severity: Option<String>,
-    /// Query parameter: subject
-    pub subject: Option<String>,
-    /// Query parameter: issue_class~neq
-    pub issue_class_neq: Option<String>,
-    /// Query parameter: issue_type~neq
-    pub issue_type_neq: Option<String>,
-    /// Query parameter: product~neq
-    pub product_neq: Option<String>,
-    /// Query parameter: severity~neq
-    pub severity_neq: Option<String>,
-    /// Query parameter: subject~neq
-    pub subject_neq: Option<String>,
-}
-
-/// Arguments for [`archive-security-center-insight-deprecated_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ArchiveSecurityCenterInsightDeprecatedArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Path parameter: issue_id
-    pub issue_id: String,
 }
 
 /// Arguments for [`passive-dns-by-ip-get-passive-dns-by-ip_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PassiveDnsByIpGetPassiveDnsByIpArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: start_end_params
+    /// Query parameter: `start_end_params`.
     pub start_end_params: Option<String>,
-    /// Query parameter: ipv4
+    /// Query parameter: `ipv4`.
     pub ipv4: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
 }
 
 /// Arguments for [`custom-indicator-feeds-get-indicator-feeds_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomIndicatorFeedsGetIndicatorFeedsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`custom-indicator-feeds-create-indicator-feeds_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomIndicatorFeedsCreateIndicatorFeedsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`custom-indicator-feeds-add-permission_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomIndicatorFeedsAddPermissionArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: CustomIndicatorFeedsPermissionsRequest,
@@ -2023,7 +1857,7 @@ pub struct CustomIndicatorFeedsAddPermissionArgs {
 /// Arguments for [`custom-indicator-feeds-remove-permission_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomIndicatorFeedsRemovePermissionArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: CustomIndicatorFeedsPermissionsRequest,
@@ -2032,25 +1866,25 @@ pub struct CustomIndicatorFeedsRemovePermissionArgs {
 /// Arguments for [`custom-indicator-feeds-view-permissions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomIndicatorFeedsViewPermissionsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`custom-indicator-feeds-get-indicator-feed-metadata_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomIndicatorFeedsGetIndicatorFeedMetadataArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: feed_id
+    /// Path parameter: `feed_id`.
     pub feed_id: String,
 }
 
 /// Arguments for [`custom-indicator-feeds-update-indicator-feed-metadata_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomIndicatorFeedsUpdateIndicatorFeedMetadataArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: feed_id
+    /// Path parameter: `feed_id`.
     pub feed_id: String,
     /// Request body.
     pub body: CustomIndicatorFeedsUpdatePublicFieldRequest,
@@ -2059,52 +1893,52 @@ pub struct CustomIndicatorFeedsUpdateIndicatorFeedMetadataArgs {
 /// Arguments for [`custom-indicator-feeds-get-indicator-feed-data_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomIndicatorFeedsGetIndicatorFeedDataArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: feed_id
+    /// Path parameter: `feed_id`.
     pub feed_id: String,
 }
 
 /// Arguments for [`custom-indicator-feeds-download-indicator-feed-data_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomIndicatorFeedsDownloadIndicatorFeedDataArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: feed_id
+    /// Path parameter: `feed_id`.
     pub feed_id: String,
 }
 
 /// Arguments for [`custom-indicator-feeds-update-indicator-feed-data_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CustomIndicatorFeedsUpdateIndicatorFeedDataArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: feed_id
+    /// Path parameter: `feed_id`.
     pub feed_id: String,
 }
 
 /// Arguments for [`ip-intelligence-get-ip-overview_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpIntelligenceGetIpOverviewArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: ipv4
+    /// Query parameter: `ipv4`.
     pub ipv4: Option<String>,
-    /// Query parameter: ipv6
+    /// Query parameter: `ipv6`.
     pub ipv6: Option<String>,
 }
 
 /// Arguments for [`ip-list-get-ip-lists_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpListGetIpListsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`miscategorization-create-miscategorization_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MiscategorizationCreateMiscategorizationArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: IntelMiscategorization,
@@ -2113,111 +1947,23 @@ pub struct MiscategorizationCreateMiscategorizationArgs {
 /// Arguments for [`sinkhole-config-get-sinkholes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SinkholeConfigGetSinkholesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`whois-record-get-whois-record_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WhoisRecordGetWhoisRecordArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: domain
+    /// Query parameter: `domain`.
     pub domain: Option<String>,
-}
-
-/// Arguments for [`urlscanner-get-response-text_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct UrlscannerGetResponseTextArgs {
-    /// Path parameter: response_id
-    pub response_id: String,
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
-/// Arguments for [`urlscanner-search-scans_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct UrlscannerSearchScansArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Query parameter: scan_id
-    pub scan_id: Option<String>,
-    /// Query parameter: limit
-    pub limit: Option<String>,
-    /// Query parameter: next_cursor
-    pub next_cursor: Option<String>,
-    /// Query parameter: date_start
-    pub date_start: Option<String>,
-    /// Query parameter: date_end
-    pub date_end: Option<String>,
-    /// Query parameter: url
-    pub url: Option<String>,
-    /// Query parameter: hostname
-    pub hostname: Option<String>,
-    /// Query parameter: path
-    pub path: Option<String>,
-    /// Query parameter: ip
-    pub ip: Option<String>,
-    /// Query parameter: hash
-    pub hash: Option<String>,
-    /// Query parameter: page_url
-    pub page_url: Option<String>,
-    /// Query parameter: page_hostname
-    pub page_hostname: Option<String>,
-    /// Query parameter: page_path
-    pub page_path: Option<String>,
-    /// Query parameter: page_asn
-    pub page_asn: Option<String>,
-    /// Query parameter: page_ip
-    pub page_ip: Option<String>,
-    /// Query parameter: account_scans
-    pub account_scans: Option<String>,
-    /// Query parameter: is_malicious
-    pub is_malicious: Option<String>,
-}
-
-/// Arguments for [`urlscanner-create-scan_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct UrlscannerCreateScanArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
-/// Arguments for [`urlscanner-get-scan_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct UrlscannerGetScanArgs {
-    /// Path parameter: scan_id
-    pub scan_id: String,
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Query parameter: full
-    pub full: Option<String>,
-}
-
-/// Arguments for [`urlscanner-get-scan-har_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct UrlscannerGetScanHarArgs {
-    /// Path parameter: scan_id
-    pub scan_id: String,
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
-/// Arguments for [`urlscanner-get-scan-screenshot_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct UrlscannerGetScanScreenshotArgs {
-    /// Path parameter: scan_id
-    pub scan_id: String,
-    /// Path parameter: account_id
-    pub account_id: String,
-    /// Query parameter: resolution
-    pub resolution: Option<String>,
 }
 
 /// Arguments for [`urlscanner-create-scan-bulk-v2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UrlscannerCreateScanBulkV2Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<serde_json::Value>,
@@ -2226,1948 +1972,806 @@ pub struct UrlscannerCreateScanBulkV2Args {
 /// Arguments for [`urlscanner-get-scan-dom-v2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UrlscannerGetScanDomV2Args {
-    /// Path parameter: scan_id
+    /// Path parameter: `scan_id`.
     pub scan_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`urlscanner-get-scan-har-v2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UrlscannerGetScanHarV2Args {
-    /// Path parameter: scan_id
+    /// Path parameter: `scan_id`.
     pub scan_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`urlscanner-get-response-v2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UrlscannerGetResponseV2Args {
-    /// Path parameter: response_id
+    /// Path parameter: `response_id`.
     pub response_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`urlscanner-get-scan-v2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UrlscannerGetScanV2Args {
-    /// Path parameter: scan_id
+    /// Path parameter: `scan_id`.
     pub scan_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`urlscanner-create-scan-v2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UrlscannerCreateScanV2Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`urlscanner-get-scan-screenshot-v2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UrlscannerGetScanScreenshotV2Args {
-    /// Path parameter: scan_id
+    /// Path parameter: `scan_id`.
     pub scan_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: resolution
+    /// Query parameter: `resolution`.
     pub resolution: Option<String>,
 }
 
 /// Arguments for [`urlscanner-search-scans-v2_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct UrlscannerSearchScansV2Args {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: size
+    /// Query parameter: `size`.
     pub size: Option<String>,
-    /// Query parameter: q
+    /// Query parameter: `q`.
     pub q: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-summary-by-bitrate_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3SummaryByBitrateArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-summary-by-duration_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3SummaryByDurationArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-summary-by-industry_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3SummaryByIndustryArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-summary-by-ip-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3SummaryByIpVersionArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-summary-by-protocol_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3SummaryByProtocolArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-summary-by-vector_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3SummaryByVectorArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-summary-by-vertical_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3SummaryByVerticalArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-attacks-layer3-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAttacksLayer3SummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `protocol`.
     pub protocol: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-attacks-layer3-timeseries-by-bytes_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAttacksLayer3TimeseriesByBytesArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `protocol`.
     pub protocol: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: metric
+    /// Query parameter: `metric`.
     pub metric: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-timeseries-group-by-bitrate_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3TimeseriesGroupByBitrateArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-timeseries-group-by-duration_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3TimeseriesGroupByDurationArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-timeseries-group-by-industry_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3TimeseriesGroupByIndustryArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-timeseries-group-by-ip-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3TimeseriesGroupByIpVersionArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-timeseries-group-by-protocol_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3TimeseriesGroupByProtocolArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-timeseries-group-by-vector_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3TimeseriesGroupByVectorArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-timeseries-group-by-vertical_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3TimeseriesGroupByVerticalArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: direction
-    pub direction: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-attacks-layer3-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAttacksLayer3TimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `protocol`.
     pub protocol: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-attacks-layer3-top-attacks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAttacksLayer3TopAttacksArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `protocol`.
     pub protocol: Option<String>,
-    /// Query parameter: limitDirection
-    pub limitDirection: Option<String>,
-    /// Query parameter: limitPerLocation
-    pub limitPerLocation: Option<String>,
-    /// Query parameter: magnitude
+    /// Query parameter: `limitDirection`.
+    pub limit_direction: Option<String>,
+    /// Query parameter: `limitPerLocation`.
+    pub limit_per_location: Option<String>,
+    /// Query parameter: `magnitude`.
     pub magnitude: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-top-industries_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3TopIndustriesArgs {
-    /// Query parameter: limit
-    pub limit: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-attacks-layer3-top-origin-locations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAttacksLayer3TopOriginLocationsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `protocol`.
     pub protocol: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-attacks-layer3-top-target-locations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAttacksLayer3TopTargetLocationsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `protocol`.
     pub protocol: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer3-top-verticals_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer3TopVerticalsArgs {
-    /// Query parameter: limit
-    pub limit: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: protocol
-    pub protocol: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-summary-by-http-method_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7SummaryByHttpMethodArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-summary-by-http-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7SummaryByHttpVersionArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-summary-by-industry_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7SummaryByIndustryArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-summary-by-ip-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7SummaryByIpVersionArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-summary-by-managed-rules_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7SummaryByManagedRulesArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-summary-by-mitigation-product_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7SummaryByMitigationProductArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-summary-by-vertical_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7SummaryByVerticalArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-attacks-layer7-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAttacksLayer7SummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `httpMethod`.
+    pub http_method: Option<String>,
+    /// Query parameter: `mitigationProduct`.
+    pub mitigation_product: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-attacks-layer7-timeseries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAttacksLayer7TimeseriesArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-timeseries-group-by-http-method_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7TimeseriesGroupByHttpMethodArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-timeseries-group-by-http-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7TimeseriesGroupByHttpVersionArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-timeseries-group-by-industry_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7TimeseriesGroupByIndustryArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-timeseries-group-by-ip-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7TimeseriesGroupByIpVersionArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-timeseries-group-by-managed-rules_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7TimeseriesGroupByManagedRulesArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-timeseries-group-by-mitigation-product_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7TimeseriesGroupByMitigationProductArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-timeseries-group-by-vertical_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7TimeseriesGroupByVerticalArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: normalization
-    pub normalization: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `httpMethod`.
+    pub http_method: Option<String>,
+    /// Query parameter: `mitigationProduct`.
+    pub mitigation_product: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-attacks-layer7-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAttacksLayer7TimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `httpMethod`.
+    pub http_method: Option<String>,
+    /// Query parameter: `mitigationProduct`.
+    pub mitigation_product: Option<String>,
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-attacks-layer7-top-origin-as_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAttacksLayer7TopOriginAsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `httpMethod`.
+    pub http_method: Option<String>,
+    /// Query parameter: `mitigationProduct`.
+    pub mitigation_product: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-attacks-layer7-top-attacks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAttacksLayer7TopAttacksArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: limitDirection
-    pub limitDirection: Option<String>,
-    /// Query parameter: limitPerLocation
-    pub limitPerLocation: Option<String>,
-    /// Query parameter: normalization
+    /// Query parameter: `mitigationProduct`.
+    pub mitigation_product: Option<String>,
+    /// Query parameter: `limitDirection`.
+    pub limit_direction: Option<String>,
+    /// Query parameter: `limitPerLocation`.
+    pub limit_per_location: Option<String>,
+    /// Query parameter: `normalization`.
     pub normalization: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-top-industries_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7TopIndustriesArgs {
-    /// Query parameter: limit
-    pub limit: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-attacks-layer7-top-origin-location_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAttacksLayer7TopOriginLocationArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `httpMethod`.
+    pub http_method: Option<String>,
+    /// Query parameter: `mitigationProduct`.
+    pub mitigation_product: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-attacks-layer7-top-target-location_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAttacksLayer7TopTargetLocationArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-attacks-layer7-top-verticals_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetAttacksLayer7TopVerticalsArgs {
-    /// Query parameter: limit
-    pub limit: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: httpMethod
-    pub httpMethod: Option<String>,
-    /// Query parameter: mitigationProduct
-    pub mitigationProduct: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `mitigationProduct`.
+    pub mitigation_product: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bots_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBotsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: botCategory
-    pub botCategory: Option<String>,
-    /// Query parameter: botOperator
-    pub botOperator: Option<String>,
-    /// Query parameter: kind
+    /// Query parameter: `botCategory`.
+    pub bot_category: Option<String>,
+    /// Query parameter: `botOperator`.
+    pub bot_operator: Option<String>,
+    /// Query parameter: `kind`.
     pub kind: Option<String>,
-    /// Query parameter: botVerificationStatus
-    pub botVerificationStatus: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `botVerificationStatus`.
+    pub bot_verification_status: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-crawlers-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetCrawlersSummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: botOperator
-    pub botOperator: Option<String>,
-    /// Query parameter: vertical
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `botOperator`.
+    pub bot_operator: Option<String>,
+    /// Query parameter: `vertical`.
     pub vertical: Option<String>,
-    /// Query parameter: industry
+    /// Query parameter: `industry`.
     pub industry: Option<String>,
-    /// Query parameter: clientType
-    pub clientType: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `clientType`.
+    pub client_type: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-crawlers-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetCrawlersTimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: botOperator
-    pub botOperator: Option<String>,
-    /// Query parameter: vertical
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `botOperator`.
+    pub bot_operator: Option<String>,
+    /// Query parameter: `vertical`.
     pub vertical: Option<String>,
-    /// Query parameter: industry
+    /// Query parameter: `industry`.
     pub industry: Option<String>,
-    /// Query parameter: clientType
-    pub clientType: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `clientType`.
+    pub client_type: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bots-summary_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBotsSummaryArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: bot
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `bot`.
     pub bot: Option<String>,
-    /// Query parameter: botOperator
-    pub botOperator: Option<String>,
-    /// Query parameter: botCategory
-    pub botCategory: Option<String>,
-    /// Query parameter: botKind
-    pub botKind: Option<String>,
-    /// Query parameter: botVerificationStatus
-    pub botVerificationStatus: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `botOperator`.
+    pub bot_operator: Option<String>,
+    /// Query parameter: `botCategory`.
+    pub bot_category: Option<String>,
+    /// Query parameter: `botKind`.
+    pub bot_kind: Option<String>,
+    /// Query parameter: `botVerificationStatus`.
+    pub bot_verification_status: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bots-timeseries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBotsTimeseriesArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: bot
+    /// Query parameter: `bot`.
     pub bot: Option<String>,
-    /// Query parameter: botOperator
-    pub botOperator: Option<String>,
-    /// Query parameter: botCategory
-    pub botCategory: Option<String>,
-    /// Query parameter: botKind
-    pub botKind: Option<String>,
-    /// Query parameter: botVerificationStatus
-    pub botVerificationStatus: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `botOperator`.
+    pub bot_operator: Option<String>,
+    /// Query parameter: `botCategory`.
+    pub bot_category: Option<String>,
+    /// Query parameter: `botKind`.
+    pub bot_kind: Option<String>,
+    /// Query parameter: `botVerificationStatus`.
+    pub bot_verification_status: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bots-timeseries-group_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBotsTimeseriesGroupArgs {
-    /// Path parameter: dimension
+    /// Path parameter: `dimension`.
     pub dimension: String,
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `aggInterval`.
+    pub agg_interval: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: limitPerGroup
-    pub limitPerGroup: Option<String>,
-    /// Query parameter: bot
+    /// Query parameter: `limitPerGroup`.
+    pub limit_per_group: Option<String>,
+    /// Query parameter: `bot`.
     pub bot: Option<String>,
-    /// Query parameter: botOperator
-    pub botOperator: Option<String>,
-    /// Query parameter: botCategory
-    pub botCategory: Option<String>,
-    /// Query parameter: botKind
-    pub botKind: Option<String>,
-    /// Query parameter: botVerificationStatus
-    pub botVerificationStatus: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `botOperator`.
+    pub bot_operator: Option<String>,
+    /// Query parameter: `botCategory`.
+    pub bot_category: Option<String>,
+    /// Query parameter: `botKind`.
+    pub bot_kind: Option<String>,
+    /// Query parameter: `botVerificationStatus`.
+    pub bot_verification_status: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-bot-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetBotDetailsArgs {
-    /// Path parameter: bot_slug
+    /// Path parameter: `bot_slug`.
     pub bot_slug: String,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-summary-by-threat-category_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecuritySummaryByThreatCategoryArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-email-security-timeseries-group-by-threat-category_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetEmailSecurityTimeseriesGroupByThreatCategoryArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
-    pub arc: Option<String>,
-    /// Query parameter: dkim
-    pub dkim: Option<String>,
-    /// Query parameter: dmarc
-    pub dmarc: Option<String>,
-    /// Query parameter: spf
-    pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-as-botnet-threat-feed_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetAsBotnetThreatFeedArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: metric
+    /// Query parameter: `metric`.
     pub metric: Option<String>,
-    /// Query parameter: date
+    /// Query parameter: `date`.
     pub date: Option<String>,
-    /// Query parameter: compareDateRange
-    pub compareDateRange: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `compareDateRange`.
+    pub compare_date_range: Option<String>,
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: sortOrder
-    pub sortOrder: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-summary-by-bot-class_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpSummaryByBotClassArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-http-timeseries-group-by-bot-class_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetHttpTimeseriesGroupByBotClassArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
-    pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `sortOrder`.
+    pub sort_order: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-bot-class_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByBotClassArgs {
-    /// Path parameter: bot_class
+    /// Path parameter: `bot_class`.
     pub bot_class: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-bot-class_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByBotClassArgs {
-    /// Path parameter: bot_class
+    /// Path parameter: `bot_class`.
     pub bot_class: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `asn`.
     pub asn: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: continent
+    /// Query parameter: `continent`.
     pub continent: Option<String>,
-    /// Query parameter: geoId
-    pub geoId: Option<String>,
-    /// Query parameter: deviceType
-    pub deviceType: Option<String>,
-    /// Query parameter: httpProtocol
-    pub httpProtocol: Option<String>,
-    /// Query parameter: httpVersion
-    pub httpVersion: Option<String>,
-    /// Query parameter: ipVersion
-    pub ipVersion: Option<String>,
-    /// Query parameter: os
+    /// Query parameter: `geoId`.
+    pub geo_id: Option<String>,
+    /// Query parameter: `deviceType`.
+    pub device_type: Option<String>,
+    /// Query parameter: `httpProtocol`.
+    pub http_protocol: Option<String>,
+    /// Query parameter: `httpVersion`.
+    pub http_version: Option<String>,
+    /// Query parameter: `ipVersion`.
+    pub ip_version: Option<String>,
+    /// Query parameter: `os`.
     pub os: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: browserFamily
-    pub browserFamily: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-leaked-credential-checks-summary-by-bot-class_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetLeakedCredentialChecksSummaryByBotClassArgs {
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: compromised
-    pub compromised: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-leaked-credential-checks-timeseries-group-by-bot-class_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetLeakedCredentialChecksTimeseriesGroupByBotClassArgs {
-    /// Query parameter: aggInterval
-    pub aggInterval: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: compromised
-    pub compromised: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `browserFamily`.
+    pub browser_family: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-robots-txt-top-user-agents-by-directive_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetRobotsTxtTopUserAgentsByDirectiveArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: userAgentCategory
-    pub userAgentCategory: Option<String>,
-    /// Query parameter: date
+    /// Query parameter: `userAgentCategory`.
+    pub user_agent_category: Option<String>,
+    /// Query parameter: `date`.
     pub date: Option<String>,
-    /// Query parameter: domainCategory
-    pub domainCategory: Option<String>,
-    /// Query parameter: directive
+    /// Query parameter: `domainCategory`.
+    pub domain_category: Option<String>,
+    /// Query parameter: `directive`.
     pub directive: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-verified-bots-top-by-http-requests_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetVerifiedBotsTopByHttpRequestsArgs {
-    /// Query parameter: limit
-    pub limit: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: format
-    pub format: Option<String>,
-}
-
-/// Arguments for [`radar-get-verified-bots-top-categories-by-http-requests_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct RadarGetVerifiedBotsTopCategoriesByHttpRequestsArgs {
-    /// Query parameter: limit
-    pub limit: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: asn
-    pub asn: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: continent
-    pub continent: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`ip-access-rules-for-a-user-list-ip-access-rules_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAccessRulesForAUserListIpAccessRulesArgs {
-    /// Query parameter: mode
+    /// Query parameter: `mode`.
     pub mode: Option<String>,
-    /// Query parameter: configuration.target
+    /// Query parameter: `configuration.target`.
     pub configuration_target: Option<String>,
-    /// Query parameter: configuration.value
+    /// Query parameter: `configuration.value`.
     pub configuration_value: Option<String>,
-    /// Query parameter: notes
+    /// Query parameter: `notes`.
     pub notes: Option<String>,
-    /// Query parameter: match
+    /// Query parameter: `match`.
     pub r#match: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`ip-access-rules-for-a-user-update-an-ip-access-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAccessRulesForAUserUpdateAnIpAccessRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
 /// Arguments for [`ip-access-rules-for-a-user-delete-an-ip-access-rule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IpAccessRulesForAUserDeleteAnIpAccessRuleArgs {
-    /// Path parameter: rule_id
+    /// Path parameter: `rule_id`.
     pub rule_id: String,
 }
 
@@ -4197,7 +2801,6 @@ pub struct IpAccessRulesForAUserDeleteAnIpAccessRuleArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn botnet_threat_feed_get_day_report_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4234,7 +2837,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4282,7 +2885,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn botnet_threat_feed_get_full_report_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4319,7 +2921,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4367,7 +2969,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn botnet_threat_feed_list_asn_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4404,7 +3005,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4452,7 +3053,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn botnet_threat_feed_delete_asn_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4489,7 +3089,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4537,7 +3137,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn accounts_turnstile_widgets_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4574,7 +3173,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4622,7 +3221,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn accounts_turnstile_widget_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4659,7 +3257,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4707,7 +3305,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn accounts_turnstile_widget_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4744,7 +3341,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4792,7 +3389,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn accounts_turnstile_widget_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4829,7 +3425,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4877,7 +3473,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn accounts_turnstile_widget_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4914,7 +3509,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4962,7 +3557,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn accounts_turnstile_widget_rotate_secret_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4999,7 +3593,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5047,7 +3641,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_bin_db_post_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5084,7 +3677,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5132,7 +3725,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_bin_db_get_binary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5169,7 +3761,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5217,7 +3809,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_event_list_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5306,7 +3897,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_attacker_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5343,7 +3933,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5391,7 +3981,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_category_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5480,7 +4069,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_category_list_complete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5569,7 +4157,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_category_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5606,7 +4193,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5654,7 +4241,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_category_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5691,7 +4277,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5739,7 +4325,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_category_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5776,7 +4361,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5824,7 +4409,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn patch_category_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5861,7 +4445,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5909,7 +4493,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_category_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -5946,7 +4529,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -5994,7 +4577,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_country_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6083,7 +4665,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6120,7 +4701,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6168,7 +4749,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_create_bulk_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6205,92 +4785,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /accounts/{account_id}/cloudforce-one/events/create/bulk/relationships
-// -----------------------------------------------------------------------------
-
-/// POST /accounts/{account_id}/cloudforce-one/events/create/bulk/relationships.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = post_dos_event_create_bulk_with_relationships_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn post_dos_event_create_bulk_with_relationships_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &PostDOSEventCreateBulkWithRelationshipsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/cloudforce-one/events/create/bulk/relationships",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6338,7 +4833,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_dataset_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6427,7 +4921,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_group_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6516,7 +5009,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_group_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6553,7 +5045,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6601,7 +5093,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_group_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6639,7 +5130,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6687,7 +5178,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn put_group_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6725,7 +5215,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6773,7 +5263,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_group_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6811,7 +5300,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -6859,7 +5348,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_group_member_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6949,7 +5437,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_group_member_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -6987,7 +5474,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7035,7 +5522,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_group_member_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7074,7 +5560,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7122,7 +5608,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_dataset_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7159,7 +5644,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7207,7 +5692,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_dataset_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7244,7 +5728,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7292,7 +5776,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_dataset_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7329,7 +5812,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7377,7 +5860,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn patch_dataset_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7414,7 +5896,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7462,7 +5944,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_dataset_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7499,7 +5980,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7547,7 +6028,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_copy_to_new_ds_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7584,7 +6064,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7632,7 +6112,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_event_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7671,7 +6150,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7719,7 +6198,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_indicator_type_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7757,93 +6235,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/cloudforce-one/events/dataset/{dataset_id}/indicators
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/cloudforce-one/events/dataset/{dataset_id}/indicators.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = get_indicator_list_legacy_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn get_indicator_list_legacy_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &GetIndicatorListLegacyArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/cloudforce-one/events/dataset/{}/indicators",
-        args.account_id,
-        args.dataset_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -7891,7 +6283,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_indicator_create_bulk_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -7981,7 +6372,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_indicator_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8019,7 +6409,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8067,7 +6457,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_indicator_tags_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8157,7 +6546,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_indicator_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8196,7 +6584,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8244,7 +6632,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn patch_indicator_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8283,7 +6670,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8331,7 +6718,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_indicator_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8370,7 +6756,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8418,7 +6804,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_move_to_new_ds_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8455,7 +6840,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8503,7 +6888,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_permission_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8593,7 +6977,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_permission_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8631,7 +7014,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8679,7 +7062,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn put_permission_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8718,7 +7100,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8766,7 +7148,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_permission_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8805,7 +7186,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8853,7 +7234,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_tag_indicators_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8892,7 +7272,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -8940,7 +7320,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_target_industry_list_by_dataset_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -8978,7 +7357,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9026,7 +7405,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_dataset_populate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9063,7 +7441,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9111,7 +7489,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_event_tag_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9148,7 +7525,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9196,7 +7573,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_tag_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9234,7 +7610,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9282,7 +7658,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_graph_ql_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9319,7 +7694,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9367,7 +7742,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_indicator_types_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9404,92 +7778,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/cloudforce-one/events/indicatorTypes
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/cloudforce-one/events/indicatorTypes.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = get_legacy_indicator_types_list_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn get_legacy_indicator_types_list_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &GetLegacyIndicatorTypesListArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/cloudforce-one/events/indicatorTypes",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9537,7 +7826,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_indicator_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9574,7 +7862,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9622,7 +7910,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_event_query_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9711,7 +7998,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_event_query_alert_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9800,7 +8086,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_query_alert_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9837,7 +8122,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9885,7 +8170,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_event_query_alert_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -9922,7 +8206,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -9970,7 +8254,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_query_alert_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10007,7 +8290,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10055,7 +8338,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn patch_event_query_alert_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10092,7 +8374,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10140,7 +8422,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_event_query_alert_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10177,7 +8458,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10225,7 +8506,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_query_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10262,7 +8542,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10310,7 +8590,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_event_query_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10347,7 +8626,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10395,7 +8674,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_query_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10432,7 +8710,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10480,7 +8758,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn patch_event_query_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10517,7 +8794,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10565,7 +8842,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_event_query_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10602,7 +8878,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10650,7 +8926,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_event_raw_read_ds_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10687,7 +8962,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10735,7 +9010,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_event_reference_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10772,7 +9046,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10820,7 +9094,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_reference_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10857,7 +9130,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10905,7 +9178,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_create_event_relationship_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -10942,7 +9214,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -10990,7 +9262,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_tag_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11027,7 +9298,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11075,7 +9346,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_tag_category_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11112,7 +9382,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11160,7 +9430,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_tag_category_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11197,7 +9466,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11245,7 +9514,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn patch_tag_category_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11282,7 +9550,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11330,7 +9598,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_tag_category_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11367,7 +9634,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11415,7 +9682,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_tag_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11452,7 +9718,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11500,7 +9766,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn patch_tag_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11537,7 +9802,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11585,7 +9850,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_tag_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11622,7 +9886,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11670,7 +9934,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_target_industry_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11707,7 +9970,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11755,7 +10018,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_target_industry_list_complete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11792,7 +10054,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11840,7 +10102,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn patch_event_update_bulk_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -11877,7 +10138,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -11925,7 +10186,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_event_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12014,7 +10274,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_do_revert_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12051,92 +10310,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/cloudforce-one/events/{event_id}
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/cloudforce-one/events/{event_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = get_event_read_deprecated_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn get_event_read_deprecated_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &GetEventReadDeprecatedArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/cloudforce-one/events/{}",
-        args.account_id, args.event_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -12184,7 +10358,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12221,7 +10394,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -12269,7 +10442,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn patch_event_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12306,7 +10478,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -12354,7 +10526,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_event_raw_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12391,7 +10562,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -12439,7 +10610,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_raw_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12476,7 +10646,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -12524,7 +10694,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn patch_event_raw_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12561,7 +10730,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -12609,7 +10778,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_event_relationships_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12698,7 +10866,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12739,7 +10906,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -12787,7 +10954,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_constants_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12824,7 +10990,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -12872,7 +11038,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_new_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -12913,7 +11078,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -12961,7 +11126,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_priority_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13002,7 +11166,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13050,7 +11214,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_priority_new_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13091,7 +11254,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13139,7 +11302,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_priority_quota_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13176,7 +11338,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13224,7 +11386,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_priority_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13261,7 +11422,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13309,7 +11470,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_priority_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13350,7 +11510,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13398,7 +11558,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_priority_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13490,7 +11649,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_quota_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13527,7 +11685,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13575,7 +11733,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_types_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13612,7 +11769,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13660,7 +11817,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13697,7 +11853,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13745,7 +11901,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13786,7 +11941,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -13834,7 +11989,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13926,7 +12080,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_asset_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -13967,7 +12120,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14015,7 +12168,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_asset_new_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14052,7 +12204,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14100,7 +12252,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_asset_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14137,7 +12288,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14185,7 +12336,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_asset_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14226,7 +12376,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14274,7 +12424,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_asset_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14366,7 +12515,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_message_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14407,7 +12555,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14455,7 +12603,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_message_new_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14496,7 +12643,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14544,7 +12691,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_message_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14585,7 +12731,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -14633,7 +12779,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_request_message_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14725,7 +12870,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_list_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14814,7 +12958,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_create_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14907,7 +13050,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_delete_all_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -14996,7 +13138,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_get_rule_stats_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15085,7 +13226,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_get_rule_tree_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15174,7 +13314,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_validate_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15263,7 +13402,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_get_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15352,7 +13490,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_update_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15445,7 +13582,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn cloudforce_one_delete_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15534,7 +13670,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_config_fetch_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15571,7 +13706,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -15619,7 +13754,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_config_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15656,7 +13790,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -15704,7 +13838,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_config_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15741,7 +13874,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -15789,7 +13922,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_delete_scans_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15826,7 +13958,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -15874,7 +14006,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_get_open_ports_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15911,7 +14042,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -15959,7 +14090,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_logo_match_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -15996,7 +14126,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16044,7 +14174,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_get_logo_queries_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16133,7 +14262,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_insert_logo_query_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16170,7 +14298,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16218,7 +14346,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_delete_logo_query_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16256,7 +14383,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16304,7 +14431,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_search_logo_similarity_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16341,7 +14467,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16389,7 +14515,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_total_queries_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16478,7 +14603,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn post_event_graph_qlv2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16515,7 +14639,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16563,7 +14687,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_document_fingerprints_read_all_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16600,7 +14723,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16648,7 +14771,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_document_fingerprints_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16685,7 +14807,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16733,7 +14855,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_document_fingerprints_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16770,7 +14891,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16818,7 +14939,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_document_fingerprints_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16859,7 +14979,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16907,7 +15027,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_document_fingerprints_upload_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -16944,7 +15063,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -16992,7 +15111,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_document_fingerprints_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17029,7 +15147,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -17077,7 +15195,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_access_rules_for_an_account_list_ip_access_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17166,7 +15283,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_access_rules_for_an_account_create_an_ip_access_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17255,7 +15371,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_access_rules_for_an_account_get_an_ip_access_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17344,7 +15459,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_access_rules_for_an_account_update_an_ip_access_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17437,7 +15551,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_access_rules_for_an_account_delete_an_ip_access_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17526,7 +15639,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn asn_intelligence_get_asn_overview_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17615,7 +15727,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn asn_intelligence_get_asn_subnets_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17652,7 +15763,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -17700,7 +15811,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_security_center_issue_types_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -17737,444 +15847,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/intel/attack-surface-report/issues
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/intel/attack-surface-report/issues.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = get_security_center_issues_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn get_security_center_issues_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &GetSecurityCenterIssuesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/intel/attack-surface-report/issues",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/intel/attack-surface-report/issues/class
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/intel/attack-surface-report/issues/class.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = get_security_center_issue_counts_by_class_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn get_security_center_issue_counts_by_class_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &GetSecurityCenterIssueCountsByClassArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<SecurityCenterValueCountsResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/intel/attack-surface-report/issues/class",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: SecurityCenterValueCountsResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/intel/attack-surface-report/issues/severity
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/intel/attack-surface-report/issues/severity.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = get_security_center_issue_counts_by_severity_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn get_security_center_issue_counts_by_severity_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &GetSecurityCenterIssueCountsBySeverityArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<SecurityCenterValueCountsResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/intel/attack-surface-report/issues/severity",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: SecurityCenterValueCountsResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/intel/attack-surface-report/issues/type
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/intel/attack-surface-report/issues/type.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = get_security_center_issue_counts_by_type_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn get_security_center_issue_counts_by_type_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &GetSecurityCenterIssueCountsByTypeArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<SecurityCenterValueCountsResponse>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/intel/attack-surface-report/issues/type",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: SecurityCenterValueCountsResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// PUT /accounts/{account_id}/intel/attack-surface-report/{issue_id}/dismiss
-// -----------------------------------------------------------------------------
-
-/// PUT /accounts/{account_id}/intel/attack-surface-report/{issue_id}/dismiss.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = archive_security_center_insight_deprecated_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn archive_security_center_insight_deprecated_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &ArchiveSecurityCenterInsightDeprecatedArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/intel/attack-surface-report/{}/dismiss",
-        args.account_id, args.issue_id,
-    );
-
-    let mut builder = client
-        .put(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -18222,7 +15895,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn passive_dns_by_ip_get_passive_dns_by_ip_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18314,7 +15986,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_indicator_feeds_get_indicator_feeds_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18406,7 +16077,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_indicator_feeds_create_indicator_feeds_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18498,7 +16168,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_indicator_feeds_add_permission_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18595,7 +16264,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_indicator_feeds_remove_permission_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18692,7 +16360,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_indicator_feeds_view_permissions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18785,7 +16452,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_indicator_feeds_get_indicator_feed_metadata_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18878,7 +16544,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_indicator_feeds_update_indicator_feed_metadata_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -18975,7 +16640,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_indicator_feeds_get_indicator_feed_data_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19012,7 +16676,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -19060,7 +16724,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_indicator_feeds_download_indicator_feed_data_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19152,7 +16815,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn custom_indicator_feeds_update_indicator_feed_data_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19244,7 +16906,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_intelligence_get_ip_overview_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19333,7 +16994,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_list_get_ip_lists_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19422,7 +17082,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn miscategorization_create_miscategorization_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19515,7 +17174,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn sinkhole_config_get_sinkholes_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19607,7 +17265,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn whois_record_get_whois_record_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -19679,516 +17336,6 @@ where
 }
 
 // -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/urlscanner/response/{response_id}
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/urlscanner/response/{response_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = urlscanner_get_response_text_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn urlscanner_get_response_text_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &UrlscannerGetResponseTextArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/urlscanner/response/{}",
-        args.account_id, args.response_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/urlscanner/scan
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/urlscanner/scan.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = urlscanner_search_scans_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn urlscanner_search_scans_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &UrlscannerSearchScansArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/urlscanner/scan",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// POST /accounts/{account_id}/urlscanner/scan
-// -----------------------------------------------------------------------------
-
-/// POST /accounts/{account_id}/urlscanner/scan.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = urlscanner_create_scan_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn urlscanner_create_scan_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &UrlscannerCreateScanArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/urlscanner/scan",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .post(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/urlscanner/scan/{scan_id}
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/urlscanner/scan/{scan_id}.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = urlscanner_get_scan_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn urlscanner_get_scan_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &UrlscannerGetScanArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/urlscanner/scan/{}",
-        args.account_id, args.scan_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/urlscanner/scan/{scan_id}/har
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/urlscanner/scan/{scan_id}/har.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = urlscanner_get_scan_har_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn urlscanner_get_scan_har_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &UrlscannerGetScanHarArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/urlscanner/scan/{}/har",
-        args.account_id, args.scan_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/urlscanner/scan/{scan_id}/screenshot
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/urlscanner/scan/{scan_id}/screenshot.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = urlscanner_get_scan_screenshot_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn urlscanner_get_scan_screenshot_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &UrlscannerGetScanScreenshotArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/urlscanner/scan/{}/screenshot",
-        args.account_id, args.scan_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
 // POST /accounts/{account_id}/urlscanner/v2/bulk
 // -----------------------------------------------------------------------------
 
@@ -20210,7 +17357,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn urlscanner_create_scan_bulk_v2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20303,7 +17449,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn urlscanner_get_scan_dom_v2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20340,7 +17485,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20388,7 +17533,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn urlscanner_get_scan_har_v2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20425,7 +17569,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20473,7 +17617,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn urlscanner_get_response_v2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20510,7 +17653,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20558,7 +17701,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn urlscanner_get_scan_v2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20595,7 +17737,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20643,7 +17785,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn urlscanner_create_scan_v2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20680,7 +17821,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20728,7 +17869,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn urlscanner_get_scan_screenshot_v2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20765,7 +17905,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -20813,7 +17953,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn urlscanner_search_scans_v2_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -20850,588 +17989,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/summary/bitrate
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/summary/bitrate.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_summary_by_bitrate_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_summary_by_bitrate_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3SummaryByBitrateArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer3/summary/bitrate",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/summary/duration
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/summary/duration.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_summary_by_duration_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_summary_by_duration_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3SummaryByDurationArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer3/summary/duration",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/summary/industry
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/summary/industry.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_summary_by_industry_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_summary_by_industry_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3SummaryByIndustryArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer3/summary/industry",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/summary/ip_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/summary/ip_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_summary_by_ip_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_summary_by_ip_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3SummaryByIpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer3/summary/ip_version",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/summary/protocol
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/summary/protocol.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_summary_by_protocol_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_summary_by_protocol_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3SummaryByProtocolArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer3/summary/protocol",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/summary/vector
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/summary/vector.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_summary_by_vector_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_summary_by_vector_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3SummaryByVectorArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer3/summary/vector",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/summary/vertical
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/summary/vertical.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_summary_by_vertical_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_summary_by_vertical_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3SummaryByVerticalArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer3/summary/vertical",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -21479,7 +18037,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_attacks_layer3_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -21516,7 +18073,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -21554,7 +18111,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -21564,11 +18120,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_attacks_layer3_timeseries_by_bytes_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3TimeseriesByBytesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -21599,595 +18153,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/timeseries_groups/bitrate
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/timeseries_groups/bitrate.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_timeseries_group_by_bitrate_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_timeseries_group_by_bitrate_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3TimeseriesGroupByBitrateArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer3/timeseries_groups/bitrate",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/timeseries_groups/duration
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/timeseries_groups/duration.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_timeseries_group_by_duration_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_timeseries_group_by_duration_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3TimeseriesGroupByDurationArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer3/timeseries_groups/duration",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/timeseries_groups/industry
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/timeseries_groups/industry.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_timeseries_group_by_industry_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_timeseries_group_by_industry_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3TimeseriesGroupByIndustryArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer3/timeseries_groups/industry",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/timeseries_groups/ip_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/timeseries_groups/ip_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_timeseries_group_by_ip_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_timeseries_group_by_ip_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3TimeseriesGroupByIpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer3/timeseries_groups/ip_version",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/timeseries_groups/protocol
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/timeseries_groups/protocol.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_timeseries_group_by_protocol_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_timeseries_group_by_protocol_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3TimeseriesGroupByProtocolArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer3/timeseries_groups/protocol",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/timeseries_groups/vector
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/timeseries_groups/vector.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_timeseries_group_by_vector_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_timeseries_group_by_vector_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3TimeseriesGroupByVectorArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer3/timeseries_groups/vector",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/timeseries_groups/vertical
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/timeseries_groups/vertical.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_timeseries_group_by_vertical_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_timeseries_group_by_vertical_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3TimeseriesGroupByVerticalArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer3/timeseries_groups/vertical",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -22235,7 +18201,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_attacks_layer3_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -22272,7 +18237,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -22310,7 +18275,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -22320,11 +18284,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_attacks_layer3_top_attacks_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3TopAttacksArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -22355,90 +18317,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/top/industry
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/top/industry.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_top_industries_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_top_industries_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3TopIndustriesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer3/top/industry",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -22476,7 +18355,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -22486,11 +18364,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_attacks_layer3_top_origin_locations_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3TopOriginLocationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -22521,7 +18397,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -22559,7 +18435,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -22569,11 +18444,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_attacks_layer3_top_target_locations_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3TopTargetLocationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -22604,672 +18477,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer3/top/vertical
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer3/top/vertical.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer3_top_verticals_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer3_top_verticals_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer3TopVerticalsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer3/top/vertical",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/summary/http_method
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/summary/http_method.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_summary_by_http_method_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_summary_by_http_method_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7SummaryByHttpMethodArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer7/summary/http_method",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/summary/http_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/summary/http_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_summary_by_http_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_summary_by_http_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7SummaryByHttpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer7/summary/http_version",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/summary/industry
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/summary/industry.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_summary_by_industry_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_summary_by_industry_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7SummaryByIndustryArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer7/summary/industry",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/summary/ip_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/summary/ip_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_summary_by_ip_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_summary_by_ip_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7SummaryByIpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer7/summary/ip_version",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/summary/managed_rules
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/summary/managed_rules.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_summary_by_managed_rules_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_summary_by_managed_rules_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7SummaryByManagedRulesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer7/summary/managed_rules",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/summary/mitigation_product
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/summary/mitigation_product.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_summary_by_mitigation_product_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_summary_by_mitigation_product_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7SummaryByMitigationProductArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer7/summary/mitigation_product",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/summary/vertical
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/summary/vertical.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_summary_by_vertical_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_summary_by_vertical_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7SummaryByVerticalArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer7/summary/vertical",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -23317,7 +18525,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_attacks_layer7_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -23354,7 +18561,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -23392,7 +18599,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -23402,11 +18608,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_attacks_layer7_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -23437,595 +18641,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/timeseries_groups/http_method
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/timeseries_groups/http_method.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_timeseries_group_by_http_method_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_timeseries_group_by_http_method_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TimeseriesGroupByHttpMethodArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer7/timeseries_groups/http_method",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/timeseries_groups/http_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/timeseries_groups/http_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_timeseries_group_by_http_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_timeseries_group_by_http_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TimeseriesGroupByHttpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer7/timeseries_groups/http_version",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/timeseries_groups/industry
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/timeseries_groups/industry.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_timeseries_group_by_industry_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_timeseries_group_by_industry_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TimeseriesGroupByIndustryArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer7/timeseries_groups/industry",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/timeseries_groups/ip_version
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/timeseries_groups/ip_version.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_timeseries_group_by_ip_version_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_timeseries_group_by_ip_version_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TimeseriesGroupByIpVersionArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer7/timeseries_groups/ip_version",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/timeseries_groups/managed_rules
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/timeseries_groups/managed_rules.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_timeseries_group_by_managed_rules_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_timeseries_group_by_managed_rules_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TimeseriesGroupByManagedRulesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer7/timeseries_groups/managed_rules",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/timeseries_groups/mitigation_product
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/timeseries_groups/mitigation_product.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_timeseries_group_by_mitigation_product_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_timeseries_group_by_mitigation_product_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TimeseriesGroupByMitigationProductArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer7/timeseries_groups/mitigation_product",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/timeseries_groups/vertical
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/timeseries_groups/vertical.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_timeseries_group_by_vertical_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_timeseries_group_by_vertical_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TimeseriesGroupByVerticalArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/attacks/layer7/timeseries_groups/vertical",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -24073,7 +18689,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_attacks_layer7_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24110,7 +18725,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -24148,7 +18763,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -24158,11 +18772,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_attacks_layer7_top_origin_as_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TopOriginAsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -24193,7 +18805,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -24231,7 +18843,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -24241,11 +18852,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_attacks_layer7_top_attacks_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TopAttacksArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -24276,90 +18885,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/top/industry
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/top/industry.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_top_industries_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_top_industries_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TopIndustriesArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer7/top/industry",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -24397,7 +18923,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -24407,11 +18932,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_attacks_layer7_top_origin_location_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TopOriginLocationArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -24442,7 +18965,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -24480,7 +19003,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -24490,11 +19012,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_attacks_layer7_top_target_location_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TopTargetLocationArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -24525,90 +19045,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/attacks/layer7/top/vertical
-// -----------------------------------------------------------------------------
-
-/// GET /radar/attacks/layer7/top/vertical.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_attacks_layer7_top_verticals_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_attacks_layer7_top_verticals_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetAttacksLayer7TopVerticalsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/attacks/layer7/top/vertical",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -24646,7 +19083,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -24656,11 +19092,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bots_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBotsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -24690,7 +19124,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -24738,7 +19172,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_crawlers_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24775,7 +19208,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -24823,7 +19256,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_crawlers_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24860,7 +19292,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -24908,7 +19340,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bots_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -24945,7 +19376,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -24983,7 +19414,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -24993,11 +19423,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bots_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetBotsTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -25027,7 +19455,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -25075,7 +19503,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bots_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -25112,7 +19539,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -25160,7 +19587,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_bot_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -25197,175 +19623,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/summary/threat_category
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/summary/threat_category.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_summary_by_threat_category_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_summary_by_threat_category_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecuritySummaryByThreatCategoryArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/summary/threat_category",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/email/security/timeseries_groups/threat_category
-// -----------------------------------------------------------------------------
-
-/// GET /radar/email/security/timeseries_groups/threat_category.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_email_security_timeseries_group_by_threat_category_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_email_security_timeseries_group_by_threat_category_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecurityTimeseriesGroupByThreatCategoryArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/email/security/timeseries_groups/threat_category",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -25403,7 +19661,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -25413,11 +19670,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_as_botnet_threat_feed_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetAsBotnetThreatFeedArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -25448,173 +19703,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/summary/bot_class
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/summary/bot_class.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_summary_by_bot_class_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_summary_by_bot_class_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpSummaryByBotClassArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/summary/bot_class",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/http/timeseries_groups/bot_class
-// -----------------------------------------------------------------------------
-
-/// GET /radar/http/timeseries_groups/bot_class.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_http_timeseries_group_by_bot_class_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_http_timeseries_group_by_bot_class_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetHttpTimeseriesGroupByBotClassArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/http/timeseries_groups/bot_class",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -25662,7 +19751,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_ases_by_bot_class_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -25699,7 +19787,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -25747,7 +19835,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_http_top_locations_by_bot_class_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -25784,175 +19871,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/leaked_credential_checks/summary/bot_class
-// -----------------------------------------------------------------------------
-
-/// GET /radar/leaked_credential_checks/summary/bot_class.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_leaked_credential_checks_summary_by_bot_class_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_leaked_credential_checks_summary_by_bot_class_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetLeakedCredentialChecksSummaryByBotClassArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/leaked_credential_checks/summary/bot_class",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/leaked_credential_checks/timeseries_groups/bot_class
-// -----------------------------------------------------------------------------
-
-/// GET /radar/leaked_credential_checks/timeseries_groups/bot_class.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_leaked_credential_checks_timeseries_group_by_bot_class_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_leaked_credential_checks_timeseries_group_by_bot_class_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetLeakedCredentialChecksTimeseriesGroupByBotClassArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/radar/leaked_credential_checks/timeseries_groups/bot_class",
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -25990,7 +19909,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -26000,11 +19918,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_robots_txt_top_user_agents_by_directive_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetRobotsTxtTopUserAgentsByDirectiveArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -26035,173 +19951,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/verified_bots/top/bots
-// -----------------------------------------------------------------------------
-
-/// GET /radar/verified_bots/top/bots.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_verified_bots_top_by_http_requests_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_verified_bots_top_by_http_requests_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetVerifiedBotsTopByHttpRequestsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/verified_bots/top/bots",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// GET /radar/verified_bots/top/categories
-// -----------------------------------------------------------------------------
-
-/// GET /radar/verified_bots/top/categories.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = radar_get_verified_bots_top_categories_by_http_requests_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn radar_get_verified_bots_top_categories_by_http_requests_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &RadarGetVerifiedBotsTopCategoriesByHttpRequestsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url =
-        format!("https://api.cloudflare.com/client/v4/radar/verified_bots/top/categories",);
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -26239,7 +19989,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -26249,11 +19998,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_access_rules_for_a_user_list_ip_access_rules_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &IpAccessRulesForAUserListIpAccessRulesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -26335,7 +20082,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_access_rules_for_a_user_create_an_ip_access_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -26421,7 +20167,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_access_rules_for_a_user_update_an_ip_access_rule_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -26510,7 +20255,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn ip_access_rules_for_a_user_delete_an_ip_access_rule_request<R, F>(
     client: &SimpleHttpClient<R>,

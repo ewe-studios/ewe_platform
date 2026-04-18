@@ -232,6 +232,29 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             println!("\n=== Generation Complete ===");
             println!("Output directory: {}", output_dir.display());
 
+            // Auto-fix common issues (unused imports, snake_case, etc.)
+            println!("\n=== Running cargo fix ===");
+            let feature_name = provider.replace('-', "_");
+            let fix_output = std::process::Command::new("cargo")
+                .args([
+                    "fix",
+                    "--lib",
+                    "-p",
+                    "foundation_deployment",
+                    "--allow-dirty",
+                    "--features",
+                    &feature_name,
+                ])
+                .output()
+                .expect("cargo fix should run");
+
+            if !fix_output.stdout.is_empty() {
+                println!("{}", String::from_utf8_lossy(&fix_output.stdout));
+            }
+            if !fix_output.stderr.is_empty() {
+                eprintln!("{}", String::from_utf8_lossy(&fix_output.stderr));
+            }
+
             Ok(())
         }
         _ => unreachable!("subcommand_required ensures a subcommand is present"),

@@ -6,22 +6,28 @@
 //! Feature flag: `cloudflare_routes `
 
 #![cfg(feature = "cloudflare_routes")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// MagicTransitTracerouteResponseCollection response type.
+/// `MagicTransitTracerouteResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MagicTransitTracerouteResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -33,7 +39,7 @@ pub struct MagicTransitTracerouteResponseCollection {
 /// Arguments for [`diagnostics-traceroute_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DiagnosticsTracerouteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
@@ -63,7 +69,6 @@ pub struct DiagnosticsTracerouteArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn diagnostics_traceroute_request<R, F>(
     client: &SimpleHttpClient<R>,

@@ -158,6 +158,8 @@ pub struct Operation {
     pub responses: BTreeMap<String, Response>,
     #[serde(default)]
     pub tags: Option<Vec<String>>,
+    #[serde(default)]
+    pub deprecated: bool,
 
     // GCP Discovery: method-specific fields
     #[serde(default, rename = "flatPath")]

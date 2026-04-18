@@ -107,14 +107,20 @@ impl SpecProcessor {
     }
 
     /// Get all endpoints with full type information.
-    #[must_use] 
+    #[must_use]
     pub fn endpoints(&self) -> Vec<EndpointInfo> {
         let extractor = EndpointExtractor::new(self.spec.clone());
         extractor.extract_all()
     }
 
+    /// Get all schemas from the spec.
+    #[must_use]
+    pub fn schemas(&self) -> Arc<BTreeMap<String, Schema>> {
+        self.schemas.clone()
+    }
+
     /// Get all type definitions.
-    #[must_use] 
+    #[must_use]
     pub fn types(&self) -> Vec<TypeDefinition> {
         let resolver = TypeResolver::new(self.schemas.clone());
         let mut types = Vec::new();

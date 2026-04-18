@@ -6,278 +6,284 @@
 //! Feature flag: `cloudflare_stream `
 
 #![cfg(feature = "cloudflare_stream")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// StreamAddAudioTrackResponse response type.
+/// `StreamAddAudioTrackResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamAddAudioTrackResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamClipResponseSingle response type.
+/// `StreamClipResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamClipResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamCopyAudioTrack response type.
+/// `StreamCopyAudioTrack` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamCopyAudioTrack {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamCreateInputRequest response type.
+/// `StreamCreateInputRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamCreateInputRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamCreateOutputRequest response type.
+/// `StreamCreateOutputRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamCreateOutputRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamDeletedResponse response type.
+/// `StreamDeletedResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamDeletedResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamDirectUploadRequest response type.
+/// `StreamDirectUploadRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamDirectUploadRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamDirectUploadResponse response type.
+/// `StreamDirectUploadResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamDirectUploadResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamDownloadsResponse response type.
+/// `StreamDownloadsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamDownloadsResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamDownloadsResponseSingle response type.
+/// `StreamDownloadsResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamDownloadsResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamEditAudioTrack response type.
+/// `StreamEditAudioTrack` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamEditAudioTrack {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamKeyGenerationResponse response type.
+/// `StreamKeyGenerationResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamKeyGenerationResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamKeyResponseCollection response type.
+/// `StreamKeyResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamKeyResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamLanguageResponseCollection response type.
+/// `StreamLanguageResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamLanguageResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamLanguageResponseSingle response type.
+/// `StreamLanguageResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamLanguageResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamListAudioTrackResponse response type.
+/// `StreamListAudioTrackResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamListAudioTrackResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamLiveInputResponseCollection response type.
+/// `StreamLiveInputResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamLiveInputResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamLiveInputResponseSingle response type.
+/// `StreamLiveInputResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamLiveInputResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamOutputResponseCollection response type.
+/// `StreamOutputResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamOutputResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamOutputResponseSingle response type.
+/// `StreamOutputResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamOutputResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamSignedTokenRequest response type.
+/// `StreamSignedTokenRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamSignedTokenRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamSignedTokenResponse response type.
+/// `StreamSignedTokenResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamSignedTokenResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamStorageUseResponse response type.
+/// `StreamStorageUseResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamStorageUseResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamUpdateInputRequest response type.
+/// `StreamUpdateInputRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamUpdateInputRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamUpdateOutputRequest response type.
+/// `StreamUpdateOutputRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamUpdateOutputRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamVideoClipStandard response type.
+/// `StreamVideoClipStandard` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamVideoClipStandard {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamVideoCopyRequest response type.
+/// `StreamVideoCopyRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamVideoCopyRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamVideoResponseSingle response type.
+/// `StreamVideoResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamVideoResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamVideoUpdate response type.
+/// `StreamVideoUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamVideoUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamWatermarkResponseCollection response type.
+/// `StreamWatermarkResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamWatermarkResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamWatermarkResponseSingle response type.
+/// `StreamWatermarkResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamWatermarkResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamWebhookRequest response type.
+/// `StreamWebhookRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamWebhookRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// StreamWebhookResponseSingle response type.
+/// `StreamWebhookResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamWebhookResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -289,7 +295,7 @@ pub struct StreamWebhookResponseSingle {
 /// Arguments for [`stream-video-clipping-clip-videos-given-a-start-and-end-time_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamVideoClippingClipVideosGivenAStartAndEndTimeArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: StreamVideoClipStandard,
@@ -298,7 +304,7 @@ pub struct StreamVideoClippingClipVideosGivenAStartAndEndTimeArgs {
 /// Arguments for [`stream-videos-upload-videos-from-a-url_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamVideosUploadVideosFromAUrlArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: StreamVideoCopyRequest,
@@ -307,7 +313,7 @@ pub struct StreamVideosUploadVideosFromAUrlArgs {
 /// Arguments for [`stream-videos-upload-videos-via-direct-upload-ur-ls_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamVideosUploadVideosViaDirectUploadUrLsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: StreamDirectUploadRequest,
@@ -316,39 +322,39 @@ pub struct StreamVideosUploadVideosViaDirectUploadUrLsArgs {
 /// Arguments for [`stream-signing-keys-list-signing-keys_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamSigningKeysListSigningKeysArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-signing-keys-create-signing-keys_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamSigningKeysCreateSigningKeysArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-signing-keys-delete-signing-keys_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamSigningKeysDeleteSigningKeysArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-live-inputs-list-live-inputs_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamLiveInputsListLiveInputsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: include_counts
+    /// Query parameter: `include_counts`.
     pub include_counts: Option<String>,
 }
 
 /// Arguments for [`stream-live-inputs-create-a-live-input_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamLiveInputsCreateALiveInputArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: StreamCreateInputRequest,
@@ -357,18 +363,18 @@ pub struct StreamLiveInputsCreateALiveInputArgs {
 /// Arguments for [`stream-live-inputs-retrieve-a-live-input_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamLiveInputsRetrieveALiveInputArgs {
-    /// Path parameter: live_input_identifier
+    /// Path parameter: `live_input_identifier`.
     pub live_input_identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-live-inputs-update-a-live-input_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamLiveInputsUpdateALiveInputArgs {
-    /// Path parameter: live_input_identifier
+    /// Path parameter: `live_input_identifier`.
     pub live_input_identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: StreamUpdateInputRequest,
@@ -377,45 +383,45 @@ pub struct StreamLiveInputsUpdateALiveInputArgs {
 /// Arguments for [`stream-live-inputs-delete-a-live-input_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamLiveInputsDeleteALiveInputArgs {
-    /// Path parameter: live_input_identifier
+    /// Path parameter: `live_input_identifier`.
     pub live_input_identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-live-inputs-disable-a-live-input_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamLiveInputsDisableALiveInputArgs {
-    /// Path parameter: live_input_identifier
+    /// Path parameter: `live_input_identifier`.
     pub live_input_identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-live-inputs-enable-a-live-input_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamLiveInputsEnableALiveInputArgs {
-    /// Path parameter: live_input_identifier
+    /// Path parameter: `live_input_identifier`.
     pub live_input_identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-live-inputs-list-all-outputs-associated-with-a-specified-live-input_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamLiveInputsListAllOutputsAssociatedWithASpecifiedLiveInputArgs {
-    /// Path parameter: live_input_identifier
+    /// Path parameter: `live_input_identifier`.
     pub live_input_identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-live-inputs-create-a-new-output,-connected-to-a-live-input_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamLiveInputsCreateANewOutputConnectedToALiveInputArgs {
-    /// Path parameter: live_input_identifier
+    /// Path parameter: `live_input_identifier`.
     pub live_input_identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: StreamCreateOutputRequest,
@@ -424,11 +430,11 @@ pub struct StreamLiveInputsCreateANewOutputConnectedToALiveInputArgs {
 /// Arguments for [`stream-live-inputs-update-an-output_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamLiveInputsUpdateAnOutputArgs {
-    /// Path parameter: output_identifier
+    /// Path parameter: `output_identifier`.
     pub output_identifier: String,
-    /// Path parameter: live_input_identifier
+    /// Path parameter: `live_input_identifier`.
     pub live_input_identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: StreamUpdateOutputRequest,
@@ -437,66 +443,66 @@ pub struct StreamLiveInputsUpdateAnOutputArgs {
 /// Arguments for [`stream-live-inputs-delete-an-output_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamLiveInputsDeleteAnOutputArgs {
-    /// Path parameter: output_identifier
+    /// Path parameter: `output_identifier`.
     pub output_identifier: String,
-    /// Path parameter: live_input_identifier
+    /// Path parameter: `live_input_identifier`.
     pub live_input_identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-videos-storage-usage_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamVideosStorageUsageArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: creator
+    /// Query parameter: `creator`.
     pub creator: Option<String>,
 }
 
 /// Arguments for [`stream-watermark-profile-list-watermark-profiles_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamWatermarkProfileListWatermarkProfilesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-watermark-profile-create-watermark-profiles-via-basic-upload_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamWatermarkProfileCreateWatermarkProfilesViaBasicUploadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-watermark-profile-watermark-profile-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamWatermarkProfileWatermarkProfileDetailsArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-watermark-profile-delete-watermark-profiles_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamWatermarkProfileDeleteWatermarkProfilesArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-webhook-view-webhooks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamWebhookViewWebhooksArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-webhook-create-webhooks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamWebhookCreateWebhooksArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: StreamWebhookRequest,
@@ -505,25 +511,25 @@ pub struct StreamWebhookCreateWebhooksArgs {
 /// Arguments for [`stream-webhook-delete-webhooks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamWebhookDeleteWebhooksArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-videos-retrieve-video-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamVideosRetrieveVideoDetailsArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-videos-update-video-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamVideosUpdateVideoDetailsArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: StreamVideoUpdate,
@@ -532,27 +538,27 @@ pub struct StreamVideosUpdateVideoDetailsArgs {
 /// Arguments for [`stream-videos-delete-video_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamVideosDeleteVideoArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`list-audio-tracks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ListAudioTracksArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
 }
 
 /// Arguments for [`add-audio-track_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AddAudioTrackArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
     /// Request body.
     pub body: StreamCopyAudioTrack,
@@ -561,11 +567,11 @@ pub struct AddAudioTrackArgs {
 /// Arguments for [`edit-audio-tracks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EditAudioTracksArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: audio_identifier
+    /// Path parameter: `audio_identifier`.
     pub audio_identifier: String,
     /// Request body.
     pub body: StreamEditAudioTrack,
@@ -574,142 +580,142 @@ pub struct EditAudioTracksArgs {
 /// Arguments for [`delete-audio-tracks_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteAudioTracksArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: audio_identifier
+    /// Path parameter: `audio_identifier`.
     pub audio_identifier: String,
 }
 
 /// Arguments for [`stream-subtitles/-captions-list-captions-or-subtitles_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamSubtitlesCaptionsListCaptionsOrSubtitlesArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-subtitles/-captions-get-caption-or-subtitle-for-language_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamSubtitlesCaptionsGetCaptionOrSubtitleForLanguageArgs {
-    /// Path parameter: language
+    /// Path parameter: `language`.
     pub language: String,
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-subtitles/-captions-upload-captions-or-subtitles_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamSubtitlesCaptionsUploadCaptionsOrSubtitlesArgs {
-    /// Path parameter: language
+    /// Path parameter: `language`.
     pub language: String,
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-subtitles/-captions-delete-captions-or-subtitles_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamSubtitlesCaptionsDeleteCaptionsOrSubtitlesArgs {
-    /// Path parameter: language
+    /// Path parameter: `language`.
     pub language: String,
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-subtitles/-captions-generate-caption-or-subtitle-for-language_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamSubtitlesCaptionsGenerateCaptionOrSubtitleForLanguageArgs {
-    /// Path parameter: language
+    /// Path parameter: `language`.
     pub language: String,
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-subtitles/-captions-get-vtt-caption-or-subtitle_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamSubtitlesCaptionsGetVttCaptionOrSubtitleArgs {
-    /// Path parameter: language
+    /// Path parameter: `language`.
     pub language: String,
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-m-p-4-downloads-list-downloads_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamMP4DownloadsListDownloadsArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-m-p-4-downloads-create-downloads_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamMP4DownloadsCreateDownloadsArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-m-p-4-downloads-delete-downloads_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamMP4DownloadsDeleteDownloadsArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-downloads-create-type-specific-downloads_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamDownloadsCreateTypeSpecificDownloadsArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: download_type
+    /// Path parameter: `download_type`.
     pub download_type: String,
 }
 
 /// Arguments for [`stream-downloads-delete-type-specific-downloads_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamDownloadsDeleteTypeSpecificDownloadsArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: download_type
+    /// Path parameter: `download_type`.
     pub download_type: String,
 }
 
 /// Arguments for [`stream-videos-retreieve-embed-code-html_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamVideosRetreieveEmbedCodeHtmlArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`stream-videos-create-signed-url-tokens-for-videos_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreamVideosCreateSignedUrlTokensForVideosArgs {
-    /// Path parameter: identifier
+    /// Path parameter: `identifier`.
     pub identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: StreamSignedTokenRequest,
@@ -741,7 +747,6 @@ pub struct StreamVideosCreateSignedUrlTokensForVideosArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_video_clipping_clip_videos_given_a_start_and_end_time_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -834,7 +839,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_videos_upload_videos_from_a_url_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -927,7 +931,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_videos_upload_videos_via_direct_upload_ur_ls_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1020,7 +1023,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_signing_keys_list_signing_keys_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1109,7 +1111,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_signing_keys_create_signing_keys_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1198,7 +1199,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_signing_keys_delete_signing_keys_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1287,7 +1287,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_live_inputs_list_live_inputs_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1376,7 +1375,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_live_inputs_create_a_live_input_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1469,7 +1467,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_live_inputs_retrieve_a_live_input_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1558,7 +1555,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_live_inputs_update_a_live_input_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1651,7 +1647,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_live_inputs_delete_a_live_input_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1688,7 +1683,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1736,7 +1731,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_live_inputs_disable_a_live_input_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1825,7 +1819,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_live_inputs_enable_a_live_input_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1914,7 +1907,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_live_inputs_list_all_outputs_associated_with_a_specified_live_input_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2003,7 +1995,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_live_inputs_create_a_new_output_connected_to_a_live_input_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2096,7 +2087,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_live_inputs_update_an_output_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2189,7 +2179,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_live_inputs_delete_an_output_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2226,7 +2215,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2274,7 +2263,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_videos_storage_usage_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2363,7 +2351,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_watermark_profile_list_watermark_profiles_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2452,7 +2439,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_watermark_profile_create_watermark_profiles_via_basic_upload_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2541,7 +2527,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_watermark_profile_watermark_profile_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2630,7 +2615,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_watermark_profile_delete_watermark_profiles_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2667,7 +2651,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2715,7 +2699,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_webhook_view_webhooks_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2804,7 +2787,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_webhook_create_webhooks_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2897,7 +2879,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_webhook_delete_webhooks_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2986,7 +2967,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_videos_retrieve_video_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3075,7 +3055,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_videos_update_video_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3168,7 +3147,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_videos_delete_video_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3205,7 +3183,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3253,7 +3231,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn list_audio_tracks_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3342,7 +3319,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn add_audio_track_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3435,7 +3411,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn edit_audio_tracks_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3528,7 +3503,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn delete_audio_tracks_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3617,7 +3591,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_subtitles_captions_list_captions_or_subtitles_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3706,7 +3679,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_subtitles_captions_get_caption_or_subtitle_for_language_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3795,7 +3767,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_subtitles_captions_upload_captions_or_subtitles_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3884,7 +3855,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_subtitles_captions_delete_captions_or_subtitles_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3921,7 +3891,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3969,7 +3939,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_subtitles_captions_generate_caption_or_subtitle_for_language_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4058,7 +4027,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_subtitles_captions_get_vtt_caption_or_subtitle_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4095,7 +4063,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4143,7 +4111,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_m_p_4_downloads_list_downloads_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4232,7 +4199,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_m_p_4_downloads_create_downloads_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4321,7 +4287,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_m_p_4_downloads_delete_downloads_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4410,7 +4375,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_downloads_create_type_specific_downloads_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4499,7 +4463,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_downloads_delete_type_specific_downloads_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4588,7 +4551,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_videos_retreieve_embed_code_html_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4677,7 +4639,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn stream_videos_create_signed_url_tokens_for_videos_request<R, F>(
     client: &SimpleHttpClient<R>,

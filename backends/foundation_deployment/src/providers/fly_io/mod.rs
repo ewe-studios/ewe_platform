@@ -4,11 +4,24 @@
 //! DO NOT EDIT MANUALLY.
 
 #![cfg(feature = "fly_io")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
 
-#[cfg(feature = "fly_io_shared")]
 pub mod shared;
 
-#[cfg(feature = "fly_io_check_cordon_current_253")]
-pub mod check_cordon_current_253;
-#[cfg(feature = "fly_io_secretkeys_metadata_secrets_44")]
-pub mod secretkeys_metadata_secrets_44;
+#[cfg(feature = "fly_io_apps")]
+pub mod apps;
+#[cfg(feature = "fly_io_current")]
+pub mod current;
+#[cfg(feature = "fly_io_kms")]
+pub mod kms;
+#[cfg(feature = "fly_io_machines")]
+pub mod machines;
+#[cfg(feature = "fly_io_oidc")]
+pub mod oidc;
+#[cfg(feature = "fly_io_placements")]
+pub mod placements;
+#[cfg(feature = "fly_io_regions")]
+pub mod regions;
+#[cfg(feature = "fly_io_volumes")]
+pub mod volumes;

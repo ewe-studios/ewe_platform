@@ -6,94 +6,100 @@
 //! Feature flag: `cloudflare_domains `
 
 #![cfg(feature = "cloudflare_domains")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// IntelCollectionResponse response type.
+/// `IntelCollectionResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntelCollectionResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// IntelResponse response type.
+/// `IntelResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntelResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// IntelSingleResponse response type.
+/// `IntelSingleResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntelSingleResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// R2AddCustomDomainRequest response type.
+/// `R2AddCustomDomainRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2AddCustomDomainRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// R2EditCustomDomainRequest response type.
+/// `R2EditCustomDomainRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2EditCustomDomainRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// R2EditManagedDomainRequest response type.
+/// `R2EditManagedDomainRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct R2EditManagedDomainRequest {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RegistrarApiDomainResponseCollection response type.
+/// `RegistrarApiDomainResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegistrarApiDomainResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// RegistrarApiDomainResponseSingle response type.
+/// `RegistrarApiDomainResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegistrarApiDomainResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesFallbackDomain response type.
+/// `TeamsDevicesFallbackDomain` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesFallbackDomain {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// TeamsDevicesFallbackDomainResponseCollection response type.
+/// `TeamsDevicesFallbackDomainResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamsDevicesFallbackDomainResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -105,46 +111,46 @@ pub struct TeamsDevicesFallbackDomainResponseCollection {
 /// Arguments for [`get_DomainMatchList_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetDomainMatchListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: query_id
+    /// Query parameter: `query_id`.
     pub query_id: Option<String>,
-    /// Query parameter: include_domain_id
+    /// Query parameter: `include_domain_id`.
     pub include_domain_id: Option<String>,
-    /// Query parameter: include_dismissed
+    /// Query parameter: `include_dismissed`.
     pub include_dismissed: Option<String>,
-    /// Query parameter: domain_search
+    /// Query parameter: `domain_search`.
     pub domain_search: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `orderBy`.
+    pub order_by: Option<String>,
+    /// Query parameter: `order`.
     pub order: Option<String>,
 }
 
 /// Arguments for [`get_GetDomainQueries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetGetDomainQueriesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: id
+    /// Query parameter: `id`.
     pub id: Option<String>,
 }
 
 /// Arguments for [`devices-get-local-domain-fallback-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesGetLocalDomainFallbackListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-set-local-domain-fallback-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesSetLocalDomainFallbackListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<TeamsDevicesFallbackDomain>,
@@ -153,18 +159,18 @@ pub struct DevicesSetLocalDomainFallbackListArgs {
 /// Arguments for [`devices-get-local-domain-fallback-list-for-a-device-settings-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesGetLocalDomainFallbackListForADeviceSettingsPolicyArgs {
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-set-local-domain-fallback-list-for-a-device-settings-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DevicesSetLocalDomainFallbackListForADeviceSettingsPolicyArgs {
-    /// Path parameter: policy_id
+    /// Path parameter: `policy_id`.
     pub policy_id: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<TeamsDevicesFallbackDomain>,
@@ -173,32 +179,32 @@ pub struct DevicesSetLocalDomainFallbackListForADeviceSettingsPolicyArgs {
 /// Arguments for [`email_security_list_domains_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityListDomainsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: allowed_delivery_mode
+    /// Query parameter: `allowed_delivery_mode`.
     pub allowed_delivery_mode: Option<String>,
-    /// Query parameter: domain
+    /// Query parameter: `domain`.
     pub domain: Option<String>,
-    /// Query parameter: active_delivery_mode
+    /// Query parameter: `active_delivery_mode`.
     pub active_delivery_mode: Option<String>,
-    /// Query parameter: integration_id
+    /// Query parameter: `integration_id`.
     pub integration_id: Option<String>,
 }
 
 /// Arguments for [`email_security_delete_domains_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityDeleteDomainsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<serde_json::Value>,
@@ -207,143 +213,143 @@ pub struct EmailSecurityDeleteDomainsArgs {
 /// Arguments for [`email_security_get_domain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityGetDomainArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: domain_id
+    /// Path parameter: `domain_id`.
     pub domain_id: String,
 }
 
 /// Arguments for [`email_security_update_domain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityUpdateDomainArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: domain_id
+    /// Path parameter: `domain_id`.
     pub domain_id: String,
 }
 
 /// Arguments for [`email_security_delete_domain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityDeleteDomainArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: domain_id
+    /// Path parameter: `domain_id`.
     pub domain_id: String,
 }
 
 /// Arguments for [`email_security_batch_sending_domain_restrictions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityBatchSendingDomainRestrictionsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`email_security_list_trusted_domains_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityListTrustedDomainsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
-    /// Query parameter: search
+    /// Query parameter: `search`.
     pub search: Option<String>,
-    /// Query parameter: is_recent
+    /// Query parameter: `is_recent`.
     pub is_recent: Option<String>,
-    /// Query parameter: is_similarity
+    /// Query parameter: `is_similarity`.
     pub is_similarity: Option<String>,
-    /// Query parameter: pattern
+    /// Query parameter: `pattern`.
     pub pattern: Option<String>,
 }
 
 /// Arguments for [`email_security_create_trusted_domain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityCreateTrustedDomainArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`email_security_batch_trusted_domains_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityBatchTrustedDomainsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`email_security_get_trusted_domain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityGetTrustedDomainArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: trusted_domain_id
+    /// Path parameter: `trusted_domain_id`.
     pub trusted_domain_id: String,
 }
 
 /// Arguments for [`email_security_update_trusted_domain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityUpdateTrustedDomainArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: trusted_domain_id
+    /// Path parameter: `trusted_domain_id`.
     pub trusted_domain_id: String,
 }
 
 /// Arguments for [`email_security_delete_trusted_domain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct EmailSecurityDeleteTrustedDomainArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: trusted_domain_id
+    /// Path parameter: `trusted_domain_id`.
     pub trusted_domain_id: String,
 }
 
 /// Arguments for [`domain-intelligence-get-domain-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DomainIntelligenceGetDomainDetailsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: domain
+    /// Query parameter: `domain`.
     pub domain: Option<String>,
 }
 
 /// Arguments for [`domain-history-get-domain-history_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DomainHistoryGetDomainHistoryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: domain
+    /// Query parameter: `domain`.
     pub domain: Option<String>,
 }
 
 /// Arguments for [`domain-intelligence-get-multiple-domain-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DomainIntelligenceGetMultipleDomainDetailsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: domain
+    /// Query parameter: `domain`.
     pub domain: Option<String>,
 }
 
 /// Arguments for [`r2-list-custom-domains_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2ListCustomDomainsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
 }
 
 /// Arguments for [`r2-add-custom-domain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2AddCustomDomainArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
     /// Request body.
     pub body: R2AddCustomDomainRequest,
@@ -352,22 +358,22 @@ pub struct R2AddCustomDomainArgs {
 /// Arguments for [`r2-get-custom-domain-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2GetCustomDomainSettingsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: domain
+    /// Path parameter: `domain`.
     pub domain: String,
 }
 
 /// Arguments for [`r2-edit-custom-domain-settings_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2EditCustomDomainSettingsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: domain
+    /// Path parameter: `domain`.
     pub domain: String,
     /// Request body.
     pub body: R2EditCustomDomainRequest,
@@ -376,29 +382,29 @@ pub struct R2EditCustomDomainSettingsArgs {
 /// Arguments for [`r2-delete-custom-domain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2DeleteCustomDomainArgs {
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: domain
+    /// Path parameter: `domain`.
     pub domain: String,
 }
 
 /// Arguments for [`r2-get-bucket-public-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2GetBucketPublicPolicyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
 }
 
 /// Arguments for [`r2-put-bucket-public-policy_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct R2PutBucketPublicPolicyArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: bucket_name
+    /// Path parameter: `bucket_name`.
     pub bucket_name: String,
     /// Request body.
     pub body: R2EditManagedDomainRequest,
@@ -407,251 +413,251 @@ pub struct R2PutBucketPublicPolicyArgs {
 /// Arguments for [`registrar-domains-list-domains_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RegistrarDomainsListDomainsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`registrar-domains-get-domain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RegistrarDomainsGetDomainArgs {
-    /// Path parameter: domain_name
+    /// Path parameter: `domain_name`.
     pub domain_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`registrar-domains-update-domain_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RegistrarDomainsUpdateDomainArgs {
-    /// Path parameter: domain_name
+    /// Path parameter: `domain_name`.
     pub domain_name: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`radar-get-email-security-top-tlds-by-messages_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEmailSecurityTopTldsByMessagesArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `arc`.
     pub arc: Option<String>,
-    /// Query parameter: dkim
+    /// Query parameter: `dkim`.
     pub dkim: Option<String>,
-    /// Query parameter: dmarc
+    /// Query parameter: `dmarc`.
     pub dmarc: Option<String>,
-    /// Query parameter: spf
+    /// Query parameter: `spf`.
     pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: tldCategory
-    pub tldCategory: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `tldCategory`.
+    pub tld_category: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-email-security-top-tlds-by-malicious_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEmailSecurityTopTldsByMaliciousArgs {
-    /// Path parameter: malicious
+    /// Path parameter: `malicious`.
     pub malicious: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `arc`.
     pub arc: Option<String>,
-    /// Query parameter: dkim
+    /// Query parameter: `dkim`.
     pub dkim: Option<String>,
-    /// Query parameter: dmarc
+    /// Query parameter: `dmarc`.
     pub dmarc: Option<String>,
-    /// Query parameter: spf
+    /// Query parameter: `spf`.
     pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: tldCategory
-    pub tldCategory: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `tldCategory`.
+    pub tld_category: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-email-security-top-tlds-by-spam_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEmailSecurityTopTldsBySpamArgs {
-    /// Path parameter: spam
+    /// Path parameter: `spam`.
     pub spam: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `arc`.
     pub arc: Option<String>,
-    /// Query parameter: dkim
+    /// Query parameter: `dkim`.
     pub dkim: Option<String>,
-    /// Query parameter: dmarc
+    /// Query parameter: `dmarc`.
     pub dmarc: Option<String>,
-    /// Query parameter: spf
+    /// Query parameter: `spf`.
     pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: tldCategory
-    pub tldCategory: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `tldCategory`.
+    pub tld_category: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-email-security-top-tlds-by-spoof_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetEmailSecurityTopTldsBySpoofArgs {
-    /// Path parameter: spoof
+    /// Path parameter: `spoof`.
     pub spoof: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: arc
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `arc`.
     pub arc: Option<String>,
-    /// Query parameter: dkim
+    /// Query parameter: `dkim`.
     pub dkim: Option<String>,
-    /// Query parameter: dmarc
+    /// Query parameter: `dmarc`.
     pub dmarc: Option<String>,
-    /// Query parameter: spf
+    /// Query parameter: `spf`.
     pub spf: Option<String>,
-    /// Query parameter: tlsVersion
-    pub tlsVersion: Option<String>,
-    /// Query parameter: tldCategory
-    pub tldCategory: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `tlsVersion`.
+    pub tls_version: Option<String>,
+    /// Query parameter: `tldCategory`.
+    pub tld_category: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ranking-domain-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetRankingDomainDetailsArgs {
-    /// Path parameter: domain
+    /// Path parameter: `domain`.
     pub domain: String,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: rankingType
-    pub rankingType: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `rankingType`.
+    pub ranking_type: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: includeTopLocations
-    pub includeTopLocations: Option<String>,
-    /// Query parameter: date
+    /// Query parameter: `includeTopLocations`.
+    pub include_top_locations: Option<String>,
+    /// Query parameter: `date`.
     pub date: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ranking-domain-timeseries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetRankingDomainTimeseriesArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: rankingType
-    pub rankingType: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `rankingType`.
+    pub ranking_type: Option<String>,
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: domains
+    /// Query parameter: `domains`.
     pub domains: Option<String>,
-    /// Query parameter: domainCategory
-    pub domainCategory: Option<String>,
-    /// Query parameter: dateRange
-    pub dateRange: Option<String>,
-    /// Query parameter: dateStart
-    pub dateStart: Option<String>,
-    /// Query parameter: dateEnd
-    pub dateEnd: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `domainCategory`.
+    pub domain_category: Option<String>,
+    /// Query parameter: `dateRange`.
+    pub date_range: Option<String>,
+    /// Query parameter: `dateStart`.
+    pub date_start: Option<String>,
+    /// Query parameter: `dateEnd`.
+    pub date_end: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-ranking-top-domains_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetRankingTopDomainsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: location
+    /// Query parameter: `location`.
     pub location: Option<String>,
-    /// Query parameter: domainCategory
-    pub domainCategory: Option<String>,
-    /// Query parameter: date
+    /// Query parameter: `domainCategory`.
+    pub domain_category: Option<String>,
+    /// Query parameter: `date`.
     pub date: Option<String>,
-    /// Query parameter: rankingType
-    pub rankingType: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `rankingType`.
+    pub ranking_type: Option<String>,
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-robots-txt-top-domain-categories-by-files-parsed_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetRobotsTxtTopDomainCategoriesByFilesParsedArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: userAgentCategory
-    pub userAgentCategory: Option<String>,
-    /// Query parameter: date
+    /// Query parameter: `userAgentCategory`.
+    pub user_agent_category: Option<String>,
+    /// Query parameter: `date`.
     pub date: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-tlds_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetTldsArgs {
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: offset
+    /// Query parameter: `offset`.
     pub offset: Option<String>,
-    /// Query parameter: tldManager
-    pub tldManager: Option<String>,
-    /// Query parameter: tldType
-    pub tldType: Option<String>,
-    /// Query parameter: tld
+    /// Query parameter: `tldManager`.
+    pub tld_manager: Option<String>,
+    /// Query parameter: `tldType`.
+    pub tld_type: Option<String>,
+    /// Query parameter: `tld`.
     pub tld: Option<String>,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-tld-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RadarGetTldDetailsArgs {
-    /// Path parameter: tld
+    /// Path parameter: `tld`.
     pub tld: String,
-    /// Query parameter: format
+    /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
@@ -681,7 +687,6 @@ pub struct RadarGetTldDetailsArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_domain_match_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -718,7 +723,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -766,7 +771,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn get_get_domain_queries_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -855,7 +859,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_get_local_domain_fallback_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -948,7 +951,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_set_local_domain_fallback_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1045,7 +1047,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_get_local_domain_fallback_list_for_a_device_settings_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1138,7 +1139,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn devices_set_local_domain_fallback_list_for_a_device_settings_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1235,7 +1235,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_list_domains_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1272,7 +1271,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1320,7 +1319,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_delete_domains_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1361,7 +1359,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1409,7 +1407,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_get_domain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1446,7 +1443,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1494,7 +1491,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_update_domain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1531,7 +1527,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1579,7 +1575,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_delete_domain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1616,7 +1611,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1664,7 +1659,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_batch_sending_domain_restrictions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1701,7 +1695,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1749,7 +1743,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_list_trusted_domains_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1786,7 +1779,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1834,7 +1827,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_create_trusted_domain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1871,7 +1863,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1919,7 +1911,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_batch_trusted_domains_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1956,7 +1947,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2004,7 +1995,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_get_trusted_domain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2042,7 +2032,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2090,7 +2080,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_update_trusted_domain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2128,7 +2117,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2176,7 +2165,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn email_security_delete_trusted_domain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2214,7 +2202,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2262,7 +2250,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn domain_intelligence_get_domain_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2351,7 +2338,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn domain_history_get_domain_history_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2440,7 +2426,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn domain_intelligence_get_multiple_domain_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2529,7 +2514,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_list_custom_domains_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2566,7 +2550,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2614,7 +2598,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_add_custom_domain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2655,7 +2638,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2703,7 +2686,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_get_custom_domain_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2740,7 +2722,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2788,7 +2770,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_edit_custom_domain_settings_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2829,7 +2810,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2877,7 +2858,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_delete_custom_domain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2914,7 +2894,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2962,7 +2942,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_get_bucket_public_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2999,7 +2978,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3047,7 +3026,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn r2_put_bucket_public_policy_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3088,7 +3066,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3136,7 +3114,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn registrar_domains_list_domains_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3228,7 +3205,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn registrar_domains_get_domain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3317,7 +3293,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn registrar_domains_update_domain_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3396,7 +3371,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3406,11 +3380,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_email_security_top_tlds_by_messages_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetEmailSecurityTopTldsByMessagesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3441,7 +3413,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3489,7 +3461,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_email_security_top_tlds_by_malicious_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3526,7 +3497,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3574,7 +3545,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_email_security_top_tlds_by_spam_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3611,7 +3581,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3659,7 +3629,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_email_security_top_tlds_by_spoof_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3696,7 +3665,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3744,7 +3713,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ranking_domain_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3781,7 +3749,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3819,7 +3787,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3829,11 +3796,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ranking_domain_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetRankingDomainTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3864,7 +3829,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3902,7 +3867,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3912,11 +3876,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_ranking_top_domains_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetRankingTopDomainsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3946,7 +3908,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3984,7 +3946,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3994,11 +3955,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_robots_txt_top_domain_categories_by_files_parsed_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetRobotsTxtTopDomainCategoriesByFilesParsedArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -4029,7 +3988,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4067,7 +4026,6 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -4077,11 +4035,9 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_tlds_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &RadarGetTldsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -4111,7 +4067,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -4159,7 +4115,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn radar_get_tld_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4196,7 +4151,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

@@ -6,16 +6,22 @@
 //! Feature flag: `cloudflare_waiting_rooms `
 
 #![cfg(feature = "cloudflare_waiting_rooms")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 // Import shared types used by this module
 use super::shared::WaitingroomResponseCollection;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -28,7 +34,7 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// Arguments for [`waiting-room-list-waiting-rooms-account_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WaitingRoomListWaitingRoomsAccountArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
@@ -58,7 +64,6 @@ pub struct WaitingRoomListWaitingRoomsAccountArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn waiting_room_list_waiting_rooms_account_request<R, F>(
     client: &SimpleHttpClient<R>,

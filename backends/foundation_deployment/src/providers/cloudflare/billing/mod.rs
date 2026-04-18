@@ -6,74 +6,79 @@
 //! Feature flag: `cloudflare_billing `
 
 #![cfg(feature = "cloudflare_billing")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
-use super::shared::BillSubsApiBillingResponseSingle;
 use super::shared::BillSubsApiSubscriptionV2;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// BillSubsApiAccountSubscriptionResponseCollection response type.
+/// `BillSubsApiAccountSubscriptionResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillSubsApiAccountSubscriptionResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// BillSubsApiAccountSubscriptionResponseSingle response type.
+/// `BillSubsApiAccountSubscriptionResponseSingle` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillSubsApiAccountSubscriptionResponseSingle {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// BillableUsageApiUsageResponse response type.
+/// `BillableUsageApiUsageResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillableUsageApiUsageResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// PayPerCrawlApiNoResultResponse response type.
+/// `PayPerCrawlApiNoResultResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PayPerCrawlApiNoResultResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// PayPerCrawlCreateStripeConfigResponse response type.
+/// `PayPerCrawlCreateStripeConfigResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PayPerCrawlCreateStripeConfigResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// PayPerCrawlGetStripeConfigResponse response type.
+/// `PayPerCrawlGetStripeConfigResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PayPerCrawlGetStripeConfigResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// PayPerCrawlQueryZonesCanBeEnabledResponse response type.
+/// `PayPerCrawlQueryZonesCanBeEnabledResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PayPerCrawlQueryZonesCanBeEnabledResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -82,136 +87,129 @@ pub struct PayPerCrawlQueryZonesCanBeEnabledResponse {
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
-/// Arguments for [`account-billing-profile-(-deprecated)-billing-profile-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccountBillingProfileDeprecatedBillingProfileDetailsArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
 /// Arguments for [`billable-usage-get-paygo-account-usage_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct BillableUsageGetPaygoAccountUsageArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`subscriptions-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SubscriptionsListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`subscriptions-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SubscriptionsCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`subscriptions-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SubscriptionsGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: subscription_id
+    /// Path parameter: `subscription_id`.
     pub subscription_id: String,
 }
 
 /// Arguments for [`subscriptions-patch_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SubscriptionsPatchArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: subscription_id
+    /// Path parameter: `subscription_id`.
     pub subscription_id: String,
 }
 
 /// Arguments for [`subscriptions-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SubscriptionsDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: subscription_id
+    /// Path parameter: `subscription_id`.
     pub subscription_id: String,
 }
 
 /// Arguments for [`pay-per-crawl.crawlerGetStripeConfig_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PayPerCrawlCrawlerGetStripeConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`pay-per-crawl.crawlerCreateStripeConfig_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PayPerCrawlCrawlerCreateStripeConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`pay-per-crawl.crawlerDeleteStripeConfig_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PayPerCrawlCrawlerDeleteStripeConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`pay-per-crawl.publisherGetStripeConfig_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PayPerCrawlPublisherGetStripeConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`pay-per-crawl.publisherCreateStripeConfig_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PayPerCrawlPublisherCreateStripeConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`pay-per-crawl.publisherDeleteStripeConfig_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PayPerCrawlPublisherDeleteStripeConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`pay-per-crawl.setZonesCanBeEnabled_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PayPerCrawlSetZonesCanBeEnabledArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`pay-per-crawl.queryZonesCanBeEnabled_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PayPerCrawlQueryZonesCanBeEnabledArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-subscriptions-list-subscriptions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountSubscriptionsListSubscriptionsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-subscriptions-create-subscription_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountSubscriptionsCreateSubscriptionArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: BillSubsApiSubscriptionV2,
@@ -220,9 +218,9 @@ pub struct AccountSubscriptionsCreateSubscriptionArgs {
 /// Arguments for [`account-subscriptions-update-subscription_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountSubscriptionsUpdateSubscriptionArgs {
-    /// Path parameter: subscription_identifier
+    /// Path parameter: `subscription_identifier`.
     pub subscription_identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: BillSubsApiSubscriptionV2,
@@ -231,104 +229,15 @@ pub struct AccountSubscriptionsUpdateSubscriptionArgs {
 /// Arguments for [`account-subscriptions-delete-subscription_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountSubscriptionsDeleteSubscriptionArgs {
-    /// Path parameter: subscription_identifier
+    /// Path parameter: `subscription_identifier`.
     pub subscription_identifier: String,
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 // =============================================================================
 // CLIENT FUNCTIONS (per-endpoint)
 // =============================================================================
-
-// -----------------------------------------------------------------------------
-// GET /accounts/{account_id}/billing/profile
-// -----------------------------------------------------------------------------
-
-/// GET /accounts/{account_id}/billing/profile.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = account_billing_profile_deprecated_billing_profile_details_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn account_billing_profile_deprecated_billing_profile_details_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &AccountBillingProfileDeprecatedBillingProfileDetailsArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<BillSubsApiBillingResponseSingle>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/billing/profile",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .get(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body =
-                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: BillSubsApiBillingResponseSingle = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
 
 // -----------------------------------------------------------------------------
 // GET /accounts/{account_id}/billing/usage/paygo
@@ -352,7 +261,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn billable_usage_get_paygo_account_usage_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -441,7 +349,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn subscriptions_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -478,7 +385,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -526,7 +433,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn subscriptions_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -563,7 +469,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -611,7 +517,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn subscriptions_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -648,7 +553,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -696,7 +601,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn subscriptions_patch_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -733,7 +637,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -781,7 +685,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn subscriptions_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -818,7 +721,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -866,7 +769,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn pay_per_crawl_crawler_get_stripe_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -958,7 +860,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn pay_per_crawl_crawler_create_stripe_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1050,7 +951,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn pay_per_crawl_crawler_delete_stripe_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1139,7 +1039,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn pay_per_crawl_publisher_get_stripe_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1231,7 +1130,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn pay_per_crawl_publisher_create_stripe_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1323,7 +1221,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn pay_per_crawl_publisher_delete_stripe_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1412,7 +1309,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn pay_per_crawl_set_zones_can_be_enabled_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1501,7 +1397,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn pay_per_crawl_query_zones_can_be_enabled_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1593,7 +1488,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_subscriptions_list_subscriptions_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1686,7 +1580,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_subscriptions_create_subscription_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1783,7 +1676,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_subscriptions_update_subscription_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1880,7 +1772,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_subscriptions_delete_subscription_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1917,7 +1808,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

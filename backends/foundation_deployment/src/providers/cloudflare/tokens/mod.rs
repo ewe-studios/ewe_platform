@@ -6,11 +6,17 @@
 //! Feature flag: `cloudflare_tokens `
 
 #![cfg(feature = "cloudflare_tokens")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 // Import shared types used by this module
 use super::shared::AaaIdResponse;
@@ -24,7 +30,7 @@ use super::shared::IamSingleTokenResponse;
 use super::shared::IamTokenBody;
 use super::shared::IamTokenVerifyResponseSingleSegment;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -37,29 +43,29 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// Arguments for [`notification-destinations-with-pager-duty-connect-pager-duty-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct NotificationDestinationsWithPagerDutyConnectPagerDutyTokenArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: token_id
+    /// Path parameter: `token_id`.
     pub token_id: String,
 }
 
 /// Arguments for [`account-api-tokens-list-tokens_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountApiTokensListTokensArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`account-api-tokens-create-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountApiTokensCreateTokenArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: IamCreatePayload,
@@ -68,36 +74,36 @@ pub struct AccountApiTokensCreateTokenArgs {
 /// Arguments for [`account-api-tokens-list-permission-groups_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountApiTokensListPermissionGroupsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: name
+    /// Query parameter: `name`.
     pub name: Option<String>,
-    /// Query parameter: scope
+    /// Query parameter: `scope`.
     pub scope: Option<String>,
 }
 
 /// Arguments for [`account-api-tokens-verify-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountApiTokensVerifyTokenArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-api-tokens-token-details_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountApiTokensTokenDetailsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: token_id
+    /// Path parameter: `token_id`.
     pub token_id: String,
 }
 
 /// Arguments for [`account-api-tokens-update-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountApiTokensUpdateTokenArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: token_id
+    /// Path parameter: `token_id`.
     pub token_id: String,
     /// Request body.
     pub body: IamTokenBody,
@@ -106,18 +112,18 @@ pub struct AccountApiTokensUpdateTokenArgs {
 /// Arguments for [`account-api-tokens-delete-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountApiTokensDeleteTokenArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: token_id
+    /// Path parameter: `token_id`.
     pub token_id: String,
 }
 
 /// Arguments for [`account-api-tokens-roll-token_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccountApiTokensRollTokenArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: token_id
+    /// Path parameter: `token_id`.
     pub token_id: String,
 }
 
@@ -147,7 +153,6 @@ pub struct AccountApiTokensRollTokenArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn notification_destinations_with_pager_duty_connect_pager_duty_token_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -237,7 +242,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_api_tokens_list_tokens_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -326,7 +330,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_api_tokens_create_token_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -419,7 +422,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_api_tokens_list_permission_groups_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -511,7 +513,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_api_tokens_verify_token_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -603,7 +604,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_api_tokens_token_details_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -692,7 +692,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_api_tokens_update_token_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -785,7 +784,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_api_tokens_delete_token_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -874,7 +872,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn account_api_tokens_roll_token_request<R, F>(
     client: &SimpleHttpClient<R>,

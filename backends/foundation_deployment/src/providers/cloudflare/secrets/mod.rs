@@ -6,54 +6,60 @@
 //! Feature flag: `cloudflare_secrets `
 
 #![cfg(feature = "cloudflare_secrets")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// SecretsStoreQuotaResponse response type.
+/// `SecretsStoreQuotaResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretsStoreQuotaResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecretsStoreSecretResponse response type.
+/// `SecretsStoreSecretResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretsStoreSecretResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecretsStoreSecretsResponseCollection response type.
+/// `SecretsStoreSecretsResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretsStoreSecretsResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecretsStoreStoreResponse response type.
+/// `SecretsStoreStoreResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretsStoreStoreResponse {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// SecretsStoreStoresResponseCollection response type.
+/// `SecretsStoreStoresResponseCollection` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretsStoreStoresResponseCollection {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -65,195 +71,195 @@ pub struct SecretsStoreStoresResponseCollection {
 /// Arguments for [`secrets-store-quota_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreQuotaArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`secrets-store-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`secrets-store-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`secrets-store-get-store-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreGetStoreByIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
 }
 
 /// Arguments for [`secrets-store-delete-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreDeleteByIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
 }
 
 /// Arguments for [`secrets-store-secrets-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSecretsListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
 }
 
 /// Arguments for [`secrets-store-secret-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSecretCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
 }
 
 /// Arguments for [`secrets-store-delete-bulk_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreDeleteBulkArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
 }
 
 /// Arguments for [`secrets-store-get-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreGetByIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
-    /// Path parameter: secret_id
+    /// Path parameter: `secret_id`.
     pub secret_id: String,
 }
 
 /// Arguments for [`secrets-store-patch-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStorePatchByIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
-    /// Path parameter: secret_id
+    /// Path parameter: `secret_id`.
     pub secret_id: String,
 }
 
 /// Arguments for [`secrets-store-secret-delete-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSecretDeleteByIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
-    /// Path parameter: secret_id
+    /// Path parameter: `secret_id`.
     pub secret_id: String,
 }
 
 /// Arguments for [`secrets-store-duplicate-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreDuplicateByIdArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
-    /// Path parameter: secret_id
+    /// Path parameter: `secret_id`.
     pub secret_id: String,
 }
 
 /// Arguments for [`secrets-store-system-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSystemListArgs {
-    /// Path parameter: account_tag
+    /// Path parameter: `account_tag`.
     pub account_tag: String,
 }
 
 /// Arguments for [`secrets-store-system-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSystemCreateArgs {
-    /// Path parameter: account_tag
+    /// Path parameter: `account_tag`.
     pub account_tag: String,
 }
 
 /// Arguments for [`secrets-store-system-get-store-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSystemGetStoreByIdArgs {
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
 }
 
 /// Arguments for [`secrets-store-system-delete-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSystemDeleteByIdArgs {
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
 }
 
 /// Arguments for [`secrets-store-system-secrets-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSystemSecretsListArgs {
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
 }
 
 /// Arguments for [`secrets-store-system-secret-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSystemSecretCreateArgs {
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
 }
 
 /// Arguments for [`secrets-store-system-delete-bulk_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSystemDeleteBulkArgs {
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
 }
 
 /// Arguments for [`secrets-store-system-get-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSystemGetByIdArgs {
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
-    /// Path parameter: secret_id
+    /// Path parameter: `secret_id`.
     pub secret_id: String,
 }
 
 /// Arguments for [`secrets-store-system-patch-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSystemPatchByIdArgs {
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
-    /// Path parameter: secret_id
+    /// Path parameter: `secret_id`.
     pub secret_id: String,
 }
 
 /// Arguments for [`secrets-store-system-secret-delete-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSystemSecretDeleteByIdArgs {
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
-    /// Path parameter: secret_id
+    /// Path parameter: `secret_id`.
     pub secret_id: String,
 }
 
 /// Arguments for [`secrets-store-system-duplicate-by-id_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SecretsStoreSystemDuplicateByIdArgs {
-    /// Path parameter: store_id
+    /// Path parameter: `store_id`.
     pub store_id: String,
-    /// Path parameter: secret_id
+    /// Path parameter: `secret_id`.
     pub secret_id: String,
 }
 
@@ -283,7 +289,6 @@ pub struct SecretsStoreSystemDuplicateByIdArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_quota_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -372,7 +377,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -464,7 +468,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -556,7 +559,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_get_store_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -645,7 +647,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_delete_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -734,7 +735,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_secrets_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -826,7 +826,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_secret_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -918,7 +917,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_delete_bulk_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1010,7 +1008,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_get_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1099,7 +1096,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_patch_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1188,7 +1184,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_secret_delete_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1277,7 +1272,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_duplicate_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1368,7 +1362,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_system_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1460,7 +1453,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_system_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1549,7 +1541,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_system_get_store_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1638,7 +1629,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_system_delete_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1727,7 +1717,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_system_secrets_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1819,7 +1808,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_system_secret_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1911,7 +1899,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_system_delete_bulk_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2003,7 +1990,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_system_get_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2092,7 +2078,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_system_patch_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2181,7 +2166,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_system_secret_delete_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2270,7 +2254,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn secrets_store_system_duplicate_by_id_request<R, F>(
     client: &SimpleHttpClient<R>,

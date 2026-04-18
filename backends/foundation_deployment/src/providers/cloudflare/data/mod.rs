@@ -6,110 +6,116 @@
 //! Feature flag: `cloudflare_data `
 
 #![cfg(feature = "cloudflare_data")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// DlpCustomEntryUpdate response type.
+/// `DlpCustomEntryUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpCustomEntryUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpCustomProfileUpdate response type.
+/// `DlpCustomProfileUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpCustomProfileUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpDlpSettingsUpdate response type.
+/// `DlpDlpSettingsUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpDlpSettingsUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpEntryUpdate response type.
+/// `DlpEntryUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpEntryUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpNewCustomProfile response type.
+/// `DlpNewCustomProfile` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpNewCustomProfile {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpNewEntry response type.
+/// `DlpNewEntry` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpNewEntry {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpNewPredefinedEntry response type.
+/// `DlpNewPredefinedEntry` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpNewPredefinedEntry {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpNewPredefinedProfile response type.
+/// `DlpNewPredefinedProfile` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpNewPredefinedProfile {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpPredefinedEntryUpdate response type.
+/// `DlpPredefinedEntryUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpPredefinedEntryUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpPredefinedProfileConfigUpdate response type.
+/// `DlpPredefinedProfileConfigUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpPredefinedProfileConfigUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpPredefinedProfileUpdate response type.
+/// `DlpPredefinedProfileUpdate` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpPredefinedProfileUpdate {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// DlpRegexValidationQuery response type.
+/// `DlpRegexValidationQuery` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpRegexValidationQuery {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -121,72 +127,72 @@ pub struct DlpRegexValidationQuery {
 /// Arguments for [`dlp-datasets-read-all_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDatasetsReadAllArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dlp-datasets-create_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDatasetsCreateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dlp-datasets-read_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDatasetsReadArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`dlp-datasets-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDatasetsUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`dlp-datasets-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDatasetsDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`dlp-datasets-create-version_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDatasetsCreateVersionArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
 }
 
 /// Arguments for [`dlp-datasets-upload-version_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDatasetsUploadVersionArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Path parameter: version
+    /// Path parameter: `version`.
     pub version: String,
 }
 
 /// Arguments for [`dlp-datasets-define-columns_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDatasetsDefineColumnsArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Path parameter: version
+    /// Path parameter: `version`.
     pub version: String,
     /// Request body.
     pub body: Vec<serde_json::Value>,
@@ -195,27 +201,27 @@ pub struct DlpDatasetsDefineColumnsArgs {
 /// Arguments for [`dlp-datasets-upload-dataset-column_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpDatasetsUploadDatasetColumnArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: dataset_id
+    /// Path parameter: `dataset_id`.
     pub dataset_id: String,
-    /// Path parameter: version
+    /// Path parameter: `version`.
     pub version: String,
-    /// Path parameter: entry_id
+    /// Path parameter: `entry_id`.
     pub entry_id: String,
 }
 
 /// Arguments for [`dlp-entries-list-all-entries_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEntriesListAllEntriesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dlp-entries-create-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEntriesCreateEntryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DlpNewEntry,
@@ -224,9 +230,9 @@ pub struct DlpEntriesCreateEntryArgs {
 /// Arguments for [`dlp-entries-update-custom-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEntriesUpdateCustomEntryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: entry_id
+    /// Path parameter: `entry_id`.
     pub entry_id: String,
     /// Request body.
     pub body: DlpCustomEntryUpdate,
@@ -235,7 +241,7 @@ pub struct DlpEntriesUpdateCustomEntryArgs {
 /// Arguments for [`dlp-entries-create-integration-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEntriesCreateIntegrationEntryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DlpNewPredefinedEntry,
@@ -244,9 +250,9 @@ pub struct DlpEntriesCreateIntegrationEntryArgs {
 /// Arguments for [`dlp-entries-update-integration-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEntriesUpdateIntegrationEntryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: entry_id
+    /// Path parameter: `entry_id`.
     pub entry_id: String,
     /// Request body.
     pub body: DlpPredefinedEntryUpdate,
@@ -255,16 +261,16 @@ pub struct DlpEntriesUpdateIntegrationEntryArgs {
 /// Arguments for [`dlp-entries-delete-integration-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEntriesDeleteIntegrationEntryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: entry_id
+    /// Path parameter: `entry_id`.
     pub entry_id: String,
 }
 
 /// Arguments for [`dlp-entries-create-predefined-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEntriesCreatePredefinedEntryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DlpNewPredefinedEntry,
@@ -273,9 +279,9 @@ pub struct DlpEntriesCreatePredefinedEntryArgs {
 /// Arguments for [`dlp-entries-update-predefined-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEntriesUpdatePredefinedEntryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: entry_id
+    /// Path parameter: `entry_id`.
     pub entry_id: String,
     /// Request body.
     pub body: DlpPredefinedEntryUpdate,
@@ -284,27 +290,27 @@ pub struct DlpEntriesUpdatePredefinedEntryArgs {
 /// Arguments for [`dlp-entries-delete-predefined-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEntriesDeletePredefinedEntryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: entry_id
+    /// Path parameter: `entry_id`.
     pub entry_id: String,
 }
 
 /// Arguments for [`dlp-entries-get-dlp-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEntriesGetDlpEntryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: entry_id
+    /// Path parameter: `entry_id`.
     pub entry_id: String,
 }
 
 /// Arguments for [`dlp-entries-update-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEntriesUpdateEntryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: entry_id
+    /// Path parameter: `entry_id`.
     pub entry_id: String,
     /// Request body.
     pub body: DlpEntryUpdate,
@@ -313,23 +319,23 @@ pub struct DlpEntriesUpdateEntryArgs {
 /// Arguments for [`dlp-entries-delete-entry_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpEntriesDeleteEntryArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: entry_id
+    /// Path parameter: `entry_id`.
     pub entry_id: String,
 }
 
 /// Arguments for [`dlp-limits-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpLimitsGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dlp-pattern-validate_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpPatternValidateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DlpRegexValidationQuery,
@@ -338,23 +344,23 @@ pub struct DlpPatternValidateArgs {
 /// Arguments for [`dlp-profiles-list-all-profiles_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesListAllProfilesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: all
+    /// Query parameter: `all`.
     pub all: Option<String>,
 }
 
 /// Arguments for [`dlp-profiles-list-all-custom-profiles_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesListAllCustomProfilesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dlp-profiles-create-custom-profiles_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesCreateCustomProfilesArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DlpNewCustomProfile,
@@ -363,18 +369,18 @@ pub struct DlpProfilesCreateCustomProfilesArgs {
 /// Arguments for [`dlp-profiles-get-custom-profile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesGetCustomProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: profile_id
+    /// Path parameter: `profile_id`.
     pub profile_id: String,
 }
 
 /// Arguments for [`dlp-profiles-update-custom-profile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesUpdateCustomProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: profile_id
+    /// Path parameter: `profile_id`.
     pub profile_id: String,
     /// Request body.
     pub body: DlpCustomProfileUpdate,
@@ -383,16 +389,16 @@ pub struct DlpProfilesUpdateCustomProfileArgs {
 /// Arguments for [`dlp-profiles-delete-custom-profile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesDeleteCustomProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: profile_id
+    /// Path parameter: `profile_id`.
     pub profile_id: String,
 }
 
 /// Arguments for [`dlp-profiles-create-predefined-profile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesCreatePredefinedProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DlpNewPredefinedProfile,
@@ -401,18 +407,18 @@ pub struct DlpProfilesCreatePredefinedProfileArgs {
 /// Arguments for [`dlp-profiles-get-predefined-profile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesGetPredefinedProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: profile_id
+    /// Path parameter: `profile_id`.
     pub profile_id: String,
 }
 
 /// Arguments for [`dlp-profiles-update-predefined-profile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesUpdatePredefinedProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: profile_id
+    /// Path parameter: `profile_id`.
     pub profile_id: String,
     /// Request body.
     pub body: DlpPredefinedProfileUpdate,
@@ -421,27 +427,27 @@ pub struct DlpProfilesUpdatePredefinedProfileArgs {
 /// Arguments for [`dlp-profiles-delete-predefined-profile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesDeletePredefinedProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: profile_id
+    /// Path parameter: `profile_id`.
     pub profile_id: String,
 }
 
 /// Arguments for [`dlp-profiles-get-predefined-profile-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesGetPredefinedProfileConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: profile_id
+    /// Path parameter: `profile_id`.
     pub profile_id: String,
 }
 
 /// Arguments for [`dlp-profiles-create-predefined-profile-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesCreatePredefinedProfileConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: profile_id
+    /// Path parameter: `profile_id`.
     pub profile_id: String,
     /// Request body.
     pub body: DlpPredefinedProfileConfigUpdate,
@@ -450,9 +456,9 @@ pub struct DlpProfilesCreatePredefinedProfileConfigArgs {
 /// Arguments for [`dlp-profiles-update-predefined-profile-config_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesUpdatePredefinedProfileConfigArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: profile_id
+    /// Path parameter: `profile_id`.
     pub profile_id: String,
     /// Request body.
     pub body: DlpPredefinedProfileConfigUpdate,
@@ -461,23 +467,23 @@ pub struct DlpProfilesUpdatePredefinedProfileConfigArgs {
 /// Arguments for [`dlp-profiles-get-dlp-profile_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpProfilesGetDlpProfileArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: profile_id
+    /// Path parameter: `profile_id`.
     pub profile_id: String,
 }
 
 /// Arguments for [`dlp-settings-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpSettingsGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dlp-settings-update_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpSettingsUpdateArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DlpDlpSettingsUpdate,
@@ -486,7 +492,7 @@ pub struct DlpSettingsUpdateArgs {
 /// Arguments for [`dlp-settings-edit_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpSettingsEditArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: DlpDlpSettingsUpdate,
@@ -495,7 +501,7 @@ pub struct DlpSettingsEditArgs {
 /// Arguments for [`dlp-settings-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DlpSettingsDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
@@ -525,7 +531,6 @@ pub struct DlpSettingsDeleteArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_datasets_read_all_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -562,7 +567,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -610,7 +615,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_datasets_create_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -647,7 +651,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -695,7 +699,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_datasets_read_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -732,7 +735,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -780,7 +783,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_datasets_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -817,7 +819,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -865,7 +867,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_datasets_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -902,7 +903,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -950,7 +951,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_datasets_create_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -987,7 +987,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1035,7 +1035,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_datasets_upload_version_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1072,7 +1071,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1120,7 +1119,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_datasets_define_columns_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1161,7 +1159,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1209,7 +1207,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_datasets_upload_dataset_column_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1246,7 +1243,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1294,7 +1291,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_entries_list_all_entries_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1331,7 +1327,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1379,7 +1375,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_entries_create_entry_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1420,7 +1415,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1468,7 +1463,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_entries_update_custom_entry_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1509,7 +1503,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1557,7 +1551,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_entries_create_integration_entry_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1598,7 +1591,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1646,7 +1639,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_entries_update_integration_entry_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1687,7 +1679,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1735,7 +1727,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_entries_delete_integration_entry_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1772,7 +1763,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1820,7 +1811,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_entries_create_predefined_entry_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1861,7 +1851,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1909,7 +1899,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_entries_update_predefined_entry_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -1950,7 +1939,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -1998,7 +1987,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_entries_delete_predefined_entry_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2035,7 +2023,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2083,7 +2071,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_entries_get_dlp_entry_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2120,7 +2107,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2168,7 +2155,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_entries_update_entry_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2209,7 +2195,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2257,7 +2243,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_entries_delete_entry_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2294,7 +2279,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2342,7 +2327,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_limits_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2379,7 +2363,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2427,7 +2411,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_pattern_validate_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2468,7 +2451,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2516,7 +2499,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_list_all_profiles_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2553,7 +2535,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2601,7 +2583,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_list_all_custom_profiles_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2638,7 +2619,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2686,7 +2667,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_create_custom_profiles_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2727,7 +2707,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2775,7 +2755,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_get_custom_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2812,7 +2791,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2860,7 +2839,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_update_custom_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2901,7 +2879,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -2949,7 +2927,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_delete_custom_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -2986,7 +2963,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3034,7 +3011,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_create_predefined_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3075,7 +3051,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3123,7 +3099,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_get_predefined_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3160,7 +3135,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3208,7 +3183,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_update_predefined_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3249,7 +3223,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3297,7 +3271,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_delete_predefined_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3334,7 +3307,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3382,7 +3355,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_get_predefined_profile_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3419,7 +3391,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3467,7 +3439,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_create_predefined_profile_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3508,7 +3479,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3556,7 +3527,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_update_predefined_profile_config_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3597,7 +3567,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3645,7 +3615,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_profiles_get_dlp_profile_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3682,7 +3651,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3730,7 +3699,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_settings_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3767,7 +3735,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3815,7 +3783,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_settings_update_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3856,7 +3823,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3904,7 +3871,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_settings_edit_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -3945,7 +3911,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -3993,7 +3959,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn dlp_settings_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -4030,7 +3995,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..

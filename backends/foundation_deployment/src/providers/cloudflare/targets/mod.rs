@@ -6,13 +6,19 @@
 //! Feature flag: `cloudflare_targets `
 
 #![cfg(feature = "cloudflare_targets")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -25,104 +31,97 @@ use super::shared::{ApiError, ApiPending, ApiResponse};
 /// Arguments for [`infra-targets-list_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct InfraTargetsListArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Query parameter: hostname
+    /// Query parameter: `hostname`.
     pub hostname: Option<String>,
-    /// Query parameter: hostname_contains
+    /// Query parameter: `hostname_contains`.
     pub hostname_contains: Option<String>,
-    /// Query parameter: virtual_network_id
+    /// Query parameter: `virtual_network_id`.
     pub virtual_network_id: Option<String>,
-    /// Query parameter: ip_v4
+    /// Query parameter: `ip_v4`.
     pub ip_v4: Option<String>,
-    /// Query parameter: ip_v6
+    /// Query parameter: `ip_v6`.
     pub ip_v6: Option<String>,
-    /// Query parameter: created_before
+    /// Query parameter: `created_before`.
     pub created_before: Option<String>,
-    /// Query parameter: created_after
+    /// Query parameter: `created_after`.
     pub created_after: Option<String>,
-    /// Query parameter: modified_before
+    /// Query parameter: `modified_before`.
     pub modified_before: Option<String>,
-    /// Query parameter: modified_after
+    /// Query parameter: `modified_after`.
     pub modified_after: Option<String>,
-    /// Query parameter: ips
+    /// Query parameter: `ips`.
     pub ips: Option<String>,
-    /// Query parameter: target_ids
+    /// Query parameter: `target_ids`.
     pub target_ids: Option<String>,
-    /// Query parameter: ip_like
+    /// Query parameter: `ip_like`.
     pub ip_like: Option<String>,
-    /// Query parameter: ipv4_start
+    /// Query parameter: `ipv4_start`.
     pub ipv4_start: Option<String>,
-    /// Query parameter: ipv4_end
+    /// Query parameter: `ipv4_end`.
     pub ipv4_end: Option<String>,
-    /// Query parameter: ipv6_start
+    /// Query parameter: `ipv6_start`.
     pub ipv6_start: Option<String>,
-    /// Query parameter: ipv6_end
+    /// Query parameter: `ipv6_end`.
     pub ipv6_end: Option<String>,
-    /// Query parameter: page
+    /// Query parameter: `page`.
     pub page: Option<String>,
-    /// Query parameter: per_page
+    /// Query parameter: `per_page`.
     pub per_page: Option<String>,
-    /// Query parameter: order
+    /// Query parameter: `order`.
     pub order: Option<String>,
-    /// Query parameter: direction
+    /// Query parameter: `direction`.
     pub direction: Option<String>,
 }
 
 /// Arguments for [`infra-targets-post_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct InfraTargetsPostArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`infra-targets-put-batch_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct InfraTargetsPutBatchArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
     /// Request body.
     pub body: Vec<serde_json::Value>,
 }
 
-/// Arguments for [`infra-targets-delete-batch_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct InfraTargetsDeleteBatchArgs {
-    /// Path parameter: account_id
-    pub account_id: String,
-}
-
 /// Arguments for [`infra-targets-delete-batch-post_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct InfraTargetsDeleteBatchPostArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`infra-targets-get_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct InfraTargetsGetArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: target_id
+    /// Path parameter: `target_id`.
     pub target_id: String,
 }
 
 /// Arguments for [`infra-targets-put_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct InfraTargetsPutArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: target_id
+    /// Path parameter: `target_id`.
     pub target_id: String,
 }
 
 /// Arguments for [`infra-targets-delete_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct InfraTargetsDeleteArgs {
-    /// Path parameter: account_id
+    /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Path parameter: target_id
+    /// Path parameter: `target_id`.
     pub target_id: String,
 }
 
@@ -152,7 +151,6 @@ pub struct InfraTargetsDeleteArgs {
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn infra_targets_list_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -189,7 +187,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -237,7 +235,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn infra_targets_post_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -274,7 +271,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -322,7 +319,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn infra_targets_put_batch_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -363,92 +359,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(super::shared::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            super::shared::RequestIntro::Failed(e) => {
-                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| super::shared::ApiPending::Sending))
-}
-
-// -----------------------------------------------------------------------------
-// DELETE /accounts/{account_id}/infrastructure/targets/batch
-// -----------------------------------------------------------------------------
-
-/// DELETE /accounts/{account_id}/infrastructure/targets/batch.
-///
-/// Takes client and args, builds the request, optionally applies modifications,
-/// and returns a `TaskIterator` for execution.
-///
-/// # Arguments
-///
-/// * `client` - HTTP client for making the request
-/// * `args` - Request arguments (path params, query params, body)
-/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
-///
-/// # Example
-///
-/// ```ignore
-/// let task = infra_targets_delete_batch_request(&client, &args, Some(|b| {
-///     b.header("X-Custom-Header", "value")
-/// }))?;
-/// ```
-
-#[inline]
-pub fn infra_targets_delete_batch_request<R, F>(
-    client: &SimpleHttpClient<R>,
-    args: &InfraTargetsDeleteBatchArgs,
-    builder_mod: Option<F>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
-            Pending = super::shared::ApiPending,
-            Spawner = super::shared::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    super::shared::ApiError,
->
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
-{
-    let endpoint_url = format!(
-        "https://api.cloudflare.com/client/v4/accounts/{}/infrastructure/targets/batch",
-        args.account_id,
-    );
-
-    let mut builder = client
-        .delete(&endpoint_url)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    if let Some(f) = builder_mod {
-        f(&mut builder);
-    }
-
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -496,7 +407,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn infra_targets_delete_batch_post_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -533,7 +443,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -581,7 +491,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn infra_targets_get_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -618,7 +527,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -666,7 +575,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn infra_targets_put_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -703,7 +611,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
@@ -751,7 +659,6 @@ where
 ///     b.header("X-Custom-Header", "value")
 /// }))?;
 /// ```
-
 #[inline]
 pub fn infra_targets_delete_request<R, F>(
     client: &SimpleHttpClient<R>,
@@ -788,7 +695,7 @@ where
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
-                stream,
+                stream: _,
                 intro,
                 headers,
                 ..
