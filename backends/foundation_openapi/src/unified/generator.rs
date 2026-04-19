@@ -665,13 +665,15 @@ impl UnifiedGenerator {
 
         // Handle allOf - merge properties from all members
         if let Some(all_of) = &schema.all_of {
-            let mut all_properties: BTreeMap<String, SpecSchema> = BTreeMap::new();
+            let mut all_properties: BTreeMap<String, (String, SpecSchema)> = BTreeMap::new();
             let mut required: std::collections::HashSet<String> = std::collections::HashSet::new();
 
             for member in all_of {
                 if let Some(props) = &member.properties {
                     for (k, v) in props {
-                        all_properties.insert(k.clone(), v.clone());
+                        // Deduplicate by snake_case field name to avoid duplicates like "Version" and "version"
+                        let field_name = escape_rust_keyword(&to_snake_case(k));
+                        all_properties.insert(field_name, (k.clone(), v.clone()));
                     }
                 }
                 for r in &member.required {
@@ -680,8 +682,7 @@ impl UnifiedGenerator {
             }
 
             // Generate fields from merged properties
-            for (prop_name, prop_schema) in &all_properties {
-                let field_name = escape_rust_keyword(&to_snake_case(prop_name));
+            for (field_name, (prop_name, prop_schema)) in &all_properties {
                 let rust_type = self.schema_to_rust_type(prop_schema, schemas);
                 let is_required = required.contains(prop_name);
 
@@ -696,9 +697,16 @@ impl UnifiedGenerator {
         // Handle object with properties
         else if let Some(properties) = &schema.properties {
             let required: std::collections::HashSet<String> = schema.required.iter().cloned().collect();
+            let mut generated_fields: BTreeMap<String, (String, &SpecSchema)> = BTreeMap::new();
 
             for (prop_name, prop_schema) in properties {
                 let field_name = escape_rust_keyword(&to_snake_case(prop_name));
+                // Skip if we already generated this field (handles "Version" vs "version" duplicates)
+                if generated_fields.contains_key(&field_name) {
+                    continue;
+                }
+                generated_fields.insert(field_name.clone(), (prop_name.clone(), prop_schema));
+
                 let rust_type = self.schema_to_rust_type(prop_schema, schemas);
                 let is_required = required.contains(prop_name);
 

@@ -13,12 +13,12 @@
     clippy::useless_format
 )]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
@@ -35,6 +35,57 @@ pub struct OrgVolumesResponse {
     pub next_cursor: Option<String>,
     /// volumes property.
     pub volumes: Option<Vec<OrgVolume>>,
+}
+
+/// `OrgVolume` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrgVolume {
+    /// app_name property.
+    pub app_name: Option<String>,
+    /// attached_alloc_id property.
+    pub attached_alloc_id: Option<String>,
+    /// attached_machine_id property.
+    pub attached_machine_id: Option<String>,
+    /// auto_backup_enabled property.
+    pub auto_backup_enabled: Option<bool>,
+    /// block_size property.
+    pub block_size: Option<i64>,
+    /// blocks property.
+    pub blocks: Option<i64>,
+    /// blocks_avail property.
+    pub blocks_avail: Option<i64>,
+    /// blocks_free property.
+    pub blocks_free: Option<i64>,
+    /// bytes_total property.
+    pub bytes_total: Option<i64>,
+    /// bytes_used property.
+    pub bytes_used: Option<i64>,
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// encrypted property.
+    pub encrypted: Option<bool>,
+    /// fstype property.
+    pub fstype: Option<String>,
+    /// host_status property.
+    pub host_status: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// size_gb property.
+    pub size_gb: Option<i64>,
+    /// snapshot_retention property.
+    pub snapshot_retention: Option<i64>,
+    /// state property.
+    pub state: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+    /// zone property.
+    pub zone: Option<String>,
 }
 
 // =============================================================================
@@ -118,7 +169,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -136,8 +189,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: OrgVolumesResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: OrgVolumesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),

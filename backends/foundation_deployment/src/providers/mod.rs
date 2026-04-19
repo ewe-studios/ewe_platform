@@ -7,8 +7,8 @@
 
 pub mod aws;
 pub mod cloudflare;
-// pub mod fly_io;
-// pub mod gcp;
+pub mod fly_io;
+pub mod gcp;
 pub mod huggingface;
 pub mod mongodb_atlas;
 pub mod neon;

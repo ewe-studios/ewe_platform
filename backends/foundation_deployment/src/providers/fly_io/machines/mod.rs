@@ -13,16 +13,54 @@
     clippy::useless_format
 )]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
+
+/// `MachineOverviewConfig` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MachineOverviewConfig {
+    /// guest property.
+    pub guest: Option<FlyMachineGuest>,
+    /// image property.
+    pub image: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
+}
+
+/// `OrgMachine` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrgMachine {
+    /// app_name property.
+    pub app_name: Option<String>,
+    /// config property.
+    pub config: Option<MachineOverviewConfig>,
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// instance_id property.
+    pub instance_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// private_ip property.
+    pub private_ip: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
 
 /// `OrgMachinesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -35,6 +73,14 @@ pub struct OrgMachinesResponse {
     pub machines: Option<Vec<OrgMachine>>,
     /// next_cursor property.
     pub next_cursor: Option<String>,
+}
+
+/// `FlyMachineGuest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineGuest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================
@@ -121,7 +167,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -139,8 +187,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: OrgMachinesResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: OrgMachinesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
