@@ -13,10 +13,6 @@ members = [
   "examples/web/*",
   "examples/intro",
   "examples/template/*",
-  "examples/llama-cpp/embeddings",
-  "examples/llama-cpp/simple",
-  "examples/llama-cpp/reranker",
-  "examples/llama-cpp/mtmd",
 
 ]
 
@@ -29,6 +25,8 @@ exclude = [
   # "crates/ewe_deployables",
   "backends/docs",
   "backends/docs/*",
+  # llama-cpp examples (depend on hf-hub which pulls in aws-lc-sys with broken build)
+  "examples/llama-cpp/*",
   # tests members
   "integrations/nodejs/integrations/*",
 ]
