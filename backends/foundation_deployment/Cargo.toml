@@ -158,7 +158,16 @@ gcp_accesscontextmanager = []
 gcp_addressvalidation = []
 gcp_adexchangebuyer2 = []
 gcp_adexperiencereport = []
-gcp_admin = []
+gcp_admin = [
+    "gcp_admin_applications",
+    "gcp_admin_dates",
+    "gcp_admin_stop",
+    "gcp_admin_watch",
+]
+gcp_admin_applications = []
+gcp_admin_dates = []
+gcp_admin_stop = []
+gcp_admin_watch = []
 gcp_admob = []
 gcp_adsense = []
 gcp_adsenseplatform = []
