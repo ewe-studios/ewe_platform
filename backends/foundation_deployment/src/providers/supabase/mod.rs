@@ -4,15 +4,34 @@
 //! DO NOT EDIT MANUALLY.
 
 #![cfg(feature = "supabase")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]
 
-#[cfg(feature = "supabase_shared")]
 pub mod shared;
 
-#[cfg(feature = "supabase_apply_authorize_autoscale_463")]
-pub mod apply_authorize_autoscale_463;
-#[cfg(feature = "supabase_usage_api_requests_263")]
-pub mod usage_api_requests_263;
-#[cfg(feature = "supabase_project_claim_restore_110")]
-pub mod project_claim_restore_110;
-#[cfg(feature = "supabase_projects_branches")]
-pub mod projects_branches;
+#[cfg(feature = "supabase_auth")]
+pub mod auth;
+#[cfg(feature = "supabase_backups")]
+pub mod backups;
+#[cfg(feature = "supabase_branches")]
+pub mod branches;
+#[cfg(feature = "supabase_database")]
+pub mod database;
+#[cfg(feature = "supabase_diff")]
+pub mod diff;
+#[cfg(feature = "supabase_functions")]
+pub mod functions;
+#[cfg(feature = "supabase_merge")]
+pub mod merge;
+#[cfg(feature = "supabase_projects")]
+pub mod projects;
+#[cfg(feature = "supabase_push")]
+pub mod push;
+#[cfg(feature = "supabase_realtime")]
+pub mod realtime;
+#[cfg(feature = "supabase_reset")]
+pub mod reset;
+#[cfg(feature = "supabase_snippets")]
+pub mod snippets;
+#[cfg(feature = "supabase_storage")]
+pub mod storage;
