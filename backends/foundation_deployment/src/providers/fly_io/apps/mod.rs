@@ -13,634 +13,22 @@
     clippy::useless_format
 )]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator, TaskIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-use super::shared::{ApiError, ApiPending, ApiResponse};
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
-
-/// `App` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct App {
-    /// id property.
-    pub id: Option<String>,
-    /// internal_numeric_id property.
-    pub internal_numeric_id: Option<i64>,
-    /// machine_count property.
-    pub machine_count: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// organization property.
-    pub organization: Option<AppOrganizationInfo>,
-    /// status property.
-    pub status: Option<String>,
-    /// volume_count property.
-    pub volume_count: Option<i64>,
-}
-
-/// `AppSecret` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppSecret {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// digest property.
-    pub digest: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `AppSecrets` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppSecrets {
-    /// secrets property.
-    pub secrets: Option<Vec<AppSecret>>,
-}
-
-/// `AppSecretsUpdateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppSecretsUpdateRequest {
-    /// values property.
-    pub values: Option<serde_json::Value>,
-}
-
-/// `AppSecretsUpdateResp` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppSecretsUpdateResp {
-    /// Version property.
-    pub version: Option<i64>,
-    /// secrets property.
-    pub secrets: Option<Vec<AppSecret>>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `AssignIPRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssignIPRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CertificateCheckResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateCheckResponse {
-    /// acme_requested property.
-    pub acme_requested: Option<bool>,
-    /// certificates property.
-    pub certificates: Option<Vec<CertificateEntry>>,
-    /// configured property.
-    pub configured: Option<bool>,
-    /// dns_provider property.
-    pub dns_provider: Option<String>,
-    /// dns_records property.
-    pub dns_records: Option<DNSRecords>,
-    /// dns_requirements property.
-    pub dns_requirements: Option<DNSRequirements>,
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// rate_limited_until property.
-    pub rate_limited_until: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// validation property.
-    pub validation: Option<CertificateValidation>,
-    /// validation_errors property.
-    pub validation_errors: Option<Vec<CertificateValidationError>>,
-}
-
-/// `CertificateDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateDetail {
-    /// acme_requested property.
-    pub acme_requested: Option<bool>,
-    /// certificates property.
-    pub certificates: Option<Vec<CertificateEntry>>,
-    /// configured property.
-    pub configured: Option<bool>,
-    /// dns_provider property.
-    pub dns_provider: Option<String>,
-    /// dns_requirements property.
-    pub dns_requirements: Option<DNSRequirements>,
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// rate_limited_until property.
-    pub rate_limited_until: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// validation property.
-    pub validation: Option<CertificateValidation>,
-    /// validation_errors property.
-    pub validation_errors: Option<Vec<CertificateValidationError>>,
-}
-
-/// `CreateAcmeCertificateRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateAcmeCertificateRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CreateAppDeployTokenRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateAppDeployTokenRequest {
-    /// expiry property.
-    pub expiry: Option<String>,
-}
-
-/// `CreateAppRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateAppRequest {
-    /// enable_subdomains property.
-    pub enable_subdomains: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// org_slug property.
-    pub org_slug: Option<String>,
-}
-
-/// `CreateAppResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateAppResponse {
-    /// token property.
-    pub token: Option<String>,
-}
-
-/// `CreateCustomCertificateRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateCustomCertificateRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CreateLeaseRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateLeaseRequest {
-    /// description property.
-    pub description: Option<String>,
-    /// ttl property.
-    pub ttl: Option<i64>,
-}
-
-/// `CreateMachineRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateMachineRequest {
-    /// config property.
-    pub config: Option<serde_json::Value>,
-    /// lease_ttl property.
-    pub lease_ttl: Option<i64>,
-    /// lsvd property.
-    pub lsvd: Option<bool>,
-    /// min_secrets_version property.
-    pub min_secrets_version: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// skip_launch property.
-    pub skip_launch: Option<bool>,
-    /// skip_secrets property.
-    pub skip_secrets: Option<bool>,
-    /// skip_service_registration property.
-    pub skip_service_registration: Option<bool>,
-}
-
-/// `CreateVolumeRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateVolumeRequest {
-    /// auto_backup_enabled property.
-    pub auto_backup_enabled: Option<bool>,
-    /// compute property.
-    pub compute: Option<FlyMachineGuest>,
-    /// compute_image property.
-    pub compute_image: Option<String>,
-    /// encrypted property.
-    pub encrypted: Option<bool>,
-    /// fstype property.
-    pub fstype: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// require_unique_zone property.
-    pub require_unique_zone: Option<bool>,
-    /// size_gb property.
-    pub size_gb: Option<i64>,
-    /// snapshot_id property.
-    pub snapshot_id: Option<String>,
-    /// snapshot_retention property.
-    pub snapshot_retention: Option<i64>,
-    /// source_volume_id property.
-    pub source_volume_id: Option<String>,
-    /// unique_zone_app_wide property.
-    pub unique_zone_app_wide: Option<bool>,
-}
-
-/// `DecryptSecretkeyRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DecryptSecretkeyRequest {
-    /// associated_data property.
-    pub associated_data: Option<Vec<i64>>,
-    /// ciphertext property.
-    pub ciphertext: Option<Vec<i64>>,
-}
-
-/// `DecryptSecretkeyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DecryptSecretkeyResponse {
-    /// plaintext property.
-    pub plaintext: Option<Vec<i64>>,
-}
-
-/// `DeleteAppSecretResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteAppSecretResponse {
-    /// Version property.
-    pub version: Option<i64>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `DeleteSecretkeyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteSecretkeyResponse {
-    /// Version property.
-    pub version: Option<i64>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `DestroyCustomCertificateResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DestroyCustomCertificateResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `EncryptSecretkeyRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptSecretkeyRequest {
-    /// associated_data property.
-    pub associated_data: Option<Vec<i64>>,
-    /// plaintext property.
-    pub plaintext: Option<Vec<i64>>,
-}
-
-/// `EncryptSecretkeyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptSecretkeyResponse {
-    /// ciphertext property.
-    pub ciphertext: Option<Vec<i64>>,
-}
-
-/// `ExtendVolumeRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExtendVolumeRequest {
-    /// size_gb property.
-    pub size_gb: Option<i64>,
-}
-
-/// `ExtendVolumeResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExtendVolumeResponse {
-    /// needs_restart property.
-    pub needs_restart: Option<bool>,
-    /// volume property.
-    pub volume: Option<Volume>,
-}
-
-/// `Flydv1ExecResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Flydv1ExecResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `IPAssignment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IPAssignment {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// ip property.
-    pub ip: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// service_name property.
-    pub service_name: Option<String>,
-    /// shared property.
-    pub shared: Option<bool>,
-}
-
-/// `Lease` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Lease {
-    /// description property.
-    pub description: Option<String>,
-    /// expires_at property.
-    pub expires_at: Option<i64>,
-    /// nonce property.
-    pub nonce: Option<String>,
-    /// owner property.
-    pub owner: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `ListAppsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAppsResponse {
-    /// apps property.
-    pub apps: Option<Vec<App>>,
-    /// total_apps property.
-    pub total_apps: Option<i64>,
-}
-
-/// `ListCertificatesResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCertificatesResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ListIPAssignmentsResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListIPAssignmentsResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `Machine` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Machine {
-    /// checks property.
-    pub checks: Option<Vec<CheckStatus>>,
-    /// config property.
-    pub config: Option<FlyMachineConfig>,
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// events property.
-    pub events: Option<Vec<MachineEvent>>,
-    /// host_status property.
-    pub host_status: Option<String>,
-    /// id property.
-    pub id: Option<String>,
-    /// image_ref property.
-    pub image_ref: Option<ImageRef>,
-    /// incomplete_config property.
-    pub incomplete_config: Option<FlyMachineConfig>,
-    /// instance_id property.
-    pub instance_id: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// nonce property.
-    pub nonce: Option<String>,
-    /// private_ip property.
-    pub private_ip: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// state property.
-    pub state: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
-
-/// `MachineExecRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineExecRequest {
-    /// cmd property.
-    pub cmd: Option<String>,
-    /// command property.
-    pub command: Option<Vec<String>>,
-    /// container property.
-    pub container: Option<String>,
-    /// stdin property.
-    pub stdin: Option<String>,
-    /// timeout property.
-    pub timeout: Option<i64>,
-}
-
-/// `MainMemoryResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MainMemoryResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MainReclaimMemoryRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MainReclaimMemoryRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MainReclaimMemoryResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MainReclaimMemoryResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MainSetMemoryLimitRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MainSetMemoryLimitRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `MetadataValueResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetadataValueResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecretKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretKey {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// public_key property.
-    pub public_key: Option<Vec<i64>>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
 
 /// `SecretKeys` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretKeys {
     /// secret_keys property.
     pub secret_keys: Option<Vec<SecretKey>>,
-}
-
-/// `SetAppSecretRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetAppSecretRequest {
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `SetAppSecretResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetAppSecretResponse {
-    /// Version property.
-    pub version: Option<i64>,
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// digest property.
-    pub digest: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `SetSecretkeyRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetSecretkeyRequest {
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<Vec<i64>>,
-}
-
-/// `SetSecretkeyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetSecretkeyResponse {
-    /// Version property.
-    pub version: Option<i64>,
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// public_key property.
-    pub public_key: Option<Vec<i64>>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-    /// version property.
-    pub version: Option<i64>,
-}
-
-/// `SignSecretkeyRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SignSecretkeyRequest {
-    /// plaintext property.
-    pub plaintext: Option<Vec<i64>>,
-}
-
-/// `SignSecretkeyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SignSecretkeyResponse {
-    /// signature property.
-    pub signature: Option<Vec<i64>>,
-}
-
-/// `SignalRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SignalRequest {
-    /// signal property.
-    pub signal: Option<String>,
-}
-
-/// `StopRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopRequest {
-    /// signal property.
-    pub signal: Option<String>,
-    /// timeout property.
-    pub timeout: Option<FlyDuration>,
-}
-
-/// `UpdateMachineRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateMachineRequest {
-    /// config property.
-    pub config: Option<serde_json::Value>,
-    /// current_version property.
-    pub current_version: Option<String>,
-    /// lease_ttl property.
-    pub lease_ttl: Option<i64>,
-    /// lsvd property.
-    pub lsvd: Option<bool>,
-    /// min_secrets_version property.
-    pub min_secrets_version: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// skip_launch property.
-    pub skip_launch: Option<bool>,
-    /// skip_secrets property.
-    pub skip_secrets: Option<bool>,
-    /// skip_service_registration property.
-    pub skip_service_registration: Option<bool>,
-}
-
-/// `UpdateMetadataRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateMetadataRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `UpdateVolumeRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateVolumeRequest {
-    /// auto_backup_enabled property.
-    pub auto_backup_enabled: Option<bool>,
-    /// snapshot_retention property.
-    pub snapshot_retention: Option<i64>,
-}
-
-/// `UpsertMetadataKeyRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpsertMetadataKeyRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `VerifySecretkeyRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VerifySecretkeyRequest {
-    /// plaintext property.
-    pub plaintext: Option<Vec<i64>>,
-    /// signature property.
-    pub signature: Option<Vec<i64>>,
 }
 
 /// `Volume` type.
@@ -690,6 +78,598 @@ pub struct Volume {
     pub zone: Option<String>,
 }
 
+/// `DeleteSecretkeyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteSecretkeyResponse {
+    /// Version property.
+    pub version: Option<i64>,
+}
+
+/// `CreateMachineRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateMachineRequest {
+    /// config property.
+    pub config: Option<serde_json::Value>,
+    /// lease_ttl property.
+    pub lease_ttl: Option<i64>,
+    /// lsvd property.
+    pub lsvd: Option<bool>,
+    /// min_secrets_version property.
+    pub min_secrets_version: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// skip_launch property.
+    pub skip_launch: Option<bool>,
+    /// skip_secrets property.
+    pub skip_secrets: Option<bool>,
+    /// skip_service_registration property.
+    pub skip_service_registration: Option<bool>,
+}
+
+/// `MachineExecRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MachineExecRequest {
+    /// cmd property.
+    pub cmd: Option<String>,
+    /// command property.
+    pub command: Option<Vec<String>>,
+    /// container property.
+    pub container: Option<String>,
+    /// stdin property.
+    pub stdin: Option<String>,
+    /// timeout property.
+    pub timeout: Option<i64>,
+}
+
+/// `App` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct App {
+    /// id property.
+    pub id: Option<String>,
+    /// internal_numeric_id property.
+    pub internal_numeric_id: Option<i64>,
+    /// machine_count property.
+    pub machine_count: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// organization property.
+    pub organization: Option<AppOrganizationInfo>,
+    /// status property.
+    pub status: Option<String>,
+    /// volume_count property.
+    pub volume_count: Option<i64>,
+}
+
+/// `SetAppSecretResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetAppSecretResponse {
+    /// Version property.
+    pub version: Option<i64>,
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// digest property.
+    pub digest: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `MainReclaimMemoryResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MainReclaimMemoryResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `OwnershipVerification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OwnershipVerification {
+    /// app_value property.
+    pub app_value: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// org_value property.
+    pub org_value: Option<String>,
+}
+
+/// `FlyMachineInit` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineInit {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyDnsOption` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyDnsOption {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CheckStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CheckStatus {
+    /// name property.
+    pub name: Option<String>,
+    /// output property.
+    pub output: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `CertificateEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateEntry {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// expires_at property.
+    pub expires_at: Option<String>,
+    /// issued property.
+    pub issued: Option<Vec<IssuedCertificate>>,
+    /// issuer property.
+    pub issuer: Option<String>,
+    /// source property.
+    pub source: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `VerifySecretkeyRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VerifySecretkeyRequest {
+    /// plaintext property.
+    pub plaintext: Option<Vec<i64>>,
+    /// signature property.
+    pub signature: Option<Vec<i64>>,
+}
+
+/// `FlyTLSOptions` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyTLSOptions {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyTCPHealthcheck` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyTCPHealthcheck {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachineHTTPHeader` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineHTTPHeader {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AppSecret` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppSecret {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// digest property.
+    pub digest: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `AppOrganizationInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppOrganizationInfo {
+    /// internal_numeric_id property.
+    pub internal_numeric_id: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// slug property.
+    pub slug: Option<String>,
+}
+
+/// `AppSecrets` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppSecrets {
+    /// secrets property.
+    pub secrets: Option<Vec<AppSecret>>,
+}
+
+/// `FlyHTTPOptions` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyHTTPOptions {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyHTTPHealthcheck` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyHTTPHealthcheck {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CertificateValidation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateValidation {
+    /// alpn_configured property.
+    pub alpn_configured: Option<bool>,
+    /// dns_configured property.
+    pub dns_configured: Option<bool>,
+    /// http_configured property.
+    pub http_configured: Option<bool>,
+    /// ownership_txt_configured property.
+    pub ownership_txt_configured: Option<bool>,
+}
+
+/// `IPAssignment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IPAssignment {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// ip property.
+    pub ip: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// service_name property.
+    pub service_name: Option<String>,
+    /// shared property.
+    pub shared: Option<bool>,
+}
+
+/// `DecryptSecretkeyRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DecryptSecretkeyRequest {
+    /// associated_data property.
+    pub associated_data: Option<Vec<i64>>,
+    /// ciphertext property.
+    pub ciphertext: Option<Vec<i64>>,
+}
+
+/// `FlyContainerHealthcheckScheme` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyContainerHealthcheckScheme {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `Machine` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Machine {
+    /// checks property.
+    pub checks: Option<Vec<CheckStatus>>,
+    /// config property.
+    pub config: Option<FlyMachineConfig>,
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// events property.
+    pub events: Option<Vec<MachineEvent>>,
+    /// host_status property.
+    pub host_status: Option<String>,
+    /// id property.
+    pub id: Option<String>,
+    /// image_ref property.
+    pub image_ref: Option<ImageRef>,
+    /// incomplete_config property.
+    pub incomplete_config: Option<FlyMachineConfig>,
+    /// instance_id property.
+    pub instance_id: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// nonce property.
+    pub nonce: Option<String>,
+    /// private_ip property.
+    pub private_ip: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// state property.
+    pub state: Option<String>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `SignalRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SignalRequest {
+    /// signal property.
+    pub signal: Option<String>,
+}
+
+/// `FlyFile` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyFile {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyUnhealthyPolicy` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyUnhealthyPolicy {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CreateAppDeployTokenRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateAppDeployTokenRequest {
+    /// expiry property.
+    pub expiry: Option<String>,
+}
+
+/// `DNSRecords` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DNSRecords {
+    /// a property.
+    pub a: Option<Vec<String>>,
+    /// aaaa property.
+    pub aaaa: Option<Vec<String>>,
+    /// acme_challenge_cname property.
+    pub acme_challenge_cname: Option<String>,
+    /// cname property.
+    pub cname: Option<Vec<String>>,
+    /// ownership_txt property.
+    pub ownership_txt: Option<String>,
+    /// resolved_addresses property.
+    pub resolved_addresses: Option<Vec<String>>,
+    /// soa property.
+    pub soa: Option<String>,
+}
+
+/// `EncryptSecretkeyRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptSecretkeyRequest {
+    /// associated_data property.
+    pub associated_data: Option<Vec<i64>>,
+    /// plaintext property.
+    pub plaintext: Option<Vec<i64>>,
+}
+
+/// `FlyMachineMetrics` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineMetrics {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `UpdateMachineRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateMachineRequest {
+    /// config property.
+    pub config: Option<serde_json::Value>,
+    /// current_version property.
+    pub current_version: Option<String>,
+    /// lease_ttl property.
+    pub lease_ttl: Option<i64>,
+    /// lsvd property.
+    pub lsvd: Option<bool>,
+    /// min_secrets_version property.
+    pub min_secrets_version: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// skip_launch property.
+    pub skip_launch: Option<bool>,
+    /// skip_secrets property.
+    pub skip_secrets: Option<bool>,
+    /// skip_service_registration property.
+    pub skip_service_registration: Option<bool>,
+}
+
+/// `FlyMachineGuest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineGuest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyStopConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyStopConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CertificateValidationError` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateValidationError {
+    /// code property.
+    pub code: Option<String>,
+    /// message property.
+    pub message: Option<String>,
+    /// remediation property.
+    pub remediation: Option<String>,
+    /// timestamp property.
+    pub timestamp: Option<String>,
+}
+
+/// `MainSetMemoryLimitRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MainSetMemoryLimitRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyDNSConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyDNSConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachineServiceConcurrency` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineServiceConcurrency {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SignSecretkeyRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SignSecretkeyRequest {
+    /// plaintext property.
+    pub plaintext: Option<Vec<i64>>,
+}
+
+/// `MainMemoryResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MainMemoryResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachineConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CertificateCheckResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateCheckResponse {
+    /// acme_requested property.
+    pub acme_requested: Option<bool>,
+    /// certificates property.
+    pub certificates: Option<Vec<CertificateEntry>>,
+    /// configured property.
+    pub configured: Option<bool>,
+    /// dns_provider property.
+    pub dns_provider: Option<String>,
+    /// dns_records property.
+    pub dns_records: Option<DNSRecords>,
+    /// dns_requirements property.
+    pub dns_requirements: Option<DNSRequirements>,
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// rate_limited_until property.
+    pub rate_limited_until: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// validation property.
+    pub validation: Option<CertificateValidation>,
+    /// validation_errors property.
+    pub validation_errors: Option<Vec<CertificateValidationError>>,
+}
+
+/// `SetSecretkeyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetSecretkeyResponse {
+    /// Version property.
+    pub version: Option<i64>,
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// public_key property.
+    pub public_key: Option<Vec<i64>>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `CreateVolumeRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateVolumeRequest {
+    /// auto_backup_enabled property.
+    pub auto_backup_enabled: Option<bool>,
+    /// compute property.
+    pub compute: Option<FlyMachineGuest>,
+    /// compute_image property.
+    pub compute_image: Option<String>,
+    /// encrypted property.
+    pub encrypted: Option<bool>,
+    /// fstype property.
+    pub fstype: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// require_unique_zone property.
+    pub require_unique_zone: Option<bool>,
+    /// size_gb property.
+    pub size_gb: Option<i64>,
+    /// snapshot_id property.
+    pub snapshot_id: Option<String>,
+    /// snapshot_retention property.
+    pub snapshot_retention: Option<i64>,
+    /// source_volume_id property.
+    pub source_volume_id: Option<String>,
+    /// unique_zone_app_wide property.
+    pub unique_zone_app_wide: Option<bool>,
+}
+
+/// `FlyMachineService` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineService {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyProxyProtoOptions` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyProxyProtoOptions {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `UpdateVolumeRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateVolumeRequest {
+    /// auto_backup_enabled property.
+    pub auto_backup_enabled: Option<bool>,
+    /// snapshot_retention property.
+    pub snapshot_retention: Option<i64>,
+}
+
+/// `FlyEnvFrom` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyEnvFrom {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SignSecretkeyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SignSecretkeyResponse {
+    /// signature property.
+    pub signature: Option<Vec<i64>>,
+}
+
 /// `WaitMachineResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitMachineResponse {
@@ -701,6 +681,476 @@ pub struct WaitMachineResponse {
     pub state: Option<String>,
     /// version property.
     pub version: Option<String>,
+}
+
+/// `FlyContainerHealthcheckKind` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyContainerHealthcheckKind {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecretKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecretKey {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// public_key property.
+    pub public_key: Option<Vec<i64>>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `MachineEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MachineEvent {
+    /// id property.
+    pub id: Option<String>,
+    /// request property.
+    pub request: Option<serde_json::Value>,
+    /// source property.
+    pub source: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// timestamp property.
+    pub timestamp: Option<i64>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `EncryptSecretkeyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptSecretkeyResponse {
+    /// ciphertext property.
+    pub ciphertext: Option<Vec<i64>>,
+}
+
+/// `ListIPAssignmentsResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListIPAssignmentsResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachineProcess` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineProcess {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `Lease` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Lease {
+    /// description property.
+    pub description: Option<String>,
+    /// expires_at property.
+    pub expires_at: Option<i64>,
+    /// nonce property.
+    pub nonce: Option<String>,
+    /// owner property.
+    pub owner: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `CertificateDetail` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateDetail {
+    /// acme_requested property.
+    pub acme_requested: Option<bool>,
+    /// certificates property.
+    pub certificates: Option<Vec<CertificateEntry>>,
+    /// configured property.
+    pub configured: Option<bool>,
+    /// dns_provider property.
+    pub dns_provider: Option<String>,
+    /// dns_requirements property.
+    pub dns_requirements: Option<DNSRequirements>,
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// rate_limited_until property.
+    pub rate_limited_until: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// validation property.
+    pub validation: Option<CertificateValidation>,
+    /// validation_errors property.
+    pub validation_errors: Option<Vec<CertificateValidationError>>,
+}
+
+/// `MetadataValueResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetadataValueResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyDnsForwardRule` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyDnsForwardRule {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachineSecret` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineSecret {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DestroyCustomCertificateResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DestroyCustomCertificateResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SetSecretkeyRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetSecretkeyRequest {
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<Vec<i64>>,
+}
+
+/// `AppSecretsUpdateResp` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppSecretsUpdateResp {
+    /// Version property.
+    pub version: Option<i64>,
+    /// secrets property.
+    pub secrets: Option<Vec<AppSecret>>,
+}
+
+/// `DNSRequirements` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DNSRequirements {
+    /// a property.
+    pub a: Option<Vec<String>>,
+    /// aaaa property.
+    pub aaaa: Option<Vec<String>>,
+    /// acme_challenge property.
+    pub acme_challenge: Option<AcmeChallenge>,
+    /// cname property.
+    pub cname: Option<String>,
+    /// ownership property.
+    pub ownership: Option<OwnershipVerification>,
+}
+
+/// `AppSecretsUpdateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppSecretsUpdateRequest {
+    /// values property.
+    pub values: Option<serde_json::Value>,
+}
+
+/// `DecryptSecretkeyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DecryptSecretkeyResponse {
+    /// plaintext property.
+    pub plaintext: Option<Vec<i64>>,
+}
+
+/// `FlyContainerHealthcheck` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyContainerHealthcheck {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ExtendVolumeRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExtendVolumeRequest {
+    /// size_gb property.
+    pub size_gb: Option<i64>,
+}
+
+/// `ListCertificatesResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCertificatesResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CreateCustomCertificateRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateCustomCertificateRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AssignIPRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssignIPRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DeleteAppSecretResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteAppSecretResponse {
+    /// Version property.
+    pub version: Option<i64>,
+}
+
+/// `MainReclaimMemoryRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MainReclaimMemoryRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyContainerConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyContainerConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `UpsertMetadataKeyRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpsertMetadataKeyRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SetAppSecretRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetAppSecretRequest {
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `ExtendVolumeResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExtendVolumeResponse {
+    /// needs_restart property.
+    pub needs_restart: Option<bool>,
+    /// volume property.
+    pub volume: Option<Volume>,
+}
+
+/// `AcmeChallenge` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcmeChallenge {
+    /// name property.
+    pub name: Option<String>,
+    /// target property.
+    pub target: Option<String>,
+}
+
+/// `IssuedCertificate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IssuedCertificate {
+    /// certificate_authority property.
+    pub certificate_authority: Option<String>,
+    /// expires_at property.
+    pub expires_at: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `FlyMachineMount` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineMount {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyHTTPResponseOptions` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyHTTPResponseOptions {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyContainerDependency` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyContainerDependency {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyExecHealthcheck` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyExecHealthcheck {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CreateLeaseRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateLeaseRequest {
+    /// description property.
+    pub description: Option<String>,
+    /// ttl property.
+    pub ttl: Option<i64>,
+}
+
+/// `FlyContainerDependencyCondition` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyContainerDependencyCondition {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ImageRef` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageRef {
+    /// digest property.
+    pub digest: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// registry property.
+    pub registry: Option<String>,
+    /// repository property.
+    pub repository: Option<String>,
+    /// tag property.
+    pub tag: Option<String>,
+}
+
+/// `Flydv1ExecResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Flydv1ExecResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachineRestart` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineRestart {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyDuration` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyDuration {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachinePort` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachinePort {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `UpdateMetadataRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateMetadataRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyStatic` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyStatic {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachineRootfs` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineRootfs {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CreateAppResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateAppResponse {
+    /// token property.
+    pub token: Option<String>,
+}
+
+/// `ListAppsResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListAppsResponse {
+    /// apps property.
+    pub apps: Option<Vec<App>>,
+    /// total_apps property.
+    pub total_apps: Option<i64>,
+}
+
+/// `CreateAcmeCertificateRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateAcmeCertificateRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CreateAppRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateAppRequest {
+    /// enable_subdomains property.
+    pub enable_subdomains: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// org_slug property.
+    pub org_slug: Option<String>,
+}
+
+/// `StopRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StopRequest {
+    /// signal property.
+    pub signal: Option<String>,
+    /// timeout property.
+    pub timeout: Option<FlyDuration>,
+}
+
+/// `FlyMachineServiceCheck` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineServiceCheck {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyReplayCache` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyReplayCache {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================
@@ -1439,7 +1889,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1457,8 +1909,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ListAppsResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: ListAppsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1528,7 +1982,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1609,7 +2065,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1627,8 +2085,9 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: App = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: App = serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                    super::shared::ApiError::ParseFailed(e.to_string())
+                })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1694,7 +2153,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1778,7 +2239,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1796,8 +2259,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ListCertificatesResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: ListCertificatesResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1870,7 +2335,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1888,8 +2355,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CertificateDetail = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CertificateDetail =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -1962,7 +2431,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1980,8 +2451,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CertificateDetail = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CertificateDetail =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2050,7 +2523,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2068,8 +2543,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CertificateDetail = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CertificateDetail =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2138,7 +2615,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2222,7 +2701,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2240,8 +2721,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CertificateDetail = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CertificateDetail =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2310,7 +2793,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2328,8 +2813,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CertificateCheckResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CertificateCheckResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2398,7 +2885,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2417,7 +2906,9 @@ where
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
                 let parsed: DestroyCustomCertificateResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                    .map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2490,7 +2981,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2508,8 +3001,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: CreateAppResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: CreateAppResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2578,7 +3073,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2596,8 +3093,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ListIPAssignmentsResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: ListIPAssignmentsResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2670,7 +3169,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2688,8 +3189,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: IPAssignment = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: IPAssignment =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2758,7 +3261,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2842,7 +3347,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2860,8 +3367,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: serde_json::Value =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -2934,7 +3443,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2952,8 +3463,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: Machine = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: Machine =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3022,7 +3535,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3040,8 +3555,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: Machine = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: Machine =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3114,7 +3631,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3132,8 +3651,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: Machine = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: Machine =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3202,7 +3723,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3286,7 +3809,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3370,7 +3895,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3388,8 +3915,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: serde_json::Value =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3462,7 +3991,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3480,8 +4011,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: Flydv1ExecResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: Flydv1ExecResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3550,7 +4083,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3568,8 +4103,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: Lease = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: Lease =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3642,7 +4179,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3660,8 +4199,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: Lease = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: Lease =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3730,7 +4271,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3814,7 +4357,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3832,8 +4377,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: MainMemoryResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: MainMemoryResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3906,7 +4453,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3924,8 +4473,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: MainMemoryResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: MainMemoryResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -3998,7 +4549,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4016,8 +4569,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: MainReclaimMemoryResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: MainReclaimMemoryResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -4086,7 +4641,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4104,8 +4661,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: serde_json::Value =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -4178,7 +4737,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4262,7 +4823,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4280,8 +4843,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: MetadataValueResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: MetadataValueResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -4354,7 +4919,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4438,7 +5005,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4522,7 +5091,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4540,8 +5111,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: serde_json::Value =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -4610,7 +5183,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4698,7 +5273,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4782,7 +5359,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4870,7 +5449,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4954,7 +5535,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5038,7 +5621,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5122,7 +5707,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -5140,8 +5727,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: serde_json::Value =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -5210,7 +5799,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -5228,8 +5819,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: WaitMachineResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: WaitMachineResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -5298,7 +5891,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -5316,8 +5911,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: SecretKeys = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: SecretKeys =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -5386,7 +5983,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -5404,8 +6003,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: SecretKey = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: SecretKey =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -5478,7 +6079,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -5496,8 +6099,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: SetSecretkeyResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: SetSecretkeyResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -5566,7 +6171,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -5584,8 +6191,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: DeleteSecretkeyResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: DeleteSecretkeyResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -5658,7 +6267,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -5676,8 +6287,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: DecryptSecretkeyResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: DecryptSecretkeyResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -5750,7 +6363,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -5768,8 +6383,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: EncryptSecretkeyResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: EncryptSecretkeyResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -5842,7 +6459,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -5860,8 +6479,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: SetSecretkeyResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: SetSecretkeyResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -5934,7 +6555,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -5952,8 +6575,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: SignSecretkeyResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: SignSecretkeyResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -6026,7 +6651,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6107,7 +6734,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -6125,8 +6754,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AppSecrets = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: AppSecrets =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -6196,7 +6827,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -6214,8 +6847,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AppSecretsUpdateResp = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: AppSecretsUpdateResp =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -6284,7 +6919,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -6302,8 +6939,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: AppSecret = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: AppSecret =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -6376,7 +7015,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -6394,8 +7035,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: SetAppSecretResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: SetAppSecretResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -6464,7 +7107,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -6482,8 +7127,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: DeleteAppSecretResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: DeleteAppSecretResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -6549,7 +7196,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -6567,8 +7216,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: serde_json::Value =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -6638,7 +7289,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -6656,8 +7309,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: Volume = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: Volume =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -6726,7 +7381,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -6744,8 +7401,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: Volume = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: Volume =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -6818,7 +7477,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -6836,8 +7497,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: Volume = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: Volume =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -6906,7 +7569,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -6924,8 +7589,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: Volume = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: Volume =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -6998,7 +7665,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -7016,8 +7685,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: ExtendVolumeResponse = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: ExtendVolumeResponse =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -7086,7 +7757,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -7104,8 +7777,10 @@ where
                 }
                 let body =
                     foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
-                    .map_err(|e| super::shared::ApiError::ParseFailed(e.to_string()))?;
+                let parsed: serde_json::Value =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
@@ -7174,7 +7849,9 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
