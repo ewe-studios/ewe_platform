@@ -234,7 +234,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
 
             // Auto-fix common issues (unused imports, snake_case, etc.)
             println!("\n=== Running cargo fix ===");
-            let feature_name = provider.replace('-', "_");
+            let feature_name = provider.replace('-', "_").replace('/', "_");
             let fix_output = std::process::Command::new("cargo")
                 .args([
                     "fix",
