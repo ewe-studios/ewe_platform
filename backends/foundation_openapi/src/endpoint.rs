@@ -294,6 +294,26 @@ impl EndpointInfo {
 
         (path_params, query_params)
     }
+
+    /// Create a default stub instance for use as a placeholder.
+    #[must_use]
+    pub fn default_stub() -> Self {
+        Self {
+            operation_id: String::new(),
+            method: String::new(),
+            path: String::new(),
+            path_params: Vec::new(),
+            query_params: Vec::new(),
+            request_type: None,
+            response_type: None,
+            error_types: BTreeMap::new(),
+            success_codes: Vec::new(),
+            base_url: None,
+            summary: None,
+            operation_type: OperationType::Read,
+            deprecated: false,
+        }
+    }
 }
 
 /// GCP Parameter structure for extraction.

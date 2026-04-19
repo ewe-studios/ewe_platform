@@ -49,8 +49,8 @@ fn rename_std_type_conflict(type_name: &str) -> String {
 }
 
 /// Extract inner type names from a type string (handles Vec<T>, Option<T>, etc.).
-/// Adds extracted types to the all_types map.
-fn extract_type_from_generic<'a>(type_str: &str, ep: &'a EndpointInfo, all_types: &mut BTreeMap<String, &'a EndpointInfo>) {
+/// Adds extracted type names to the all_types set.
+fn extract_type_names_from_generic(type_str: &str, all_types: &mut std::collections::HashSet<String>) {
     // Skip invalid types
     if type_str == "()" || type_str == "serde_json::Value" {
         return;
@@ -66,7 +66,7 @@ fn extract_type_from_generic<'a>(type_str: &str, ep: &'a EndpointInfo, all_types
             if let Some(end) = type_str.rfind('>') {
                 let inner = type_str[start + 1..end].trim();
                 // Recursively extract (handles nested generics like Vec<Option<T>>)
-                extract_type_from_generic(inner, ep, all_types);
+                extract_type_names_from_generic(inner, all_types);
             }
         }
         return;
@@ -77,7 +77,85 @@ fn extract_type_from_generic<'a>(type_str: &str, ep: &'a EndpointInfo, all_types
     }
     // Rename std type conflicts and add the type
     let safe_name = rename_std_type_conflict(type_str);
-    all_types.entry(safe_name).or_insert(ep);
+    all_types.insert(safe_name);
+}
+
+/// Collect all type names referenced via $ref in a schema, recursively.
+/// Adds found type names (in PascalCase) to seen_types and types_to_process.
+fn collect_referenced_type_names(
+    schema: &crate::spec::Schema,
+    seen_types: &mut std::collections::HashSet<String>,
+    types_to_process: &mut Vec<String>,
+) {
+    // Check for direct $ref
+    if let Some(ref_path) = &schema.ref_path {
+        let ref_name = ref_path
+            .trim_start_matches("#/components/schemas/")
+            .trim_start_matches("#/schemas/");
+        let safe_name = rename_std_type_conflict(&crate::to_pascal_case(ref_name));
+        if seen_types.insert(safe_name) {
+            types_to_process.push(ref_name.to_string());
+        }
+        return;
+    }
+
+    // Recursively collect from allOf
+    if let Some(all_of) = &schema.all_of {
+        for member in all_of {
+            collect_referenced_type_names(member, seen_types, types_to_process);
+        }
+    }
+
+    // Recursively collect from oneOf
+    if let Some(one_of) = &schema.one_of {
+        for member in one_of {
+            collect_referenced_type_names(member, seen_types, types_to_process);
+        }
+    }
+
+    // Recursively collect from anyOf
+    if let Some(any_of) = &schema.any_of {
+        for member in any_of {
+            collect_referenced_type_names(member, seen_types, types_to_process);
+        }
+    }
+
+    // Collect from properties
+    if let Some(properties) = &schema.properties {
+        for (_prop_name, prop_schema) in properties {
+            // Check if property is a $ref
+            if let Some(ref_path) = &prop_schema.ref_path {
+                let ref_name = ref_path
+                    .trim_start_matches("#/components/schemas/")
+                    .trim_start_matches("#/schemas/");
+                let safe_name = rename_std_type_conflict(&crate::to_pascal_case(ref_name));
+                if seen_types.insert(safe_name) {
+                    types_to_process.push(ref_name.to_string());
+                }
+            }
+            // Check if property is an array with $ref items
+            else if prop_schema.schema_type.as_deref() == Some("array") {
+                if let Some(items) = &prop_schema.items {
+                    if let Some(ref_path) = &items.ref_path {
+                        let ref_name = ref_path
+                            .trim_start_matches("#/components/schemas/")
+                            .trim_start_matches("#/schemas/");
+                        let safe_name = rename_std_type_conflict(&crate::to_pascal_case(ref_name));
+                        if seen_types.insert(safe_name) {
+                            types_to_process.push(ref_name.to_string());
+                        }
+                    } else {
+                        // Recursively process array items
+                        collect_referenced_type_names(items, seen_types, types_to_process);
+                    }
+                }
+            }
+            // Recursively process object properties
+            else if prop_schema.schema_type.as_deref() == Some("object") {
+                collect_referenced_type_names(prop_schema, seen_types, types_to_process);
+            }
+        }
+    }
 }
 
 /// Transform an OpenAPI path into a Rust format! string.
@@ -328,10 +406,8 @@ impl UnifiedGenerator {
         let provider_output_dir = self.output_dir.join(provider);
         fs::create_dir_all(&provider_output_dir)?;
 
-        // Generate shared/ module if there are shared resources
-        if !analysis.shared_resources.is_empty() {
-            self.generate_shared_module(&analysis, &provider_output_dir)?;
-        }
+        // Generate shared/ module (always needed for ApiError/ApiResponse types)
+        self.generate_shared_module(&analysis, &provider_output_dir)?;
 
         // Generate one module per group
         for group in &analysis.groups {
@@ -339,7 +415,7 @@ impl UnifiedGenerator {
         }
 
         // Generate provider mod.rs with feature guards
-        self.generate_provider_mod(provider, &analysis.groups)?;
+        self.generate_provider_mod(provider, &analysis.groups, &analysis.shared_resources)?;
 
         // Update Cargo.toml with missing feature flags
         // output_dir is typically "backends/foundation_deployment/src/providers"
@@ -450,16 +526,26 @@ impl UnifiedGenerator {
         // We'll generate: types, then client functions, then provider impl
         // But organized per-endpoint for readability
 
-        // First pass: collect all unique types
-        let mut all_types: BTreeMap<String, &EndpointInfo> = BTreeMap::new();
+        // First pass: collect all unique types from endpoint response/request types
+        let mut all_types: std::collections::HashSet<String> = HashSet::new();
 
         for ep in &group.endpoints {
             if let Some(rt) = &ep.response_type {
                 let type_name = rt.as_rust_type();
-                extract_type_from_generic(type_name, ep, &mut all_types);
+                extract_type_names_from_generic(type_name, &mut all_types);
             }
             if let Some(rt) = &ep.request_type {
-                extract_type_from_generic(rt, ep, &mut all_types);
+                extract_type_names_from_generic(rt, &mut all_types);
+            }
+        }
+
+        // Second pass: collect all transitively referenced types from schemas
+        // This ensures nested types (e.g., types referenced via $ref in properties) are also generated
+        let mut types_to_process: Vec<String> = all_types.iter().cloned().collect();
+
+        while let Some(type_name) = types_to_process.pop() {
+            if let Some(schema) = schemas.get(&type_name) {
+                collect_referenced_type_names(schema, &mut all_types, &mut types_to_process);
             }
         }
 
@@ -471,7 +557,7 @@ impl UnifiedGenerator {
         writeln!(out)?;
 
         // Generate types from schemas - skip types that are already in shared_resources
-        for (type_name, _ep) in &all_types {
+        for type_name in &all_types {
             if generated_types.contains(type_name) {
                 continue;
             }
@@ -934,6 +1020,7 @@ impl UnifiedGenerator {
         &self,
         provider: &str,
         groups: &[ApiGroup],
+        _shared_resources: &[String],
     ) -> Result<(), GenError> {
         let feature_name = provider.replace('-', "_");
 
@@ -948,7 +1035,7 @@ impl UnifiedGenerator {
         writeln!(out, "#![allow(clippy::missing_errors_doc, clippy::doc_markdown, clippy::useless_format)]")?;
         writeln!(out)?;
 
-        // Shared module - always compiled when provider is enabled (no feature flag)
+        // Shared module - always generated (contains ApiError, ApiResponse, etc.)
         writeln!(out, "pub mod shared;")?;
         writeln!(out)?;
 

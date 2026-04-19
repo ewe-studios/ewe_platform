@@ -6,36 +6,28 @@
 //! Feature flag: `stripe_configurations `
 
 #![cfg(feature = "stripe_configurations")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// BillingPortalConfiguration response type.
+/// `BillingPortalConfiguration` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingPortalConfiguration {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// DeletedTerminalConfiguration response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletedTerminalConfiguration {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// TerminalConfiguration response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TerminalConfiguration {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -47,71 +39,33 @@ pub struct TerminalConfiguration {
 /// Arguments for [`GetBillingPortalConfigurations_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetBillingPortalConfigurationsArgs {
-    /// Query parameter: active
+    /// Query parameter: `active`.
     pub active: Option<String>,
-    /// Query parameter: ending_before
+    /// Query parameter: `ending_before`.
     pub ending_before: Option<String>,
-    /// Query parameter: expand
+    /// Query parameter: `expand`.
     pub expand: Option<String>,
-    /// Query parameter: is_default
+    /// Query parameter: `is_default`.
     pub is_default: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: starting_after
+    /// Query parameter: `starting_after`.
     pub starting_after: Option<String>,
 }
 
 /// Arguments for [`GetBillingPortalConfigurationsConfiguration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetBillingPortalConfigurationsConfigurationArgs {
-    /// Path parameter: configuration
+    /// Path parameter: `configuration`.
     pub configuration: String,
-    /// Query parameter: expand
+    /// Query parameter: `expand`.
     pub expand: Option<String>,
 }
 
 /// Arguments for [`PostBillingPortalConfigurationsConfiguration_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostBillingPortalConfigurationsConfigurationArgs {
-    /// Path parameter: configuration
-    pub configuration: String,
-}
-
-/// Arguments for [`GetTerminalConfigurations_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetTerminalConfigurationsArgs {
-    /// Query parameter: ending_before
-    pub ending_before: Option<String>,
-    /// Query parameter: expand
-    pub expand: Option<String>,
-    /// Query parameter: is_account_default
-    pub is_account_default: Option<String>,
-    /// Query parameter: limit
-    pub limit: Option<String>,
-    /// Query parameter: starting_after
-    pub starting_after: Option<String>,
-}
-
-/// Arguments for [`GetTerminalConfigurationsConfiguration_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetTerminalConfigurationsConfigurationArgs {
-    /// Path parameter: configuration
-    pub configuration: String,
-    /// Query parameter: expand
-    pub expand: Option<String>,
-}
-
-/// Arguments for [`PostTerminalConfigurationsConfiguration_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostTerminalConfigurationsConfigurationArgs {
-    /// Path parameter: configuration
-    pub configuration: String,
-}
-
-/// Arguments for [`DeleteTerminalConfigurationsConfiguration_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteTerminalConfigurationsConfigurationArgs {
-    /// Path parameter: configuration
+    /// Path parameter: `configuration`.
     pub configuration: String,
 }
 
@@ -123,54 +77,65 @@ pub struct DeleteTerminalConfigurationsConfigurationArgs {
 // GET /v1/billing_portal/configurations
 // -----------------------------------------------------------------------------
 
-/// GET /v1/billing_portal/configurations - builder function.
+/// GET /v1/billing_portal/configurations.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn get_billing_portal_configurations_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = get_billing_portal_configurations_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn get_billing_portal_configurations_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &GetBillingPortalConfigurationsArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.stripe.com//v1/billing_portal/configurations",);
 
-    let builder = client
+    let mut builder = client
         .get(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /v1/billing_portal/configurations - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn get_billing_portal_configurations_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
+            super::shared::RequestIntro::Success {
+                stream: _,
                 intro,
                 headers,
                 ..
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
@@ -182,89 +147,68 @@ pub fn get_billing_portal_configurations_task(
                     body: (),
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// GET /v1/billing_portal/configurations - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn get_billing_portal_configurations_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-        + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = get_billing_portal_configurations_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET /v1/billing_portal/configurations - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn get_billing_portal_configurations(
-    client: &SimpleHttpClient,
-    args: &GetBillingPortalConfigurationsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-        + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = get_billing_portal_configurations_builder(client, args)?;
-    get_billing_portal_configurations_execute(builder)
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // POST /v1/billing_portal/configurations
 // -----------------------------------------------------------------------------
 
-/// POST /v1/billing_portal/configurations - builder function.
+/// POST /v1/billing_portal/configurations.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn post_billing_portal_configurations_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_billing_portal_configurations_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_billing_portal_configurations_request<R, F>(
     client: &SimpleHttpClient<R>,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BillingPortalConfiguration>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.stripe.com//v1/billing_portal/configurations",);
 
-    let builder = client
+    let mut builder = client
         .post(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// POST /v1/billing_portal/configurations - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn post_billing_portal_configurations_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<BillingPortalConfiguration>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -272,93 +216,91 @@ pub fn post_billing_portal_configurations_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: BillingPortalConfiguration = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: BillingPortalConfiguration =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// POST /v1/billing_portal/configurations - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn post_billing_portal_configurations_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<BillingPortalConfiguration>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = post_billing_portal_configurations_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // GET /v1/billing_portal/configurations/{configuration}
 // -----------------------------------------------------------------------------
 
-/// GET /v1/billing_portal/configurations/{configuration} - builder function.
+/// GET /v1/billing_portal/configurations/{configuration}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn get_billing_portal_configurations_configuration_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = get_billing_portal_configurations_configuration_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn get_billing_portal_configurations_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &GetBillingPortalConfigurationsConfigurationArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BillingPortalConfiguration>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://api.stripe.com//v1/billing_portal/configurations/{configuration}",
+        "https://api.stripe.com//v1/billing_portal/configurations/{}",
         args.configuration,
     );
 
-    let builder = client
+    let mut builder = client
         .get(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /v1/billing_portal/configurations/{configuration} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn get_billing_portal_configurations_configuration_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<BillingPortalConfiguration>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -366,112 +308,91 @@ pub fn get_billing_portal_configurations_configuration_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: BillingPortalConfiguration = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: BillingPortalConfiguration =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// GET /v1/billing_portal/configurations/{configuration} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn get_billing_portal_configurations_configuration_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<BillingPortalConfiguration>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = get_billing_portal_configurations_configuration_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET /v1/billing_portal/configurations/{configuration} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn get_billing_portal_configurations_configuration(
-    client: &SimpleHttpClient,
-    args: &GetBillingPortalConfigurationsConfigurationArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<BillingPortalConfiguration>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = get_billing_portal_configurations_configuration_builder(client, args)?;
-    get_billing_portal_configurations_configuration_execute(builder)
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // POST /v1/billing_portal/configurations/{configuration}
 // -----------------------------------------------------------------------------
 
-/// POST /v1/billing_portal/configurations/{configuration} - builder function.
+/// POST /v1/billing_portal/configurations/{configuration}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn post_billing_portal_configurations_configuration_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_billing_portal_configurations_configuration_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_billing_portal_configurations_configuration_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &PostBillingPortalConfigurationsConfigurationArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BillingPortalConfiguration>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://api.stripe.com//v1/billing_portal/configurations/{configuration}",
+        "https://api.stripe.com//v1/billing_portal/configurations/{}",
         args.configuration,
     );
 
-    let builder = client
+    let mut builder = client
         .post(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// POST /v1/billing_portal/configurations/{configuration} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn post_billing_portal_configurations_configuration_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<BillingPortalConfiguration>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -479,766 +400,27 @@ pub fn post_billing_portal_configurations_configuration_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: BillingPortalConfiguration = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: BillingPortalConfiguration =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// POST /v1/billing_portal/configurations/{configuration} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn post_billing_portal_configurations_configuration_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<BillingPortalConfiguration>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = post_billing_portal_configurations_configuration_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// POST /v1/billing_portal/configurations/{configuration} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn post_billing_portal_configurations_configuration(
-    client: &SimpleHttpClient,
-    args: &PostBillingPortalConfigurationsConfigurationArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<BillingPortalConfiguration>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = post_billing_portal_configurations_configuration_builder(client, args)?;
-    post_billing_portal_configurations_configuration_execute(builder)
-}
-
-// -----------------------------------------------------------------------------
-// GET /v1/terminal/configurations
-// -----------------------------------------------------------------------------
-
-/// GET /v1/terminal/configurations - builder function.
-///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn get_terminal_configurations_builder<R>(
-    client: &SimpleHttpClient<R>,
-    args: &GetTerminalConfigurationsArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
-{
-    let endpoint_url = format!("https://api.stripe.com//v1/terminal/configurations",);
-
-    let builder = client
-        .get(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET /v1/terminal/configurations - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn get_terminal_configurations_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// GET /v1/terminal/configurations - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn get_terminal_configurations_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-        + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = get_terminal_configurations_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET /v1/terminal/configurations - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn get_terminal_configurations(
-    client: &SimpleHttpClient,
-    args: &GetTerminalConfigurationsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-        + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = get_terminal_configurations_builder(client, args)?;
-    get_terminal_configurations_execute(builder)
-}
-
-// -----------------------------------------------------------------------------
-// POST /v1/terminal/configurations
-// -----------------------------------------------------------------------------
-
-/// POST /v1/terminal/configurations - builder function.
-///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn post_terminal_configurations_builder<R>(
-    client: &SimpleHttpClient<R>,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
-{
-    let endpoint_url = format!("https://api.stripe.com//v1/terminal/configurations",);
-
-    let builder = client
-        .post(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// POST /v1/terminal/configurations - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn post_terminal_configurations_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<TerminalConfiguration>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: TerminalConfiguration = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// POST /v1/terminal/configurations - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn post_terminal_configurations_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TerminalConfiguration>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = post_terminal_configurations_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-// -----------------------------------------------------------------------------
-// GET /v1/terminal/configurations/{configuration}
-// -----------------------------------------------------------------------------
-
-/// GET /v1/terminal/configurations/{configuration} - builder function.
-///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn get_terminal_configurations_configuration_builder<R>(
-    client: &SimpleHttpClient<R>,
-    args: &GetTerminalConfigurationsConfigurationArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
-{
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/terminal/configurations/{configuration}",
-        args.configuration,
-    );
-
-    let builder = client
-        .get(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET /v1/terminal/configurations/{configuration} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn get_terminal_configurations_configuration_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<serde_json::Value>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// GET /v1/terminal/configurations/{configuration} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn get_terminal_configurations_configuration_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<serde_json::Value>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = get_terminal_configurations_configuration_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET /v1/terminal/configurations/{configuration} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn get_terminal_configurations_configuration(
-    client: &SimpleHttpClient,
-    args: &GetTerminalConfigurationsConfigurationArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<serde_json::Value>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = get_terminal_configurations_configuration_builder(client, args)?;
-    get_terminal_configurations_configuration_execute(builder)
-}
-
-// -----------------------------------------------------------------------------
-// POST /v1/terminal/configurations/{configuration}
-// -----------------------------------------------------------------------------
-
-/// POST /v1/terminal/configurations/{configuration} - builder function.
-///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn post_terminal_configurations_configuration_builder<R>(
-    client: &SimpleHttpClient<R>,
-    args: &PostTerminalConfigurationsConfigurationArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
-{
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/terminal/configurations/{configuration}",
-        args.configuration,
-    );
-
-    let builder = client
-        .post(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// POST /v1/terminal/configurations/{configuration} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn post_terminal_configurations_configuration_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<serde_json::Value>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: serde_json::Value = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// POST /v1/terminal/configurations/{configuration} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn post_terminal_configurations_configuration_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<serde_json::Value>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = post_terminal_configurations_configuration_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// POST /v1/terminal/configurations/{configuration} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn post_terminal_configurations_configuration(
-    client: &SimpleHttpClient,
-    args: &PostTerminalConfigurationsConfigurationArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<serde_json::Value>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = post_terminal_configurations_configuration_builder(client, args)?;
-    post_terminal_configurations_configuration_execute(builder)
-}
-
-// -----------------------------------------------------------------------------
-// DELETE /v1/terminal/configurations/{configuration}
-// -----------------------------------------------------------------------------
-
-/// DELETE /v1/terminal/configurations/{configuration} - builder function.
-///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn delete_terminal_configurations_configuration_builder<R>(
-    client: &SimpleHttpClient<R>,
-    args: &DeleteTerminalConfigurationsConfigurationArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
-{
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/terminal/configurations/{configuration}",
-        args.configuration,
-    );
-
-    let builder = client
-        .delete(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// DELETE /v1/terminal/configurations/{configuration} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn delete_terminal_configurations_configuration_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<DeletedTerminalConfiguration>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: DeletedTerminalConfiguration = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// DELETE /v1/terminal/configurations/{configuration} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn delete_terminal_configurations_configuration_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<DeletedTerminalConfiguration>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = delete_terminal_configurations_configuration_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// DELETE /v1/terminal/configurations/{configuration} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn delete_terminal_configurations_configuration(
-    client: &SimpleHttpClient,
-    args: &DeleteTerminalConfigurationsConfigurationArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<DeletedTerminalConfiguration>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = delete_terminal_configurations_configuration_builder(client, args)?;
-    delete_terminal_configurations_configuration_execute(builder)
-}
-
-// =============================================================================
-// PROVIDERCLIENT IMPL (wrapper methods)
-// =============================================================================
-
-/// ProviderClient extension methods for stripe configurations.
-///
-/// These wrapper methods provide state-aware API access.
-
-impl<S, R> crate::ProviderClient<S, R>
-where
-    S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-{
-    /// GET /v1/billing_portal/configurations.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_configurations_get_billing_portal_configurations(
-        &self,
-        args: &GetBillingPortalConfigurationsArgs,
-    ) -> Result<
-        impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-            + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = get_billing_portal_configurations_builder(&self.http_client, args)?;
-        get_billing_portal_configurations_execute(builder)
-    }
-
-    /// POST /v1/billing_portal/configurations.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_configurations_post_billing_portal_configurations(
-        &self,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<BillingPortalConfiguration>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = post_billing_portal_configurations_builder(&self.http_client)?;
-        post_billing_portal_configurations_execute(builder)
-    }
-
-    /// GET /v1/billing_portal/configurations/{configuration}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_configurations_get_billing_portal_configurations_configuration(
-        &self,
-        args: &GetBillingPortalConfigurationsConfigurationArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<BillingPortalConfiguration>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder =
-            get_billing_portal_configurations_configuration_builder(&self.http_client, args)?;
-        get_billing_portal_configurations_configuration_execute(builder)
-    }
-
-    /// POST /v1/billing_portal/configurations/{configuration}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_configurations_post_billing_portal_configurations_configuration(
-        &self,
-        args: &PostBillingPortalConfigurationsConfigurationArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<BillingPortalConfiguration>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder =
-            post_billing_portal_configurations_configuration_builder(&self.http_client, args)?;
-        post_billing_portal_configurations_configuration_execute(builder)
-    }
-
-    /// GET /v1/terminal/configurations.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_configurations_get_terminal_configurations(
-        &self,
-        args: &GetTerminalConfigurationsArgs,
-    ) -> Result<
-        impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-            + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = get_terminal_configurations_builder(&self.http_client, args)?;
-        get_terminal_configurations_execute(builder)
-    }
-
-    /// POST /v1/terminal/configurations.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_configurations_post_terminal_configurations(
-        &self,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<TerminalConfiguration>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = post_terminal_configurations_builder(&self.http_client)?;
-        post_terminal_configurations_execute(builder)
-    }
-
-    /// GET /v1/terminal/configurations/{configuration}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_configurations_get_terminal_configurations_configuration(
-        &self,
-        args: &GetTerminalConfigurationsConfigurationArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<serde_json::Value>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = get_terminal_configurations_configuration_builder(&self.http_client, args)?;
-        get_terminal_configurations_configuration_execute(builder)
-    }
-
-    /// POST /v1/terminal/configurations/{configuration}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_configurations_post_terminal_configurations_configuration(
-        &self,
-        args: &PostTerminalConfigurationsConfigurationArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<serde_json::Value>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = post_terminal_configurations_configuration_builder(&self.http_client, args)?;
-        post_terminal_configurations_configuration_execute(builder)
-    }
-
-    /// DELETE /v1/terminal/configurations/{configuration}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_configurations_delete_terminal_configurations_configuration(
-        &self,
-        args: &DeleteTerminalConfigurationsConfigurationArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<DeletedTerminalConfiguration>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder =
-            delete_terminal_configurations_configuration_builder(&self.http_client, args)?;
-        delete_terminal_configurations_configuration_execute(builder)
-    }
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
