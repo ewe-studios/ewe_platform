@@ -49,7 +49,7 @@ rust-embed = { version = "8.7.0", features = ["mime-guess", "interpolate-folder-
 openssl = { version = "0.10", optional = true }
 ring = { version = "0.17.14", optional = true }
 aws-lc-rs = { version = "1.16.1", optional = true }
-rustls = { version = "0.23", optional = true }
+rustls = { version = "0.23", optional = true, default-features = false }
 rustls-pemfile = { version = "2.2", optional = true }
 webpki-roots = { version = "0.26", optional = true }
 zeroize = { version = "1", optional = true }
@@ -78,9 +78,9 @@ socks5 = []
 ssl-provider-ring = ["ring"]
 ssl-provider-awsrc = ["aws-lc-rs"]
 ssl-openssl = ["std", "openssl", "zeroize"]
-ssl-rustls = ["std", "rustls", "rustls-pemfile", "webpki-roots", "zeroize"]
+ssl-rustls = ["std", "rustls", "rustls-pemfile", "webpki-roots", "zeroize", "rustls/std", "rustls/tls12", "rustls/logging"]
 ssl-rustls-awsrc =  ["ssl-rustls", "ssl-provider-awsrc", "rustls/aws-lc-rs"]
-ssl-rustls-ring =  ["ssl-rustls", "ssl-provider-ring", "rustls/ring"]
+ssl-rustls-ring =  ["ssl-rustls", "ssl-provider-ring", "rustls/ring", "rustls/tls12", "rustls/logging", "rustls/std"]
 ssl-native-tls = ["std", "native-tls", "native-tls/vendored", "zeroize"]
 ssl = ["ssl-rustls-ring"]
 # ssl = ["ssl-openssl"]
