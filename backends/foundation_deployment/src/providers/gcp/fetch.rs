@@ -1,539 +1,115 @@
-//! GCP Discovery Service spec fetcher.
+//! GCP `OpenAPI` spec fetcher.
 //!
-//! WHY: GCP uses a two-stage fetch - first the Discovery directory,
-//! then individual API discovery documents.
+//! WHY: GCP has 300+ APIs, each with its own OpenAPI spec.
 //!
-//! WHAT: Fetches the API directory, then fetches ALL API specs in parallel.
+//! WHAT: Discovers all available GCP API specs from the artefacts directory
+//! and returns them for batch generation.
 //!
-//! HOW: Uses combinators to chain: directory fetch → create API tasks →
-//! `collect_all_streams` → write output. No blocking, no `from_future`.
+//! HOW: GLOBs for all `*/openapi.json` files under the GCP artefacts directory.
+//! Unlike other providers that fetch from a single URL, GCP specs are pre-fetched
+//! and stored in subdirectories (one per API).
 
 use crate::error::DeploymentError;
-use foundation_core::valtron::{
-    collect_next_from_streams, execute, one_shot, Stream, StreamIterator, StreamIteratorExt,
-    TaskIteratorExt, TaskShortCircuit, TaskStatus,
-};
-use foundation_core::wire::simple_http::client::{
-    body_reader, ClientConfig, HttpConnectionPool, RequestIntro, SendRequestTask, SimpleHttpClient,
-    SystemDnsResolver,
-};
-use serde_json::Value;
-use std::collections::HashMap;
-use std::path::PathBuf;
-use std::sync::Arc;
-use tracing::{debug, error, info, warn};
+use foundation_core::valtron::{from_future, StreamIterator, StreamIteratorExt};
+use std::path::{Path, PathBuf};
+use tracing::info;
 
-/// GCP Discovery Service URL.
-pub const GCP_DISCOVERY_URL: &str = "https://discovery.googleapis.com/discovery/v1/apis";
+/// Provider identifier used in output paths and logs.
+pub const PROVIDER_NAME: &str = "gcp";
 
-/// GCP API entry from the Discovery directory.
-#[derive(Debug, serde::Deserialize, Clone)]
-pub struct GcpApiEntry {
-    pub id: String,
-    pub name: String,
-    pub version: String,
-    pub title: String,
-    #[serde(rename = "discoveryRestUrl")]
-    pub discovery_rest_url: String,
-    #[serde(default)]
-    pub preferred: bool,
+/// Base directory for GCP artefacts (relative to project root).
+const ARTEFACTS_BASE: &str = "artefacts/cloud_providers/gcp";
+
+/// Recursively find all `openapi.json` files under a directory.
+///
+/// Returns a sorted Vec of (api_name, spec_path) tuples.
+fn find_all_specs(base_dir: &Path) -> Result<Vec<(String, PathBuf)>, std::io::Error> {
+    let mut specs: Vec<(String, PathBuf)> = Vec::new();
+
+    fn walk(dir: &Path, base_dir: &Path, specs: &mut Vec<(String, PathBuf)>) -> Result<(), std::io::Error> {
+        if let Ok(entries) = std::fs::read_dir(dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    // Check if this directory has an openapi.json
+                    let spec_path = path.join("openapi.json");
+                    if spec_path.exists() {
+                        // Use the full relative path from base as the API name
+                        let api_name = path
+                            .strip_prefix(base_dir)
+                            .map(|p| p.to_string_lossy().replace('\\', "/"))
+                            .unwrap_or_else(|_| path.to_string_lossy().replace('\\', "/"));
+                        specs.push((api_name, spec_path));
+                    }
+                    // Recurse into subdirectory
+                    walk(&path, base_dir, specs)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    walk(base_dir, base_dir, &mut specs)?;
+    specs.sort_by(|a, b| a.0.cmp(&b.0));
+    Ok(specs)
 }
 
-/// Directory response structure.
-#[derive(Debug, Clone, serde::Deserialize)]
-pub struct GcpDirectoryResponse {
-    pub items: Vec<GcpApiEntry>,
-}
-
-/// Progress states for GCP fetch.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum GcpFetchPending {
-    FetchingDirectory,
-    FetchingApiSpecs { remaining: usize },
-    WritingFiles,
-}
-
-type ApiFetchStream = Box<
-    dyn StreamIterator<
-            D = Result<PathBuf, DeploymentError>,
-            P = GcpFetchPending,
-            Item = Stream<Result<PathBuf, DeploymentError>, GcpFetchPending>,
-        > + Send,
->;
-
-/// Fetch ALL GCP specs using two-stage approach with combinators.
+/// Fetch all GCP OpenAPI specs.
+///
+/// Discovers all `*/openapi.json` files under the GCP artefacts directory.
 ///
 /// # Arguments
 ///
-/// * `client` - The HTTP client to use for fetching API specs
-/// * `output_dir` - Directory where fetched specs will be written
-/// * `api_filter` - Optional list of API names to filter. If None, fetches ALL APIs.
+/// * `_output_dir` - Ignored for GCP; specs are read from artefacts directory.
 ///
 /// # Returns
 ///
-/// A stream iterator that yields results of writing API spec files to disk.
+/// `StreamIterator` yielding `Result<(String, PathBuf), DeploymentError>` where
+/// the String is the API name and PathBuf is the spec file path.
 ///
 /// # Errors
 ///
-/// Returns `DeploymentError` if:
-/// - Failed to build the HTTP request for the discovery directory
-/// - Valtron scheduling fails during execution
-/// - JSON parsing fails for the directory or API spec responses
-/// - HTTP request fails during directory or spec fetch
-/// - File system operations fail when writing output
-///
-/// # Panics
-///
-/// Panics if the client does not have an associated connection pool.
-/// This should not occur in normal usage as the client is expected
-/// to be properly initialized with a pool.
+/// Returns `DeploymentError` if directory reading fails.
 pub fn fetch_gcp_specs(
-    client: &SimpleHttpClient,
-    output_dir: PathBuf,
-    api_filter: Option<Vec<String>>,
+    _output_dir: PathBuf,
 ) -> Result<
-    impl StreamIterator<D = Result<PathBuf, DeploymentError>, P = GcpFetchPending> + Send + 'static,
+    impl StreamIterator<D = Result<(String, PathBuf), DeploymentError>, P = ()> + Send + 'static,
     DeploymentError,
 > {
-    let pool = client.client_pool().expect("should have pool");
-    let config = client.client_config();
-    let output_dir = Arc::new(output_dir);
+    let artefacts_path = PathBuf::from(ARTEFACTS_BASE);
 
-    debug!("GCP fetch: output_dir={:?}", output_dir);
+    let future = async move {
+        info!("Discovering GCP API specs in {}", ARTEFACTS_BASE);
 
-    let request = client
-        .get(GCP_DISCOVERY_URL)
-        .map_err(|e| DeploymentError::Generic(format!("Failed to build request: {e}")))?
-        .build()
-        .map_err(|e| DeploymentError::Generic(format!("Failed to build request: {e}")))?;
+        let specs = find_all_specs(&artefacts_path).map_err(|e| DeploymentError::Io {
+            path: artefacts_path.display().to_string(),
+            source: e,
+        })?;
 
-    let directory_stream = SendRequestTask::new(request, 5, pool.clone(), config.clone())
-        .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, .. } => {
-                info!("GCP directory response received, parsing");
-                let body_text = body_reader::collect_string(stream);
-                serde_json::from_str::<GcpDirectoryResponse>(&body_text)
-                    .map_err(|e| DeploymentError::Generic(format!("JSON parse error: {e}")))
-            }
-            RequestIntro::Failed(e) => {
-                error!("GCP directory fetch failed: {e}");
-                Err(DeploymentError::Generic(format!("HTTP request failed: {e}")))
-            }
-        })
-        .map_pending(|_| GcpFetchPending::FetchingDirectory);
+        info!("Found {} GCP API specs", specs.len());
 
-    let executed = execute(directory_stream, None)
+        // Return all specs as a single batch result
+        Ok(specs)
+    };
+
+    let task = from_future(future);
+    let stream = foundation_core::valtron::execute(task, None)
         .map_err(|e| DeploymentError::Generic(format!("Valtron scheduling failed: {e}")))?;
 
-    let api_fetch_stream = executed.map_iter_done(move |directory_result| {
-        create_api_fetches_result(
-            directory_result,
-            api_filter.clone(),
-            &output_dir,
-            &pool,
-            &config,
-        )
-    });
-
-    Ok(api_fetch_stream)
+    // Flatten the batch result into individual items
+    Ok(stream.flat_map_next(|result| match result {
+        Ok(specs) => specs.into_iter().map(Ok).collect::<Vec<_>>(),
+        Err(e) => vec![Err(e)],
+    })
+    .map_pending(|_| ()))
 }
 
-/// Helper to create API fetch streams from directory result.
-#[allow(clippy::needless_pass_by_value)]
-fn create_api_fetches_result(
-    directory_result: Result<GcpDirectoryResponse, DeploymentError>,
-    api_filter: Option<Vec<String>>,
-    output_dir: &Arc<PathBuf>,
-    pool: &Arc<HttpConnectionPool<SystemDnsResolver>>,
-    config: &ClientConfig,
-) -> ApiFetchStream {
-    match directory_result {
-        Ok(directory) => {
-            let total_apis = directory.items.len();
-            info!("gcp: Found {} APIs in directory", total_apis);
-
-            let latest_items = select_latest_versions(directory.items);
-
-            info!(
-                "gcp: {} total entries, {} unique APIs (latest versions only)",
-                total_apis,
-                latest_items.len()
-            );
-
-            let filtered_items: Vec<GcpApiEntry> = if let Some(filter) = &api_filter {
-                latest_items
-                    .into_iter()
-                    .filter(|item| filter.contains(&item.name))
-                    .collect()
-            } else {
-                latest_items
-            };
-
-            info!("gcp: Fetching {} APIs after filter", filtered_items.len());
-
-            let mut streams: Vec<Box<dyn StreamIterator<D = _, P = _, Item = _> + Send>> =
-                Vec::new();
-
-            for entry in filtered_items {
-                let output_dir = Arc::clone(output_dir);
-                if let Ok(task) = create_api_fetch_task(entry, pool.clone(), config.clone()) {
-                    if let Ok(stream) = execute(task, None) {
-                        streams.push(Box::new(stream.map_done(move |result| {
-                            match result {
-                                Some(Ok((entry, spec))) => {
-                                    info!("Fetched: {} ({})", entry.name, entry.version);
-                                    match write_single_spec(&output_dir, &entry, &spec) {
-                                        Ok(Some(path)) => {
-                                            info!(
-                                                "Written to: {} ({}) - {:?}",
-                                                entry.name, entry.version, &path
-                                            );
-                                            Ok(path)
-                                        }
-                                        Ok(None) => {
-                                            // Error response - skipped, but not an error
-                                            Ok(output_dir.join(&entry.name).join("openapi.json"))
-                                        }
-                                        Err(e) => {
-                                            error!("Failed to write {}: {}", entry.name, e);
-                                            Err(e)
-                                        }
-                                    }
-                                }
-                                Some(Err(e)) => {
-                                    warn!("Spec fetch failed for API: {}", e);
-                                    Err(e)
-                                }
-                                None => unreachable!(
-                                    "collect_next_from_streams should not produce None"
-                                ),
-                            }
-                        })));
-                    } else {
-                        warn!("Failed to execute fetch task");
-                    }
-                } else {
-                    warn!("Failed to create fetch task");
-                }
-            }
-
-            tracing::info!("Collecting results from {} streams", streams.len());
-            Box::new(
-                collect_next_from_streams(streams)
-                    .map_pending(|_| GcpFetchPending::FetchingApiSpecs { remaining: 0 }),
-            ) as ApiFetchStream
-        }
-        Err(e) => {
-            error!("Failed to successfully fetch GCP API specs: {}", e);
-            Box::new(
-                one_shot::<_, GcpFetchPending>(Err(e))
-                    .map_pending(|_| GcpFetchPending::FetchingApiSpecs { remaining: 0 }),
-            ) as ApiFetchStream
-        }
-    }
-}
-
-/// Create a task to fetch a single API spec.
-type ApiFetchTask = Box<
-    dyn foundation_core::valtron::TaskIterator<
-            Ready = Option<Result<(GcpApiEntry, Value), DeploymentError>>,
-            Pending = usize,
-            Spawner = foundation_core::valtron::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
->;
-
-fn create_api_fetch_task(
-    entry: GcpApiEntry,
-    pool: Arc<HttpConnectionPool<SystemDnsResolver>>,
-    config: ClientConfig,
-) -> Result<ApiFetchTask, DeploymentError> {
-    let request = SimpleHttpClient::new(config.clone(), pool.clone())
-        .get(&entry.discovery_rest_url)
-        .map_err(|e| DeploymentError::Generic(format!("Failed to build request: {e}")))?
-        .build()
-        .map_err(|e| DeploymentError::Generic(format!("Failed to build request: {e}")))?;
-
-    let name = entry.name.clone();
-    let task = SendRequestTask::new(request, 5, pool, config)
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { stream, .. } => {
-                debug!(
-                    "gcp/{}/{}: Response received",
-                    name, entry.discovery_rest_url
-                );
-                let body = body_reader::collect_string(stream);
-                debug!(
-                    "gcp/{}/{}: Body length: {}",
-                    name,
-                    entry.discovery_rest_url,
-                    body.len()
-                );
-
-                match serde_json::from_str::<Value>(body.trim()) {
-                    Ok(spec) => {
-                        // Check if this is an error response instead of a valid spec
-                        if let Some(error_obj) = spec.get("error").and_then(|e| e.as_object()) {
-                            let _code = error_obj.get("code").and_then(serde_json::Value::as_u64).unwrap_or(0);
-                            let message = error_obj
-                                .get("message")
-                                .and_then(|v| v.as_str())
-                                .unwrap_or("Unknown error");
-                            let status = error_obj
-                                .get("status")
-                                .and_then(|v| v.as_str())
-                                .unwrap_or("UNKNOWN");
-                            warn!(
-                                "gcp/{}/{}: API returned error: {} - {}",
-                                name, entry.discovery_rest_url, status, message
-                            );
-                            // Skip this spec - return None to indicate it should not be written
-                            Some(Ok((entry.clone(), spec)))
-                        } else {
-                            info!("gcp/{}/{}: JSON parsed", name, entry.discovery_rest_url);
-                            Some(Ok((entry.clone(), spec)))
-                        }
-                    }
-                    Err(e) => {
-                        error!(
-                            "gcp/{}/{}: JSON error: {}",
-                            name, entry.discovery_rest_url, e
-                        );
-                        Some(Err(DeploymentError::Generic(format!("JSON error: {e}"))))
-                    }
-                }
-            }
-            RequestIntro::Failed(e) => {
-                error!("gcp/{}: Request failed: {}", name, e);
-                Some(Err(DeploymentError::Generic(format!("HTTP error: {e}"))))
-            }
-        })
-        .map_pending(|_| 0)
-        .map_circuit(|item| match &item {
-            TaskStatus::Ready(Some(Err(_))) => TaskShortCircuit::ReturnAndStop(item),
-            _ => TaskShortCircuit::Continue(item),
-        });
-
-    Ok(Box::new(task))
-}
-
-/// Select the latest version of each API from the directory listing.
+/// Process a GCP spec into version, endpoints, and content hash.
 ///
-/// Groups entries by API name, then picks the best version for each group.
-/// Selection priority:
-/// 1. If an entry is marked `preferred`, it wins immediately
-/// 2. Otherwise, rank by version tier: stable > beta > alpha
-/// 3. Within the same tier, pick the highest version number
+/// # Returns
 ///
-/// GCP version strings follow patterns like:
-/// - `v1`, `v2`, `v3` (stable)
-/// - `v1beta1`, `v2beta1` (beta)
-/// - `v1alpha1`, `v1alpha2` (alpha)
-/// - `datatransfer:v1` (stable, id-style)
-fn select_latest_versions(items: Vec<GcpApiEntry>) -> Vec<GcpApiEntry> {
-    let mut by_name: HashMap<String, Vec<GcpApiEntry>> = HashMap::new();
-
-    for item in items {
-        by_name.entry(item.name.clone()).or_default().push(item);
-    }
-
-    let mut result: Vec<GcpApiEntry> = Vec::with_capacity(by_name.len());
-
-    for (_name, mut versions) in by_name {
-        if versions.len() == 1 {
-            result.push(versions.remove(0));
-            continue;
-        }
-
-        // If exactly one is marked preferred, use it
-        let preferred: Vec<&GcpApiEntry> = versions.iter().filter(|v| v.preferred).collect();
-        if preferred.len() == 1 {
-            let idx = versions.iter().position(|v| v.preferred).unwrap();
-            result.push(versions.remove(idx));
-            continue;
-        }
-
-        // Rank all versions and pick the best
-        versions.sort_by(|a, b| version_rank(&b.version).cmp(&version_rank(&a.version)));
-        result.push(versions.remove(0));
-    }
-
-    result.sort_by(|a, b| a.name.cmp(&b.name));
-    result
-}
-
-/// Rank a GCP version string for comparison.
-///
-/// Returns `(tier, major, minor)` where:
-/// - tier: 2 = stable, 1 = beta, 0 = alpha
-/// - major: the leading version number (e.g. 2 from "v2beta1")
-/// - minor: the trailing number in beta/alpha (e.g. 1 from "v2beta1")
-fn version_rank(version: &str) -> (u32, u32, u32) {
-    let v = version.trim_start_matches('v');
-
-    if let Some(pos) = v.find("alpha") {
-        let major = v[..pos].parse::<u32>().unwrap_or(0);
-        let minor = v[pos + 5..].parse::<u32>().unwrap_or(0);
-        (0, major, minor)
-    } else if let Some(pos) = v.find("beta") {
-        let major = v[..pos].parse::<u32>().unwrap_or(0);
-        let minor = v[pos + 4..].parse::<u32>().unwrap_or(0);
-        (1, major, minor)
-    } else {
-        // Stable: "v1", "v2", etc.
-        let major = v.parse::<u32>().unwrap_or(0);
-        (2, major, 0)
-    }
-}
-
-/// Write a single API spec to disk, skipping error responses.
-///
-/// Returns `Ok(None)` if the spec is an error response (skipped).
-fn write_single_spec(
-    output_dir: &std::path::Path,
-    entry: &GcpApiEntry,
-    spec: &Value,
-) -> Result<Option<PathBuf>, DeploymentError> {
-    // Check if this is an error response
-    if let Some(error_obj) = spec.get("error").and_then(|e| e.as_object()) {
-        let _code = error_obj.get("code").and_then(serde_json::Value::as_u64).unwrap_or(0);
-        let message = error_obj
-            .get("message")
-            .and_then(|v| v.as_str())
-            .unwrap_or("Unknown error");
-        let status = error_obj
-            .get("status")
-            .and_then(|v| v.as_str())
-            .unwrap_or("UNKNOWN");
-        warn!(
-            "gcp/{}: Skipping spec - API returned error: {} - {}",
-            entry.name, status, message
-        );
-        return Ok(None);
-    }
-
-    let api_dir = output_dir.join(&entry.name);
-    std::fs::create_dir_all(&api_dir).map_err(|e| {
-        DeploymentError::Generic(format!(
-            "Failed to create directory for {}: {e}",
-            entry.name
-        ))
-    })?;
-
-    let api_path = api_dir.join("openapi.json");
-    let json = serde_json::to_string_pretty(spec)
-        .map_err(|e| DeploymentError::Generic(format!("Failed to serialize JSON: {e}")))?;
-
-    std::fs::write(&api_path, json).map_err(|e| {
-        DeploymentError::Generic(format!("Failed to write {}: {e}", api_path.display()))
-    })?;
-
-    Ok(Some(api_path))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn entry(name: &str, version: &str, preferred: bool) -> GcpApiEntry {
-        GcpApiEntry {
-            id: format!("{name}:{version}"),
-            name: name.to_string(),
-            version: version.to_string(),
-            title: name.to_string(),
-            discovery_rest_url: format!("https://example.com/{name}/{version}"),
-            preferred,
-        }
-    }
-
-    #[test]
-    fn version_rank_stable_over_beta_over_alpha() {
-        assert!(version_rank("v1") > version_rank("v1beta1"));
-        assert!(version_rank("v1beta1") > version_rank("v1alpha1"));
-        assert!(version_rank("v2") > version_rank("v1"));
-    }
-
-    #[test]
-    fn version_rank_higher_major_wins() {
-        assert!(version_rank("v2") > version_rank("v1"));
-        assert!(version_rank("v2beta1") > version_rank("v1beta1"));
-        assert!(version_rank("v3alpha1") > version_rank("v2alpha1"));
-    }
-
-    #[test]
-    fn version_rank_higher_minor_wins_within_tier() {
-        assert!(version_rank("v1beta2") > version_rank("v1beta1"));
-        assert!(version_rank("v1alpha2") > version_rank("v1alpha1"));
-    }
-
-    #[test]
-    fn version_rank_stable_v1_beats_v2beta() {
-        // Stable v1 should beat v2beta because stable tier (2) > beta tier (1)
-        assert!(version_rank("v1") > version_rank("v2beta1"));
-    }
-
-    #[test]
-    fn selects_preferred_entry() {
-        let items = vec![
-            entry("compute", "v1", true),
-            entry("compute", "v1beta1", false),
-            entry("compute", "alpha", false),
-        ];
-        let result = select_latest_versions(items);
-        assert_eq!(result.len(), 1);
-        assert_eq!(result[0].version, "v1");
-    }
-
-    #[test]
-    fn selects_stable_over_beta_when_no_preferred() {
-        let items = vec![
-            entry("storage", "v1beta2", false),
-            entry("storage", "v1", false),
-        ];
-        let result = select_latest_versions(items);
-        assert_eq!(result.len(), 1);
-        assert_eq!(result[0].version, "v1");
-    }
-
-    #[test]
-    fn selects_highest_beta_when_no_stable() {
-        let items = vec![
-            entry("newapi", "v1beta1", false),
-            entry("newapi", "v2beta1", false),
-        ];
-        let result = select_latest_versions(items);
-        assert_eq!(result.len(), 1);
-        assert_eq!(result[0].version, "v2beta1");
-    }
-
-    #[test]
-    fn handles_single_version_api() {
-        let items = vec![entry("simple", "v1", false)];
-        let result = select_latest_versions(items);
-        assert_eq!(result.len(), 1);
-        assert_eq!(result[0].name, "simple");
-    }
-
-    #[test]
-    fn deduplicates_across_multiple_apis() {
-        let items = vec![
-            entry("compute", "v1", true),
-            entry("compute", "v1beta1", false),
-            entry("storage", "v1", false),
-            entry("storage", "v1beta2", false),
-            entry("run", "v2", true),
-            entry("run", "v1", false),
-            entry("run", "v1alpha1", false),
-        ];
-        let result = select_latest_versions(items);
-        assert_eq!(result.len(), 3);
-
-        let by_name: HashMap<String, String> = result
-            .into_iter()
-            .map(|e| (e.name, e.version))
-            .collect();
-        assert_eq!(by_name["compute"], "v1");
-        assert_eq!(by_name["storage"], "v1");
-        assert_eq!(by_name["run"], "v2");
-    }
+/// Returns a `ProcessedSpec` with extracted endpoints and metadata.
+#[must_use]
+pub fn process_spec(spec: &serde_json::Value) -> crate::providers::openapi::ProcessedSpec {
+    crate::providers::openapi::process_spec(spec)
 }

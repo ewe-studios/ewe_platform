@@ -24,11 +24,123 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `SecretKeys` type.
+/// `FlyDnsOption` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretKeys {
-    /// secret_keys property.
-    pub secret_keys: Option<Vec<SecretKey>>,
+pub struct FlyDnsOption {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachineHTTPHeader` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineHTTPHeader {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DNSRecords` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DNSRecords {
+    /// a property.
+    pub a: Option<Vec<String>>,
+    /// aaaa property.
+    pub aaaa: Option<Vec<String>>,
+    /// acme_challenge_cname property.
+    pub acme_challenge_cname: Option<String>,
+    /// cname property.
+    pub cname: Option<Vec<String>>,
+    /// ownership_txt property.
+    pub ownership_txt: Option<String>,
+    /// resolved_addresses property.
+    pub resolved_addresses: Option<Vec<String>>,
+    /// soa property.
+    pub soa: Option<String>,
+}
+
+/// `CreateVolumeRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateVolumeRequest {
+    /// auto_backup_enabled property.
+    pub auto_backup_enabled: Option<bool>,
+    /// compute property.
+    pub compute: Option<FlyMachineGuest>,
+    /// compute_image property.
+    pub compute_image: Option<String>,
+    /// encrypted property.
+    pub encrypted: Option<bool>,
+    /// fstype property.
+    pub fstype: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// require_unique_zone property.
+    pub require_unique_zone: Option<bool>,
+    /// size_gb property.
+    pub size_gb: Option<i64>,
+    /// snapshot_id property.
+    pub snapshot_id: Option<String>,
+    /// snapshot_retention property.
+    pub snapshot_retention: Option<i64>,
+    /// source_volume_id property.
+    pub source_volume_id: Option<String>,
+    /// unique_zone_app_wide property.
+    pub unique_zone_app_wide: Option<bool>,
+}
+
+/// `DecryptSecretkeyRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DecryptSecretkeyRequest {
+    /// associated_data property.
+    pub associated_data: Option<Vec<i64>>,
+    /// ciphertext property.
+    pub ciphertext: Option<Vec<i64>>,
+}
+
+/// `CreateAppRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateAppRequest {
+    /// enable_subdomains property.
+    pub enable_subdomains: Option<bool>,
+    /// name property.
+    pub name: Option<String>,
+    /// network property.
+    pub network: Option<String>,
+    /// org_slug property.
+    pub org_slug: Option<String>,
+}
+
+/// `MainMemoryResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MainMemoryResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DNSRequirements` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DNSRequirements {
+    /// a property.
+    pub a: Option<Vec<String>>,
+    /// aaaa property.
+    pub aaaa: Option<Vec<String>>,
+    /// acme_challenge property.
+    pub acme_challenge: Option<AcmeChallenge>,
+    /// cname property.
+    pub cname: Option<String>,
+    /// ownership property.
+    pub ownership: Option<OwnershipVerification>,
+}
+
+/// `FlyExecHealthcheck` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyExecHealthcheck {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `Volume` type.
@@ -78,13 +190,6 @@ pub struct Volume {
     pub zone: Option<String>,
 }
 
-/// `DeleteSecretkeyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteSecretkeyResponse {
-    /// Version property.
-    pub version: Option<i64>,
-}
-
 /// `CreateMachineRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateMachineRequest {
@@ -108,6 +213,88 @@ pub struct CreateMachineRequest {
     pub skip_service_registration: Option<bool>,
 }
 
+/// `IssuedCertificate` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IssuedCertificate {
+    /// certificate_authority property.
+    pub certificate_authority: Option<String>,
+    /// expires_at property.
+    pub expires_at: Option<String>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `IPAssignment` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IPAssignment {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// ip property.
+    pub ip: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// service_name property.
+    pub service_name: Option<String>,
+    /// shared property.
+    pub shared: Option<bool>,
+}
+
+/// `FlyMachineConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CreateLeaseRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateLeaseRequest {
+    /// description property.
+    pub description: Option<String>,
+    /// ttl property.
+    pub ttl: Option<i64>,
+}
+
+/// `UpdateMetadataRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateMetadataRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AssignIPRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AssignIPRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `StopRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StopRequest {
+    /// signal property.
+    pub signal: Option<String>,
+    /// timeout property.
+    pub timeout: Option<FlyDuration>,
+}
+
+/// `DecryptSecretkeyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DecryptSecretkeyResponse {
+    /// plaintext property.
+    pub plaintext: Option<Vec<i64>>,
+}
+
+/// `SignSecretkeyRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SignSecretkeyRequest {
+    /// plaintext property.
+    pub plaintext: Option<Vec<i64>>,
+}
+
 /// `MachineExecRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineExecRequest {
@@ -121,6 +308,463 @@ pub struct MachineExecRequest {
     pub stdin: Option<String>,
     /// timeout property.
     pub timeout: Option<i64>,
+}
+
+/// `VerifySecretkeyRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VerifySecretkeyRequest {
+    /// plaintext property.
+    pub plaintext: Option<Vec<i64>>,
+    /// signature property.
+    pub signature: Option<Vec<i64>>,
+}
+
+/// `FlyMachinePort` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachinePort {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AppOrganizationInfo` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppOrganizationInfo {
+    /// internal_numeric_id property.
+    pub internal_numeric_id: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// slug property.
+    pub slug: Option<String>,
+}
+
+/// `MainReclaimMemoryRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MainReclaimMemoryRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SetSecretkeyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetSecretkeyResponse {
+    /// Version property.
+    pub version: Option<i64>,
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// public_key property.
+    pub public_key: Option<Vec<i64>>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `FlyContainerConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyContainerConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `Flydv1ExecResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Flydv1ExecResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachineProcess` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineProcess {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyHTTPResponseOptions` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyHTTPResponseOptions {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecretKey` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecretKey {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// public_key property.
+    pub public_key: Option<Vec<i64>>,
+    /// type property.
+    pub r#type: Option<String>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `CertificateValidation` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateValidation {
+    /// alpn_configured property.
+    pub alpn_configured: Option<bool>,
+    /// dns_configured property.
+    pub dns_configured: Option<bool>,
+    /// http_configured property.
+    pub http_configured: Option<bool>,
+    /// ownership_txt_configured property.
+    pub ownership_txt_configured: Option<bool>,
+}
+
+/// `AppSecretsUpdateRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppSecretsUpdateRequest {
+    /// values property.
+    pub values: Option<serde_json::Value>,
+}
+
+/// `FlyMachineGuest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineGuest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachineInit` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineInit {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachineMount` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineMount {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachineSecret` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineSecret {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ListIPAssignmentsResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListIPAssignmentsResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyHTTPHealthcheck` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyHTTPHealthcheck {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyEnvFrom` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyEnvFrom {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CreateAppResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateAppResponse {
+    /// token property.
+    pub token: Option<String>,
+}
+
+/// `FlyDuration` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyDuration {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyTCPHealthcheck` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyTCPHealthcheck {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `UpdateMachineRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateMachineRequest {
+    /// config property.
+    pub config: Option<serde_json::Value>,
+    /// current_version property.
+    pub current_version: Option<String>,
+    /// lease_ttl property.
+    pub lease_ttl: Option<i64>,
+    /// lsvd property.
+    pub lsvd: Option<bool>,
+    /// min_secrets_version property.
+    pub min_secrets_version: Option<i64>,
+    /// name property.
+    pub name: Option<String>,
+    /// region property.
+    pub region: Option<String>,
+    /// skip_launch property.
+    pub skip_launch: Option<bool>,
+    /// skip_secrets property.
+    pub skip_secrets: Option<bool>,
+    /// skip_service_registration property.
+    pub skip_service_registration: Option<bool>,
+}
+
+/// `FlyContainerDependency` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyContainerDependency {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyContainerHealthcheckScheme` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyContainerHealthcheckScheme {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MetadataValueResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MetadataValueResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ExtendVolumeRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExtendVolumeRequest {
+    /// size_gb property.
+    pub size_gb: Option<i64>,
+}
+
+/// `ImageRef` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ImageRef {
+    /// digest property.
+    pub digest: Option<String>,
+    /// labels property.
+    pub labels: Option<serde_json::Value>,
+    /// registry property.
+    pub registry: Option<String>,
+    /// repository property.
+    pub repository: Option<String>,
+    /// tag property.
+    pub tag: Option<String>,
+}
+
+/// `UpsertMetadataKeyRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpsertMetadataKeyRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `EncryptSecretkeyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptSecretkeyResponse {
+    /// ciphertext property.
+    pub ciphertext: Option<Vec<i64>>,
+}
+
+/// `FlyContainerHealthcheckKind` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyContainerHealthcheckKind {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecretKeys` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SecretKeys {
+    /// secret_keys property.
+    pub secret_keys: Option<Vec<SecretKey>>,
+}
+
+/// `DeleteSecretkeyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteSecretkeyResponse {
+    /// Version property.
+    pub version: Option<i64>,
+}
+
+/// `FlyStopConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyStopConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MainReclaimMemoryResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MainReclaimMemoryResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CertificateEntry` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CertificateEntry {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// expires_at property.
+    pub expires_at: Option<String>,
+    /// issued property.
+    pub issued: Option<Vec<IssuedCertificate>>,
+    /// issuer property.
+    pub issuer: Option<String>,
+    /// source property.
+    pub source: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+}
+
+/// `EncryptSecretkeyRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptSecretkeyRequest {
+    /// associated_data property.
+    pub associated_data: Option<Vec<i64>>,
+    /// plaintext property.
+    pub plaintext: Option<Vec<i64>>,
+}
+
+/// `FlyProxyProtoOptions` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyProxyProtoOptions {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyDNSConfig` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyDNSConfig {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyMachineMetrics` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineMetrics {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `MachineEvent` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MachineEvent {
+    /// id property.
+    pub id: Option<String>,
+    /// request property.
+    pub request: Option<serde_json::Value>,
+    /// source property.
+    pub source: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// timestamp property.
+    pub timestamp: Option<i64>,
+    /// type property.
+    pub r#type: Option<String>,
+}
+
+/// `ListCertificatesResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListCertificatesResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AppSecretsUpdateResp` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppSecretsUpdateResp {
+    /// Version property.
+    pub version: Option<i64>,
+    /// secrets property.
+    pub secrets: Option<Vec<AppSecret>>,
+}
+
+/// `SetAppSecretRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetAppSecretRequest {
+    /// value property.
+    pub value: Option<String>,
+}
+
+/// `FlyMachineServiceConcurrency` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineServiceConcurrency {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SignSecretkeyResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SignSecretkeyResponse {
+    /// signature property.
+    pub signature: Option<Vec<i64>>,
+}
+
+/// `ExtendVolumeResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExtendVolumeResponse {
+    /// needs_restart property.
+    pub needs_restart: Option<bool>,
+    /// volume property.
+    pub volume: Option<Volume>,
+}
+
+/// `OwnershipVerification` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OwnershipVerification {
+    /// app_value property.
+    pub app_value: Option<String>,
+    /// name property.
+    pub name: Option<String>,
+    /// org_value property.
+    pub org_value: Option<String>,
+}
+
+/// `CreateCustomCertificateRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateCustomCertificateRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `App` type.
@@ -142,215 +786,6 @@ pub struct App {
     pub status: Option<String>,
     /// volume_count property.
     pub volume_count: Option<i64>,
-}
-
-/// `SetAppSecretResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetAppSecretResponse {
-    /// Version property.
-    pub version: Option<i64>,
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// digest property.
-    pub digest: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `MainReclaimMemoryResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MainReclaimMemoryResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `OwnershipVerification` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OwnershipVerification {
-    /// app_value property.
-    pub app_value: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// org_value property.
-    pub org_value: Option<String>,
-}
-
-/// `FlyMachineInit` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachineInit {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyDnsOption` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyDnsOption {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CheckStatus` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckStatus {
-    /// name property.
-    pub name: Option<String>,
-    /// output property.
-    pub output: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
-
-/// `CertificateEntry` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateEntry {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// expires_at property.
-    pub expires_at: Option<String>,
-    /// issued property.
-    pub issued: Option<Vec<IssuedCertificate>>,
-    /// issuer property.
-    pub issuer: Option<String>,
-    /// source property.
-    pub source: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-}
-
-/// `VerifySecretkeyRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VerifySecretkeyRequest {
-    /// plaintext property.
-    pub plaintext: Option<Vec<i64>>,
-    /// signature property.
-    pub signature: Option<Vec<i64>>,
-}
-
-/// `FlyTLSOptions` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyTLSOptions {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyTCPHealthcheck` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyTCPHealthcheck {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyMachineHTTPHeader` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachineHTTPHeader {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AppSecret` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppSecret {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// digest property.
-    pub digest: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `AppOrganizationInfo` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppOrganizationInfo {
-    /// internal_numeric_id property.
-    pub internal_numeric_id: Option<i64>,
-    /// name property.
-    pub name: Option<String>,
-    /// slug property.
-    pub slug: Option<String>,
-}
-
-/// `AppSecrets` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppSecrets {
-    /// secrets property.
-    pub secrets: Option<Vec<AppSecret>>,
-}
-
-/// `FlyHTTPOptions` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyHTTPOptions {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyHTTPHealthcheck` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyHTTPHealthcheck {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CertificateValidation` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateValidation {
-    /// alpn_configured property.
-    pub alpn_configured: Option<bool>,
-    /// dns_configured property.
-    pub dns_configured: Option<bool>,
-    /// http_configured property.
-    pub http_configured: Option<bool>,
-    /// ownership_txt_configured property.
-    pub ownership_txt_configured: Option<bool>,
-}
-
-/// `IPAssignment` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IPAssignment {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// ip property.
-    pub ip: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// service_name property.
-    pub service_name: Option<String>,
-    /// shared property.
-    pub shared: Option<bool>,
-}
-
-/// `DecryptSecretkeyRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DecryptSecretkeyRequest {
-    /// associated_data property.
-    pub associated_data: Option<Vec<i64>>,
-    /// ciphertext property.
-    pub ciphertext: Option<Vec<i64>>,
-}
-
-/// `FlyContainerHealthcheckScheme` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyContainerHealthcheckScheme {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `Machine` type.
@@ -395,101 +830,85 @@ pub struct SignalRequest {
     pub signal: Option<String>,
 }
 
-/// `FlyFile` response type.
+/// `AppSecret` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyFile {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyUnhealthyPolicy` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyUnhealthyPolicy {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CreateAppDeployTokenRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateAppDeployTokenRequest {
-    /// expiry property.
-    pub expiry: Option<String>,
-}
-
-/// `DNSRecords` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DNSRecords {
-    /// a property.
-    pub a: Option<Vec<String>>,
-    /// aaaa property.
-    pub aaaa: Option<Vec<String>>,
-    /// acme_challenge_cname property.
-    pub acme_challenge_cname: Option<String>,
-    /// cname property.
-    pub cname: Option<Vec<String>>,
-    /// ownership_txt property.
-    pub ownership_txt: Option<String>,
-    /// resolved_addresses property.
-    pub resolved_addresses: Option<Vec<String>>,
-    /// soa property.
-    pub soa: Option<String>,
-}
-
-/// `EncryptSecretkeyRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptSecretkeyRequest {
-    /// associated_data property.
-    pub associated_data: Option<Vec<i64>>,
-    /// plaintext property.
-    pub plaintext: Option<Vec<i64>>,
-}
-
-/// `FlyMachineMetrics` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachineMetrics {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `UpdateMachineRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateMachineRequest {
-    /// config property.
-    pub config: Option<serde_json::Value>,
-    /// current_version property.
-    pub current_version: Option<String>,
-    /// lease_ttl property.
-    pub lease_ttl: Option<i64>,
-    /// lsvd property.
-    pub lsvd: Option<bool>,
-    /// min_secrets_version property.
-    pub min_secrets_version: Option<i64>,
+pub struct AppSecret {
+    /// created_at property.
+    pub created_at: Option<String>,
+    /// digest property.
+    pub digest: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// skip_launch property.
-    pub skip_launch: Option<bool>,
-    /// skip_secrets property.
-    pub skip_secrets: Option<bool>,
-    /// skip_service_registration property.
-    pub skip_service_registration: Option<bool>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
-/// `FlyMachineGuest` response type.
+/// `CertificateDetail` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachineGuest {
+pub struct CertificateDetail {
+    /// acme_requested property.
+    pub acme_requested: Option<bool>,
+    /// certificates property.
+    pub certificates: Option<Vec<CertificateEntry>>,
+    /// configured property.
+    pub configured: Option<bool>,
+    /// dns_provider property.
+    pub dns_provider: Option<String>,
+    /// dns_requirements property.
+    pub dns_requirements: Option<DNSRequirements>,
+    /// hostname property.
+    pub hostname: Option<String>,
+    /// rate_limited_until property.
+    pub rate_limited_until: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// validation property.
+    pub validation: Option<CertificateValidation>,
+    /// validation_errors property.
+    pub validation_errors: Option<Vec<CertificateValidationError>>,
+}
+
+/// `CheckStatus` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CheckStatus {
+    /// name property.
+    pub name: Option<String>,
+    /// output property.
+    pub output: Option<String>,
+    /// status property.
+    pub status: Option<String>,
+    /// updated_at property.
+    pub updated_at: Option<String>,
+}
+
+/// `MainSetMemoryLimitRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MainSetMemoryLimitRequest {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `FlyStopConfig` response type.
+/// `FlyMachineServiceCheck` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyStopConfig {
+pub struct FlyMachineServiceCheck {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AppSecrets` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppSecrets {
+    /// secrets property.
+    pub secrets: Option<Vec<AppSecret>>,
+}
+
+/// `FlyTLSOptions` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyTLSOptions {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -508,48 +927,111 @@ pub struct CertificateValidationError {
     pub timestamp: Option<String>,
 }
 
-/// `MainSetMemoryLimitRequest` response type.
+/// `SetSecretkeyRequest` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MainSetMemoryLimitRequest {
+pub struct SetSecretkeyRequest {
+    /// type property.
+    pub r#type: Option<String>,
+    /// value property.
+    pub value: Option<Vec<i64>>,
+}
+
+/// `UpdateVolumeRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateVolumeRequest {
+    /// auto_backup_enabled property.
+    pub auto_backup_enabled: Option<bool>,
+    /// snapshot_retention property.
+    pub snapshot_retention: Option<i64>,
+}
+
+/// `FlyMachineRestart` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineRestart {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `FlyDNSConfig` response type.
+/// `FlyHTTPOptions` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyDNSConfig {
+pub struct FlyHTTPOptions {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `FlyMachineServiceConcurrency` response type.
+/// `ListAppsResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachineServiceConcurrency {
+pub struct ListAppsResponse {
+    /// apps property.
+    pub apps: Option<Vec<App>>,
+    /// total_apps property.
+    pub total_apps: Option<i64>,
+}
+
+/// `DeleteAppSecretResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteAppSecretResponse {
+    /// Version property.
+    pub version: Option<i64>,
+}
+
+/// `WaitMachineResponse` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WaitMachineResponse {
+    /// event_id property.
+    pub event_id: Option<String>,
+    /// ok property.
+    pub ok: Option<bool>,
+    /// state property.
+    pub state: Option<String>,
+    /// version property.
+    pub version: Option<String>,
+}
+
+/// `CreateAppDeployTokenRequest` type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateAppDeployTokenRequest {
+    /// expiry property.
+    pub expiry: Option<String>,
+}
+
+/// `FlyFile` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyFile {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `SignSecretkeyRequest` type.
+/// `FlyContainerDependencyCondition` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SignSecretkeyRequest {
-    /// plaintext property.
-    pub plaintext: Option<Vec<i64>>,
-}
-
-/// `MainMemoryResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MainMemoryResponse {
+pub struct FlyContainerDependencyCondition {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `FlyMachineConfig` response type.
+/// `FlyContainerHealthcheck` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachineConfig {
+pub struct FlyContainerHealthcheck {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyUnhealthyPolicy` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyUnhealthyPolicy {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DestroyCustomCertificateResponse` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DestroyCustomCertificateResponse {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -582,52 +1064,53 @@ pub struct CertificateCheckResponse {
     pub validation_errors: Option<Vec<CertificateValidationError>>,
 }
 
-/// `SetSecretkeyResponse` type.
+/// `SetAppSecretResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetSecretkeyResponse {
+pub struct SetAppSecretResponse {
     /// Version property.
     pub version: Option<i64>,
     /// created_at property.
     pub created_at: Option<String>,
+    /// digest property.
+    pub digest: Option<String>,
     /// name property.
     pub name: Option<String>,
-    /// public_key property.
-    pub public_key: Option<Vec<i64>>,
-    /// type property.
-    pub r#type: Option<String>,
     /// updated_at property.
     pub updated_at: Option<String>,
+    /// value property.
+    pub value: Option<String>,
 }
 
-/// `CreateVolumeRequest` type.
+/// `FlyMachineRootfs` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateVolumeRequest {
-    /// auto_backup_enabled property.
-    pub auto_backup_enabled: Option<bool>,
-    /// compute property.
-    pub compute: Option<FlyMachineGuest>,
-    /// compute_image property.
-    pub compute_image: Option<String>,
-    /// encrypted property.
-    pub encrypted: Option<bool>,
-    /// fstype property.
-    pub fstype: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// region property.
-    pub region: Option<String>,
-    /// require_unique_zone property.
-    pub require_unique_zone: Option<bool>,
-    /// size_gb property.
-    pub size_gb: Option<i64>,
-    /// snapshot_id property.
-    pub snapshot_id: Option<String>,
-    /// snapshot_retention property.
-    pub snapshot_retention: Option<i64>,
-    /// source_volume_id property.
-    pub source_volume_id: Option<String>,
-    /// unique_zone_app_wide property.
-    pub unique_zone_app_wide: Option<bool>,
+pub struct FlyMachineRootfs {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyStatic` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyStatic {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `CreateAcmeCertificateRequest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateAcmeCertificateRequest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `FlyReplayCache` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyReplayCache {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `FlyMachineService` response type.
@@ -638,109 +1121,9 @@ pub struct FlyMachineService {
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `FlyProxyProtoOptions` response type.
+/// `FlyDnsForwardRule` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyProxyProtoOptions {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `UpdateVolumeRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateVolumeRequest {
-    /// auto_backup_enabled property.
-    pub auto_backup_enabled: Option<bool>,
-    /// snapshot_retention property.
-    pub snapshot_retention: Option<i64>,
-}
-
-/// `FlyEnvFrom` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyEnvFrom {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SignSecretkeyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SignSecretkeyResponse {
-    /// signature property.
-    pub signature: Option<Vec<i64>>,
-}
-
-/// `WaitMachineResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WaitMachineResponse {
-    /// event_id property.
-    pub event_id: Option<String>,
-    /// ok property.
-    pub ok: Option<bool>,
-    /// state property.
-    pub state: Option<String>,
-    /// version property.
-    pub version: Option<String>,
-}
-
-/// `FlyContainerHealthcheckKind` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyContainerHealthcheckKind {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecretKey` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecretKey {
-    /// created_at property.
-    pub created_at: Option<String>,
-    /// name property.
-    pub name: Option<String>,
-    /// public_key property.
-    pub public_key: Option<Vec<i64>>,
-    /// type property.
-    pub r#type: Option<String>,
-    /// updated_at property.
-    pub updated_at: Option<String>,
-}
-
-/// `MachineEvent` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineEvent {
-    /// id property.
-    pub id: Option<String>,
-    /// request property.
-    pub request: Option<serde_json::Value>,
-    /// source property.
-    pub source: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// timestamp property.
-    pub timestamp: Option<i64>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `EncryptSecretkeyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptSecretkeyResponse {
-    /// ciphertext property.
-    pub ciphertext: Option<Vec<i64>>,
-}
-
-/// `ListIPAssignmentsResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListIPAssignmentsResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyMachineProcess` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachineProcess {
+pub struct FlyDnsForwardRule {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -761,196 +1144,6 @@ pub struct Lease {
     pub version: Option<String>,
 }
 
-/// `CertificateDetail` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CertificateDetail {
-    /// acme_requested property.
-    pub acme_requested: Option<bool>,
-    /// certificates property.
-    pub certificates: Option<Vec<CertificateEntry>>,
-    /// configured property.
-    pub configured: Option<bool>,
-    /// dns_provider property.
-    pub dns_provider: Option<String>,
-    /// dns_requirements property.
-    pub dns_requirements: Option<DNSRequirements>,
-    /// hostname property.
-    pub hostname: Option<String>,
-    /// rate_limited_until property.
-    pub rate_limited_until: Option<String>,
-    /// status property.
-    pub status: Option<String>,
-    /// validation property.
-    pub validation: Option<CertificateValidation>,
-    /// validation_errors property.
-    pub validation_errors: Option<Vec<CertificateValidationError>>,
-}
-
-/// `MetadataValueResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MetadataValueResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyDnsForwardRule` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyDnsForwardRule {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyMachineSecret` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachineSecret {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DestroyCustomCertificateResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DestroyCustomCertificateResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SetSecretkeyRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetSecretkeyRequest {
-    /// type property.
-    pub r#type: Option<String>,
-    /// value property.
-    pub value: Option<Vec<i64>>,
-}
-
-/// `AppSecretsUpdateResp` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppSecretsUpdateResp {
-    /// Version property.
-    pub version: Option<i64>,
-    /// secrets property.
-    pub secrets: Option<Vec<AppSecret>>,
-}
-
-/// `DNSRequirements` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DNSRequirements {
-    /// a property.
-    pub a: Option<Vec<String>>,
-    /// aaaa property.
-    pub aaaa: Option<Vec<String>>,
-    /// acme_challenge property.
-    pub acme_challenge: Option<AcmeChallenge>,
-    /// cname property.
-    pub cname: Option<String>,
-    /// ownership property.
-    pub ownership: Option<OwnershipVerification>,
-}
-
-/// `AppSecretsUpdateRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppSecretsUpdateRequest {
-    /// values property.
-    pub values: Option<serde_json::Value>,
-}
-
-/// `DecryptSecretkeyResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DecryptSecretkeyResponse {
-    /// plaintext property.
-    pub plaintext: Option<Vec<i64>>,
-}
-
-/// `FlyContainerHealthcheck` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyContainerHealthcheck {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ExtendVolumeRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExtendVolumeRequest {
-    /// size_gb property.
-    pub size_gb: Option<i64>,
-}
-
-/// `ListCertificatesResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListCertificatesResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CreateCustomCertificateRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateCustomCertificateRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AssignIPRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssignIPRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DeleteAppSecretResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteAppSecretResponse {
-    /// Version property.
-    pub version: Option<i64>,
-}
-
-/// `MainReclaimMemoryRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MainReclaimMemoryRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyContainerConfig` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyContainerConfig {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `UpsertMetadataKeyRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpsertMetadataKeyRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SetAppSecretRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetAppSecretRequest {
-    /// value property.
-    pub value: Option<String>,
-}
-
-/// `ExtendVolumeResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExtendVolumeResponse {
-    /// needs_restart property.
-    pub needs_restart: Option<bool>,
-    /// volume property.
-    pub volume: Option<Volume>,
-}
-
 /// `AcmeChallenge` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcmeChallenge {
@@ -958,199 +1151,6 @@ pub struct AcmeChallenge {
     pub name: Option<String>,
     /// target property.
     pub target: Option<String>,
-}
-
-/// `IssuedCertificate` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IssuedCertificate {
-    /// certificate_authority property.
-    pub certificate_authority: Option<String>,
-    /// expires_at property.
-    pub expires_at: Option<String>,
-    /// type property.
-    pub r#type: Option<String>,
-}
-
-/// `FlyMachineMount` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachineMount {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyHTTPResponseOptions` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyHTTPResponseOptions {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyContainerDependency` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyContainerDependency {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyExecHealthcheck` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyExecHealthcheck {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CreateLeaseRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateLeaseRequest {
-    /// description property.
-    pub description: Option<String>,
-    /// ttl property.
-    pub ttl: Option<i64>,
-}
-
-/// `FlyContainerDependencyCondition` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyContainerDependencyCondition {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ImageRef` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImageRef {
-    /// digest property.
-    pub digest: Option<String>,
-    /// labels property.
-    pub labels: Option<serde_json::Value>,
-    /// registry property.
-    pub registry: Option<String>,
-    /// repository property.
-    pub repository: Option<String>,
-    /// tag property.
-    pub tag: Option<String>,
-}
-
-/// `Flydv1ExecResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Flydv1ExecResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyMachineRestart` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachineRestart {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyDuration` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyDuration {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyMachinePort` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachinePort {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `UpdateMetadataRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateMetadataRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyStatic` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyStatic {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyMachineRootfs` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachineRootfs {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CreateAppResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateAppResponse {
-    /// token property.
-    pub token: Option<String>,
-}
-
-/// `ListAppsResponse` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ListAppsResponse {
-    /// apps property.
-    pub apps: Option<Vec<App>>,
-    /// total_apps property.
-    pub total_apps: Option<i64>,
-}
-
-/// `CreateAcmeCertificateRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateAcmeCertificateRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `CreateAppRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateAppRequest {
-    /// enable_subdomains property.
-    pub enable_subdomains: Option<bool>,
-    /// name property.
-    pub name: Option<String>,
-    /// network property.
-    pub network: Option<String>,
-    /// org_slug property.
-    pub org_slug: Option<String>,
-}
-
-/// `StopRequest` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopRequest {
-    /// signal property.
-    pub signal: Option<String>,
-    /// timeout property.
-    pub timeout: Option<FlyDuration>,
-}
-
-/// `FlyMachineServiceCheck` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachineServiceCheck {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `FlyReplayCache` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyReplayCache {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 // =============================================================================

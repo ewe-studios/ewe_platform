@@ -24,17 +24,17 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `MainGetPlacementsRequest` response type.
+/// `MainGetPlacementsResponse` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MainGetPlacementsRequest {
+pub struct MainGetPlacementsResponse {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `MainGetPlacementsResponse` response type.
+/// `MainGetPlacementsRequest` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MainGetPlacementsResponse {
+pub struct MainGetPlacementsRequest {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,

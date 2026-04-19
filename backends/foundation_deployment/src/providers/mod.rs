@@ -7,6 +7,7 @@
 
 pub mod aws;
 pub mod cloudflare;
+pub mod common;
 pub mod fly_io;
 pub mod gcp;
 pub mod huggingface;

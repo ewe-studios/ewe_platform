@@ -64,6 +64,9 @@ tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 # -- file system utilities
 walkdir = { version = "2.5" }
 
+# -- toml for Cargo.toml manipulation
+toml = { version = "0.8" }
+
 # -- regex for comment sanitization
 regex = { version = "1.10" }
 

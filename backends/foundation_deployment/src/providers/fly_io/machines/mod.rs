@@ -24,17 +24,6 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `MachineOverviewConfig` type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MachineOverviewConfig {
-    /// guest property.
-    pub guest: Option<FlyMachineGuest>,
-    /// image property.
-    pub image: Option<String>,
-    /// metadata property.
-    pub metadata: Option<serde_json::Value>,
-}
-
 /// `OrgMachine` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrgMachine {
@@ -62,6 +51,14 @@ pub struct OrgMachine {
     pub version: Option<String>,
 }
 
+/// `FlyMachineGuest` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FlyMachineGuest {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `OrgMachinesResponse` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrgMachinesResponse {
@@ -75,12 +72,15 @@ pub struct OrgMachinesResponse {
     pub next_cursor: Option<String>,
 }
 
-/// `FlyMachineGuest` response type.
+/// `MachineOverviewConfig` type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FlyMachineGuest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
+pub struct MachineOverviewConfig {
+    /// guest property.
+    pub guest: Option<FlyMachineGuest>,
+    /// image property.
+    pub image: Option<String>,
+    /// metadata property.
+    pub metadata: Option<serde_json::Value>,
 }
 
 // =============================================================================
