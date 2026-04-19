@@ -1611,6 +1611,7 @@ dependencies = [
  "system_operations",
  "thiserror 2.0.17",
  "tokio",
+ "toml 0.8.23",
  "tower 0.4.13",
  "tracing",
  "tracing-subscriber",

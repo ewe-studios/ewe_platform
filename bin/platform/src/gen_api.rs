@@ -8,9 +8,134 @@ use foundation_openapi::{
     UnifiedGenerator,
     unified::{analyze_spec, AnalysisOptions},
 };
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
+
+// ---------------------------------------------------------------------------
+// Feature flag fix-up for hierarchical providers
+// ---------------------------------------------------------------------------
+
+/// Fix up feature flags for hierarchical providers (e.g., gcp with gcp_admin, gcp_cloudkms, etc.).
+///
+/// After generating all sub-providers, this function:
+/// 1. Scans the output directory for all generated sub-provider directories
+/// 2. Updates the parent feature (e.g., "gcp") to include ALL sub-providers
+///
+/// This is needed because the generator updates Cargo.toml per-spec, but at that time
+/// it doesn't know about other sub-providers that will be generated later.
+fn fix_hierarchical_features(provider: &str, output_dir: &Path) -> Result<(), BoxedError> {
+    use std::collections::BTreeSet;
+
+    let provider_dir = output_dir.join(provider);
+    if !provider_dir.exists() {
+        return Ok(()); // Nothing to fix
+    }
+
+    // Collect all sub-provider directories (ones that contain mod.rs)
+    let mut sub_providers: BTreeSet<String> = BTreeSet::new();
+
+    if let Ok(entries) = std::fs::read_dir(&provider_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                // Check if this is a sub-provider (has mod.rs or is a generated group)
+                let mod_rs = path.join("mod.rs");
+                if mod_rs.exists() {
+                    // Skip "shared" directory - it's not a sub-provider
+                    if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                        if name != "shared" && name != "clients" && name != "resources" {
+                            sub_providers.insert(name.to_string());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if sub_providers.is_empty() {
+        return Ok(()); // Nothing to fix
+    }
+
+    println!("\n=== Fixing hierarchical feature flags ===");
+    println!("Found {} sub-providers for '{}': {:?}", sub_providers.len(), provider, sub_providers);
+
+    // Update Cargo.toml
+    let cargo_toml_path = output_dir
+        .ancestors()
+        .nth(2)
+        .map(|p| p.join("Cargo.toml"))
+        .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/Cargo.toml"));
+
+    if !cargo_toml_path.exists() {
+        return Err(format!("Cargo.toml not found at {}", cargo_toml_path.display()).into());
+    }
+
+    let content = std::fs::read_to_string(&cargo_toml_path)
+        .map_err(|e| format!("Failed to read Cargo.toml: {}", e))?;
+
+    let mut doc: toml::Value = toml::from_str(&content)
+        .map_err(|e| format!("Failed to parse Cargo.toml: {}", e))?;
+
+    let features = doc
+        .get_mut("features")
+        .and_then(|v| v.as_table_mut())
+        .ok_or_else(|| "Missing [features] section in Cargo.toml")?;
+
+    // The parent feature name (e.g., "gcp")
+    let parent_feature = provider.replace('-', "_");
+
+    // First, remove stale sub-provider feature definitions
+    // (features that exist in Cargo.toml but no longer have a directory)
+    let keys_to_remove: Vec<String> = features
+        .keys()
+        .filter(|k| k.starts_with(&format!("{}_", parent_feature)))
+        .filter(|k| {
+            // Check if this is a sub-provider feature (exactly 2 parts: provider_subprovider)
+            let parts: Vec<&str> = k.split('_').collect();
+            if parts.len() == 2 {
+                // This is a sub-provider feature - check if directory exists
+                !sub_providers.contains(&parts[1].to_string())
+            } else {
+                // This is a group-level feature (e.g., gcp_admin_applications) - also remove
+                // if the parent sub-provider doesn't exist
+                parts.len() > 2 && !sub_providers.contains(&parts[1].to_string())
+            }
+        })
+        .cloned()
+        .collect();
+
+    for key in &keys_to_remove {
+        features.remove(key);
+    }
+
+    if !keys_to_remove.is_empty() {
+        println!("Removed {} stale feature(s): {:?}", keys_to_remove.len(), keys_to_remove);
+    }
+
+    // Build the array of sub-provider features
+    let sub_provider_features: Vec<String> = sub_providers
+        .iter()
+        .map(|name| format!("{}_{}", parent_feature, name))
+        .collect();
+
+    // Update or create the parent feature
+    let parent_feature_array: toml::Value = toml::Value::Array(
+        sub_provider_features.iter().map(|f| toml::Value::String(f.clone())).collect()
+    );
+    features.insert(parent_feature.clone(), parent_feature_array);
+
+    // Serialize back to TOML
+    let output = toml::to_string_pretty(&doc)
+        .map_err(|e| format!("Failed to serialize Cargo.toml: {}", e))?;
+
+    std::fs::write(&cargo_toml_path, output + "\n")
+        .map_err(|e| format!("Failed to write Cargo.toml: {}", e))?;
+
+    println!("Updated '{}' feature to include {} sub-providers", parent_feature, sub_provider_features.len());
+
+    Ok(())
+}
 
 // ---------------------------------------------------------------------------
 // CLI registration
@@ -66,6 +191,13 @@ pub fn register(cmd: clap::Command) -> clap::Command {
                             .help("Maximum endpoints per group")
                             .value_name("N")
                             .default_value("200"),
+                    )
+                    .arg(
+                        clap::Arg::new("spec")
+                            .long("spec")
+                            .short('s')
+                            .help("Filter to specific spec (e.g., 'admin' for gcp/admin). Only applies to multi-spec providers")
+                            .value_name("SPEC"),
                     ),
             )
             .subcommand(
@@ -160,7 +292,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                 .map(PathBuf::from)
                 .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/src/providers"));
             let dry_run = sub_matches.get_flag("dry-run");
-            let with_features = sub_matches.get_flag("features");
+            let _with_features = sub_matches.get_flag("features");
             let min_group_size = sub_matches
                 .get_one::<String>("min-group-size")
                 .and_then(|s| s.parse::<usize>().ok())
@@ -169,65 +301,129 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                 .get_one::<String>("max-group-size")
                 .and_then(|s| s.parse::<usize>().ok())
                 .unwrap_or(200);
-
-            let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
-
-            // Load spec from artefacts directory
-            // Try openapi.json first (cloudflare, fly_io, etc.), then {provider}.json
-            let provider_dir = artefacts_dir.join(provider);
-            let spec_path = if provider_dir.join("openapi.json").exists() {
-                provider_dir.join("openapi.json")
-            } else if provider_dir.join(format!("{}.json", provider)).exists() {
-                provider_dir.join(format!("{}.json", provider))
-            } else {
-                // For GCP-like structure with multiple APIs, use first available
-                if let Ok(mut entries) = std::fs::read_dir(&provider_dir) {
-                    if let Some(entry) = entries.next() {
-                        if let Ok(entry) = entry {
-                            let api_dir = entry.path();
-                            if api_dir.is_dir() {
-                                api_dir.join("openapi.json")
-                            } else {
-                                return Err(format!("No valid OpenAPI spec found for provider '{}'", provider).into());
-                            }
-                        } else {
-                            return Err(format!("Cannot read provider directory for '{}'", provider).into());
-                        }
-                    } else {
-                        return Err(format!("Provider '{}' has no API specs", provider).into());
-                    }
-                } else {
-                    return Err(format!("Provider '{}' not found in artefacts", provider).into());
-                }
-            };
+            let spec_filter = sub_matches.get_one::<String>("spec").cloned();
 
             let options = AnalysisOptions {
                 min_group_size,
                 max_group_size,
             };
 
-            // Load and analyze spec
-            let spec_content = std::fs::read_to_string(&spec_path)
-                .map_err(|e| format!("Failed to read spec at {}: {}", spec_path.display(), e))?;
+            println!("\n=== Generating for '{}' ===", provider);
+            if let Some(ref spec_filter) = spec_filter {
+                println!("Filtering to spec: {}", spec_filter);
+            }
 
-            let _analysis = analyze_spec(&spec_content, provider, &options)
-                .map_err(|e| format!("Analysis failed: {}", e))?;
+            // Discover all OpenAPI specs for this provider from artefacts directory
+            let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
+            let provider_dir = artefacts_dir.join(provider);
+
+            let mut specs: Vec<(String, PathBuf)> = Vec::new();
+
+            if provider_dir.join("openapi.json").exists() {
+                // Single spec file (cloudflare, fly_io, etc.)
+                specs.push((provider.clone(), provider_dir.join("openapi.json")));
+            } else if provider_dir.join(format!("{}.json", provider)).exists() {
+                // Named spec file
+                specs.push((provider.clone(), provider_dir.join(format!("{}.json", provider))));
+            } else {
+                // Multiple subdirectories (GCP-like structure) - find all openapi.json files recursively
+                fn find_specs(
+                    dir: &Path,
+                    base: &Path,
+                    specs: &mut Vec<(String, PathBuf)>,
+                ) -> Result<(), std::io::Error> {
+                    if let Ok(entries) = std::fs::read_dir(dir) {
+                        for entry in entries.flatten() {
+                            let path = entry.path();
+                            if path.is_dir() {
+                                let spec_path = path.join("openapi.json");
+                                if spec_path.exists() {
+                                    let api_name = path
+                                        .strip_prefix(base)
+                                        .map(|p| p.to_string_lossy().replace('\\', "/"))
+                                        .unwrap_or_else(|_| path.file_name()
+                                            .and_then(|n| n.to_str())
+                                            .unwrap_or("unknown")
+                                            .to_string());
+                                    specs.push((api_name, spec_path));
+                                }
+                                // Recurse into subdirectory for nested specs
+                                find_specs(&path, base, specs)?;
+                            }
+                        }
+                    }
+                    Ok(())
+                }
+
+                if provider_dir.exists() {
+                    find_specs(&provider_dir, &provider_dir, &mut specs)?;
+                    specs.sort_by(|a, b| a.0.cmp(&b.0));
+                }
+            }
+
+            if specs.is_empty() {
+                return Err(format!("Provider '{}' not found in artefacts or has no OpenAPI specs", provider).into());
+            }
+
+            // Apply spec filter if provided
+            if let Some(spec_filter) = spec_filter {
+                let original_count = specs.len();
+                specs.retain(|(api_name, _)| {
+                    // Match if the api_name equals the filter or ends with the filter
+                    // e.g., filter "admin" matches "admin" or "gcp/admin"
+                    api_name.as_str() == spec_filter.as_str() || api_name.ends_with(&format!("/{}", spec_filter))
+                });
+                if specs.is_empty() {
+                    return Err(format!(
+                        "No spec matching '{}' found for provider '{}'. Available specs: {}",
+                        spec_filter,
+                        provider,
+                        specs.iter().map(|(n, _)| n.as_str()).collect::<Vec<_>>().join(", ")
+                    ).into());
+                }
+                println!("Filtered from {} to {} spec(s)", original_count, specs.len());
+            }
+
+            println!("Found {} spec(s) to generate", specs.len());
+
+            for (api_name, spec_path) in &specs {
+                println!("\n  Processing {} ({})", api_name, spec_path.display());
+
+                let spec_content = std::fs::read_to_string(spec_path)
+                    .map_err(|e| format!("Failed to read spec at {}: {}", spec_path.display(), e))?;
+
+                if dry_run {
+                    let analysis = analyze_spec(&spec_content, api_name, &options)
+                        .map_err(|e| format!("Analysis failed: {}", e))?;
+                    println!("    Groups: {}", analysis.groups.len());
+                    continue;
+                }
+
+                // Use full provider path for sub-providers (e.g., "gcp/admin")
+                let gen_provider = if specs.len() > 1 {
+                    format!("{}/{}", provider, api_name)
+                } else {
+                    provider.clone()
+                };
+
+                let generator = UnifiedGenerator::new(output_dir.clone());
+                generator.generate(&gen_provider, &spec_content, &options)?;
+                println!("    Generated: {}", gen_provider);
+            }
 
             if dry_run {
-                println!("\n=== Dry Run Mode ===");
-                println!("Provider: {}", provider);
-                println!("Spec: {}", spec_path.display());
-                println!("Output: {}", output_dir.display());
-                println!("Features: {}", if with_features { "enabled" } else { "disabled" });
-                println!("\nAnalysis complete - no files written.");
+                println!("\n=== Dry Run Complete ===");
                 return Ok(());
             }
 
-            // Generate using unified generator
-            println!("\n=== Generating for '{}' ===", provider);
-
-            let generator = UnifiedGenerator::new(output_dir.clone());
-            generator.generate(provider, &spec_content, &options)?;
+            // Post-step: Fix up feature flags for multi-spec providers ONLY
+            // When generating gcp/admin, gcp/cloudkms, etc., the parent "gcp" feature
+            // should include ALL sub-providers (gcp_admin, gcp_cloudkms, etc.)
+            // This scans the output directory for all existing sub-providers.
+            // Only run this for multi-spec providers (specs.len() > 1).
+            if specs.len() > 1 {
+                fix_hierarchical_features(&provider, &output_dir)?;
+            }
 
             println!("\n=== Generation Complete ===");
             println!("Output directory: {}", output_dir.display());
