@@ -1,7 +1,8 @@
 ---
 name: "shared-resources"
 description: "Handle resources shared across multiple clients/providers via collocated shared crates"
-status: "pending"
+status: "completed"
+completed: "2026-04-19"
 priority: "high"
 created: "2026-04-18"
 author: "Main Agent"
