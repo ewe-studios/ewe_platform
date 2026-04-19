@@ -833,7 +833,8 @@ impl UnifiedGenerator {
         writeln!(out, "    let endpoint_url = format!(")?;
         writeln!(out, "        \"{}{}\",", escaped_base, escaped_path)?;
         for param_name in &params_in_url_order {
-            writeln!(out, "        args.{},", param_name)?;
+            let safe_param = escape_rust_keyword(param_name);
+            writeln!(out, "        args.{},", safe_param)?;
         }
         writeln!(out, "    );")?;
         writeln!(out)?;
