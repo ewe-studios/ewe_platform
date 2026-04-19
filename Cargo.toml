@@ -128,8 +128,8 @@ pedantic = { level = "warn" }
 opt-level = 0
 debug = true
 debug-assertions = true
-incremental = false
-# codegen-backend = "cranelift"
+incremental = true
+codegen-backend = "cranelift"
 
 [profile.dev.package."*"]
 opt-level = 0
