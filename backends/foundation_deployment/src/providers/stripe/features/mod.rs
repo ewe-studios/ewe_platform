@@ -6,44 +6,28 @@
 //! Feature flag: `stripe_features `
 
 #![cfg(feature = "stripe_features")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// DeletedProductFeature response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletedProductFeature {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// EntitlementsFeature response type.
+/// `EntitlementsFeature` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntitlementsFeature {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// ProductFeature response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProductFeature {
-    /// Raw JSON value - full schema generated from OpenAPI
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// TreasuryFinancialAccountFeatures response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TreasuryFinancialAccountFeatures {
-    /// Raw JSON value - full schema generated from OpenAPI
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -55,92 +39,34 @@ pub struct TreasuryFinancialAccountFeatures {
 /// Arguments for [`GetEntitlementsFeatures_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEntitlementsFeaturesArgs {
-    /// Query parameter: archived
+    /// Query parameter: `archived`.
     pub archived: Option<String>,
-    /// Query parameter: ending_before
+    /// Query parameter: `ending_before`.
     pub ending_before: Option<String>,
-    /// Query parameter: expand
+    /// Query parameter: `expand`.
     pub expand: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: lookup_key
+    /// Query parameter: `lookup_key`.
     pub lookup_key: Option<String>,
-    /// Query parameter: starting_after
+    /// Query parameter: `starting_after`.
     pub starting_after: Option<String>,
 }
 
 /// Arguments for [`GetEntitlementsFeaturesId_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetEntitlementsFeaturesIdArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-    /// Query parameter: expand
+    /// Query parameter: `expand`.
     pub expand: Option<String>,
 }
 
 /// Arguments for [`PostEntitlementsFeaturesId_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostEntitlementsFeaturesIdArgs {
-    /// Path parameter: id
+    /// Path parameter: `id`.
     pub id: String,
-}
-
-/// Arguments for [`GetProductsProductFeatures_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetProductsProductFeaturesArgs {
-    /// Path parameter: product
-    pub product: String,
-    /// Query parameter: ending_before
-    pub ending_before: Option<String>,
-    /// Query parameter: expand
-    pub expand: Option<String>,
-    /// Query parameter: limit
-    pub limit: Option<String>,
-    /// Query parameter: starting_after
-    pub starting_after: Option<String>,
-}
-
-/// Arguments for [`PostProductsProductFeatures_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostProductsProductFeaturesArgs {
-    /// Path parameter: product
-    pub product: String,
-}
-
-/// Arguments for [`GetProductsProductFeaturesId_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetProductsProductFeaturesIdArgs {
-    /// Path parameter: id
-    pub id: String,
-    /// Path parameter: product
-    pub product: String,
-    /// Query parameter: expand
-    pub expand: Option<String>,
-}
-
-/// Arguments for [`DeleteProductsProductFeaturesId_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteProductsProductFeaturesIdArgs {
-    /// Path parameter: id
-    pub id: String,
-    /// Path parameter: product
-    pub product: String,
-}
-
-/// Arguments for [`GetTreasuryFinancialAccountsFinancialAccountFeatures_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetTreasuryFinancialAccountsFinancialAccountFeaturesArgs {
-    /// Path parameter: financial_account
-    pub financial_account: String,
-    /// Query parameter: expand
-    pub expand: Option<String>,
-}
-
-/// Arguments for [`PostTreasuryFinancialAccountsFinancialAccountFeatures_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostTreasuryFinancialAccountsFinancialAccountFeaturesArgs {
-    /// Path parameter: financial_account
-    pub financial_account: String,
 }
 
 // =============================================================================
@@ -151,54 +77,65 @@ pub struct PostTreasuryFinancialAccountsFinancialAccountFeaturesArgs {
 // GET /v1/entitlements/features
 // -----------------------------------------------------------------------------
 
-/// GET /v1/entitlements/features - builder function.
+/// GET /v1/entitlements/features.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn get_entitlements_features_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = get_entitlements_features_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn get_entitlements_features_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &GetEntitlementsFeaturesArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.stripe.com//v1/entitlements/features",);
 
-    let builder = client
+    let mut builder = client
         .get(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /v1/entitlements/features - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn get_entitlements_features_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
+            super::shared::RequestIntro::Success {
+                stream: _,
                 intro,
                 headers,
                 ..
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
@@ -210,89 +147,68 @@ pub fn get_entitlements_features_task(
                     body: (),
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// GET /v1/entitlements/features - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn get_entitlements_features_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-        + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = get_entitlements_features_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET /v1/entitlements/features - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn get_entitlements_features(
-    client: &SimpleHttpClient,
-    args: &GetEntitlementsFeaturesArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-        + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = get_entitlements_features_builder(client, args)?;
-    get_entitlements_features_execute(builder)
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // POST /v1/entitlements/features
 // -----------------------------------------------------------------------------
 
-/// POST /v1/entitlements/features - builder function.
+/// POST /v1/entitlements/features.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn post_entitlements_features_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_entitlements_features_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_entitlements_features_request<R, F>(
     client: &SimpleHttpClient<R>,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EntitlementsFeature>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.stripe.com//v1/entitlements/features",);
 
-    let builder = client
+    let mut builder = client
         .post(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// POST /v1/entitlements/features - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn post_entitlements_features_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<EntitlementsFeature>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -300,93 +216,91 @@ pub fn post_entitlements_features_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: EntitlementsFeature = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: EntitlementsFeature =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// POST /v1/entitlements/features - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn post_entitlements_features_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<EntitlementsFeature>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = post_entitlements_features_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // GET /v1/entitlements/features/{id}
 // -----------------------------------------------------------------------------
 
-/// GET /v1/entitlements/features/{id} - builder function.
+/// GET /v1/entitlements/features/{id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn get_entitlements_features_id_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = get_entitlements_features_id_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn get_entitlements_features_id_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &GetEntitlementsFeaturesIdArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EntitlementsFeature>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://api.stripe.com//v1/entitlements/features/{id}",
+        "https://api.stripe.com//v1/entitlements/features/{}",
         args.id,
     );
 
-    let builder = client
+    let mut builder = client
         .get(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /v1/entitlements/features/{id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn get_entitlements_features_id_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<EntitlementsFeature>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -394,112 +308,91 @@ pub fn get_entitlements_features_id_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: EntitlementsFeature = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: EntitlementsFeature =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// GET /v1/entitlements/features/{id} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn get_entitlements_features_id_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<EntitlementsFeature>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = get_entitlements_features_id_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET /v1/entitlements/features/{id} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn get_entitlements_features_id(
-    client: &SimpleHttpClient,
-    args: &GetEntitlementsFeaturesIdArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<EntitlementsFeature>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = get_entitlements_features_id_builder(client, args)?;
-    get_entitlements_features_id_execute(builder)
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // POST /v1/entitlements/features/{id}
 // -----------------------------------------------------------------------------
 
-/// POST /v1/entitlements/features/{id} - builder function.
+/// POST /v1/entitlements/features/{id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn post_entitlements_features_id_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_entitlements_features_id_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_entitlements_features_id_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &PostEntitlementsFeaturesIdArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EntitlementsFeature>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://api.stripe.com//v1/entitlements/features/{id}",
+        "https://api.stripe.com//v1/entitlements/features/{}",
         args.id,
     );
 
-    let builder = client
+    let mut builder = client
         .post(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// POST /v1/entitlements/features/{id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn post_entitlements_features_id_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<EntitlementsFeature>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -507,928 +400,27 @@ pub fn post_entitlements_features_id_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: EntitlementsFeature = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: EntitlementsFeature =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// POST /v1/entitlements/features/{id} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn post_entitlements_features_id_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<EntitlementsFeature>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = post_entitlements_features_id_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// POST /v1/entitlements/features/{id} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn post_entitlements_features_id(
-    client: &SimpleHttpClient,
-    args: &PostEntitlementsFeaturesIdArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<EntitlementsFeature>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = post_entitlements_features_id_builder(client, args)?;
-    post_entitlements_features_id_execute(builder)
-}
-
-// -----------------------------------------------------------------------------
-// GET /v1/products/{product}/features
-// -----------------------------------------------------------------------------
-
-/// GET /v1/products/{product}/features - builder function.
-///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn get_products_product_features_builder<R>(
-    client: &SimpleHttpClient<R>,
-    args: &GetProductsProductFeaturesArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
-{
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/products/{product}/features",
-        args.product,
-    );
-
-    let builder = client
-        .get(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET /v1/products/{product}/features - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn get_products_product_features_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// GET /v1/products/{product}/features - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn get_products_product_features_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-        + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = get_products_product_features_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET /v1/products/{product}/features - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn get_products_product_features(
-    client: &SimpleHttpClient,
-    args: &GetProductsProductFeaturesArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-        + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = get_products_product_features_builder(client, args)?;
-    get_products_product_features_execute(builder)
-}
-
-// -----------------------------------------------------------------------------
-// POST /v1/products/{product}/features
-// -----------------------------------------------------------------------------
-
-/// POST /v1/products/{product}/features - builder function.
-///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn post_products_product_features_builder<R>(
-    client: &SimpleHttpClient<R>,
-    args: &PostProductsProductFeaturesArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
-{
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/products/{product}/features",
-        args.product,
-    );
-
-    let builder = client
-        .post(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// POST /v1/products/{product}/features - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn post_products_product_features_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<ProductFeature>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: ProductFeature = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// POST /v1/products/{product}/features - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn post_products_product_features_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ProductFeature>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = post_products_product_features_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// POST /v1/products/{product}/features - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn post_products_product_features(
-    client: &SimpleHttpClient,
-    args: &PostProductsProductFeaturesArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ProductFeature>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = post_products_product_features_builder(client, args)?;
-    post_products_product_features_execute(builder)
-}
-
-// -----------------------------------------------------------------------------
-// GET /v1/products/{product}/features/{id}
-// -----------------------------------------------------------------------------
-
-/// GET /v1/products/{product}/features/{id} - builder function.
-///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn get_products_product_features_id_builder<R>(
-    client: &SimpleHttpClient<R>,
-    args: &GetProductsProductFeaturesIdArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
-{
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/products/{product}/features/{id}",
-        args.id, args.product,
-    );
-
-    let builder = client
-        .get(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET /v1/products/{product}/features/{id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn get_products_product_features_id_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<ProductFeature>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: ProductFeature = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// GET /v1/products/{product}/features/{id} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn get_products_product_features_id_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ProductFeature>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = get_products_product_features_id_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET /v1/products/{product}/features/{id} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn get_products_product_features_id(
-    client: &SimpleHttpClient,
-    args: &GetProductsProductFeaturesIdArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ProductFeature>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = get_products_product_features_id_builder(client, args)?;
-    get_products_product_features_id_execute(builder)
-}
-
-// -----------------------------------------------------------------------------
-// DELETE /v1/products/{product}/features/{id}
-// -----------------------------------------------------------------------------
-
-/// DELETE /v1/products/{product}/features/{id} - builder function.
-///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn delete_products_product_features_id_builder<R>(
-    client: &SimpleHttpClient<R>,
-    args: &DeleteProductsProductFeaturesIdArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
-{
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/products/{product}/features/{id}",
-        args.id, args.product,
-    );
-
-    let builder = client
-        .delete(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// DELETE /v1/products/{product}/features/{id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn delete_products_product_features_id_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<DeletedProductFeature>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: DeletedProductFeature = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// DELETE /v1/products/{product}/features/{id} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn delete_products_product_features_id_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<DeletedProductFeature>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = delete_products_product_features_id_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// DELETE /v1/products/{product}/features/{id} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn delete_products_product_features_id(
-    client: &SimpleHttpClient,
-    args: &DeleteProductsProductFeaturesIdArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<DeletedProductFeature>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = delete_products_product_features_id_builder(client, args)?;
-    delete_products_product_features_id_execute(builder)
-}
-
-// -----------------------------------------------------------------------------
-// GET /v1/treasury/financial_accounts/{financial_account}/features
-// -----------------------------------------------------------------------------
-
-/// GET /v1/treasury/financial_accounts/{financial_account}/features - builder function.
-///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn get_treasury_financial_accounts_financial_account_features_builder<R>(
-    client: &SimpleHttpClient<R>,
-    args: &GetTreasuryFinancialAccountsFinancialAccountFeaturesArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
-{
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/treasury/financial_accounts/{financial_account}/features",
-        args.financial_account,
-    );
-
-    let builder = client
-        .get(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET /v1/treasury/financial_accounts/{financial_account}/features - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn get_treasury_financial_accounts_financial_account_features_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<TreasuryFinancialAccountFeatures>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: TreasuryFinancialAccountFeatures = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// GET /v1/treasury/financial_accounts/{financial_account}/features - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn get_treasury_financial_accounts_financial_account_features_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TreasuryFinancialAccountFeatures>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = get_treasury_financial_accounts_financial_account_features_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET /v1/treasury/financial_accounts/{financial_account}/features - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn get_treasury_financial_accounts_financial_account_features(
-    client: &SimpleHttpClient,
-    args: &GetTreasuryFinancialAccountsFinancialAccountFeaturesArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TreasuryFinancialAccountFeatures>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = get_treasury_financial_accounts_financial_account_features_builder(client, args)?;
-    get_treasury_financial_accounts_financial_account_features_execute(builder)
-}
-
-// -----------------------------------------------------------------------------
-// POST /v1/treasury/financial_accounts/{financial_account}/features
-// -----------------------------------------------------------------------------
-
-/// POST /v1/treasury/financial_accounts/{financial_account}/features - builder function.
-///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn post_treasury_financial_accounts_financial_account_features_builder<R>(
-    client: &SimpleHttpClient<R>,
-    args: &PostTreasuryFinancialAccountsFinancialAccountFeaturesArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
-{
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/treasury/financial_accounts/{financial_account}/features",
-        args.financial_account,
-    );
-
-    let builder = client
-        .post(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// POST /v1/treasury/financial_accounts/{financial_account}/features - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn post_treasury_financial_accounts_financial_account_features_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<TreasuryFinancialAccountFeatures>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status: usize = intro.0.into();
-                if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
-                        code: status as u16,
-                        headers: headers.clone(),
-                        body: None,
-                    });
-                }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: TreasuryFinancialAccountFeatures = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
-                Ok(ApiResponse {
-                    status: status as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
-            }
-        })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// POST /v1/treasury/financial_accounts/{financial_account}/features - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn post_treasury_financial_accounts_financial_account_features_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TreasuryFinancialAccountFeatures>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = post_treasury_financial_accounts_financial_account_features_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// POST /v1/treasury/financial_accounts/{financial_account}/features - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn post_treasury_financial_accounts_financial_account_features(
-    client: &SimpleHttpClient,
-    args: &PostTreasuryFinancialAccountsFinancialAccountFeaturesArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TreasuryFinancialAccountFeatures>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder =
-        post_treasury_financial_accounts_financial_account_features_builder(client, args)?;
-    post_treasury_financial_accounts_financial_account_features_execute(builder)
-}
-
-// =============================================================================
-// PROVIDERCLIENT IMPL (wrapper methods)
-// =============================================================================
-
-/// ProviderClient extension methods for stripe features.
-///
-/// These wrapper methods provide state-aware API access.
-
-impl<S, R> crate::ProviderClient<S, R>
-where
-    S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
-{
-    /// GET /v1/entitlements/features.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_features_get_entitlements_features(
-        &self,
-        args: &GetEntitlementsFeaturesArgs,
-    ) -> Result<
-        impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-            + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = get_entitlements_features_builder(&self.http_client, args)?;
-        get_entitlements_features_execute(builder)
-    }
-
-    /// POST /v1/entitlements/features.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_features_post_entitlements_features(
-        &self,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<EntitlementsFeature>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = post_entitlements_features_builder(&self.http_client)?;
-        post_entitlements_features_execute(builder)
-    }
-
-    /// GET /v1/entitlements/features/{id}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_features_get_entitlements_features_id(
-        &self,
-        args: &GetEntitlementsFeaturesIdArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<EntitlementsFeature>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = get_entitlements_features_id_builder(&self.http_client, args)?;
-        get_entitlements_features_id_execute(builder)
-    }
-
-    /// POST /v1/entitlements/features/{id}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_features_post_entitlements_features_id(
-        &self,
-        args: &PostEntitlementsFeaturesIdArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<EntitlementsFeature>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = post_entitlements_features_id_builder(&self.http_client, args)?;
-        post_entitlements_features_id_execute(builder)
-    }
-
-    /// GET /v1/products/{product}/features.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_features_get_products_product_features(
-        &self,
-        args: &GetProductsProductFeaturesArgs,
-    ) -> Result<
-        impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-            + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = get_products_product_features_builder(&self.http_client, args)?;
-        get_products_product_features_execute(builder)
-    }
-
-    /// POST /v1/products/{product}/features.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_features_post_products_product_features(
-        &self,
-        args: &PostProductsProductFeaturesArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<ProductFeature>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = post_products_product_features_builder(&self.http_client, args)?;
-        post_products_product_features_execute(builder)
-    }
-
-    /// GET /v1/products/{product}/features/{id}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_features_get_products_product_features_id(
-        &self,
-        args: &GetProductsProductFeaturesIdArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<ProductFeature>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = get_products_product_features_id_builder(&self.http_client, args)?;
-        get_products_product_features_id_execute(builder)
-    }
-
-    /// DELETE /v1/products/{product}/features/{id}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_features_delete_products_product_features_id(
-        &self,
-        args: &DeleteProductsProductFeaturesIdArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<DeletedProductFeature>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = delete_products_product_features_id_builder(&self.http_client, args)?;
-        delete_products_product_features_id_execute(builder)
-    }
-
-    /// GET /v1/treasury/financial_accounts/{financial_account}/features.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_features_get_treasury_financial_accounts_financial_account_features(
-        &self,
-        args: &GetTreasuryFinancialAccountsFinancialAccountFeaturesArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<TreasuryFinancialAccountFeatures>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = get_treasury_financial_accounts_financial_account_features_builder(
-            &self.http_client,
-            args,
-        )?;
-        get_treasury_financial_accounts_financial_account_features_execute(builder)
-    }
-
-    /// POST /v1/treasury/financial_accounts/{financial_account}/features.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_features_post_treasury_financial_accounts_financial_account_features(
-        &self,
-        args: &PostTreasuryFinancialAccountsFinancialAccountFeaturesArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<TreasuryFinancialAccountFeatures>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = post_treasury_financial_accounts_financial_account_features_builder(
-            &self.http_client,
-            args,
-        )?;
-        post_treasury_financial_accounts_financial_account_features_execute(builder)
-    }
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }

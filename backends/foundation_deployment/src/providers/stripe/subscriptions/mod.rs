@@ -6,20 +6,48 @@
 //! Feature flag: `stripe_subscriptions `
 
 #![cfg(feature = "stripe_subscriptions")]
+#![allow(clippy::too_many_arguments, clippy::type_complexity)]
+#![allow(
+    clippy::missing_errors_doc,
+    clippy::doc_markdown,
+    clippy::useless_format
+)]
 
-use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
+
+// Import shared types used by this module
+use super::shared::DeletedDiscount;
+use super::shared::Subscription;
+
+use super::shared::ApiResponse;
 
 // =============================================================================
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// Subscription response type.
+/// `DeletedSubscriptionItem` response type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Subscription {
-    /// Raw JSON value - full schema generated from OpenAPI
+pub struct DeletedSubscriptionItem {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SubscriptionSchedule` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionSchedule {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SubscriptionItem` response type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SubscriptionItem {
+    /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
@@ -28,111 +56,189 @@ pub struct Subscription {
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
-/// Arguments for [`GetCustomersCustomerSubscriptions_builder`].
+/// Arguments for [`GetSubscriptionItems_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetCustomersCustomerSubscriptionsArgs {
-    /// Path parameter: customer
-    pub customer: String,
-    /// Query parameter: ending_before
+pub struct GetSubscriptionItemsArgs {
+    /// Query parameter: `ending_before`.
     pub ending_before: Option<String>,
-    /// Query parameter: expand
+    /// Query parameter: `expand`.
     pub expand: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: starting_after
+    /// Query parameter: `starting_after`.
+    pub starting_after: Option<String>,
+    /// Query parameter: `subscription`.
+    pub subscription: Option<String>,
+}
+
+/// Arguments for [`GetSubscriptionItemsItem_builder`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetSubscriptionItemsItemArgs {
+    /// Path parameter: `item`.
+    pub item: String,
+    /// Query parameter: `expand`.
+    pub expand: Option<String>,
+}
+
+/// Arguments for [`PostSubscriptionItemsItem_builder`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostSubscriptionItemsItemArgs {
+    /// Path parameter: `item`.
+    pub item: String,
+}
+
+/// Arguments for [`DeleteSubscriptionItemsItem_builder`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteSubscriptionItemsItemArgs {
+    /// Path parameter: `item`.
+    pub item: String,
+}
+
+/// Arguments for [`GetSubscriptionSchedules_builder`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetSubscriptionSchedulesArgs {
+    /// Query parameter: `canceled_at`.
+    pub canceled_at: Option<String>,
+    /// Query parameter: `completed_at`.
+    pub completed_at: Option<String>,
+    /// Query parameter: `created`.
+    pub created: Option<String>,
+    /// Query parameter: `customer`.
+    pub customer: Option<String>,
+    /// Query parameter: `customer_account`.
+    pub customer_account: Option<String>,
+    /// Query parameter: `ending_before`.
+    pub ending_before: Option<String>,
+    /// Query parameter: `expand`.
+    pub expand: Option<String>,
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `released_at`.
+    pub released_at: Option<String>,
+    /// Query parameter: `scheduled`.
+    pub scheduled: Option<String>,
+    /// Query parameter: `starting_after`.
     pub starting_after: Option<String>,
 }
 
-/// Arguments for [`PostCustomersCustomerSubscriptions_builder`].
+/// Arguments for [`GetSubscriptionSchedulesSchedule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostCustomersCustomerSubscriptionsArgs {
-    /// Path parameter: customer
-    pub customer: String,
-}
-
-/// Arguments for [`GetCustomersCustomerSubscriptionsSubscriptionExposedId_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GetCustomersCustomerSubscriptionsSubscriptionExposedIdArgs {
-    /// Path parameter: customer
-    pub customer: String,
-    /// Path parameter: subscription_exposed_id
-    pub subscription_exposed_id: String,
-    /// Query parameter: expand
+pub struct GetSubscriptionSchedulesScheduleArgs {
+    /// Path parameter: `schedule`.
+    pub schedule: String,
+    /// Query parameter: `expand`.
     pub expand: Option<String>,
 }
 
-/// Arguments for [`PostCustomersCustomerSubscriptionsSubscriptionExposedId_builder`].
+/// Arguments for [`PostSubscriptionSchedulesSchedule_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PostCustomersCustomerSubscriptionsSubscriptionExposedIdArgs {
-    /// Path parameter: customer
-    pub customer: String,
-    /// Path parameter: subscription_exposed_id
-    pub subscription_exposed_id: String,
+pub struct PostSubscriptionSchedulesScheduleArgs {
+    /// Path parameter: `schedule`.
+    pub schedule: String,
 }
 
-/// Arguments for [`DeleteCustomersCustomerSubscriptionsSubscriptionExposedId_builder`].
+/// Arguments for [`PostSubscriptionSchedulesScheduleCancel_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DeleteCustomersCustomerSubscriptionsSubscriptionExposedIdArgs {
-    /// Path parameter: customer
-    pub customer: String,
-    /// Path parameter: subscription_exposed_id
-    pub subscription_exposed_id: String,
+pub struct PostSubscriptionSchedulesScheduleCancelArgs {
+    /// Path parameter: `schedule`.
+    pub schedule: String,
+}
+
+/// Arguments for [`PostSubscriptionSchedulesScheduleRelease_builder`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostSubscriptionSchedulesScheduleReleaseArgs {
+    /// Path parameter: `schedule`.
+    pub schedule: String,
 }
 
 /// Arguments for [`GetSubscriptions_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSubscriptionsArgs {
-    /// Query parameter: automatic_tax
+    /// Query parameter: `automatic_tax`.
     pub automatic_tax: Option<String>,
-    /// Query parameter: collection_method
+    /// Query parameter: `collection_method`.
     pub collection_method: Option<String>,
-    /// Query parameter: created
+    /// Query parameter: `created`.
     pub created: Option<String>,
-    /// Query parameter: current_period_end
+    /// Query parameter: `current_period_end`.
     pub current_period_end: Option<String>,
-    /// Query parameter: current_period_start
+    /// Query parameter: `current_period_start`.
     pub current_period_start: Option<String>,
-    /// Query parameter: customer
+    /// Query parameter: `customer`.
     pub customer: Option<String>,
-    /// Query parameter: customer_account
+    /// Query parameter: `customer_account`.
     pub customer_account: Option<String>,
-    /// Query parameter: ending_before
+    /// Query parameter: `ending_before`.
     pub ending_before: Option<String>,
-    /// Query parameter: expand
+    /// Query parameter: `expand`.
     pub expand: Option<String>,
-    /// Query parameter: limit
+    /// Query parameter: `limit`.
     pub limit: Option<String>,
-    /// Query parameter: price
+    /// Query parameter: `price`.
     pub price: Option<String>,
-    /// Query parameter: starting_after
+    /// Query parameter: `starting_after`.
     pub starting_after: Option<String>,
-    /// Query parameter: status
+    /// Query parameter: `status`.
     pub status: Option<String>,
-    /// Query parameter: test_clock
+    /// Query parameter: `test_clock`.
     pub test_clock: Option<String>,
+}
+
+/// Arguments for [`GetSubscriptionsSearch_builder`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetSubscriptionsSearchArgs {
+    /// Query parameter: `expand`.
+    pub expand: Option<String>,
+    /// Query parameter: `limit`.
+    pub limit: Option<String>,
+    /// Query parameter: `page`.
+    pub page: Option<String>,
+    /// Query parameter: `query`.
+    pub query: Option<String>,
 }
 
 /// Arguments for [`GetSubscriptionsSubscriptionExposedId_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GetSubscriptionsSubscriptionExposedIdArgs {
-    /// Path parameter: subscription_exposed_id
+    /// Path parameter: `subscription_exposed_id`.
     pub subscription_exposed_id: String,
-    /// Query parameter: expand
+    /// Query parameter: `expand`.
     pub expand: Option<String>,
 }
 
 /// Arguments for [`PostSubscriptionsSubscriptionExposedId_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostSubscriptionsSubscriptionExposedIdArgs {
-    /// Path parameter: subscription_exposed_id
+    /// Path parameter: `subscription_exposed_id`.
     pub subscription_exposed_id: String,
 }
 
 /// Arguments for [`DeleteSubscriptionsSubscriptionExposedId_builder`].
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DeleteSubscriptionsSubscriptionExposedIdArgs {
-    /// Path parameter: subscription_exposed_id
+    /// Path parameter: `subscription_exposed_id`.
     pub subscription_exposed_id: String,
+}
+
+/// Arguments for [`DeleteSubscriptionsSubscriptionExposedIdDiscount_builder`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteSubscriptionsSubscriptionExposedIdDiscountArgs {
+    /// Path parameter: `subscription_exposed_id`.
+    pub subscription_exposed_id: String,
+}
+
+/// Arguments for [`PostSubscriptionsSubscriptionMigrate_builder`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostSubscriptionsSubscriptionMigrateArgs {
+    /// Path parameter: `subscription`.
+    pub subscription: String,
+}
+
+/// Arguments for [`PostSubscriptionsSubscriptionResume_builder`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostSubscriptionsSubscriptionResumeArgs {
+    /// Path parameter: `subscription`.
+    pub subscription: String,
 }
 
 // =============================================================================
@@ -140,60 +246,68 @@ pub struct DeleteSubscriptionsSubscriptionExposedIdArgs {
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-// GET /v1/customers/{customer}/subscriptions
+// GET /v1/subscription_items
 // -----------------------------------------------------------------------------
 
-/// GET /v1/customers/{customer}/subscriptions - builder function.
+/// GET /v1/subscription_items.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn get_customers_customer_subscriptions_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = get_subscription_items_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn get_subscription_items_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &GetCustomersCustomerSubscriptionsArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
-{
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/customers/{customer}/subscriptions",
-        args.customer,
-    );
-
-    let builder = client
-        .get(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET /v1/customers/{customer}/subscriptions - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn get_customers_customer_subscriptions_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
+    builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<()>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
         > + Send
         + 'static,
-    crate::ApiError,
-> {
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://api.stripe.com//v1/subscription_items",);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
+            super::shared::RequestIntro::Success {
+                stream: _,
                 intro,
                 headers,
                 ..
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
@@ -205,93 +319,68 @@ pub fn get_customers_customer_subscriptions_task(
                     body: (),
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// GET /v1/customers/{customer}/subscriptions - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn get_customers_customer_subscriptions_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-        + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = get_customers_customer_subscriptions_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET /v1/customers/{customer}/subscriptions - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn get_customers_customer_subscriptions(
-    client: &SimpleHttpClient,
-    args: &GetCustomersCustomerSubscriptionsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-        + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = get_customers_customer_subscriptions_builder(client, args)?;
-    get_customers_customer_subscriptions_execute(builder)
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
-// POST /v1/customers/{customer}/subscriptions
+// POST /v1/subscription_items
 // -----------------------------------------------------------------------------
 
-/// POST /v1/customers/{customer}/subscriptions - builder function.
+/// POST /v1/subscription_items.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn post_customers_customer_subscriptions_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_subscription_items_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_subscription_items_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &PostCustomersCustomerSubscriptionsArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
-where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
-{
-    let endpoint_url = format!(
-        "https://api.stripe.com//v1/customers/{customer}/subscriptions",
-        args.customer,
-    );
-
-    let builder = client
-        .post(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// POST /v1/customers/{customer}/subscriptions - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn post_customers_customer_subscriptions_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
+    builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
-            Ready = Result<ApiResponse<Subscription>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
+            Ready = Result<ApiResponse<SubscriptionItem>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
         > + Send
         + 'static,
-    crate::ApiError,
-> {
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://api.stripe.com//v1/subscription_items",);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -299,112 +388,91 @@ pub fn post_customers_customer_subscriptions_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: Subscription = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SubscriptionItem =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// POST /v1/customers/{customer}/subscriptions - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn post_customers_customer_subscriptions_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = post_customers_customer_subscriptions_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// POST /v1/customers/{customer}/subscriptions - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn post_customers_customer_subscriptions(
-    client: &SimpleHttpClient,
-    args: &PostCustomersCustomerSubscriptionsArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = post_customers_customer_subscriptions_builder(client, args)?;
-    post_customers_customer_subscriptions_execute(builder)
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
-// GET /v1/customers/{customer}/subscriptions/{subscription_exposed_id}
+// GET /v1/subscription_items/{item}
 // -----------------------------------------------------------------------------
 
-/// GET /v1/customers/{customer}/subscriptions/{subscription_exposed_id} - builder function.
+/// GET /v1/subscription_items/{item}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn get_customers_customer_subscriptions_subscription_exposed_id_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = get_subscription_items_item_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn get_subscription_items_item_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &GetCustomersCustomerSubscriptionsSubscriptionExposedIdArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    args: &GetSubscriptionItemsItemArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionItem>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://api.stripe.com//v1/customers/{customer}/subscriptions/{subscription_exposed_id}",
-        args.customer, args.subscription_exposed_id,
+        "https://api.stripe.com//v1/subscription_items/{}",
+        args.item,
     );
 
-    let builder = client
+    let mut builder = client
         .get(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /v1/customers/{customer}/subscriptions/{subscription_exposed_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn get_customers_customer_subscriptions_subscription_exposed_id_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<Subscription>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -412,113 +480,91 @@ pub fn get_customers_customer_subscriptions_subscription_exposed_id_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: Subscription = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SubscriptionItem =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// GET /v1/customers/{customer}/subscriptions/{subscription_exposed_id} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn get_customers_customer_subscriptions_subscription_exposed_id_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = get_customers_customer_subscriptions_subscription_exposed_id_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET /v1/customers/{customer}/subscriptions/{subscription_exposed_id} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn get_customers_customer_subscriptions_subscription_exposed_id(
-    client: &SimpleHttpClient,
-    args: &GetCustomersCustomerSubscriptionsSubscriptionExposedIdArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder =
-        get_customers_customer_subscriptions_subscription_exposed_id_builder(client, args)?;
-    get_customers_customer_subscriptions_subscription_exposed_id_execute(builder)
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
-// POST /v1/customers/{customer}/subscriptions/{subscription_exposed_id}
+// POST /v1/subscription_items/{item}
 // -----------------------------------------------------------------------------
 
-/// POST /v1/customers/{customer}/subscriptions/{subscription_exposed_id} - builder function.
+/// POST /v1/subscription_items/{item}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn post_customers_customer_subscriptions_subscription_exposed_id_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_subscription_items_item_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_subscription_items_item_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &PostCustomersCustomerSubscriptionsSubscriptionExposedIdArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    args: &PostSubscriptionItemsItemArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionItem>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://api.stripe.com//v1/customers/{customer}/subscriptions/{subscription_exposed_id}",
-        args.customer, args.subscription_exposed_id,
+        "https://api.stripe.com//v1/subscription_items/{}",
+        args.item,
     );
 
-    let builder = client
+    let mut builder = client
         .post(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// POST /v1/customers/{customer}/subscriptions/{subscription_exposed_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn post_customers_customer_subscriptions_subscription_exposed_id_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<Subscription>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -526,113 +572,91 @@ pub fn post_customers_customer_subscriptions_subscription_exposed_id_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: Subscription = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SubscriptionItem =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// POST /v1/customers/{customer}/subscriptions/{subscription_exposed_id} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn post_customers_customer_subscriptions_subscription_exposed_id_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = post_customers_customer_subscriptions_subscription_exposed_id_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// POST /v1/customers/{customer}/subscriptions/{subscription_exposed_id} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn post_customers_customer_subscriptions_subscription_exposed_id(
-    client: &SimpleHttpClient,
-    args: &PostCustomersCustomerSubscriptionsSubscriptionExposedIdArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder =
-        post_customers_customer_subscriptions_subscription_exposed_id_builder(client, args)?;
-    post_customers_customer_subscriptions_subscription_exposed_id_execute(builder)
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
-// DELETE /v1/customers/{customer}/subscriptions/{subscription_exposed_id}
+// DELETE /v1/subscription_items/{item}
 // -----------------------------------------------------------------------------
 
-/// DELETE /v1/customers/{customer}/subscriptions/{subscription_exposed_id} - builder function.
+/// DELETE /v1/subscription_items/{item}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn delete_customers_customer_subscriptions_subscription_exposed_id_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = delete_subscription_items_item_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn delete_subscription_items_item_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &DeleteCustomersCustomerSubscriptionsSubscriptionExposedIdArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    args: &DeleteSubscriptionItemsItemArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeletedSubscriptionItem>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://api.stripe.com//v1/customers/{customer}/subscriptions/{subscription_exposed_id}",
-        args.customer, args.subscription_exposed_id,
+        "https://api.stripe.com//v1/subscription_items/{}",
+        args.item,
     );
 
-    let builder = client
+    let mut builder = client
         .delete(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// DELETE /v1/customers/{customer}/subscriptions/{subscription_exposed_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn delete_customers_customer_subscriptions_subscription_exposed_id_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<Subscription>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -640,118 +664,630 @@ pub fn delete_customers_customer_subscriptions_subscription_exposed_id_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: Subscription = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: DeletedSubscriptionItem =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
-/// DELETE /v1/customers/{customer}/subscriptions/{subscription_exposed_id} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
+// -----------------------------------------------------------------------------
+// GET /v1/subscription_schedules
+// -----------------------------------------------------------------------------
 
-pub fn delete_customers_customer_subscriptions_subscription_exposed_id_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
+/// GET /v1/subscription_schedules.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = get_subscription_schedules_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn get_subscription_schedules_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    builder_mod: Option<F>,
 ) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
         > + Send
         + 'static,
-    crate::ApiError,
-> {
-    let task = delete_customers_customer_subscriptions_subscription_exposed_id_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://api.stripe.com//v1/subscription_schedules",);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream: _,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
-/// DELETE /v1/customers/{customer}/subscriptions/{subscription_exposed_id} - convenience function.
-///
-/// Combines builder and execute in one call.
+// -----------------------------------------------------------------------------
+// POST /v1/subscription_schedules
+// -----------------------------------------------------------------------------
 
-pub fn delete_customers_customer_subscriptions_subscription_exposed_id(
-    client: &SimpleHttpClient,
-    args: &DeleteCustomersCustomerSubscriptionsSubscriptionExposedIdArgs,
+/// POST /v1/subscription_schedules.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_subscription_schedules_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_subscription_schedules_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    builder_mod: Option<F>,
 ) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionSchedule>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
         > + Send
         + 'static,
-    crate::ApiError,
-> {
-    let builder =
-        delete_customers_customer_subscriptions_subscription_exposed_id_builder(client, args)?;
-    delete_customers_customer_subscriptions_subscription_exposed_id_execute(builder)
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://api.stripe.com//v1/subscription_schedules",);
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SubscriptionSchedule =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// GET /v1/subscription_schedules/{schedule}
+// -----------------------------------------------------------------------------
+
+/// GET /v1/subscription_schedules/{schedule}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = get_subscription_schedules_schedule_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn get_subscription_schedules_schedule_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &GetSubscriptionSchedulesScheduleArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionSchedule>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://api.stripe.com//v1/subscription_schedules/{}",
+        args.schedule,
+    );
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SubscriptionSchedule =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST /v1/subscription_schedules/{schedule}
+// -----------------------------------------------------------------------------
+
+/// POST /v1/subscription_schedules/{schedule}.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_subscription_schedules_schedule_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_subscription_schedules_schedule_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PostSubscriptionSchedulesScheduleArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionSchedule>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://api.stripe.com//v1/subscription_schedules/{}",
+        args.schedule,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SubscriptionSchedule =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST /v1/subscription_schedules/{schedule}/cancel
+// -----------------------------------------------------------------------------
+
+/// POST /v1/subscription_schedules/{schedule}/cancel.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_subscription_schedules_schedule_cancel_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_subscription_schedules_schedule_cancel_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PostSubscriptionSchedulesScheduleCancelArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionSchedule>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://api.stripe.com//v1/subscription_schedules/{}/cancel",
+        args.schedule,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SubscriptionSchedule =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST /v1/subscription_schedules/{schedule}/release
+// -----------------------------------------------------------------------------
+
+/// POST /v1/subscription_schedules/{schedule}/release.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_subscription_schedules_schedule_release_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_subscription_schedules_schedule_release_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PostSubscriptionSchedulesScheduleReleaseArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionSchedule>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://api.stripe.com//v1/subscription_schedules/{}/release",
+        args.schedule,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: SubscriptionSchedule =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // GET /v1/subscriptions
 // -----------------------------------------------------------------------------
 
-/// GET /v1/subscriptions - builder function.
+/// GET /v1/subscriptions.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn get_subscriptions_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = get_subscriptions_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn get_subscriptions_request<R, F>(
     client: &SimpleHttpClient<R>,
-    args: &GetSubscriptionsArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.stripe.com//v1/subscriptions",);
 
-    let builder = client
+    let mut builder = client
         .get(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /v1/subscriptions - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn get_subscriptions_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<()>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
-                stream,
+            super::shared::RequestIntro::Success {
+                stream: _,
                 intro,
                 headers,
                 ..
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
@@ -763,89 +1299,68 @@ pub fn get_subscriptions_task(
                     body: (),
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// GET /v1/subscriptions - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn get_subscriptions_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-        + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = get_subscriptions_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET /v1/subscriptions - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn get_subscriptions(
-    client: &SimpleHttpClient,
-    args: &GetSubscriptionsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-        + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = get_subscriptions_builder(client, args)?;
-    get_subscriptions_execute(builder)
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // POST /v1/subscriptions
 // -----------------------------------------------------------------------------
 
-/// POST /v1/subscriptions - builder function.
+/// POST /v1/subscriptions.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn post_subscriptions_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_subscriptions_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_subscriptions_request<R, F>(
     client: &SimpleHttpClient<R>,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.stripe.com//v1/subscriptions",);
 
-    let builder = client
+    let mut builder = client
         .post(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// POST /v1/subscriptions - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn post_subscriptions_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<Subscription>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -853,93 +1368,172 @@ pub fn post_subscriptions_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: Subscription = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Subscription =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
-/// POST /v1/subscriptions - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
+// -----------------------------------------------------------------------------
+// GET /v1/subscriptions/search
+// -----------------------------------------------------------------------------
 
-pub fn post_subscriptions_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
+/// GET /v1/subscriptions/search.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = get_subscriptions_search_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn get_subscriptions_search_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    builder_mod: Option<F>,
 ) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
         > + Send
         + 'static,
-    crate::ApiError,
-> {
-    let task = post_subscriptions_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!("https://api.stripe.com//v1/subscriptions/search",);
+
+    let mut builder = client
+        .get(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream: _,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // GET /v1/subscriptions/{subscription_exposed_id}
 // -----------------------------------------------------------------------------
 
-/// GET /v1/subscriptions/{subscription_exposed_id} - builder function.
+/// GET /v1/subscriptions/{subscription_exposed_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn get_subscriptions_subscription_exposed_id_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = get_subscriptions_subscription_exposed_id_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn get_subscriptions_subscription_exposed_id_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &GetSubscriptionsSubscriptionExposedIdArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://api.stripe.com//v1/subscriptions/{subscription_exposed_id}",
+        "https://api.stripe.com//v1/subscriptions/{}",
         args.subscription_exposed_id,
     );
 
-    let builder = client
+    let mut builder = client
         .get(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// GET /v1/subscriptions/{subscription_exposed_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn get_subscriptions_subscription_exposed_id_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<Subscription>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -947,112 +1541,91 @@ pub fn get_subscriptions_subscription_exposed_id_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: Subscription = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Subscription =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// GET /v1/subscriptions/{subscription_exposed_id} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn get_subscriptions_subscription_exposed_id_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = get_subscriptions_subscription_exposed_id_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET /v1/subscriptions/{subscription_exposed_id} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn get_subscriptions_subscription_exposed_id(
-    client: &SimpleHttpClient,
-    args: &GetSubscriptionsSubscriptionExposedIdArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = get_subscriptions_subscription_exposed_id_builder(client, args)?;
-    get_subscriptions_subscription_exposed_id_execute(builder)
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // POST /v1/subscriptions/{subscription_exposed_id}
 // -----------------------------------------------------------------------------
 
-/// POST /v1/subscriptions/{subscription_exposed_id} - builder function.
+/// POST /v1/subscriptions/{subscription_exposed_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn post_subscriptions_subscription_exposed_id_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_subscriptions_subscription_exposed_id_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_subscriptions_subscription_exposed_id_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &PostSubscriptionsSubscriptionExposedIdArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://api.stripe.com//v1/subscriptions/{subscription_exposed_id}",
+        "https://api.stripe.com//v1/subscriptions/{}",
         args.subscription_exposed_id,
     );
 
-    let builder = client
+    let mut builder = client
         .post(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// POST /v1/subscriptions/{subscription_exposed_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn post_subscriptions_subscription_exposed_id_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<Subscription>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -1060,112 +1633,91 @@ pub fn post_subscriptions_subscription_exposed_id_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: Subscription = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Subscription =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
-}
-
-/// POST /v1/subscriptions/{subscription_exposed_id} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
-
-pub fn post_subscriptions_subscription_exposed_id_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let task = post_subscriptions_subscription_exposed_id_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// POST /v1/subscriptions/{subscription_exposed_id} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn post_subscriptions_subscription_exposed_id(
-    client: &SimpleHttpClient,
-    args: &PostSubscriptionsSubscriptionExposedIdArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = post_subscriptions_subscription_exposed_id_builder(client, args)?;
-    post_subscriptions_subscription_exposed_id_execute(builder)
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
 // -----------------------------------------------------------------------------
 // DELETE /v1/subscriptions/{subscription_exposed_id}
 // -----------------------------------------------------------------------------
 
-/// DELETE /v1/subscriptions/{subscription_exposed_id} - builder function.
+/// DELETE /v1/subscriptions/{subscription_exposed_id}.
 ///
-/// Returns `ClientRequestBuilder` for customization.
-
-pub fn delete_subscriptions_subscription_exposed_id_builder<R>(
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = delete_subscriptions_subscription_exposed_id_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn delete_subscriptions_subscription_exposed_id_request<R, F>(
     client: &SimpleHttpClient<R>,
     args: &DeleteSubscriptionsSubscriptionExposedIdArgs,
-) -> Result<ClientRequestBuilder<R>, crate::ApiError>
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
 where
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
-        "https://api.stripe.com//v1/subscriptions/{subscription_exposed_id}",
+        "https://api.stripe.com//v1/subscriptions/{}",
         args.subscription_exposed_id,
     );
 
-    let builder = client
+    let mut builder = client
         .delete(&endpoint_url)
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?;
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    Ok(builder)
-}
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
 
-/// DELETE /v1/subscriptions/{subscription_exposed_id} - task function.
-///
-/// Takes a `ClientRequestBuilder` and returns a `TaskIterator`.
-
-pub fn delete_subscriptions_subscription_exposed_id_task(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            Ready = Result<ApiResponse<Subscription>, crate::ApiError>,
-            Pending = crate::ApiPending,
-            Spawner = crate::BoxedSendExecutionAction,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
     Ok(builder
         .build_send_request()
-        .map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))?
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
         .map_ready(|intro| match intro {
-            crate::RequestIntro::Success {
+            super::shared::RequestIntro::Success {
                 stream,
                 intro,
                 headers,
@@ -1173,260 +1725,303 @@ pub fn delete_subscriptions_subscription_exposed_id_task(
             } => {
                 let status: usize = intro.0.into();
                 if status < 200 || status >= 300 {
-                    return Err(crate::ApiError::HttpStatus {
+                    return Err(super::shared::ApiError::HttpStatus {
                         code: status as u16,
                         headers: headers.clone(),
                         body: None,
                     });
                 }
-                let body = foundation_core::wire::simple_http::body_reader::collect_string(stream);
-                let parsed: Subscription = serde_json::from_str(&body)
-                    .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Subscription =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
                 Ok(ApiResponse {
                     status: status as u16,
                     headers: headers.clone(),
                     body: parsed,
                 })
             }
-            crate::RequestIntro::Failed(e) => {
-                Err(crate::ApiError::RequestSendFailed(e.to_string()))
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
             }
         })
-        .map_pending(|_| crate::ApiPending::Sending))
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
 
-/// DELETE /v1/subscriptions/{subscription_exposed_id} - execute function.
-///
-/// Takes a `ClientRequestBuilder` and executes it.
+// -----------------------------------------------------------------------------
+// DELETE /v1/subscriptions/{subscription_exposed_id}/discount
+// -----------------------------------------------------------------------------
 
-pub fn delete_subscriptions_subscription_exposed_id_execute(
-    builder: ClientRequestBuilder<crate::SystemDnsResolver>,
+/// DELETE /v1/subscriptions/{subscription_exposed_id}/discount.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = delete_subscriptions_subscription_exposed_id_discount_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn delete_subscriptions_subscription_exposed_id_discount_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &DeleteSubscriptionsSubscriptionExposedIdDiscountArgs,
+    builder_mod: Option<F>,
 ) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeletedDiscount>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
         > + Send
         + 'static,
-    crate::ApiError,
-> {
-    let task = delete_subscriptions_subscription_exposed_id_task(builder)?;
-    execute(task, None).map_err(|e| crate::ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// DELETE /v1/subscriptions/{subscription_exposed_id} - convenience function.
-///
-/// Combines builder and execute in one call.
-
-pub fn delete_subscriptions_subscription_exposed_id(
-    client: &SimpleHttpClient,
-    args: &DeleteSubscriptionsSubscriptionExposedIdArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<Subscription>, crate::ApiError>,
-            P = crate::ApiPending,
-        > + Send
-        + 'static,
-    crate::ApiError,
-> {
-    let builder = delete_subscriptions_subscription_exposed_id_builder(client, args)?;
-    delete_subscriptions_subscription_exposed_id_execute(builder)
-}
-
-// =============================================================================
-// PROVIDERCLIENT IMPL (wrapper methods)
-// =============================================================================
-
-/// ProviderClient extension methods for stripe subscriptions.
-///
-/// These wrapper methods provide state-aware API access.
-
-impl<S, R> crate::ProviderClient<S, R>
+    super::shared::ApiError,
+>
 where
-    S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + 'static,
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
 {
-    /// GET /v1/customers/{customer}/subscriptions.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_subscriptions_get_customers_customer_subscriptions(
-        &self,
-        args: &GetCustomersCustomerSubscriptionsArgs,
-    ) -> Result<
-        impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-            + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = get_customers_customer_subscriptions_builder(&self.http_client, args)?;
-        get_customers_customer_subscriptions_execute(builder)
+    let endpoint_url = format!(
+        "https://api.stripe.com//v1/subscriptions/{}/discount",
+        args.subscription_exposed_id,
+    );
+
+    let mut builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
     }
 
-    /// POST /v1/customers/{customer}/subscriptions.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_subscriptions_post_customers_customer_subscriptions(
-        &self,
-        args: &PostCustomersCustomerSubscriptionsArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<Subscription>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = post_customers_customer_subscriptions_builder(&self.http_client, args)?;
-        post_customers_customer_subscriptions_execute(builder)
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: DeletedDiscount =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST /v1/subscriptions/{subscription}/migrate
+// -----------------------------------------------------------------------------
+
+/// POST /v1/subscriptions/{subscription}/migrate.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_subscriptions_subscription_migrate_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_subscriptions_subscription_migrate_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PostSubscriptionsSubscriptionMigrateArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://api.stripe.com//v1/subscriptions/{}/migrate",
+        args.subscription,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
     }
 
-    /// GET /v1/customers/{customer}/subscriptions/{subscription_exposed_id}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_subscriptions_get_customers_customer_subscriptions_subscription_exposed_id(
-        &self,
-        args: &GetCustomersCustomerSubscriptionsSubscriptionExposedIdArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<Subscription>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = get_customers_customer_subscriptions_subscription_exposed_id_builder(
-            &self.http_client,
-            args,
-        )?;
-        get_customers_customer_subscriptions_subscription_exposed_id_execute(builder)
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Subscription =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
+}
+
+// -----------------------------------------------------------------------------
+// POST /v1/subscriptions/{subscription}/resume
+// -----------------------------------------------------------------------------
+
+/// POST /v1/subscriptions/{subscription}/resume.
+///
+/// Takes client and args, builds the request, optionally applies modifications,
+/// and returns a `TaskIterator` for execution.
+///
+/// # Arguments
+///
+/// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
+/// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
+///
+/// # Example
+///
+/// ```ignore
+/// let task = post_subscriptions_subscription_resume_request(&client, &args, Some(|b| {
+///     b.header("X-Custom-Header", "value")
+/// }))?;
+/// ```
+#[inline]
+pub fn post_subscriptions_subscription_resume_request<R, F>(
+    client: &SimpleHttpClient<R>,
+    args: &PostSubscriptionsSubscriptionResumeArgs,
+    builder_mod: Option<F>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, super::shared::ApiError>,
+            Pending = super::shared::ApiPending,
+            Spawner = super::shared::BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    super::shared::ApiError,
+>
+where
+    R: foundation_core::wire::simple_http::client::DnsResolver + Clone + Default + 'static,
+    F: FnOnce(&mut ClientRequestBuilder<R>),
+{
+    let endpoint_url = format!(
+        "https://api.stripe.com//v1/subscriptions/{}/resume",
+        args.subscription,
+    );
+
+    let mut builder = client
+        .post(&endpoint_url)
+        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
     }
 
-    /// POST /v1/customers/{customer}/subscriptions/{subscription_exposed_id}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_subscriptions_post_customers_customer_subscriptions_subscription_exposed_id(
-        &self,
-        args: &PostCustomersCustomerSubscriptionsSubscriptionExposedIdArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<Subscription>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = post_customers_customer_subscriptions_subscription_exposed_id_builder(
-            &self.http_client,
-            args,
-        )?;
-        post_customers_customer_subscriptions_subscription_exposed_id_execute(builder)
-    }
-
-    /// DELETE /v1/customers/{customer}/subscriptions/{subscription_exposed_id}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_subscriptions_delete_customers_customer_subscriptions_subscription_exposed_id(
-        &self,
-        args: &DeleteCustomersCustomerSubscriptionsSubscriptionExposedIdArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<Subscription>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = delete_customers_customer_subscriptions_subscription_exposed_id_builder(
-            &self.http_client,
-            args,
-        )?;
-        delete_customers_customer_subscriptions_subscription_exposed_id_execute(builder)
-    }
-
-    /// GET /v1/subscriptions.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_subscriptions_get_subscriptions(
-        &self,
-        args: &GetSubscriptionsArgs,
-    ) -> Result<
-        impl StreamIterator<D = Result<ApiResponse<()>, crate::ApiError>, P = crate::ApiPending>
-            + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = get_subscriptions_builder(&self.http_client, args)?;
-        get_subscriptions_execute(builder)
-    }
-
-    /// POST /v1/subscriptions.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_subscriptions_post_subscriptions(
-        &self,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<Subscription>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = post_subscriptions_builder(&self.http_client)?;
-        post_subscriptions_execute(builder)
-    }
-
-    /// GET /v1/subscriptions/{subscription_exposed_id}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_subscriptions_get_subscriptions_subscription_exposed_id(
-        &self,
-        args: &GetSubscriptionsSubscriptionExposedIdArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<Subscription>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = get_subscriptions_subscription_exposed_id_builder(&self.http_client, args)?;
-        get_subscriptions_subscription_exposed_id_execute(builder)
-    }
-
-    /// POST /v1/subscriptions/{subscription_exposed_id}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_subscriptions_post_subscriptions_subscription_exposed_id(
-        &self,
-        args: &PostSubscriptionsSubscriptionExposedIdArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<Subscription>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder = post_subscriptions_subscription_exposed_id_builder(&self.http_client, args)?;
-        post_subscriptions_subscription_exposed_id_execute(builder)
-    }
-
-    /// DELETE /v1/subscriptions/{subscription_exposed_id}.
-    ///
-    /// Wrapper method with automatic state tracking.
-    pub fn stripe_subscriptions_delete_subscriptions_subscription_exposed_id(
-        &self,
-        args: &DeleteSubscriptionsSubscriptionExposedIdArgs,
-    ) -> Result<
-        impl StreamIterator<
-                D = Result<ApiResponse<Subscription>, crate::ApiError>,
-                P = crate::ApiPending,
-            > + Send
-            + 'static,
-        crate::ApiError,
-    > {
-        let builder =
-            delete_subscriptions_subscription_exposed_id_builder(&self.http_client, args)?;
-        delete_subscriptions_subscription_exposed_id_execute(builder)
-    }
+    Ok(builder
+        .build_send_request()
+        .map_err(|e: foundation_core::wire::simple_http::HttpClientError| {
+            super::shared::ApiError::RequestBuildFailed(e.to_string())
+        })?
+        .map_ready(|intro| match intro {
+            super::shared::RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status: usize = intro.0.into();
+                if status < 200 || status >= 300 {
+                    return Err(super::shared::ApiError::HttpStatus {
+                        code: status as u16,
+                        headers: headers.clone(),
+                        body: None,
+                    });
+                }
+                let body =
+                    foundation_core::wire::simple_http::client::body_reader::collect_string(stream);
+                let parsed: Subscription =
+                    serde_json::from_str(&body).map_err(|e: serde_json::Error| {
+                        super::shared::ApiError::ParseFailed(e.to_string())
+                    })?;
+                Ok(ApiResponse {
+                    status: status as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            super::shared::RequestIntro::Failed(e) => {
+                Err(super::shared::ApiError::RequestSendFailed(e.to_string()))
+            }
+        })
+        .map_pending(|_| super::shared::ApiPending::Sending))
 }
