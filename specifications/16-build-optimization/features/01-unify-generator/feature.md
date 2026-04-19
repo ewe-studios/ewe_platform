@@ -1,7 +1,8 @@
 ---
 name: "unify-generator"
 description: "Combine gen_resource_types, gen_provider_clients, gen_provider_wrappers into single gen_api command"
-status: "pending"
+status: "completed"
+completed: "2026-04-19"
 priority: "critical"
 created: 2026-04-18
 author: "Main Agent"
